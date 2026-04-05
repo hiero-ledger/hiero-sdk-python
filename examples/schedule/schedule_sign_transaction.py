@@ -17,6 +17,7 @@ Therefore, the only required signature for execution is the sender’s (new acco
 uv run examples/schedule/schedule_sign_transaction.py
 python examples/schedule/schedule_sign_transaction.py
 """
+
 import datetime
 import os
 import sys
@@ -66,9 +67,7 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id
@@ -96,12 +95,8 @@ def create_schedule(client, account_id):
     expiration_time = datetime.datetime.now() + datetime.timedelta(seconds=90)
 
     receipt = (
-        schedule_tx.set_payer_account_id(
-            client.operator_account_id
-        )  # payer of the transaction fee
-        .set_admin_key(
-            client.operator_private_key.public_key()
-        )  # delete/modify the transaction
+        schedule_tx.set_payer_account_id(client.operator_account_id)  # payer of the transaction fee
+        .set_admin_key(client.operator_private_key.public_key())  # delete/modify the transaction
         .set_expiration_time(Timestamp.from_date(expiration_time))
         .set_wait_for_expiry(False)  # don't wait for expiry, execute when signed
         .set_schedule_memo("Test schedule for signing")
@@ -109,9 +104,7 @@ def create_schedule(client, account_id):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Schedule creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Schedule creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Schedule created with ID: {receipt.schedule_id}")
@@ -149,7 +142,7 @@ def query_schedule_info(client, schedule_id, required_inner_keys=None):
     print(f"Wait For Expiry: {info.wait_for_expiry}")
     print(f"Collected Signers: {len(info.signers)}")
     for i, signer in enumerate(info.signers):
-        print(f"  Signer {i+1}: {signer}")
+        print(f"  Signer {i + 1}: {signer}")
 
     # Show which signatures are still missing for the inner txn, if provided
     if required_inner_keys:

@@ -12,6 +12,7 @@ The script walks through:
 Run with:
     uv run examples/tokens/token_create_transaction_max_automatic_token_associations_0.
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -39,9 +40,8 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
-def create_demo_token(
-    client: Client, operator_id: AccountId, operator_key: PrivateKey
-) -> TokenId:
+
+def create_demo_token(client: Client, operator_id: AccountId, operator_key: PrivateKey) -> TokenId:
     """Create a fungible token whose treasury is the operator."""
     print("\nSTEP 1: Creating the fungible demo token...")
     # Build and sign the fungible token creation transaction using the operator as treasury.
@@ -65,13 +65,9 @@ def create_demo_token(
     return receipt.token_id
 
 
-def create_max_account(
-    client: Client, operator_key: PrivateKey
-) -> tuple[AccountId, PrivateKey]:
+def create_max_account(client: Client, operator_key: PrivateKey) -> tuple[AccountId, PrivateKey]:
     """Create an account whose max automatic associations equals zero."""
-    print(
-        "\nSTEP 2: Creating account 'max' with max automatic associations set to 0..."
-    )
+    print("\nSTEP 2: Creating account 'max' with max automatic associations set to 0...")
     max_key = PrivateKey.generate()
     # Configure the new account to require explicit associations before accepting tokens.
     tx = (
@@ -98,10 +94,7 @@ def show_account_settings(client: Client, account_id: AccountId) -> None:
     print("\nSTEP 3: Querying account info...")
     # Fetch account information to verify configuration before attempting transfers.
     info = AccountInfoQuery(account_id).execute(client)
-    print(
-        f"Account {account_id} max_automatic_token_associations: "
-        f"{info.max_automatic_token_associations}"
-    )
+    print(f"Account {account_id} max_automatic_token_associations: {info.max_automatic_token_associations}")
     print(f"Token relationships currently tracked: {len(info.token_relationships)}")
 
 
@@ -137,16 +130,14 @@ def try_transfer(
             print(f"Transfer failed with status: {status.name}")
         return success
     except PrecheckError as err:
-        print(f"Precheck failed with status { _response_code_name(err.status) }")
+        print(f"Precheck failed with status {_response_code_name(err.status)}")
         return False
     except Exception as exc:  # pragma: no cover - unexpected runtime/network failures
         print(f"Unexpected error while transferring tokens: {exc}")
         return False
 
 
-def associate_token(
-    client: Client, account_id: AccountId, account_key: PrivateKey, token_id: TokenId
-) -> None:
+def associate_token(client: Client, account_id: AccountId, account_key: PrivateKey, token_id: TokenId) -> None:
     """Explicitly associate the token so the account can hold balances."""
     print("\nSTEP 5: Associating the token for account 'max'...")
     # Submit the token association signed by the new account's private key.

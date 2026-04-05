@@ -6,6 +6,7 @@ Example demonstrating account schedule creation.
 uv run examples/schedule/schedule_create_transaction.py
 python examples/schedule/schedule_create_transaction.py
 """
+
 import datetime
 import os
 import sys
@@ -56,9 +57,7 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id
@@ -110,25 +109,17 @@ def schedule_account_create():
     expiration_time = datetime.datetime.now() + datetime.timedelta(seconds=5)
 
     receipt = (
-        schedule_tx.set_payer_account_id(
-            client.operator_account_id
-        )  # payer of the transaction fee
-        .set_admin_key(
-            client.operator_private_key.public_key()
-        )  # delete/modify the transaction
+        schedule_tx.set_payer_account_id(client.operator_account_id)  # payer of the transaction fee
+        .set_admin_key(client.operator_private_key.public_key())  # delete/modify the transaction
         .set_expiration_time(Timestamp.from_date(expiration_time))
         .set_wait_for_expiry(True)  # wait to expire to execute
         .freeze_with(client)
-        .sign(
-            account_private_key
-        )  # sign with the account private key as it transfers money
+        .sign(account_private_key)  # sign with the account private key as it transfers money
         .execute(client)
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Schedule creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Schedule creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print("Transaction scheduled successfully!")
@@ -145,12 +136,8 @@ def schedule_account_create():
     account_balance(client, account_id)
 
     print("\nQuerying transaction record to check if it was executed...")
-    record_query = (
-        TransactionRecordQuery().set_transaction_id(scheduled_tx_id).execute(client)
-    )
-    print(
-        f"Transaction Record receipt status: {ResponseCode(record_query.receipt.status).name}"
-    )
+    record_query = TransactionRecordQuery().set_transaction_id(scheduled_tx_id).execute(client)
+    print(f"Transaction Record receipt status: {ResponseCode(record_query.receipt.status).name}")
 
 
 if __name__ == "__main__":

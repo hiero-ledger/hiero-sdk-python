@@ -92,6 +92,11 @@ target-version = "py310"
     "PERF",    # disable list compression
 ]
 
+"examples/**/*.py" = [
+    "T201",     # allow print statements
+    "PERF203",  # allow try-except inside loops
+]
+
 [tool.ruff.lint]
 select = [
     "E",    # pycodestyle errors

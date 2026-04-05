@@ -13,6 +13,7 @@ Usage:
     python examples/account/account_allowance_delete_transaction_nft.py
     uv run examples/account/account_allowance_delete_transaction_nft.py
 """
+
 import os
 import sys
 
@@ -81,9 +82,7 @@ def create_account(client, memo="Test Account"):
     try:
         receipt = tx
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"Account creation failed ({memo}): {ResponseCode(receipt.status).name}"
-            )
+            print(f"Account creation failed ({memo}): {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
         account_id = receipt.account_id
@@ -128,12 +127,7 @@ def create_nft_token(client, owner_id, owner_key):
 def mint_nft(client, token_id, metadata_list):
     """Mint NFT(s)."""
     try:
-        tx = (
-            TokenMintTransaction()
-            .set_token_id(token_id)
-            .set_metadata(metadata_list)
-            .execute(client)
-        )
+        tx = TokenMintTransaction().set_token_id(token_id).set_metadata(metadata_list).execute(client)
 
         receipt = tx
         if receipt.status != ResponseCode.SUCCESS:
@@ -141,9 +135,7 @@ def mint_nft(client, token_id, metadata_list):
             sys.exit(1)
 
         serials = receipt.serial_numbers
-        print(
-            f"NFT Owner ({client.operator_account_id}) minted {len(serials)} NFT(s) for Token {token_id}: {serials}"
-        )
+        print(f"NFT Owner ({client.operator_account_id}) minted {len(serials)} NFT(s) for Token {token_id}: {serials}")
         return [NftId(token_id, s) for s in serials]
     except Exception as e:
         print(f"NFT minting exception: {e}")
@@ -164,9 +156,7 @@ def associate_token_with_account(client, account_id, private_key, token_id):
 
         receipt = tx
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"Token association failed for {account_id}: {ResponseCode(receipt.status).name}"
-            )
+            print(f"Token association failed for {account_id}: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
         print(f"Associated token {token_id} with Receiver account {account_id}")
@@ -197,9 +187,7 @@ def approve_nft_allowance_all_serials(
             print(f"Allowance approval failed: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
-        print(
-            f"NFT Owner ({owner_id}) approved Spender ({spender_id}) for ALL serials of token {token_id}"
-        )
+        print(f"NFT Owner ({owner_id}) approved Spender ({spender_id}) for ALL serials of token {token_id}")
     except Exception as e:
         print(f"Allowance approval exception: {e}")
         sys.exit(1)
@@ -213,9 +201,7 @@ def delete_nft_allowance_all_serials(
     owner_key: PrivateKey,
 ):
     """Revokes an "approve for all serials" NFT allowance from a spender."""
-    print(
-        f"NFT Owner ({owner_id}) deleting 'approve for all' allowance for {token_id} from Spender ({spender_id})..."
-    )
+    print(f"NFT Owner ({owner_id}) deleting 'approve for all' allowance for {token_id} from Spender ({spender_id})...")
 
     try:
         tx = (
@@ -237,29 +223,19 @@ def delete_nft_allowance_all_serials(
         sys.exit(1)
 
 
-def verify_allowance_removed(
-    spender_client, nft_id: NftId, owner_id: AccountId, receiver_id: AccountId
-):
+def verify_allowance_removed(spender_client, nft_id: NftId, owner_id: AccountId, receiver_id: AccountId):
     """
     Try to transfer NFT after allowance removal (should fail).
 
     This transaction is paid for and signed by the SPENDER.
     """
-    print(
-        f"\nVerifying allowance removal by Spender ({spender_client.operator_account_id}) attempting transfer..."
-    )
+    print(f"\nVerifying allowance removal by Spender ({spender_client.operator_account_id}) attempting transfer...")
 
     try:
-        receipt = (
-            TransferTransaction()
-            .add_approved_nft_transfer(nft_id, owner_id, receiver_id)
-            .execute(spender_client)
-        )
+        receipt = TransferTransaction().add_approved_nft_transfer(nft_id, owner_id, receiver_id).execute(spender_client)
 
         if receipt.status == ResponseCode.SPENDER_DOES_NOT_HAVE_ALLOWANCE:
-            print(
-                "Verification SUCCEEDED: Transfer failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE as expected."
-            )
+            print("Verification SUCCEEDED: Transfer failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE as expected.")
         elif receipt.status == ResponseCode.SUCCESS:
             print("Verification FAILED: Transfer succeeded unexpectedly!")
             sys.exit(1)
@@ -291,14 +267,10 @@ def main():
         associate_token_with_account(owner_client, receiver_id, receiver_key, token_id)
 
         # 4. Approve allowance (for all serials)
-        approve_nft_allowance_all_serials(
-            owner_client, token_id, owner_id, spender_id, owner_key
-        )
+        approve_nft_allowance_all_serials(owner_client, token_id, owner_id, spender_id, owner_key)
 
         # 5. Delete the "all serials" allowance
-        delete_nft_allowance_all_serials(
-            owner_client, token_id, owner_id, spender_id, owner_key
-        )
+        delete_nft_allowance_all_serials(owner_client, token_id, owner_id, spender_id, owner_key)
 
         # 6. Verify deletion
         print("\nSetting up client for the Spender...")

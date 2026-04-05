@@ -5,6 +5,7 @@ Example demonstrating token unpause transaction.
 uv run examples/tokens/token_unpause_transaction.py
 python examples/tokens/token_unpause_transaction.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -26,6 +27,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def create_token(
     client: Client,
@@ -64,12 +66,7 @@ def pause_token(client: Client, token_id: TokenId, pause_key: PrivateKey):
     print("\nAttempting to pause the token...")
 
     try:
-        pause_tx = (
-            TokenPauseTransaction()
-            .set_token_id(token_id)
-            .freeze_with(client)
-            .sign(pause_key)
-        )
+        pause_tx = TokenPauseTransaction().set_token_id(token_id).freeze_with(client).sign(pause_key)
 
         receipt = pause_tx.execute(client)
 
@@ -102,12 +99,7 @@ def unpause_token():
 
     print("\nAttempting to Unpause the token...")
 
-    unpause_tx = (
-        TokenUnpauseTransaction()
-        .set_token_id(token_id)
-        .freeze_with(client)
-        .sign(pause_key)
-    )
+    unpause_tx = TokenUnpauseTransaction().set_token_id(token_id).freeze_with(client).sign(pause_key)
     receipt = unpause_tx.execute(client)
 
     try:

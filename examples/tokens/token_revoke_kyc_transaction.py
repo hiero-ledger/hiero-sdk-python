@@ -5,6 +5,7 @@ Example demonstrating token revoke kyc transaction.
 uv run examples/tokens/token_revoke_kyc_transaction.py
 python examples/tokens/token_revoke_kyc_transaction.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -32,6 +33,7 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
+
 def create_fungible_token(client, operator_id, operator_key, kyc_private_key):
     """Create a fungible token."""
     receipt = (
@@ -46,16 +48,12 @@ def create_fungible_token(client, operator_id, operator_key, kyc_private_key):
         .set_max_supply(1000)
         .set_admin_key(operator_key)
         .set_supply_key(operator_key)
-        .set_kyc_key(
-            kyc_private_key
-        )  # Required key for granting/revoking KYC approval to accounts
+        .set_kyc_key(kyc_private_key)  # Required key for granting/revoking KYC approval to accounts
         .execute(client)
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     token_id = receipt.token_id
@@ -77,9 +75,7 @@ def associate_token(client, token_id, account_id, account_private_key):
     receipt = associate_transaction.execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token association failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print("Token successfully associated with account")
@@ -103,9 +99,7 @@ def create_test_account(client):
 
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     # Get account ID from receipt
@@ -127,9 +121,7 @@ def grant_kyc(client, token_id, account_id, kyc_private_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token grant KYC failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token grant KYC failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Granted KYC for account {account_id} on token {token_id}")
@@ -177,9 +169,7 @@ def token_revoke_kyc():
 
     # Check if the transaction was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token revoke KYC failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token revoke KYC failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Revoked KYC for account {account_id} on token {token_id}")

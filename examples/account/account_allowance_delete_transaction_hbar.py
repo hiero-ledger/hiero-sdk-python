@@ -45,10 +45,7 @@ def create_account(client: Client):
     )
 
     if account_receipt.status != ResponseCode.SUCCESS:
-        print(
-            "Account creation failed with status: "
-            f"{ResponseCode(account_receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(account_receipt.status).name}")
         sys.exit(1)
 
     account_account_id = account_receipt.account_id
@@ -70,10 +67,7 @@ def approve_hbar_allowance(
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            "Hbar allowance approval failed with status: "
-            f"{ResponseCode(receipt.status).name}"
-        )
+        print(f"Hbar allowance approval failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Hbar allowance of {amount} approved for spender {spender_account_id}")
@@ -93,10 +87,7 @@ def delete_hbar_allowance(
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            "Hbar allowance deletion failed with status: "
-            f"{ResponseCode(receipt.status).name}"
-        )
+        print(f"Hbar allowance deletion failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Hbar allowance deleted for spender {spender_account_id}")
@@ -126,10 +117,7 @@ def transfer_hbar_with_allowance(
         print(f"Hbar transfer failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
-    print(
-        f"Successfully transferred {amount} from {owner_account_id} "
-        f"to {receiver_account_id} using allowance"
-    )
+    print(f"Successfully transferred {amount} from {owner_account_id} to {receiver_account_id} using allowance")
 
     return receipt
 
@@ -165,10 +153,7 @@ def transfer_hbar_without_allowance(
             f"{ResponseCode(receipt.status).name}"
         )
     else:
-        print(
-            "Hbar transfer successfully failed with "
-            f"{ResponseCode(receipt.status).name} status"
-        )
+        print(f"Hbar transfer successfully failed with {ResponseCode(receipt.status).name} status")
 
 
 def main():

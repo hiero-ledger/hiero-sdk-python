@@ -5,6 +5,7 @@ Example demonstrating token airdrop transaction.
 uv run examples/tokens/token_airdrop_transaction.py
 python examples/tokens/token_airdrop_transaction.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -43,9 +44,7 @@ def create_account(client, operator_key):
             .set_key_without_alias(recipient_key.public_key())
             .set_initial_balance(Hbar.from_tinybars(100_000_000))
         )
-        account_receipt = (
-            account_tx.freeze_with(client).sign(operator_key).execute(client)
-        )
+        account_receipt = account_tx.freeze_with(client).sign(operator_key).execute(client)
         recipient_id = account_receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
 
@@ -111,7 +110,7 @@ def mint_nft(client, operator_key, nft_id):
         mint_receipt = mint_tx.execute(client)
 
         serial_number = mint_receipt.serial_numbers[0]
-        print(f"✅ Success! Nft minted serial: { serial_number }.")
+        print(f"✅ Success! Nft minted serial: {serial_number}.")
         return serial_number
     except Exception as e:
         print(f"❌ Error minting nft: {e}")
@@ -122,9 +121,7 @@ def associate_tokens(client, recipient_id, recipient_key, tokens):
     """Associate the token and nft with the recipient."""
     print("\nAssociating tokens to recipient...")
     try:
-        assocciate_tx = TokenAssociateTransaction(
-            account_id=recipient_id, token_ids=tokens
-        )
+        assocciate_tx = TokenAssociateTransaction(account_id=recipient_id, token_ids=tokens)
         assocciate_tx.freeze_with(client)
         assocciate_tx.sign(recipient_key)
         assocciate_tx.execute(client)
@@ -147,9 +144,7 @@ def associate_tokens(client, recipient_id, recipient_key, tokens):
         sys.exit(1)
 
 
-def airdrop_tokens(
-    client, operator_id, operator_key, recipient_id, token_id, nft_id, serial_number
-):
+def airdrop_tokens(client, operator_id, operator_key, recipient_id, token_id, nft_id, serial_number):
     """
     Build and execute a TokenAirdropTransaction that transfers one fungible token.
 
@@ -157,9 +152,7 @@ def airdrop_tokens(
     """
     print(f"\nStep 6: Airdropping tokens to recipient {recipient_id}:")
     print(f"  - 1 fungible token TKA ({token_id})")
-    print(
-        f"  - NFT from NFTA collection ({nft_id}) with serial number #{serial_number}"
-    )
+    print(f"  - NFT from NFTA collection ({nft_id}) with serial number #{serial_number}")
     try:
         airdrop_tx = (
             TokenAirdropTransaction()
@@ -195,11 +188,7 @@ def _check_token_transfer_for_pair(record, token_id, operator_id, recipient_id):
             (v for k, v in token_transfers.items() if k == token_id), None
         )
         # Validate shape and compare expected amounts in a single expression
-        return (
-            isinstance(transfers, dict)
-            and transfers.get(operator_id) == -1
-            and transfers.get(recipient_id) == 1
-        )
+        return isinstance(transfers, dict) and transfers.get(operator_id) == -1 and transfers.get(recipient_id) == 1
     except Exception:
         return False
 
@@ -216,9 +205,7 @@ def _extract_nft_transfers(record):
         if nft_transfers is None:
             continue
         # Skip non-iterable or string-like values
-        if not hasattr(nft_transfers, "__iter__") or isinstance(
-            nft_transfers, (str, bytes)
-        ):
+        if not hasattr(nft_transfers, "__iter__") or isinstance(nft_transfers, (str, bytes)):
             continue
 
         for nft_transfer in nft_transfers:
@@ -251,9 +238,7 @@ def verify_transaction_record(
     }
 
     try:
-        record = TransactionRecordQuery(
-            transaction_id=airdrop_receipt.transaction_id
-        ).execute(client)
+        record = TransactionRecordQuery(transaction_id=airdrop_receipt.transaction_id).execute(client)
     except Exception as e:
         print(f"❌ Error fetching transaction record: {e}")
         return result
@@ -261,9 +246,7 @@ def verify_transaction_record(
     result["record"] = record
 
     # Token transfer check (delegated)
-    result["expected_token_transfer"] = _check_token_transfer_for_pair(
-        record, token_id, operator_id, recipient_id
-    )
+    result["expected_token_transfer"] = _check_token_transfer_for_pair(record, token_id, operator_id, recipient_id)
 
     # NFT transfers: extract and then look for a matching entry
     nft_serials = _extract_nft_transfers(record)
@@ -271,10 +254,7 @@ def verify_transaction_record(
 
     # Single-pass confirmation using any() to keep branching minimal
     result["nft_transfer_confirmed"] = any(
-        token_key == nft_id
-        and sender == operator_id
-        and receiver == recipient_id
-        and serial == serial_number
+        token_key == nft_id and sender == operator_id and receiver == recipient_id and serial == serial_number
         for token_key, serial, sender, receiver in nft_serials
     )
 
@@ -285,7 +265,6 @@ def verify_post_airdrop_balances(
     client: Client,
     operator_id,
     recipient_id,
-    token_id,
     nft_id,
     serial_number,
     balances_before,
@@ -314,9 +293,7 @@ def verify_post_airdrop_balances(
     # Get current account info and balances using AccountInfoQuery (more robust)
     try:
         sender_info = AccountInfoQuery(account_id=operator_id).execute(client)
-        sender_current = {
-            rel.token_id: rel.balance for rel in sender_info.token_relationships
-        }
+        sender_current = {rel.token_id: rel.balance for rel in sender_info.token_relationships}
     except Exception as e:
         details["error"] = f"Error fetching sender account info: {e}"
         details["fully_verified"] = False
@@ -324,9 +301,7 @@ def verify_post_airdrop_balances(
 
     try:
         recipient_info = AccountInfoQuery(account_id=recipient_id).execute(client)
-        recipient_current = {
-            rel.token_id: rel.balance for rel in recipient_info.token_relationships
-        }
+        recipient_current = {rel.token_id: rel.balance for rel in recipient_info.token_relationships}
     except Exception as e:
         details["error"] = f"Error fetching recipient account info: {e}"
         details["fully_verified"] = False
@@ -378,12 +353,8 @@ def _log_balances_before(client, operator_id, recipient_id, token_id, nft_id):
     recipient_info = AccountInfoQuery(account_id=recipient_id).execute(client)
 
     # Build dictionaries for balances from token_relationships (more robust than balance query)
-    sender_balances_before = {
-        rel.token_id: rel.balance for rel in sender_info.token_relationships
-    }
-    recipient_balances_before = {
-        rel.token_id: rel.balance for rel in recipient_info.token_relationships
-    }
+    sender_balances_before = {rel.token_id: rel.balance for rel in sender_info.token_relationships}
+    recipient_balances_before = {rel.token_id: rel.balance for rel in recipient_info.token_relationships}
 
     print(f"Sender ({operator_id}) balances before airdrop:")
     print(f"  {token_id}: {sender_balances_before.get(token_id, 0)}")
@@ -407,15 +378,9 @@ def _print_verification_summary(
     print(
         f"  - Token transfer verification (fungible): {'OK' if record_result.get('expected_token_transfer') else 'MISSING'}"
     )
-    print(
-        f"  - NFT transfer seen in record: {'OK' if record_result.get('nft_transfer_confirmed') else 'MISSING'}"
-    )
-    print(
-        f"  - NFT owner according to TokenNftInfoQuery: {verification_details.get('nft_owner')}"
-    )
-    print(
-        f"  - NFT owner matches recipient: {'YES' if verification_details.get('owner_matches') else 'NO'}"
-    )
+    print(f"  - NFT transfer seen in record: {'OK' if record_result.get('nft_transfer_confirmed') else 'MISSING'}")
+    print(f"  - NFT owner according to TokenNftInfoQuery: {verification_details.get('nft_owner')}")
+    print(f"  - NFT owner matches recipient: {'YES' if verification_details.get('owner_matches') else 'NO'}")
 
     if verification_details.get("fully_verified"):
         print(
@@ -440,17 +405,13 @@ def _print_final_summary(
     # Use AccountInfoQuery for accurate balance retrieval if not already cached
     if verification_details.get("sender_balances_after") is None:
         sender_info = AccountInfoQuery(account_id=operator_id).execute(client)
-        sender_balances_after = {
-            rel.token_id: rel.balance for rel in sender_info.token_relationships
-        }
+        sender_balances_after = {rel.token_id: rel.balance for rel in sender_info.token_relationships}
     else:
         sender_balances_after = verification_details.get("sender_balances_after")
 
     if verification_details.get("recipient_balances_after") is None:
         recipient_info = AccountInfoQuery(account_id=recipient_id).execute(client)
-        recipient_balances_after = {
-            rel.token_id: rel.balance for rel in recipient_info.token_relationships
-        }
+        recipient_balances_after = {rel.token_id: rel.balance for rel in recipient_info.token_relationships}
     else:
         recipient_balances_after = verification_details.get("recipient_balances_after")
 
@@ -516,9 +477,7 @@ def token_airdrop():
     )
 
     # Airdrop the tokens (separated into its own function)
-    airdrop_receipt = airdrop_tokens(
-        client, operator_id, operator_key, recipient_id, token_id, nft_id, serial_number
-    )
+    airdrop_receipt = airdrop_tokens(client, operator_id, operator_key, recipient_id, token_id, nft_id, serial_number)
 
     # 1) Verify record contents (token transfers and nft transfers)
     record_result = verify_transaction_record(

@@ -96,9 +96,7 @@ def create_new_account(client: Client) -> None:
             print(f"   New Account Private Key: {new_account_private_key.to_string()}")
             print(f"   New Account Public Key: {new_account_public_key.to_string()}")
         else:
-            raise Exception(
-                "AccountID not found in receipt.  Account may not have been created."
-            )
+            raise Exception("AccountID not found in receipt.  Account may not have been created.")
 
     except Exception as e:
         print(f"❌ Account creation failed: {str(e)}")

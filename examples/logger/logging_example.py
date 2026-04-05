@@ -12,6 +12,7 @@ Usage:
     uv run examples/logger/logging_example.py
     python examples/logger/logging_example.py
 """
+
 import os
 
 from dotenv import load_dotenv

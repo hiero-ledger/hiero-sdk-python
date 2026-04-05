@@ -6,6 +6,7 @@ This example demonstrates how to query file info using the Python SDK.
 uv run examples/file/file_info_query.py
 python examples/file/file_info_query.py
 """
+
 import os
 import sys
 
@@ -41,9 +42,7 @@ def create_file(client: Client):
 
     receipt = (
         FileCreateTransaction()
-        .set_keys(
-            [file_private_key.public_key(), client.operator_private_key.public_key()]
-        )
+        .set_keys([file_private_key.public_key(), client.operator_private_key.public_key()])
         .set_contents(b"Hello, this is a test file for querying!")
         .set_file_memo("Test file for query")
         .freeze_with(client)

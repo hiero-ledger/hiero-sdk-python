@@ -5,6 +5,7 @@ Example demonstrating topic update transaction.
 uv run examples/consensus/topic_update_transaction.py
 python examples/consensus/topic_update_transaction.py
 """
+
 import os
 import sys
 
@@ -47,9 +48,7 @@ def create_topic(client, operator_key):
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
-            TopicCreateTransaction(
-                memo="Python SDK created topic", admin_key=operator_key.public_key()
-            )
+            TopicCreateTransaction(memo="Python SDK created topic", admin_key=operator_key.public_key())
             .freeze_with(client)
             .sign(operator_key)
         )
@@ -73,11 +72,7 @@ def update_topic(new_memo):
 
     # Update the Topic
     print("\nSTEP 2: Updating Topic...")
-    transaction = (
-        TopicUpdateTransaction(topic_id=topic_id, memo=new_memo)
-        .freeze_with(client)
-        .sign(operator_key)
-    )
+    transaction = TopicUpdateTransaction(topic_id=topic_id, memo=new_memo).freeze_with(client).sign(operator_key)
 
     try:
         receipt = transaction.execute(client)

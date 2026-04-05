@@ -6,6 +6,7 @@ Example demonstrating schedule deletion on the network.
 uv run examples/schedule/schedule_delete_transaction.py
 python examples/schedule/schedule_delete_transaction.py
 """
+
 import datetime
 import os
 import sys
@@ -61,9 +62,7 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id
@@ -91,25 +90,17 @@ def create_schedule(client, account_id, account_private_key):
     expiration_time = datetime.datetime.now() + datetime.timedelta(seconds=90)
 
     receipt = (
-        schedule_tx.set_payer_account_id(
-            client.operator_account_id
-        )  # payer of the transaction fee
-        .set_admin_key(
-            client.operator_private_key.public_key()
-        )  # delete/modify the transaction
+        schedule_tx.set_payer_account_id(client.operator_account_id)  # payer of the transaction fee
+        .set_admin_key(client.operator_private_key.public_key())  # delete/modify the transaction
         .set_expiration_time(Timestamp.from_date(expiration_time))
         .set_wait_for_expiry(True)  # wait to expire to execute
         .freeze_with(client)
-        .sign(
-            account_private_key
-        )  # sign with the account private key as it transfers money
+        .sign(account_private_key)  # sign with the account private key as it transfers money
         .execute(client)
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Schedule creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Schedule creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Schedule created with ID: {receipt.schedule_id}")
@@ -139,9 +130,7 @@ def schedule_delete():
     receipt = ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Schedule deletion failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Schedule deletion failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(client)

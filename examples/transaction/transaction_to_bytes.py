@@ -13,6 +13,7 @@ Run with:
   uv run examples/transaction/transaction_to_bytes.py
   python examples/transaction/transaction_to_bytes.py
 """
+
 import os
 import sys
 
@@ -52,9 +53,7 @@ def setup_client() -> Client:
         sys.exit(1)
 
 
-def create_and_freeze_transaction(
-    client: Client, sender: AccountId, receiver: AccountId
-):
+def create_and_freeze_transaction(client: Client, sender: AccountId, receiver: AccountId):
     """Create and freeze a simple HBAR transfer transaction."""
     tx = (
         TransferTransaction()

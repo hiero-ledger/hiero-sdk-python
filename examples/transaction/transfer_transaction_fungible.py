@@ -5,6 +5,7 @@ Example demonstrating transfer transaction fungible.
 uv run examples/transaction/transfer_transaction_fungible.py
 python examples/transaction/transfer_transaction_fungible.py
 """
+
 import os
 import sys
 

@@ -8,6 +8,7 @@ run:
 uv run examples/errors/precheck_error.py
 python examples/errors/precheck_error.py
 """
+
 from hiero_sdk_python import AccountId, Client, TransferTransaction
 from hiero_sdk_python.exceptions import PrecheckError
 
@@ -27,7 +28,7 @@ def main() -> None:
         TransferTransaction()
         .add_hbar_transfer(operator_id, -1)
         .add_hbar_transfer(AccountId(0, 0, 3), 1)
-        .set_transaction_valid_duration(1) 
+        .set_transaction_valid_duration(1)
         .freeze_with(client)
         .sign(operator_key)
     )
@@ -45,6 +46,7 @@ def main() -> None:
 
     except Exception as e:
         print(f"\nAn unexpected error occurred: {type(e).__name__}: {e}")
+
 
 if __name__ == "__main__":
     main()

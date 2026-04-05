@@ -16,6 +16,7 @@ Usage:
     python -m examples.contract.contract_create_transaction_with_bytecode
 
 """
+
 import os
 import sys
 
@@ -74,9 +75,7 @@ def contract_create_with_bytecode():
 
     # Check if contract creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Contract creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     contract_id = receipt.contract_id

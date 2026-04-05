@@ -16,6 +16,7 @@ It creates two fungible tokens:
 
 Then, it attempts to update the custom fees for both tokens to demonstrate the difference.
 """
+
 import sys
 
 from hiero_sdk_python import Client, PrivateKey
@@ -41,6 +42,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def create_token_with_fee_key(client, operator_id):
     """Create a fungible token with a fee_schedule_key."""
@@ -116,15 +118,9 @@ def query_token_fees(client, token_id, description):
 def attempt_fee_update(client, token_id, fee_schedule_key, description):
     """Attempt to update custom fees for a token."""
     print(f"\nAttempting to update fees for {description}...")
-    new_fees = [
-        CustomFixedFee(amount=200, fee_collector_account_id=client.operator_account_id)
-    ]
+    new_fees = [CustomFixedFee(amount=200, fee_collector_account_id=client.operator_account_id)]
 
-    tx = (
-        TokenFeeScheduleUpdateTransaction()
-        .set_token_id(token_id)
-        .set_custom_fees(new_fees)
-    )
+    tx = TokenFeeScheduleUpdateTransaction().set_token_id(token_id).set_custom_fees(new_fees)
 
     if fee_schedule_key:
         tx.freeze_with(client).sign(fee_schedule_key)
@@ -147,31 +143,19 @@ def main():
     try:
         # Create token with fee_schedule_key
         token_with_key, fee_key = create_token_with_fee_key(client, operator_id)
-        query_token_fees(
-            client, token_with_key, "Token with fee_schedule_key (initial)"
-        )
+        query_token_fees(client, token_with_key, "Token with fee_schedule_key (initial)")
 
         # Create token without fee_schedule_key
         token_without_key = create_token_without_fee_key(client, operator_id)
-        query_token_fees(
-            client, token_without_key, "Token without fee_schedule_key (initial)"
-        )
+        query_token_fees(client, token_without_key, "Token without fee_schedule_key (initial)")
 
         # Attempt updates
-        attempt_fee_update(
-            client, token_with_key, fee_key, "token with fee_schedule_key"
-        )
-        attempt_fee_update(
-            client, token_without_key, None, "token without fee_schedule_key"
-        )
+        attempt_fee_update(client, token_with_key, fee_key, "token with fee_schedule_key")
+        attempt_fee_update(client, token_without_key, None, "token without fee_schedule_key")
 
         # Query final fees
-        query_token_fees(
-            client, token_with_key, "Token with fee_schedule_key (after update)"
-        )
-        query_token_fees(
-            client, token_without_key, "Token without fee_schedule_key (after update)"
-        )
+        query_token_fees(client, token_with_key, "Token with fee_schedule_key (after update)")
+        query_token_fees(client, token_without_key, "Token without fee_schedule_key (after update)")
 
     except Exception as e:
         print(f"Error during operations: {e}")

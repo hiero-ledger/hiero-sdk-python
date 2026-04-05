@@ -42,9 +42,7 @@ def file_create():
     # Create file
     receipt = (
         FileCreateTransaction()
-        .set_keys(
-            file_private_key.public_key()
-        )  # Set the keys required to sign any modifications to this file
+        .set_keys(file_private_key.public_key())  # Set the keys required to sign any modifications to this file
         .set_contents(b"Hello, this is the content of my file on Hedera!")
         .set_file_memo("My first file on Hedera")
         .freeze_with(client)

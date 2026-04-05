@@ -5,6 +5,7 @@ This module contains the bytecode constants for the contracts.
 
 and configuration constants for the contracts.
 """
+
 from .contract_utils import (  # Bytecode constants; Configuration constants
     CONSTRUCTOR_TEST_CONTRACT_BYTECODE,
     CONTRACT_DEPLOY_GAS,

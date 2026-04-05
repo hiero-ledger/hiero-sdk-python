@@ -7,6 +7,7 @@ Example: Use CryptoGetAccountBalanceQuery to retrieve an account's.
 
 HBAR and token balances, including minting NFTs to the account.
 """
+
 import os
 import sys
 
@@ -52,9 +53,7 @@ def create_account(client, name, initial_balance=Hbar(10)):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id
@@ -83,13 +82,11 @@ def create_and_mint_token(treasury_account_id, treasury_account_key, client):
             .execute(client)
         ).token_id
 
-        TokenMintTransaction().set_token_id(token_id).set_metadata(
-            metadata_list
-        ).freeze_with(client).sign(supply_key).execute(client)
+        TokenMintTransaction().set_token_id(token_id).set_metadata(metadata_list).freeze_with(client).sign(
+            supply_key
+        ).execute(client)
 
-        total_supply = (
-            TokenInfoQuery().set_token_id(token_id).execute(client).total_supply
-        )
+        total_supply = TokenInfoQuery().set_token_id(token_id).execute(client).total_supply
         print(f"✅ Created NFT {token_id} — total supply: {total_supply}")
         return token_id
     except (ValueError, TypeError, RuntimeError, ConnectionError) as error:
@@ -102,9 +99,7 @@ def get_account_balance(client: Client, account_id: AccountId):
     print(f"Retrieving account balance for account id: {account_id}  ...")
     try:
         # Use CryptoGetAccountBalanceQuery to get the account balance
-        account_balance = (
-            CryptoGetAccountBalanceQuery().set_account_id(account_id).execute(client)
-        )
+        account_balance = CryptoGetAccountBalanceQuery().set_account_id(account_id).execute(client)
         print("✅ Account balance retrieved successfully!")
         # Print account balance with account_id context
         print(f"💰 HBAR Balance for {account_id}: {account_balance.hbars} hbars")
@@ -116,14 +111,9 @@ def get_account_balance(client: Client, account_id: AccountId):
 
 
 # OPTIONAL comparison function
-def compare_token_balances(
-    client, treasury_id: AccountId, receiver_id: AccountId, token_id: TokenId
-):
+def compare_token_balances(client, treasury_id: AccountId, receiver_id: AccountId, token_id: TokenId):
     """Compare token balances between two accounts."""
-    print(
-        f"\n🔎 Comparing token balances for Token ID {token_id} "
-        f"between accounts {treasury_id} and {receiver_id}..."
-    )
+    print(f"\n🔎 Comparing token balances for Token ID {token_id} between accounts {treasury_id} and {receiver_id}...")
     # retrieve balances for both accounts
     treasury_balance = get_account_balance(client, treasury_id)
     receiver_balance = get_account_balance(client, receiver_id)
@@ -154,9 +144,7 @@ def main():
     # Retrieve and display account balance for the test account
     get_account_balance(client, test_account_id)
     # OPTIONAL comparison of token balances between test account and operator account
-    compare_token_balances(
-        client, test_account_id, client.operator_account_id, token_id
-    )
+    compare_token_balances(client, test_account_id, client.operator_account_id, token_id)
 
 
 if __name__ == "__main__":
