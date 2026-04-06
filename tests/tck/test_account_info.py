@@ -1,12 +1,13 @@
-import importlib
+"""Unit tests for the GetAccountInfo TCK endpoint."""
+
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_info import AccountInfo
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
@@ -18,6 +19,7 @@ from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 from tck.errors import HIERO_ERROR, JsonRpcError
 from tck.handlers import registry
+from tck.handlers.account import get_account_info
 from tck.handlers.registry import dispatch
 from tck.param.account import GetAccountInfoParams
 from tck.util import client_utils
@@ -26,13 +28,13 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.fixture(autouse=True)
-def clear_registry_and_clients():
+def setup_registry_and_clients():
+    """Reset handler and client registries for isolated test execution."""
     registry._HANDLERS.clear()
     client_utils._CLIENTS.clear()
 
-    import tck.handlers.account as account_handlers
+    registry.rpc_method("getAccountInfo")(get_account_info)
 
-    importlib.reload(account_handlers)
     yield
 
     registry._HANDLERS.clear()
@@ -41,10 +43,12 @@ def clear_registry_and_clients():
 
 @pytest.fixture
 def params_dict():
+    """Provide a valid getAccountInfo request payload."""
     return {"accountId": "0.0.123", "sessionId": "sess1"}
 
 
 def test_parse_json_params_success(params_dict):
+    """parse_json_params should parse both accountId and sessionId."""
     params = GetAccountInfoParams.parse_json_params(params_dict)
 
     assert params.accountId == "0.0.123"
@@ -52,6 +56,7 @@ def test_parse_json_params_success(params_dict):
 
 
 def test_parse_json_params_missing_account_id_defaults_to_none():
+    """parse_json_params should allow missing accountId and keep it None."""
     params = GetAccountInfoParams.parse_json_params({"sessionId": "sess1"})
 
     assert params.accountId is None
@@ -61,6 +66,7 @@ def test_parse_json_params_missing_account_id_defaults_to_none():
 @patch("tck.handlers.account.get_client")
 @patch("hiero_sdk_python.query.account_info_query.AccountInfoQuery.execute")
 def test_get_account_info_success_mapping(mock_execute, mock_get_client, params_dict):
+    """Endpoint should map AccountInfo response fields to TCK response shape."""
     mock_get_client.return_value = MagicMock()
 
     key = PrivateKey.generate_ed25519().public_key()
@@ -142,6 +148,7 @@ def test_get_account_info_success_mapping(mock_execute, mock_get_client, params_
 
 
 def test_get_account_info_missing_account_id_maps_to_hiero_error():
+    """Missing accountId should map to HIERO_ERROR with INVALID_ACCOUNT_ID."""
     with pytest.raises(JsonRpcError) as exception:
         dispatch("getAccountInfo", {"sessionId": "sess1"})
 
@@ -150,6 +157,7 @@ def test_get_account_info_missing_account_id_maps_to_hiero_error():
 
 
 def test_get_account_info_invalid_account_id_maps_to_hiero_error():
+    """Malformed accountId should map to HIERO_ERROR with INVALID_ACCOUNT_ID."""
     with pytest.raises(JsonRpcError) as exception:
         dispatch("getAccountInfo", {"sessionId": "sess1", "accountId": "invalid-id"})
 
@@ -160,6 +168,7 @@ def test_get_account_info_invalid_account_id_maps_to_hiero_error():
 @patch("tck.handlers.account.get_client")
 @patch("hiero_sdk_python.query.account_info_query.AccountInfoQuery.execute")
 def test_get_account_info_precheck_error_maps_to_hiero_error(mock_execute, mock_get_client):
+    """SDK PrecheckError should map to HIERO_ERROR preserving response status."""
     mock_get_client.return_value = MagicMock()
     mock_execute.side_effect = PrecheckError(status=ResponseCode.ACCOUNT_DELETED)
 
