@@ -79,6 +79,22 @@ function buildBody({ prompt, headRef }) {
   ].join("\n");
 }
 
+function getSkipReason(pr) {
+  if (!pr) {
+    return "No pull_request payload; exiting.";
+  }
+
+  if (!["MEMBER", "OWNER"].includes(pr.author_association)) {
+    return `author_association=${pr.author_association}; skipping.`;
+  }
+
+  if (!(pr.title || "").toLowerCase().startsWith("chore: release v")) {
+    return "Not a release PR title; skipping.";
+  }
+
+  return null;
+}
+
 module.exports = async ({ github, context }) => {
   let issue_number = "unknown";
   let headRef = "?";
@@ -89,21 +105,9 @@ module.exports = async ({ github, context }) => {
     const repo = context.repo.repo;
     const pr = context.payload.pull_request;
 
-    if (!pr) {
-      console.log("No pull_request payload; exiting.");
-      return;
-    }
-
-    // Safety: only maintainers
-    const assoc = pr.author_association;
-    if (!(assoc === "MEMBER" || assoc === "OWNER")) {
-      console.log(`author_association=${assoc}; skipping.`);
-      return;
-    }
-
-    const title = pr.title || "";
-    if (!title.toLowerCase().startsWith("chore: release v")) {
-      console.log("Not a release PR title; skipping.");
+    const skipReason = getSkipReason(pr);
+    if (skipReason) {
+      console.log(skipReason);
       return;
     }
 
