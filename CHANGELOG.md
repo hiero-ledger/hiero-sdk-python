@@ -7,7 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
-- 
+- Add global `set_default_max_transaction_fee()` to Client. ([#2000](https://github.com/hiero-ledger/hiero-sdk-python/issues/2000))
 
 ### Tests
 - Refactor `mock_server` setup for network level TLS handling and added thread safety

@@ -73,6 +73,8 @@ class Client:
 
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
+        self.default_max_transaction_fee: Hbar | None = None
+
     @classmethod
     def from_env(cls, network: Optional[NetworkName] = None) -> "Client":
         """
@@ -453,6 +455,29 @@ class Client:
             raise ValueError("max_backoff cannot be less than min_backoff")
 
         self._max_backoff = float(max_backoff)
+        return self
+
+    def set_default_max_transaction_fee(
+        self, default_max_transaction_fee: Hbar
+    ) -> "Client":
+        """
+        Set the maximum fee allowed per transaction.
+
+        Args:
+            default_max_transaction_fee (Hbar): Maximum fee allowed per transaction.
+
+        Returns:
+            Client: This client instance for fluent chaining.
+        """
+        if not isinstance(default_max_transaction_fee, Hbar):
+            raise TypeError(
+                f"default_max_transaction_fee must be of type Hbar, got {(type(default_max_transaction_fee).__name__)}"
+            )
+
+        if default_max_transaction_fee.to_tinybars() < 0:
+            raise ValueError("default_max_transaction_fee must be >= 0")
+
+        self.default_max_transaction_fee = default_max_transaction_fee
         return self
 
     def update_network(self) -> "Client":

@@ -9,8 +9,13 @@ and expected behavior.
 import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
 
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
@@ -18,6 +23,17 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 
 
 pytestmark = pytest.mark.unit
+
+
+class _DummyTransaction(Transaction):
+    def build_transaction_body(self):
+        return self.build_base_transaction_body()
+
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
+        return SchedulableTransactionBody()
+
+    def _get_method(self, channel):
+        raise NotImplementedError
 
 
 def test_freeze_without_transaction_id_raises_error():
@@ -616,6 +632,82 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
 
     assert unsigned_bytes != signed_bytes
     assert isinstance(signed_bytes, bytes)
+
+
+@pytest.mark.parametrize("value", [0, 1, 100_000_000, Hbar(1)])
+def test_set_transaction_fee(value):
+    """set_transaction_fee() stores valid integer and hbar fees."""
+    transaction = TransferTransaction()
+
+    returned = transaction.set_transaction_fee(value)
+
+    assert returned is transaction
+    assert transaction.transaction_fee == value
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "hello from Anto :D",
+        1.5,
+        [100_000_000],
+        {"transaction_fee": 100_000_000},
+    ],
+)
+def test_set_transaction_fee_invalid_type(value):
+    """set_transaction_fee() rejects non-integer fees."""
+    transaction = TransferTransaction()
+
+    with pytest.raises(
+        TypeError,
+        match=f"transaction_fee must be an int or Hbar, got {type(value).__name__}",
+    ):
+        transaction.set_transaction_fee(value)
+
+
+@pytest.mark.parametrize("value", [-1, -100_000_000, Hbar(-1)])
+def test_set_transaction_fee_invalid_value(value):
+    """set_transaction_fee() rejects negative fees."""
+    transaction = TransferTransaction()
+
+    with pytest.raises(
+        ValueError,
+        match="transaction_fee must be >= 0",
+    ):
+        transaction.set_transaction_fee(value)
+
+
+def test_freeze_with_uses_explicit_transaction_fee(mock_client):
+    """freeze_with() preserves an explicitly-set transaction fee."""
+    transaction = TransferTransaction().set_transaction_fee(123_456)
+    mock_client.default_max_transaction_fee = Hbar(7)
+
+    transaction.freeze_with(mock_client)
+
+    assert transaction.transaction_fee == 123_456
+
+
+def test_freeze_with_uses_client_default_max_transaction_fee(mock_client):
+    """freeze_with() uses the client's default max transaction fee when unset."""
+    transaction = _DummyTransaction()
+    mock_client.default_max_transaction_fee = Hbar(7)
+
+    transaction.freeze_with(mock_client)
+
+    assert transaction.transaction_fee == Hbar(7)
+
+
+def test_freeze_with_uses_transaction_default_fee_when_client_default_is_unset(
+    mock_client,
+):
+    """freeze_with() falls back to the transaction default fee when no fee is set."""
+    transaction = _DummyTransaction()
+    mock_client.default_max_transaction_fee = None
+
+    transaction.freeze_with(mock_client)
+
+    assert transaction.transaction_fee == transaction._default_transaction_fee
+    assert transaction.transaction_fee == Hbar(2)
 
 def test_transaction_freeze_with_node_ids(mock_client):
     """

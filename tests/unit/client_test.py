@@ -5,7 +5,7 @@ Unit tests for Client methods (eg. from_env, for_testnet, for_mainnet, for_previ
 from decimal import Decimal
 import os
 import pytest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 from hiero_sdk_python.client import client as client_module
 
@@ -456,6 +456,52 @@ def test_set_max_backoff_less_than_min_backoff():
         assert returned is client
 
 
+def test_set_default_max_transaction_fee():
+    """Test that set_default_max_transaction_fee updates default value of default_max_transaction_fee."""
+    client = Client.for_testnet()
+    assert client.default_max_transaction_fee is None  # default default_max_transaction_fee == None
+
+    setted_default_max_transaction_fee = Hbar(2)
+    client.set_default_max_transaction_fee(setted_default_max_transaction_fee)
+    assert client.default_max_transaction_fee == setted_default_max_transaction_fee
+
+    returned = client.set_default_max_transaction_fee(Hbar(1))
+
+    assert returned is client
+
+    client.close()
+
+
+@pytest.mark.parametrize(
+    "invalid_default_max_transaction_fee",
+    [
+        "Hi from Anto :D",
+        True,
+        18,
+        float(18),
+        ["True", 1, float(1)],
+        {"default_max_transaction_fee": Hbar(2)},
+    ],
+)
+def test_set_invalid_type_default_max_transaction_fee(invalid_default_max_transaction_fee):
+    """Test that set invalid Type with set_max_transaction fee."""
+    client = Client.for_testnet()
+
+    with pytest.raises(
+        TypeError,
+        match=f"default_max_transaction_fee must be of type Hbar, got {(type(invalid_default_max_transaction_fee).__name__)}",
+    ):
+        client.set_default_max_transaction_fee(invalid_default_max_transaction_fee)
+
+
+def test_set_invalid_value_default_max_transaction_fee():
+    """Test that set invalid value with set_max_transaction fee."""
+    client = Client.for_testnet()
+
+    with pytest.raises(ValueError, match="default_max_transaction_fee must be >= 0"):
+        client.set_default_max_transaction_fee(Hbar(-1))
+
+
 # Test update_network
 def test_update_network_refreshes_nodes_and_returns_self():
     """Test that update_network refreshes network nodes and returns the client."""
@@ -468,6 +514,7 @@ def test_update_network_refreshes_nodes_and_returns_self():
         assert returned is client
 
     client.close()
+
 
 def test_warning_when_grpc_deadline_exceeds_request_timeout():
     """Warn when grpc_deadline is greater than request_timeout."""

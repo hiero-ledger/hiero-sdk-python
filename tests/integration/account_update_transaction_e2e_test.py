@@ -3,7 +3,6 @@ Integration tests for the AccountUpdateTransaction class.
 """
 
 import pytest
-import datetime
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
@@ -16,6 +15,7 @@ from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from tests.integration.utils import env
+from hiero_sdk_python.exceptions import PrecheckError
 
 
 @pytest.mark.integration
@@ -269,19 +269,6 @@ def test_integration_account_update_transaction_invalid_auto_renew_period(env):
     info_after = AccountInfoQuery(account_id).execute(env.client)
     assert info_after.expiration_time == original_info.expiration_time
 
-def _apply_tiny_max_fee_if_supported(tx, client) -> bool:
-    # Try tx-level setters
-    for attr in ("set_max_transaction_fee", "set_max_fee", "set_transaction_fee"):
-        if hasattr(tx, attr):
-            getattr(tx, attr)(Hbar.from_tinybars(1))
-            return True
-    # Try client-level default
-    for attr in ("set_default_max_transaction_fee", "set_max_transaction_fee",
-                 "set_default_max_fee", "setMaxTransactionFee"):
-        if hasattr(client, attr):
-            getattr(client, attr)(Hbar.from_tinybars(1))
-            return True
-    return False
 
 @pytest.mark.integration
 def test_account_update_insufficient_fee_with_valid_expiration_bump(env):
@@ -307,19 +294,20 @@ def test_account_update_insufficient_fee_with_valid_expiration_bump(env):
         AccountUpdateTransaction()
         .set_account_id(account_id)
         .set_expiration_time(new_expiry)
+        .set_transaction_fee(Hbar.from_tinybars(1))
     )
 
-    if not _apply_tiny_max_fee_if_supported(tx, env.client):
-        pytest.skip("SDK lacks a max-fee API; cannot deterministically trigger INSUFFICIENT_TX_FEE.")
+    with pytest.raises(PrecheckError) as exc_info:
+        tx.execute(env.client)
 
-    receipt = tx.execute(env.client)
-    assert receipt.status == ResponseCode.INSUFFICIENT_TX_FEE, (
-        f"Expected INSUFFICIENT_TX_FEE but got {ResponseCode(receipt.status).name}"
-    )
+    assert (
+        exc_info.value.status == ResponseCode.INSUFFICIENT_TX_FEE
+    ), f"Expected INSUFFICIENT_TX_FEE but got {ResponseCode(exc_info.value.status).name}"
 
     # Confirm expiration time did not change
     info_after = AccountInfoQuery(account_id).execute(env.client)
     assert int(info_after.expiration_time.seconds) == base_expiry_secs
+
 
 @pytest.mark.integration
 def test_integration_account_update_transaction_with_only_account_id(env):
@@ -351,7 +339,9 @@ def test_integration_account_update_transaction_with_only_account_id(env):
 
 
 @pytest.mark.integration
-def test_integration_account_update_transaction_with_max_automatic_token_associations(env):
+def test_integration_account_update_transaction_with_max_automatic_token_associations(
+    env
+):
     """Test updating max_automatic_token_associations and verifying it persists."""
     # Create initial account
     receipt = (
@@ -423,9 +413,15 @@ def test_integration_account_update_transaction_with_staking_fields(env):
 
     # Verify staking info reflects the updated values
     info = AccountInfoQuery(account_id).execute(env.client)
-    assert info.staking_info.staked_account_id == staked_account_id, "Staked account ID should match"
-    assert info.staking_info.staked_node_id is None, "Staked node ID should be cleared when staking to an account"
-    assert info.staking_info.decline_reward is True, "Decline staking reward should be true"
+    assert (
+        info.staking_info.staked_account_id == staked_account_id
+    ), "Staked account ID should match"
+    assert (
+        info.staking_info.staked_node_id is None
+    ), "Staked node ID should be cleared when staking to an account"
+    assert (
+        info.staking_info.decline_reward is True
+    ), "Decline staking reward should be true"
 
 
 @pytest.mark.integration
