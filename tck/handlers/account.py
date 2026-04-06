@@ -2,10 +2,12 @@ from __future__ import annotations
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.account.account_info import AccountInfo
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
 from tck.param.account import CreateAccountParams, GetAccountInfoParams
 from tck.response.account import (
@@ -74,54 +76,101 @@ def create_account(params: CreateAccountParams) -> CreateAccountResponse:
     return CreateAccountResponse(account_id, ResponseCode(receipt.status).name)
 
 
-def _build_account_info_response(info) -> GetAccountInfoResponse:
-    staking_info_response = None
-    if info.staking_info:
-        staking_info_response = StakingInfoResponse(
-            declineStakingReward=info.staking_info.decline_staking_reward,
-            stakePeriodStart=str(info.staking_info.stake_period_start)
-            if info.staking_info.stake_period_start
-            else None,
-            pendingReward=str(info.staking_info.pending_reward.to_tinybars())
-            if info.staking_info.pending_reward
-            else None,
-            stakedToMe=str(info.staking_info.staked_to_me.to_tinybars()) if info.staking_info.staked_to_me else None,
-            stakedAccountId=str(info.staking_info.staked_account_id) if info.staking_info.staked_account_id else None,
-            stakedNodeId=str(info.staking_info.staked_node_id) if info.staking_info.staked_node_id else None,
+def _enum_name(value) -> str | None:
+    if value is None:
+        return None
+    return getattr(value, "name", str(value))
+
+
+def _serialize_key(key) -> str | None:
+    if key is None:
+        return None
+
+    to_string_der = getattr(key, "to_string_der", None)
+    if callable(to_string_der):
+        return to_string_der()
+
+    return key.to_bytes().hex()
+
+
+def _to_staking_info_response(info: AccountInfo) -> StakingInfoResponse:
+    if info.staking_info is None:
+        return StakingInfoResponse(
+            declineStakingReward=False,
+            pendingReward="0",
+            stakedToMe="0",
         )
 
-    token_relationships_response = []
-    if info.token_relationships:
-        for rel in info.token_relationships:
-            token_relationships_response.append(
-                TokenRelationshipResponse(
-                    tokenId=str(rel.token_id) if rel.token_id else None,
-                    symbol=rel.symbol,
-                    balance=str(rel.balance) if rel.balance is not None else None,
-                    kycStatus=str(rel.kyc_status) if rel.kyc_status is not None else None,
-                    freezeStatus=str(rel.freeze_status) if rel.freeze_status is not None else None,
-                    decimals=str(rel.decimals) if rel.decimals is not None else None,
-                    automaticAssociation=rel.automatic_association,
-                )
-            )
+    staking_info = info.staking_info
+    return StakingInfoResponse(
+        declineStakingReward=staking_info.decline_reward,
+        stakePeriodStart=str(staking_info.stake_period_start)
+        if staking_info.stake_period_start is not None
+        else None,
+        pendingReward=str(staking_info.pending_reward.to_tinybars())
+        if staking_info.pending_reward is not None
+        else "0",
+        stakedToMe=str(staking_info.staked_to_me.to_tinybars())
+        if staking_info.staked_to_me is not None
+        else "0",
+        stakedAccountId=str(staking_info.staked_account_id)
+        if staking_info.staked_account_id is not None
+        else None,
+        stakedNodeId=str(staking_info.staked_node_id)
+        if staking_info.staked_node_id is not None
+        else None,
+    )
 
+
+def _to_token_relationships_response(info: AccountInfo) -> dict[str, TokenRelationshipResponse]:
+    token_relationships_response: dict[str, TokenRelationshipResponse] = {}
+
+    for relationship in info.token_relationships:
+        token_id = str(relationship.token_id) if relationship.token_id is not None else None
+        if token_id is None:
+            continue
+
+        token_relationships_response[token_id] = TokenRelationshipResponse(
+            tokenId=token_id,
+            symbol=relationship.symbol,
+            balance=str(relationship.balance) if relationship.balance is not None else "0",
+            kycStatus=_enum_name(relationship.kyc_status),
+            freezeStatus=_enum_name(relationship.freeze_status),
+            decimals=str(relationship.decimals) if relationship.decimals is not None else None,
+            automaticAssociation=relationship.automatic_association,
+        )
+
+    return token_relationships_response
+
+
+def _build_account_info_response(info: AccountInfo) -> GetAccountInfoResponse:
     return GetAccountInfoResponse(
-        accountId=str(info.account_id) if info.account_id else None,
-        contractAccountId=info.contract_account_id,
-        isDeleted=info.is_deleted,
-        proxyReceived=str(info.proxy_received.to_tinybars()) if info.proxy_received else None,
-        key=info.key.to_bytes().hex() if info.key else None,
-        balance=str(info.balance.to_tinybars()) if info.balance else None,
-        isReceiverSignatureRequired=info.receiver_signature_required,
-        expirationTime=str(info.expiration_time) if info.expiration_time else None,
-        autoRenewPeriod=str(info.auto_renew_period.seconds) if info.auto_renew_period else None,
-        tokenRelationships=token_relationships_response if token_relationships_response else None,
-        accountMemo=info.account_memo,
-        ownedNfts=str(info.owned_nfts) if info.owned_nfts is not None else None,
+        accountId=str(info.account_id) if info.account_id is not None else None,
+        contractAccountId=info.contract_account_id or "",
+        isDeleted=bool(info.is_deleted),
+        proxyAccountId="",
+        proxyReceived=str(info.proxy_received.to_tinybars())
+        if info.proxy_received is not None
+        else "0",
+        key=_serialize_key(info.key),
+        balance=str(info.balance.to_tinybars()) if info.balance is not None else "0",
+        sendRecordThreshold="0",
+        receiveRecordThreshold="0",
+        isReceiverSignatureRequired=bool(info.receiver_signature_required),
+        expirationTime=str(info.expiration_time) if info.expiration_time is not None else None,
+        autoRenewPeriod=str(info.auto_renew_period.seconds)
+        if info.auto_renew_period is not None
+        else "0",
+        tokenRelationships=_to_token_relationships_response(info),
+        accountMemo=info.account_memo or "",
+        ownedNfts=str(info.owned_nfts) if info.owned_nfts is not None else "0",
         maxAutomaticTokenAssociations=str(info.max_automatic_token_associations)
         if info.max_automatic_token_associations is not None
-        else None,
-        stakingInfo=staking_info_response,
+        else "0",
+        aliasKey="",
+        ledgerId="",
+        ethereumNonce="0",
+        stakingInfo=_to_staking_info_response(info),
     )
 
 
@@ -129,9 +178,17 @@ def _build_account_info_response(info) -> GetAccountInfoResponse:
 def get_account_info(params: GetAccountInfoParams) -> GetAccountInfoResponse:
     client = get_client(params.sessionId)
 
-    query = AccountInfoQuery()
-    if params.accountId:
-        query.set_account_id(AccountId.from_string(params.accountId))
+    if not params.accountId:
+        raise JsonRpcError.hiero_error({"status": ResponseCode.INVALID_ACCOUNT_ID.name})
+
+    try:
+        account_id = AccountId.from_string(params.accountId)
+    except (TypeError, ValueError) as error:
+        raise JsonRpcError.hiero_error(
+            {"status": ResponseCode.INVALID_ACCOUNT_ID.name}
+        ) from error
+
+    query = AccountInfoQuery().set_account_id(account_id)
 
     info = query.execute(client)
     return _build_account_info_response(info)
