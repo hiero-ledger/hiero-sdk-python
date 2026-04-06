@@ -11,7 +11,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const Marker = "<!-- coderabbit-release-gate: v1 -->";
+const MARKER = "<!-- coderabbit-release-gate: v1 -->";
 
 
 function loadPrompt() {
@@ -40,15 +40,15 @@ async function commentAlreadyExists({ github, owner, repo, issue_number }) {
       per_page: 100,
       });
       data.forEach(c => {
-        if (c.body && c.body.includes(Marker)) {
+        if (c.body && c.body.includes(MARKER)) {
             console.log(`FOUND MATCH in comment by ${c.user.login}: ${c.html_url}`);
         }
       });
-        return data.some((c) => typeof c.body === "string" && c.body.includes(Marker));
+        return data.some((c) => typeof c.body === "string" && c.body.includes(MARKER));
       }
   catch (error) {
       console.error(`Error checking for existing comments: ${error.message}`);
-      return false; // Fail open: allow posting if check fails
+      return true; // Fail closed to avoid duplicates if we can't verify
       }
 }
 
@@ -80,6 +80,10 @@ function buildBody({ prompt, headRef }) {
 }
 
 module.exports = async ({ github, context }) => {
+  let issue_number = "unknown";
+  let headRef = "?";
+  let baseRef = "?";
+
   try {
     const owner = context.repo.owner;
     const repo = context.repo.repo;
@@ -103,13 +107,15 @@ module.exports = async ({ github, context }) => {
       return;
     }
 
-    const issue_number = pr.number;
+    issue_number = pr.number;
     if (await commentAlreadyExists({ github, owner, repo, issue_number })) {
       console.log("Release gate comment already exists. Skipping.");
       return;
     }
 
-    const headRef = pr.head?.ref || "unknown";
+    headRef = pr.head?.ref || "unknown";
+    baseRef = pr.base?.ref || "unknown";
+
     const prompt = loadPrompt();
     const body = buildBody({ prompt, headRef });
 
