@@ -15,6 +15,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Examples
 
+- Add the missing `setup_client()` docstring in `examples/tokens/token_dissociate_transaction.py` for consistency with the other example functions. (#2058)
 
 ### Docs
 

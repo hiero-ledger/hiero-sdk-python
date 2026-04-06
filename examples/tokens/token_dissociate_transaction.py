@@ -19,6 +19,7 @@ from hiero_sdk_python import (
 
 
 def setup_client():
+    """Initialize the Hiero client from environment variables and print connection info."""
     client = Client.from_env()
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
