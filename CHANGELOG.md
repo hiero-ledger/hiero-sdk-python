@@ -26,6 +26,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored the Advanced Issue Template to V2 with stricter prerequisites and a focus on architectural design (#2016).
 - Refactored the Advanced Issue Template to ensure PR-level quality checklists do not block maintainers during issue creation (#2036)
 - Add automated label sync workflow to propagate labels from linked issues to pull requests (#1716)
+- Expand and refactor next-issue-recommendation bot. (#1891)
 
 ## [0.2.3] - 2026-03-26
 
@@ -54,7 +55,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: update several ubuntu runners to hl-sdk-py-lin-md (#1480)
 - Refactored intermediate issue template with quality standards, testing requirements, breaking change awareness, and protobuf verification guidance to reduce review burden and improve PR quality (#1892)
 - fix: prevent CodeRabbit from posting comments on closed issues(#1962)
-- Expand and refactor next-issue-recommendation bot. (#1891)
 - chore: update spam list #1988
 - chore: Update `bot-advanced-check.yml`, `bot-gfi-assign-on-comment.yml`, `bot-intermediate-assignment.yml`, `bot-linked-issue-enforcer.yml`, `unassign-on-comment.yml`, `working-on-comment.yml` workflow runner configuration
 - Fix build failing in `publish.yml`
