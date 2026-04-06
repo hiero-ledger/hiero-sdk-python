@@ -1,0 +1,128 @@
+name: Add Linked Issue Labels to PR
+
+on:
+  workflow_dispatch:
+    inputs:
+      upstream_run_id:
+        description: "Upstream compute workflow run ID"
+        required: true
+        type: string
+      pr_number:
+        description: "Pull request number"
+        required: true
+        type: string
+      dry_run:
+        description: "Dry run flag"
+        required: false
+        type: string
+        default: "true"
+      is_fork_pr:
+        description: "Fork PR flag"
+        required: false
+        type: string
+        default: "false"
+defaults:
+  run:
+    shell: bash
+permissions:
+  actions: read
+  issues: write
+
+jobs:
+  add-labels:
+    concurrency:
+      group: sync-issue-labels-pr-${{ github.event.inputs.pr_number }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@a90bcbc6539c36a85cdfeb73f7e2f433735f215b # v2.15.0
+        with:
+          egress-policy: audit
+
+      - name: Download labels artifact
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # v8.0.0
+        with:
+          name: pr-labels-${{ github.event.inputs.pr_number }}
+          path: artifacts
+          run-id: ${{ github.event.inputs.upstream_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read labels payload
+        id: read
+        env:
+          INPUT_PR_NUMBER: ${{ github.event.inputs.pr_number }}
+          INPUT_IS_FORK_PR: ${{ github.event.inputs.is_fork_pr }}
+          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
+        run: |
+          labels_file="artifacts/labels.json"
+          if [ ! -f "$labels_file" ]; then
+            echo "::error::Labels artifact not found. Cross-workflow handoff is broken."
+            echo "labels=[]" >> "$GITHUB_OUTPUT"
+            echo "labels_count=0" >> "$GITHUB_OUTPUT"
+            echo "labels_multiline=" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$INPUT_PR_NUMBER" >> "$GITHUB_OUTPUT"
+            echo "is_fork_pr=$INPUT_IS_FORK_PR" >> "$GITHUB_OUTPUT"
+            echo "dry_run=$INPUT_DRY_RUN" >> "$GITHUB_OUTPUT"
+            echo "source_event=workflow_dispatch" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          labels=$(jq -c '.labels // []' "$labels_file")
+          pr_number=$(jq -r '.pr_number // 0' "$labels_file")
+          is_fork_pr=$(jq -r '.is_fork_pr // false' "$labels_file")
+          dry_run=$(jq -r '.dry_run // "true"' "$labels_file")
+          source_event=$(jq -r '.source_event // ""' "$labels_file")
+          labels_multiline=$(jq -r '.labels // [] | .[]' "$labels_file")
+          labels_count=$(echo "$labels" | jq 'length')
+          echo "labels=$labels" >> "$GITHUB_OUTPUT"
+          echo "labels_count=$labels_count" >> "$GITHUB_OUTPUT"
+          {
+            echo "labels_multiline<<EOF"
+            echo "$labels_multiline"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "is_fork_pr=$is_fork_pr" >> "$GITHUB_OUTPUT"
+          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
+          echo "source_event=$source_event" >> "$GITHUB_OUTPUT"
+
+      - name: Validate labels payload
+        id: validate
+        run: |
+          if [ "$PR_NUMBER" = "0" ] || [ "$(echo "$LABELS" | jq -r '. | length')" = "0" ]; then
+            echo "Invalid payload: pr_number=$PR_NUMBER or labels empty. Skipping label addition."
+            echo "valid_payload=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "valid_payload=true" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          PR_NUMBER: ${{ steps.read.outputs.pr_number }}
+          LABELS: ${{ steps.read.outputs.labels }}
+
+      - name: Determine if labels should be applied
+        id: should_apply
+        run: |
+          if [ "${{ steps.read.outputs.is_fork_pr }}" = "true" ]; then
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+            echo "reason=fork PR" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.validate.outputs.valid_payload }}" != "true" ]; then
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+            echo "reason=invalid payload" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.read.outputs.source_event }}" = "workflow_dispatch" ] && [ "${{ steps.read.outputs.dry_run }}" = "true" ]; then
+            echo "apply=false" >> "$GITHUB_OUTPUT"
+            echo "reason=dry run" >> "$GITHUB_OUTPUT"
+          else
+            echo "apply=true" >> "$GITHUB_OUTPUT"
+            echo "reason=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Add labels to PR
+        if: ${{ steps.should_apply.outputs.apply == 'true' }}
+        uses: actions-ecosystem/action-add-labels@1a9c3715c0037e96b97bb38cb4c4b56a1f1d4871 # main
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.read.outputs.labels_multiline }}
+          number: ${{ steps.read.outputs.pr_number }}
+
