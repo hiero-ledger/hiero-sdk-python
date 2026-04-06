@@ -1,5 +1,4 @@
 # Client and Network
-# Trigger CI integration tests
 from .client.client import Client
 from .client.network import Network
 
@@ -151,10 +150,6 @@ from .transaction.custom_fee_limit import CustomFeeLimit
 from .system.freeze_transaction import FreezeTransaction
 from .system.freeze_type import FreezeType
 
-# Errors
-from .exceptions import ReceiptStatusError
-from .exceptions import PrecheckError
-
 __all__ = [
     # Client
     "Client",
@@ -303,8 +298,4 @@ __all__ = [
     # System
     "FreezeTransaction",
     "FreezeType",
-
-    # Errors
-    "ReceiptStatusError",
-    "PrecheckError"
 ]

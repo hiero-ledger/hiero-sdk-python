@@ -21,6 +21,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
+- chore: pin pip packages to exact versions in publish.yml to improve supply chain security and reproducibility (#2056)
 - chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md (#2021)
 - Refactored the Advanced Issue Template to V2 with stricter prerequisites and a focus on architectural design (#2016).
 - Refactored the Advanced Issue Template to ensure PR-level quality checklists do not block maintainers during issue creation (#2036)
@@ -88,7 +89,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
-- chore: pin pip packages to exact versions in publish.yml to improve supply chain security and reproducibility (#2056)
 - chore: ensure uv run uses lowest-direct resolution in deps-check workflow (#1919)
 - Added PR draft explainer workflow to comment when PRs are converted to draft after changes are requested. (#1723)
 - changed `pr-check-test` to run unit matrix first, run integration matrix only after unit success, skip docs/examples/.github-only changes, and parallelize integration tests with xdist (`#1878`)
