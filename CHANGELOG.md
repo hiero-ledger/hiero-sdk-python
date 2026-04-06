@@ -21,6 +21,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
+- Renamed community call and office hour bots to use the `cron-` prefix (#2068)
 - chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md (#2021)
 - Refactored the Advanced Issue Template to V2 with stricter prerequisites and a focus on architectural design (#2016).
 - Refactored the Advanced Issue Template to ensure PR-level quality checklists do not block maintainers during issue creation (#2036)
