@@ -27,6 +27,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Refactored the Advanced Issue Template to ensure PR-level quality checklists do not block maintainers during issue creation (#2036)
 - Add automated label sync workflow to propagate labels from linked issues to pull requests (#1716)
 - chore: update spam list (#2035)
+- Add CodeRabbit release gate workflow and prompt for PR audits `release-pr-prompt.md`, `release-pr-coderabbit-gate.yml` and `release-pr-coderabbit-gate.js`
 
 ## [0.2.3] - 2026-03-26
 
