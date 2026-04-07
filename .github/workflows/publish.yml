@@ -31,10 +31,10 @@ jobs:
           python-version: '3.14'
 
       - name: Upgrade pip
-        run: pip install --upgrade pip
+        run: pip install "pip==26.0.1"
 
       - name: Install build, pdm-backend, and grpcio-tools
-        run: pip install build pdm-backend "grpcio-tools>=1.76.0"
+        run: pip install build pdm-backend "grpcio-tools==1.76.0"
 
       - name: Generate Protobuf
         run: python generate_proto.py
