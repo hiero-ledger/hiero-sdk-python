@@ -33,7 +33,7 @@ function loadPrompt() {
 
 async function commentAlreadyExists({ github, owner, repo, issue_number }) {
   try {
-      const { data } = await github.rest.issues.listComments({
+      const data = await github.paginate(github.rest.issues.listComments, {
       owner,
       repo,
       issue_number,
@@ -88,7 +88,11 @@ function getSkipReason(pr) {
     return `author_association=${pr.author_association}; skipping.`;
   }
 
-  if (!(pr.title || "").toLowerCase().startsWith("chore: release v")) {
+  const title = (pr.title || "").toLowerCase();
+  const isReleaseTitle =
+    title.startsWith("chore: release v") || title.startsWith("release v");
+
+  if (!isReleaseTitle) {
     return "Not a release PR title; skipping.";
   }
 

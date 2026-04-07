@@ -20,8 +20,8 @@ jobs:
       github.event.pull_request &&
       (github.event.pull_request.author_association == 'MEMBER' ||
       github.event.pull_request.author_association == 'OWNER') &&
-      startsWith(github.event.pull_request.title, 'chore: release v') ||
-      startsWith(github.event.pull_request.title, 'release v')
+      (startsWith(github.event.pull_request.title, 'chore: release v') ||
+      startsWith(github.event.pull_request.title, 'release v'))
 
     steps:
       - name:  Harden the runner
