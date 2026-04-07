@@ -30,7 +30,11 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Expand and refactor next-issue-recommendation bot. (#1891)
 =======
 - chore: update spam list (#2035)
+<<<<<<< HEAD
 >>>>>>> 12aefcf (update spam list  (#2078))
+=======
+- Add CodeRabbit release gate workflow and prompt for PR audits `release-pr-prompt.md`, `release-pr-coderabbit-gate.yml` and `release-pr-coderabbit-gate.js`
+>>>>>>> c9acb5c (feat: add CodeRabbit release gate workflow and prompt for PR audits (#2049))
 
 ## [0.2.3] - 2026-03-26
 
