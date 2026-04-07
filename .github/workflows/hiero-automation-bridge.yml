@@ -1,0 +1,31 @@
+name: Hiero Automation Bridge
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+  issues:
+    types: [opened, edited, assigned, unassigned, labeled, unlabeled]
+  issue_comment:
+    types: [created, edited, deleted]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch repository context
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: .hiero-workflow.yml
+
+      - name: Dispatch Event to Hub
+        env:
+          HUB_URL: ${{ secrets.HIERO_HUB_URL }}
+          HUB_TOKEN: ${{ secrets.HIERO_HUB_TOKEN }}
+        run: |
+          # Send a secure POST request to the Hiero Hub with event details
+          # The Hub will then decide what actions to take based on .hiero-workflow.yml
+          curl -X POST "$HUB_URL/webhooks" \
+            -H "Content-Type: application/json" \
+            -H "X-GitHub-Event: ${{ github.event_name }}" \
+            -H "X-GitHub-Delivery: ${{ github.run_id }}" \
+            -d '${{ toJSON(github.event) }}'
