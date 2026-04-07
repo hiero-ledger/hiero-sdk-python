@@ -16,6 +16,7 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, Any, Literal, overload
 
+from typing import TYPE_CHECKING, Any, List, Literal, Optional, overload
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import file_append_pb2, timestamp_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -32,6 +33,7 @@ if TYPE_CHECKING:
     from hiero_sdk_python.client import Client
     from hiero_sdk_python.crypto.private_key import PrivateKey
 
+    from hiero_sdk_python.channels import _Channel
     from hiero_sdk_python.executable import _Method
     from hiero_sdk_python.transaction.transaction import TransactionReceipt
     from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -476,10 +478,8 @@ class FileAppendTransaction(Transaction):
 
     
     @property
-    def body_size_all_chunks(self) -> List[int]:
-        """
-        Returns an array of body sizes for transactions with multiple chunks.
-        """
+    def body_size_all_chunks(self) -> list[int]:
+        """Returns an array of body sizes for transactions with multiple chunks."""
         self._require_frozen()
         sizes = []
 
