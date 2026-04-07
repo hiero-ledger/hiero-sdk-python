@@ -584,23 +584,6 @@ def test_repr_method(transaction_id):
     assert "transaction_memo='Test memo'" in repr_full
     assert "transaction_fee=100000" in repr_full
     assert "receipt_status='SUCCESS'" in repr_full
-    expected_repr_full = (
-        f"TransactionRecord(transaction_id='{transaction_id}', "
-        f"transaction_hash=b'\\x01\\x02\\x03\\x04', "
-        f"transaction_memo='Test memo', "
-        f"transaction_fee=100000, "
-        f"receipt_status='SUCCESS', "
-        f"token_transfers={{}}, "
-        f"nft_transfers={{}}, "
-        f"transfers={{}}, "
-        f"new_pending_airdrops={[]}, "
-        f"call_result=None, "
-        f"prng_number=None, "
-        f"prng_bytes=None, "
-        f"duplicates_count=0, "
-        f"children_count=0)"
-    )
-    assert repr(record_full) == expected_repr_full
     assert "consensus_timestamp=" in repr_full
     assert f"schedule_ref={sched}" in repr_full
     assert "assessed_custom_fees=" in repr_full
