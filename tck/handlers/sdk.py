@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hiero_sdk_python import AccountId, Client, Network, PrivateKey
 from hiero_sdk_python.node import _Node
 from tck.handlers.registry import rpc_method

@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2, token_get_nft_info_pb2
 from hiero_sdk_python.tokens.token_nft_info import TokenNftInfo
+
 
 pytestmark = pytest.mark.unit
 

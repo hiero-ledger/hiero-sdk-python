@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
@@ -8,6 +10,7 @@ from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import timestamp_pb2 as hapi_timestamp_pb2
 from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
+
 
 pytestmark = pytest.mark.unit
 

@@ -1,5 +1,7 @@
 """Test cases for the Hiero SDK TCK handlers registry and dispatch functionality."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from unittest.mock import MagicMock
 
@@ -26,6 +28,7 @@ from tck.handlers.registry import (
     rpc_method,
     safe_dispatch,
 )
+
 
 pytestmark = pytest.mark.unit
 

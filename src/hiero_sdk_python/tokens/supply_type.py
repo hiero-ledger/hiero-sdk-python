@@ -6,6 +6,8 @@ Defines SupplyType, an enumeration of possible token supply behaviors
 for Non-Fungible Tokens (NFTs).
 """
 
+from __future__ import annotations
+
 from enum import Enum
 
 

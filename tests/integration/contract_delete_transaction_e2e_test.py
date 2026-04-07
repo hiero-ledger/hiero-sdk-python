@@ -2,6 +2,8 @@
 Integration tests for ContractDeleteTransaction.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from examples.contract.contracts import CONTRACT_DEPLOY_GAS, SIMPLE_CONTRACT_BYTECODE

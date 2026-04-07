@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.exceptions import PrecheckError

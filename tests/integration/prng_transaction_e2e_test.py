@@ -2,6 +2,8 @@
 Integration tests for PRNG transaction.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.prng_transaction import PrngTransaction

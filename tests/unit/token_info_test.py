@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import FrozenInstanceError, replace
 
 import pytest
@@ -12,6 +14,7 @@ from hiero_sdk_python.tokens.token_info import AccountId, Timestamp, TokenId, To
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.tokens.token_type import TokenType
+
 
 pytestmark = pytest.mark.unit
 

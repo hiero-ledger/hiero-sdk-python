@@ -2,6 +2,8 @@
 Integration tests for the ConstructorTestContract constructor parameters.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from examples.contract.contracts import CONSTRUCTOR_TEST_CONTRACT_BYTECODE, CONTRACT_DEPLOY_GAS
@@ -14,6 +16,7 @@ from hiero_sdk_python.contract.contract_function_parameters import (
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+
 
 # Generate a new ECDSA key pair and extract the first 40 bytes of the public key
 # to use as a test address for the contract constructor

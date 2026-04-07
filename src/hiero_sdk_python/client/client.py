@@ -22,6 +22,7 @@ from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 from .network import Network
 
+
 DEFAULT_MAX_QUERY_PAYMENT = Hbar(1)
 
 DEFAULT_GRPC_DEADLINE = 10  # seconds

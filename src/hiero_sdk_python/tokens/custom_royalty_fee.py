@@ -4,6 +4,7 @@ import typing
 
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 
+
 if typing.TYPE_CHECKING:
     from hiero_sdk_python.account.account_id import AccountId
     from hiero_sdk_python.hapi.services import custom_fees_pb2

@@ -2,6 +2,8 @@
 Unit tests for the HbarAllowance class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -9,6 +11,7 @@ from hiero_sdk_python.hapi.services.crypto_approve_allowance_pb2 import (
     CryptoAllowance as CryptoAllowanceProto,
 )
 from hiero_sdk_python.tokens.hbar_allowance import HbarAllowance
+
 
 pytestmark = pytest.mark.unit
 

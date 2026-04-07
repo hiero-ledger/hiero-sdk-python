@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import re
 
 import pytest
 
 from hiero_sdk_python.crypto.evm_address import EvmAddress
+
 
 pytestmark = pytest.mark.unit
 

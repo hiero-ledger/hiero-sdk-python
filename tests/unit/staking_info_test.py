@@ -1,5 +1,7 @@
 """Tests for the StakingInfo class."""
 
+from __future__ import annotations
+
 from dataclasses import FrozenInstanceError
 
 import pytest
@@ -11,6 +13,7 @@ from hiero_sdk_python.hapi.services.basic_types_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.timestamp import Timestamp
+
 
 pytestmark = pytest.mark.unit
 

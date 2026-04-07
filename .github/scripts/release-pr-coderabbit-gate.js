@@ -16,7 +16,7 @@ const MARKER = "<!-- coderabbit-release-gate: v1 -->";
 
 function loadPrompt() {
   const promptPath = path.join(
-    process.env.GITHUB_WORKSPACE || ".", 
+    process.env.GITHUB_WORKSPACE || ".",
     ".github/coderabbit/release-pr-prompt.md"
   );
   try {

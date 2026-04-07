@@ -2,6 +2,8 @@
 Unit tests for the ContractInfo class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -17,6 +19,7 @@ from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
+
 
 pytestmark = pytest.mark.unit
 

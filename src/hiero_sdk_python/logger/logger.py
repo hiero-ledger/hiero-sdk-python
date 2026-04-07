@@ -14,6 +14,7 @@ from collections.abc import Sequence
 
 from hiero_sdk_python.logger.log_level import LogLevel
 
+
 # Register custom levels on import
 _DISABLED_LEVEL = LogLevel.DISABLED.value
 _TRACE_LEVEL = LogLevel.TRACE.value

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -12,6 +14,7 @@ from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTr
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from tests.integration.utils import create_fungible_token
+
 
 pytestmark = pytest.mark.integration
 

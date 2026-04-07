@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import hashlib
 
 import pytest
@@ -15,6 +17,7 @@ from hiero_sdk_python.node import _Node
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+
 
 FAKE_CERT_PEM = b"""-----BEGIN CERTIFICATE-----
 MIIBszCCAVmgAwIBAgIUQFakeFakeFakeFakeFakeFakeFakewCgYIKoZIzj0EAwIw

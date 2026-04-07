@@ -2,6 +2,8 @@
 Unit tests for the ContractId class.
 """
 
+from __future__ import annotations
+
 import struct
 from unittest.mock import patch
 
@@ -9,6 +11,7 @@ import pytest
 
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 pytestmark = pytest.mark.unit
 

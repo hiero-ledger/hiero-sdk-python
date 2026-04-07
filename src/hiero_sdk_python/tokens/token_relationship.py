@@ -12,11 +12,7 @@ from dataclasses import dataclass
 
 from hiero_sdk_python.hapi.services.basic_types_pb2 import (
     TokenFreezeStatus as TokenFreezeStatusProto,
-)
-from hiero_sdk_python.hapi.services.basic_types_pb2 import (
     TokenKycStatus as TokenKycStatusProto,
-)
-from hiero_sdk_python.hapi.services.basic_types_pb2 import (
     TokenRelationship as TokenRelationshipProto,
 )
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus

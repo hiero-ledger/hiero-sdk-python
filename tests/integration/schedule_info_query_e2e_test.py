@@ -2,6 +2,8 @@
 Integration tests for ScheduleInfoQuery.
 """
 
+from __future__ import annotations
+
 import datetime
 
 import pytest

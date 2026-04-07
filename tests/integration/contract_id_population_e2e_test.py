@@ -2,6 +2,8 @@
 Integration tests for ContractId.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from examples.contract.contracts.contract_utils import (

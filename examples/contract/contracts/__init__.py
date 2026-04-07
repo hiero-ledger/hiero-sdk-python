@@ -14,6 +14,7 @@ from .contract_utils import (  # Bytecode constants; Configuration constants
     STATEFUL_CONTRACT_BYTECODE,
 )
 
+
 __all__ = [
     # Bytecode constants
     "SIMPLE_CONTRACT_BYTECODE",

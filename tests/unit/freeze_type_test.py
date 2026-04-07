@@ -2,6 +2,8 @@
 Test cases for the FreezeType enum class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,6 +12,7 @@ from hiero_sdk_python.hapi.services.freeze_type_pb2 import (
     FreezeType as proto_FreezeType,
 )
 from hiero_sdk_python.system.freeze_type import FreezeType
+
 
 pytestmark = pytest.mark.unit
 

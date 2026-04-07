@@ -1,5 +1,7 @@
 """Tests for the TopicInfoQuery functionality."""
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.consensus.topic_info import TopicInfo
@@ -16,6 +18,7 @@ from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 

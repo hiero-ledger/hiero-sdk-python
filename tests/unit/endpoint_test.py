@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
 
 from src.hiero_sdk_python.address_book.endpoint import Endpoint
+
 
 pytestmark = pytest.mark.unit
 

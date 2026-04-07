@@ -2,6 +2,8 @@
 requests to handlers and transform exceptions into JSON-RPC errors.
 """
 
+from __future__ import annotations
+
 import inspect
 from collections.abc import Callable
 from dataclasses import asdict
@@ -9,6 +11,7 @@ from typing import Any
 
 from tck.errors import JsonRpcError, handle_sdk_errors
 from tck.protocol import build_json_rpc_error_response
+
 
 # A global _HANDLERS dict to store method name -> handler function mappings
 _HANDLERS: dict[str, Callable] = {}

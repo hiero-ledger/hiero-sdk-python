@@ -43,6 +43,7 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import STATEFUL_CONTRACT_BYTECODE
 
+
 load_dotenv()
 
 network_name = os.getenv("NETWORK", "testnet").lower()

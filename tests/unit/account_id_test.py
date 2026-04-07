@@ -2,6 +2,8 @@
 Unit tests for the AccountId class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -10,6 +12,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 pytestmark = pytest.mark.unit
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
@@ -8,6 +10,7 @@ from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import IntegrationTestEnv
+
 
 topic_memo = "Python SDK created topic"
 

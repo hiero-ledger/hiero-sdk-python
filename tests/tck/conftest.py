@@ -1,5 +1,7 @@
 """Fixtures for JSON-RPC request tests."""
 
+from __future__ import annotations
+
 import pytest
 
 

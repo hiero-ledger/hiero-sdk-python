@@ -6,6 +6,8 @@ serialization, arithmetic, comparison, and time-based behavior to
 ensure robust coverage of timestamp functionality.
 """
 
+from __future__ import annotations
+
 import time
 from datetime import datetime, timezone
 
@@ -13,6 +15,7 @@ import pytest
 
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
 from hiero_sdk_python.timestamp import Timestamp
+
 
 pytestmark = pytest.mark.unit
 

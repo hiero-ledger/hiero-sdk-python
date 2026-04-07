@@ -2,6 +2,8 @@
 Integration tests for the ContractCreateTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from examples.contract.contracts import (

@@ -2,6 +2,8 @@
 Integration tests for the FileUpdateTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python import PrivateKey

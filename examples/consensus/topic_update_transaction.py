@@ -21,6 +21,7 @@ from hiero_sdk_python import (
     TopicUpdateTransaction,
 )
 
+
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 

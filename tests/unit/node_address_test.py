@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import binascii
 
 import pytest
@@ -8,6 +10,7 @@ from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.hapi.services.basic_types_pb2 import (
     NodeAddress as NodeAddressProto,
 )
+
 
 pytestmark = pytest.mark.unit
 

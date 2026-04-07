@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 def parse_session_id(params: dict) -> str:
     """Parse sessionId from the json rpc params."""
     session_id = params.get("sessionId")

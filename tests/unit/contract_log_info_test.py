@@ -2,11 +2,14 @@
 Test the ContractLogInfo class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
 from hiero_sdk_python.hapi.services import basic_types_pb2, contract_types_pb2
+
 
 pytestmark = pytest.mark.unit
 

@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.consensus.topic_id import TopicId
+
 
 pytestmark = pytest.mark.unit
 

@@ -2,6 +2,8 @@
 Unit tests for Client methods (eg. from_env, for_testnet, for_mainnet, for_previewnet).
 """
 
+from __future__ import annotations
+
 import os
 from decimal import Decimal
 from unittest.mock import patch
@@ -13,6 +15,7 @@ from hiero_sdk_python.client import client as client_module
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.node import _Node
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+
 
 pytestmark = pytest.mark.unit
 

@@ -1,10 +1,13 @@
 """Tests for the AccountBalance class."""
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_balance import AccountBalance
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 pytestmark = pytest.mark.unit
 

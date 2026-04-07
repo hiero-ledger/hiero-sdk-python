@@ -1,11 +1,14 @@
 """Unit tests for the TokenAssociation class."""
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenAssociation as TokenAssociationProto
 from hiero_sdk_python.tokens.token_association import TokenAssociation
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 pytestmark = pytest.mark.unit
 

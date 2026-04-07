@@ -2,6 +2,8 @@
 Unit tests for the ContractUpdateTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -16,6 +18,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hbar import Hbar
+
 
 pytestmark = pytest.mark.unit
 

@@ -1,5 +1,7 @@
 """Unit tests for the TransactionRecord class functionality."""
 
+from __future__ import annotations
+
 from collections import defaultdict
 
 import pytest
@@ -23,6 +25,7 @@ from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.transaction.transaction_id import TransactionId  # noqa: F401
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_record import TransactionRecord
+
 
 pytestmark = pytest.mark.unit
 

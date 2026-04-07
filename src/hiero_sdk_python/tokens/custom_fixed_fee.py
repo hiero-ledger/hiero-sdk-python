@@ -6,6 +6,7 @@ import warnings
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 
+
 if typing.TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
     from hiero_sdk_python.hapi.services import custom_fees_pb2
@@ -13,6 +14,7 @@ if typing.TYPE_CHECKING:
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import custom_fees_pb2
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 """Manages custom fixed fees assessed during transactions on the Hedera network.
 

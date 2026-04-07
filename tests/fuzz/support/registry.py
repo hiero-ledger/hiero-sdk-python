@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import string
 from decimal import Decimal
 from typing import Any, NamedTuple
@@ -21,6 +23,7 @@ from tests.fuzz.support.helpers import (
     sized_hex,
     with_optional_0x,
 )
+
 
 MAX_I64 = 2**63 - 1
 MIN_I64 = -(2**63)

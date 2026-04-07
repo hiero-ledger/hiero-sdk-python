@@ -2,6 +2,8 @@
 Unit tests for the FileInfo class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -10,6 +12,7 @@ from hiero_sdk_python.file.file_info import FileInfo
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
 from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
 from hiero_sdk_python.timestamp import Timestamp
+
 
 pytestmark = pytest.mark.unit
 

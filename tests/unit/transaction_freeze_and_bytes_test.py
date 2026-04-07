@@ -6,6 +6,8 @@ converting them to bytes without executing them, including edge cases
 and expected behavior.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -15,6 +17,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 )
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+
 
 pytestmark = pytest.mark.unit
 

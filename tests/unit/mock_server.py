@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import threading
 from concurrent import futures
 from contextlib import contextmanager

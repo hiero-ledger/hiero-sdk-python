@@ -2,6 +2,8 @@
 Integration tests for ScheduleSignTransaction.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.response_code import ResponseCode

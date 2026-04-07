@@ -2,6 +2,8 @@
 Integration tests for the EthereumTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 import rlp
 from eth_keys import keys

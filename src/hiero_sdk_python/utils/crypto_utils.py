@@ -3,6 +3,7 @@ from __future__ import annotations
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 
+
 try:
     from Crypto.Hash import keccak
 except ImportError:

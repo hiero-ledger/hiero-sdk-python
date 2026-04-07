@@ -13,6 +13,7 @@ import typing
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 
+
 if typing.TYPE_CHECKING:
     from hiero_sdk_python.account.account_id import AccountId
     from hiero_sdk_python.hapi.services import custom_fees_pb2

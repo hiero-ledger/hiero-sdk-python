@@ -2,6 +2,8 @@
 Integration tests for the TopicMessageSubmitTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction

@@ -22,6 +22,8 @@ Features:
 Run: python generate_proto.py -vv or with trace logs: python generate_proto.py -vvv
 """
 
+from __future__ import annotations
+
 import logging
 import re
 import shutil

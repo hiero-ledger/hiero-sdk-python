@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from pytest import fixture
 
@@ -8,6 +10,7 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.tokens.token_unpause_transaction import TokenUnpauseTransaction
 from tests.integration.utils import create_fungible_token
+
 
 pause_key = PrivateKey.generate()
 

@@ -2,6 +2,8 @@
 Unit tests for the DelegateContractId class.
 """
 
+from __future__ import annotations
+
 import struct
 from unittest.mock import patch
 
@@ -9,6 +11,7 @@ import pytest
 
 from hiero_sdk_python.contract.delegate_contract_id import DelegateContractId
 from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 pytestmark = pytest.mark.unit
 

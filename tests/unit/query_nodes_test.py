@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.query.query import Query
 

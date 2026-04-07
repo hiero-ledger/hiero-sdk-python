@@ -13,6 +13,8 @@ produce child receipts, so we only assert API correctness and stability,
 not children count > 0.
 """
 
+from __future__ import annotations
+
 import threading
 
 import pytest

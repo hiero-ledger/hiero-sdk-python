@@ -84,44 +84,66 @@ testpaths = ["tests"]
 line-length = 120
 target-version = "py310"
 
-[tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = [
-    "S101",    # use of assert
-    "ANN201",  # return types
-    "PLR2004", # magic numbers
-    "E712",    # allow '== True' in tests for explicit assertions
-    "PERF",    # disable list compression
-]
-
-"examples/**/*.py" = [
-    "T201",     # allow print statements
-    "PERF203",  # allow try-except inside loops
-]
-
 [tool.ruff.lint]
 select = [
     "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
     "F",    # pyflakes
-    "I",    # import sorting
-    "B",    # bugbear (real bugs)
-    "UP",   # pyupgrade (modern syntax)
-    "SIM",  # simplify logic
+    "I",    # isort (Import sorting)
+    "B",    # flake8-bugbear (Real logic bugs)
+    "UP",   # pyupgrade (Modern syntax)
+    "SIM",  # flake8-simplify
     "PERF", # performance traps
     "ARG",  # unused function arguments
     "RET",  # return consistency
     "RSE",  # exception correctness
 ]
+
 ignore = [
-    "D",        # docstrings
-    "D212",     # disable "summary on same line"
-    "E501",     # line length -> formatter
-    "B008",     # function calls in argument defaults
-    "UP017",    # stop converting timezone.utc to datetime.timezone.utc
+    "D",       # Docstrings handled by pydocstyle
+    "E501",    # Ignore line-length in linter (let the formatter handle it)
+    "B008",    # Allow function calls in defaults
+    "UP017",   # Keep timezone.utc shorthand
+    "SIM105",  # Allow 'try-except-pass'
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["hiero_sdk_python"]
+required-imports = ["from __future__ import annotations"]
+combine-as-imports = true
+split-on-trailing-comma = true
+lines-after-imports = 2
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = [
+    "F401",   # Unused imports in __init__
+    "I002",   # No future annotations in __init__
+]
+
+"tests/**/*.py" = [
+    "S101",    # Asserts for pytest
+    "PLR2004", # Magic numbers in test data
+    "ARG001",  # Unused args for fixtures
+    "ANN",     # No type hints required in tests
+    "PERF",    # Disable list compression not found
+    "E712",    # Allow '== True' in tests for explicit assertions
+    "D",       # No docstrings required in tests
+    "ERA001",   # commeneted code found
+]
+
+"examples/**/*.py" = [
+    "T201",    # Print statements are fine here
+    "T203",    # pprint is fine
+    "D100",    # No module docstring
+    "I002",    # Allow skipping future annotations
+    "PERF203",  # try-except inside loops found
+    "ERA001",   # commeneted code found
 ]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+skip-magic-trailing-comma = false
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

@@ -2,6 +2,8 @@
 Unit tests for the TokenAllowance class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -10,6 +12,7 @@ from hiero_sdk_python.hapi.services.crypto_approve_allowance_pb2 import (
 )
 from hiero_sdk_python.tokens.token_allowance import TokenAllowance
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 pytestmark = pytest.mark.unit
 

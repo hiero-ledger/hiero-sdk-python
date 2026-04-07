@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 from pytest import mark
 
@@ -5,6 +7,7 @@ from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+
 
 # Generate big contents for chunking tests - similar to JavaScript bigContents
 BIG_CONTENTS = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 250  # ~13,750 characters

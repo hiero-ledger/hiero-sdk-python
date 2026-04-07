@@ -13,6 +13,7 @@ from .registry import (
     safe_dispatch,
 )
 
+
 __all__ = [
     "get_handler",
     "get_all_handlers",

@@ -2,6 +2,8 @@
 Integration tests for FileContentsQuery.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.exceptions import PrecheckError
@@ -9,6 +11,7 @@ from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hbar import Hbar
+
 
 FILE_CONTENT = b"Hello, World"
 

@@ -2,6 +2,8 @@
 Test cases for the NodeUpdateTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -16,6 +18,7 @@ from hiero_sdk_python.nodes.node_update_transaction import (
     NodeUpdateParams,
     NodeUpdateTransaction,
 )
+
 
 pytestmark = pytest.mark.unit
 

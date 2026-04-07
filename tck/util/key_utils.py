@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 
 from hiero_sdk_python.crypto.key import Key

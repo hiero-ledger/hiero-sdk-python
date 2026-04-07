@@ -2,6 +2,8 @@
 Integration tests for revenue generating topics.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -22,6 +24,7 @@ from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTr
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 from tests.integration.utils import create_fungible_token
+
 
 TOPIC_MEMO = "Python SDK revenue generating topic"
 MESSAGE = "test_message"

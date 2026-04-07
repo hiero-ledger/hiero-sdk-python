@@ -2,6 +2,8 @@
 Integration tests for the ContractUpdateTransaction class.
 """
 
+from __future__ import annotations
+
 import datetime
 
 import pytest

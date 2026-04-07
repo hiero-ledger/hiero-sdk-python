@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from decimal import Decimal
 
@@ -5,6 +7,7 @@ import pytest
 
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.hbar_unit import HbarUnit
+
 
 pytestmark = pytest.mark.unit
 

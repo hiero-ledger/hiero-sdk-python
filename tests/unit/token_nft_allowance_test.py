@@ -2,6 +2,8 @@
 Unit tests for the TokenNftAllowance class.
 """
 
+from __future__ import annotations
+
 import pytest
 from google.protobuf.wrappers_pb2 import BoolValue
 
@@ -14,6 +16,7 @@ from hiero_sdk_python.hapi.services.crypto_delete_allowance_pb2 import (
 )
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_allowance import TokenNftAllowance
+
 
 pytestmark = pytest.mark.unit
 

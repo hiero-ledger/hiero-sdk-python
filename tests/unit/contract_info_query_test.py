@@ -2,6 +2,8 @@
 Unit tests for the ContractInfoQuery class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import Mock
 
 import pytest
@@ -19,6 +21,7 @@ from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampP
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 

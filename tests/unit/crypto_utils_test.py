@@ -1,5 +1,7 @@
 """Unit tests for crypto_utils module."""
 
+from __future__ import annotations
+
 import pytest
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -9,6 +11,7 @@ from hiero_sdk_python.utils.crypto_utils import (
     decompress_point,
     keccak256,
 )
+
 
 pytestmark = pytest.mark.unit
 

@@ -1,5 +1,7 @@
 """Unit tests for the JSON-RPC protocol handling in the TCK."""
 
+from __future__ import annotations
+
 import json
 
 import pytest
@@ -11,6 +13,7 @@ from tck.protocol import (
     build_json_rpc_success_response,
     parse_json_rpc_request,
 )
+
 
 pytestmark = pytest.mark.unit
 

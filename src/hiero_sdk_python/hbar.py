@@ -15,6 +15,7 @@ from typing import ClassVar
 
 from hiero_sdk_python.hbar_unit import HbarUnit
 
+
 FROM_STRING_PATTERN = re.compile(r"^((?:\+|\-)?\d+(?:\.\d+)?)(\ (tℏ|μℏ|mℏ|ℏ|kℏ|Mℏ|Gℏ))?$")
 
 

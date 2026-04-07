@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -9,6 +11,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
+
 
 pytestmark = pytest.mark.unit
 

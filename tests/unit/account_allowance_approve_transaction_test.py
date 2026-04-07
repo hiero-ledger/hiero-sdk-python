@@ -2,6 +2,8 @@
 Unit tests for the AccountAllowanceApproveTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_allowance_approve_transaction import (
@@ -14,6 +16,7 @@ from hiero_sdk_python.hapi.services.crypto_approve_allowance_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 pytestmark = pytest.mark.unit
 

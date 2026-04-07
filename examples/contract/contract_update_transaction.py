@@ -40,6 +40,7 @@ from hiero_sdk_python.timestamp import Timestamp
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import SIMPLE_CONTRACT_BYTECODE
 
+
 load_dotenv()
 
 network_name = os.getenv("NETWORK", "testnet").lower()

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import struct
 from unittest.mock import MagicMock, patch
 
@@ -13,6 +15,7 @@ from hiero_sdk_python.utils.entity_id_helper import (
     to_solidity_address,
     validate_checksum,
 )
+
 
 pytestmark = pytest.mark.unit
 

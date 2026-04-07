@@ -2,6 +2,8 @@
 Test cases for the FreezeTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -16,6 +18,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.system.freeze_transaction import FreezeTransaction
 from hiero_sdk_python.system.freeze_type import FreezeType
 from hiero_sdk_python.timestamp import Timestamp
+
 
 pytestmark = pytest.mark.unit
 

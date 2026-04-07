@@ -7,6 +7,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import format_to_string_with_checksum
 
+
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
 

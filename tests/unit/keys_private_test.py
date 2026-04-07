@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 import warnings
 
@@ -8,6 +10,7 @@ from cryptography.hazmat.primitives.asymmetric import ec, ed25519
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
+
 
 pytestmark = pytest.mark.unit
 

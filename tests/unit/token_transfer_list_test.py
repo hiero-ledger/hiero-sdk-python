@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 from hiero_sdk_python.tokens.token_transfer_list import TokenTransferList
+
 
 pytestmark = pytest.mark.unit
 

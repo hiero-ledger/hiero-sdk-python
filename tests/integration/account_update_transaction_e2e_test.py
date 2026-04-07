@@ -2,6 +2,8 @@
 Integration tests for the AccountUpdateTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction

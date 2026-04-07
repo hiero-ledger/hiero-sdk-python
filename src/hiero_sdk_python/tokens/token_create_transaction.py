@@ -31,6 +31,7 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
+
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = 3_000_000_000
 
