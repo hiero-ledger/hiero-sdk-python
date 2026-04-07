@@ -20,10 +20,8 @@ def test_integration_prng_transaction_can_execute(env):
     record = TransactionRecordQuery(receipt.transaction_id).execute(env.client)
 
     assert record.prng_number is not None, "PRNG number should not be None"
-    
-    assert (
-        record.prng_number >= 0 and record.prng_number <= 100
-    ), "PRNG number should be between 0 and 100"
+
+    assert record.prng_number >= 0 and record.prng_number <= 100, "PRNG number should be between 0 and 100"
     assert record.prng_bytes is None, "PRNG bytes should be None"
 
 
@@ -40,6 +38,7 @@ def test_integration_prng_transaction_can_execute_without_range(env):
     assert record.prng_number is None, "PRNG number should be None"
     assert record.prng_bytes is not None, "PRNG bytes should not be None"
     assert len(record.prng_bytes) == 48, "PRNG bytes should be 48 bytes"
+
 
 @pytest.mark.integration
 def test_integration_prng_transaction_can_execute_with_zero_range(env):

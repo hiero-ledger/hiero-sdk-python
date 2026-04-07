@@ -41,7 +41,7 @@ from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 class TransactionRecord:
     """
     Represents a record of a completed transaction on the Hiero network.
-    
+
     This class combines detailed information about the a transaction including the
     transaction ID, receipt, token and NFT transfers, fees & other
     metadata such as pseudo-random number generation(PRNG) results and
@@ -69,20 +69,20 @@ class TransactionRecord:
 
         children (list[TransactionRecord]):               A list of children transaction records returned when queried
                                                           with include_children=True. Empty by default.
-                                                          with include_children=True. Empty by default.       
+                                                          with include_children=True. Empty by default.
         consensus_timestamp (Optional[Timestamp]):        Network-assigned consensus timestamp when the transaction was finalized.
         schedule_ref (Optional[ScheduleId]):              Schedule ID if this transaction was executed via a schedule.
         assessed_custom_fees (list[AssessedCustomFee]):   Custom fees that were assessed and charged during execution.
-        automatic_token_associations (list[TokenAssociation]): 
+        automatic_token_associations (list[TokenAssociation]):
                                                           Automatic token-account associations created by the network.
         parent_consensus_timestamp (Optional[Timestamp]): Consensus timestamp of the parent transaction (for child records).
         alias (Optional[bytes]):                          New account alias created (e.g., during account creation with alias).
         ethereum_hash (Optional[bytes]):                  Keccak-256 hash of the Ethereum-compatible transaction data.
-        paid_staking_rewards (list[tuple[AccountId, int]]): 
+        paid_staking_rewards (list[tuple[AccountId, int]]):
                                                           Staking rewards paid out (account ID → amount in tinybars).
         evm_address (Optional[bytes]):                    EVM address created or associated with the account.
-        contract_create_result (Optional[ContractFunctionResult]): 
-                                                          Result of a contract creation transaction (if applicable)                                           
+        contract_create_result (Optional[ContractFunctionResult]):
+                                                          Result of a contract creation transaction (if applicable)
     """
 
     transaction_id: TransactionId | None = None
@@ -109,7 +109,7 @@ class TransactionRecord:
     prng_bytes: bytes | None = None
     duplicates: list[TransactionRecord] = field(default_factory=list)
     children: list[TransactionRecord] = field(default_factory=list)
-    
+
     consensus_timestamp: Timestamp | None = None
     schedule_ref: ScheduleId | None = None
     assessed_custom_fees: list[AssessedCustomFee] = field(default_factory=list)
@@ -123,11 +123,11 @@ class TransactionRecord:
 
     def __repr__(self) -> str:
         """Returns a human-readable string representation of the TransactionRecord.
-        
-        This method constructs a detailed string containing all significant fields of the 
-        transaction record including transaction ID, hash, memo, fees, status, transfers, 
-        PRNG results, consensus timestamp, schedule ref, custom fees, automatic associations, 
-        parent timestamp, alias, Ethereum hash, staking rewards, EVM address, contract create result. 
+
+        This method constructs a detailed string containing all significant fields of the
+        transaction record including transaction ID, hash, memo, fees, status, transfers,
+        PRNG results, consensus timestamp, schedule ref, custom fees, automatic associations,
+        parent timestamp, alias, Ethereum hash, staking rewards, EVM address, contract create result.
         For the receipt status, it attempts to resolve the numeric status
         to a human-readable ResponseCode name.
 
@@ -143,31 +143,33 @@ class TransactionRecord:
             except (ValueError, AttributeError):
                 status = self.receipt.status
 
-        return (f"TransactionRecord(transaction_id='{self.transaction_id}', "
-                f"transaction_hash={self.transaction_hash}, "
-                f"transaction_memo='{self.transaction_memo}', "
-                f"transaction_fee={self.transaction_fee}, "
-                f"receipt_status='{status}', "
-                f"token_transfers={dict(self.token_transfers)}, "
-                f"nft_transfers={dict(self.nft_transfers)}, "
-                f"transfers={dict(self.transfers)}, "
-                f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
-                f"call_result={self.call_result}, "
-                f"prng_number={self.prng_number}, "
-                f"prng_bytes={self.prng_bytes}, "
-                f"duplicates_count={len(self.duplicates)}, "
-                f"children_count={len(self.children)}, "
-                f"consensus_timestamp={self.consensus_timestamp}, "
-                f"schedule_ref={self.schedule_ref}, "
-                f"assessed_custom_fees={self.assessed_custom_fees}, "
-                f"automatic_token_associations={self.automatic_token_associations}, "
-                f"parent_consensus_timestamp={self.parent_consensus_timestamp}, "
-                f"alias={self.alias}, "
-                f"ethereum_hash={self.ethereum_hash}, "
-                f"paid_staking_rewards={self.paid_staking_rewards}, "
-                f"evm_address={self.evm_address}, "
-                f"contract_create_result={self.contract_create_result})")
-    
+        return (
+            f"TransactionRecord(transaction_id='{self.transaction_id}', "
+            f"transaction_hash={self.transaction_hash}, "
+            f"transaction_memo='{self.transaction_memo}', "
+            f"transaction_fee={self.transaction_fee}, "
+            f"receipt_status='{status}', "
+            f"token_transfers={dict(self.token_transfers)}, "
+            f"nft_transfers={dict(self.nft_transfers)}, "
+            f"transfers={dict(self.transfers)}, "
+            f"new_pending_airdrops={list(self.new_pending_airdrops)}, "
+            f"call_result={self.call_result}, "
+            f"prng_number={self.prng_number}, "
+            f"prng_bytes={self.prng_bytes}, "
+            f"duplicates_count={len(self.duplicates)}, "
+            f"children_count={len(self.children)}, "
+            f"consensus_timestamp={self.consensus_timestamp}, "
+            f"schedule_ref={self.schedule_ref}, "
+            f"assessed_custom_fees={self.assessed_custom_fees}, "
+            f"automatic_token_associations={self.automatic_token_associations}, "
+            f"parent_consensus_timestamp={self.parent_consensus_timestamp}, "
+            f"alias={self.alias}, "
+            f"ethereum_hash={self.ethereum_hash}, "
+            f"paid_staking_rewards={self.paid_staking_rewards}, "
+            f"evm_address={self.evm_address}, "
+            f"contract_create_result={self.contract_create_result})"
+        )
+
     @classmethod
     def _from_proto(
         cls,
@@ -190,7 +192,7 @@ class TransactionRecord:
         assessed custom fees, automatic token associations, parent consensus
         timestamp, alias, ethereum hash, paid staking rewards, EVM address,
         and contract create result
-        
+
         The method maps all nested transfer data from the raw protobuf message into
         the structured format used by the TransactionRecord class & organizing them
 
@@ -224,39 +226,32 @@ class TransactionRecord:
             contract_create_result = ContractFunctionResult._from_proto(proto.contractCreateResult)
 
         consensus_timestamp = (
-            Timestamp._from_protobuf(proto.consensusTimestamp)
-            if proto.HasField("consensusTimestamp") else None
+            Timestamp._from_protobuf(proto.consensusTimestamp) if proto.HasField("consensusTimestamp") else None
         )
         parent_consensus_timestamp = (
             Timestamp._from_protobuf(proto.parent_consensus_timestamp)
-            if proto.HasField("parent_consensus_timestamp") else None
+            if proto.HasField("parent_consensus_timestamp")
+            else None
         )
-        schedule_ref = (
-            ScheduleId._from_proto(proto.scheduleRef)
-            if proto.HasField("scheduleRef") else None
-        )
-        assessed_custom_fees = [
-            AssessedCustomFee._from_proto(fee) for fee in proto.assessed_custom_fees
-        ]
+        schedule_ref = ScheduleId._from_proto(proto.scheduleRef) if proto.HasField("scheduleRef") else None
+        assessed_custom_fees = [AssessedCustomFee._from_proto(fee) for fee in proto.assessed_custom_fees]
         automatic_token_associations = [
             TokenAssociation._from_proto(assoc) for assoc in proto.automatic_token_associations
         ]
-        paid_staking_rewards = [
-            (AccountId._from_proto(r.accountID), r.amount)
-            for r in proto.paid_staking_rewards
-        ]
+        paid_staking_rewards = [(AccountId._from_proto(r.accountID), r.amount) for r in proto.paid_staking_rewards]
         contract_create_result = (
             ContractFunctionResult._from_proto(proto.contractCreateResult)
-            if proto.HasField("contractCreateResult") else None
+            if proto.HasField("contractCreateResult")
+            else None
         )
         alias = proto.alias if proto.alias else None
         ethereum_hash = proto.ethereum_hash if proto.ethereum_hash else None
         evm_address = proto.evm_address if proto.evm_address else None
-        
+
         entropy_case = proto.WhichOneof("entropy")
 
         prng_number = None
-        prng_bytes  = None
+        prng_bytes = None
 
         if entropy_case == "prng_number":
             prng_number = proto.prng_number
@@ -386,13 +381,13 @@ class TransactionRecord:
                 "contractCallResult and contractCreateResult are mutually exclusive "
                 "proto oneof fields and cannot both be set simultaneously."
             )
-        
+
         if self.prng_number is not None and self.prng_bytes is not None:
             raise ValueError(
                 "prng_number and prng_bytes are mutually exclusive "
                 "proto oneof fields (entropy) and cannot both be set simultaneously."
             )
-        
+
         record_proto = transaction_record_pb2.TransactionRecord(
             transactionHash=self.transaction_hash,
             memo=self.transaction_memo,
@@ -402,13 +397,13 @@ class TransactionRecord:
             prng_number=self.prng_number,
             prng_bytes=self.prng_bytes,
         )
-        
+
         if self.call_result is not None:
             record_proto.contractCallResult.CopyFrom(self.call_result._to_proto())
         elif self.contract_create_result is not None:
             record_proto.contractCreateResult.CopyFrom(self.contract_create_result._to_proto())
         if self.prng_number is not None:
-                record_proto.prng_number = self.prng_number
+            record_proto.prng_number = self.prng_number
         if self.prng_bytes is not None:
             record_proto.prng_bytes = self.prng_bytes
 
@@ -442,9 +437,7 @@ class TransactionRecord:
         if self.schedule_ref is not None:
             record_proto.scheduleRef.CopyFrom(self.schedule_ref._to_proto())
 
-        record_proto.assessed_custom_fees.extend(
-            fee._to_proto() for fee in self.assessed_custom_fees
-        )
+        record_proto.assessed_custom_fees.extend(fee._to_proto() for fee in self.assessed_custom_fees)
 
         record_proto.automatic_token_associations.extend(
             assoc._to_proto() for assoc in self.automatic_token_associations

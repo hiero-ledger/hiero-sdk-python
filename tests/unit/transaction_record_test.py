@@ -35,7 +35,6 @@ def transaction_record(transaction_id):
         transaction_id=transaction_id,
     )
 
-
     ts = Timestamp(seconds=1234567890, nanos=500000000)
     sched = ScheduleId(0, 0, 9999)
 
@@ -55,27 +54,20 @@ def transaction_record(transaction_id):
         consensus_timestamp=ts,
         schedule_ref=sched,
         assessed_custom_fees=[
-            AssessedCustomFee(
-                amount=500000000,
-                fee_collector_account_id=AccountId(shard=0, realm=0, num=98)
-            )
+            AssessedCustomFee(amount=500000000, fee_collector_account_id=AccountId(shard=0, realm=0, num=98))
         ],
         automatic_token_associations=[
             TokenAssociation(
-                token_id=TokenId(shard=0, realm=0, num=5678),
-                account_id=AccountId(shard=0, realm=0, num=1234)
+                token_id=TokenId(shard=0, realm=0, num=5678), account_id=AccountId(shard=0, realm=0, num=1234)
             )
         ],
         parent_consensus_timestamp=ts,
-        alias=b'\x12\x34\x56\x78',
-        ethereum_hash=b'\xab' * 32,
-        paid_staking_rewards=[
-            (AccountId(shard=0, realm=0, num=456), 1000000)
-        ],
-        evm_address=b'\x12' * 20,
+        alias=b"\x12\x34\x56\x78",
+        ethereum_hash=b"\xab" * 32,
+        paid_staking_rewards=[(AccountId(shard=0, realm=0, num=456), 1000000)],
+        evm_address=b"\x12" * 20,
         contract_create_result=ContractFunctionResult(
-            contract_id=ContractId(shard=0, realm=0, contract=789),
-            contract_call_result=b"Mock result"
+            contract_id=ContractId(shard=0, realm=0, contract=789), contract_call_result=b"Mock result"
         ),
     )
 
@@ -84,7 +76,7 @@ def transaction_record(transaction_id):
 def proto_transaction_record(transaction_id):
     """Create a mock transaction record protobuf."""
     return transaction_record_pb2.TransactionRecord(
-        transactionHash=b'\x01\x02\x03\x04' * 12,
+        transactionHash=b"\x01\x02\x03\x04" * 12,
         memo="Test transaction memo",
         transactionFee=100000,
         receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
@@ -126,7 +118,6 @@ def test_transaction_record_default_initialization():
     assert record.duplicates == []
     assert record.children == []
 
-
     assert record.consensus_timestamp is None
     assert record.schedule_ref is None
     assert record.assessed_custom_fees == []
@@ -137,6 +128,7 @@ def test_transaction_record_default_initialization():
     assert record.paid_staking_rewards == []
     assert record.evm_address is None
     assert record.contract_create_result is None
+
 
 def test_from_proto(proto_transaction_record, transaction_id):
     """Test the from_proto method of the TransactionRecord class."""
@@ -211,9 +203,9 @@ def test_from_proto_with_nft_transfers(transaction_id):
 
 def test_from_proto_with_new_pending_airdrops(transaction_id):
     """Test from_proto with Pending Airdrops."""
-    sender = AccountId(0,0,100)
-    receiver = AccountId(0,0,200)
-    token_id = TokenId(0,0,1)
+    sender = AccountId(0, 0, 100)
+    receiver = AccountId(0, 0, 200)
+    token_id = TokenId(0, 0, 1)
     amount = 10
 
     proto = transaction_record_pb2.TransactionRecord()
@@ -247,6 +239,7 @@ def test_from_proto_with_prng_bytes(transaction_id):
     record = TransactionRecord._from_proto(proto, transaction_id)
     assert record.prng_bytes == b"123"
     assert record.prng_number is None
+
 
 def test_from_proto_with_consensus_timestamp(transaction_id):
     """Test parsing consensus_timestamp from proto."""
@@ -324,19 +317,19 @@ def test_from_proto_with_parent_consensus_timestamp(transaction_id):
 def test_from_proto_with_alias(transaction_id):
     """Test parsing alias bytes from proto."""
     proto = transaction_record_pb2.TransactionRecord()
-    proto.alias = b'\x12\x34\x56\x78'
+    proto.alias = b"\x12\x34\x56\x78"
 
     record = TransactionRecord._from_proto(proto, transaction_id)
-    assert record.alias == b'\x12\x34\x56\x78'
+    assert record.alias == b"\x12\x34\x56\x78"
 
 
 def test_from_proto_with_ethereum_hash(transaction_id):
     """Test parsing ethereum_hash from proto."""
     proto = transaction_record_pb2.TransactionRecord()
-    proto.ethereum_hash = b'\xab' * 32
+    proto.ethereum_hash = b"\xab" * 32
 
     record = TransactionRecord._from_proto(proto, transaction_id)
-    assert record.ethereum_hash == b'\xab' * 32
+    assert record.ethereum_hash == b"\xab" * 32
 
 
 def test_from_proto_with_paid_staking_rewards(transaction_id):
@@ -358,10 +351,10 @@ def test_from_proto_with_paid_staking_rewards(transaction_id):
 def test_from_proto_with_evm_address(transaction_id):
     """Test parsing evm_address from proto."""
     proto = transaction_record_pb2.TransactionRecord()
-    proto.evm_address = b'\x12' * 20
+    proto.evm_address = b"\x12" * 20
 
     record = TransactionRecord._from_proto(proto, transaction_id)
-    assert record.evm_address == b'\x12' * 20
+    assert record.evm_address == b"\x12" * 20
 
 
 def test_from_proto_with_contract_create_result(transaction_id):
@@ -376,6 +369,7 @@ def test_from_proto_with_contract_create_result(transaction_id):
     assert record.contract_create_result is not None
     assert record.contract_create_result.contract_id.contract == 789
     assert record.contract_create_result.contract_call_result == b"Created!"
+
 
 def test_to_proto(transaction_record, transaction_id):
     """Test the to_proto method of the TransactionRecord class."""
@@ -460,9 +454,9 @@ def test_proto_conversion_with_nft_transfers(transaction_id):
 
 def test_proto_conversion_with_new_pending_airdrops(transaction_id):
     """Test proto conversion preserves PendingAirdropsRecord."""
-    sender = AccountId(0,0,100)
-    receiver = AccountId(0,0,200)
-    token_id = TokenId(0,0,1)
+    sender = AccountId(0, 0, 100)
+    receiver = AccountId(0, 0, 200)
+    token_id = TokenId(0, 0, 1)
     amount = 10
 
     record = TransactionRecord()
@@ -565,19 +559,16 @@ def test_repr_method(transaction_id):
         receipt=receipt,
         consensus_timestamp=ts,
         schedule_ref=sched,
-        assessed_custom_fees=[AssessedCustomFee(
-            amount=500000000,
-            fee_collector_account_id=AccountId(0, 0, 98)
-        )],
+        assessed_custom_fees=[AssessedCustomFee(amount=500000000, fee_collector_account_id=AccountId(0, 0, 98))],
         automatic_token_associations=[TokenAssociation(token_id=TokenId(0, 0, 5678), account_id=AccountId(0, 0, 1234))],
         parent_consensus_timestamp=ts,
-        alias=b'\x12\x34',
-        ethereum_hash=b'\xab' * 32,
+        alias=b"\x12\x34",
+        ethereum_hash=b"\xab" * 32,
         paid_staking_rewards=[(AccountId(0, 0, 456), 1000000)],
-        evm_address=b'\x12' * 20,
+        evm_address=b"\x12" * 20,
         contract_create_result=ContractFunctionResult(contract_id=ContractId(0, 0, 789)),
     )
-    
+
     repr_full = repr(record_full)
     assert f"transaction_id='{transaction_id}'" in repr_full
     assert "transaction_hash=b'\\x01\\x02\\x03\\x04'" in repr_full
@@ -624,32 +615,37 @@ def test_repr_method(transaction_id):
         f"duplicates_count=0, "
         f"children_count=0)"
     )
-    assert "transfers={AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}" in repr_transfers
-    
-    expected_repr_with_transfers = (f"TransactionRecord(transaction_id='{transaction_id}', "
-                                  f"transaction_hash=None, "
-                                  f"transaction_memo='None', "
-                                  f"transaction_fee=None, "
-                                  f"receipt_status='SUCCESS', "
-                                  f"token_transfers={{}}, "
-                                  f"nft_transfers={{}}, "
-                                  f"transfers={{AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}}, "
-                                  f"new_pending_airdrops={[]}, "
-                                  f"call_result=None, "
-                                  f"prng_number=None, "
-                                  f"prng_bytes=None, "
-                                  f"duplicates_count=0, "
-                                  f"children_count=0, "
-                                  f"consensus_timestamp=None, "
-                                  f"schedule_ref=None, "
-                                  f"assessed_custom_fees=[], "
-                                  f"automatic_token_associations=[], "
-                                  f"parent_consensus_timestamp=None, "
-                                  f"alias=None, "
-                                  f"ethereum_hash=None, "
-                                  f"paid_staking_rewards=[], "
-                                  f"evm_address=None, "
-                                  f"contract_create_result=None)")
+    assert (
+        "transfers={AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}"
+        in repr_transfers
+    )
+
+    expected_repr_with_transfers = (
+        f"TransactionRecord(transaction_id='{transaction_id}', "
+        f"transaction_hash=None, "
+        f"transaction_memo='None', "
+        f"transaction_fee=None, "
+        f"receipt_status='SUCCESS', "
+        f"token_transfers={{}}, "
+        f"nft_transfers={{}}, "
+        f"transfers={{AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}}, "
+        f"new_pending_airdrops={[]}, "
+        f"call_result=None, "
+        f"prng_number=None, "
+        f"prng_bytes=None, "
+        f"duplicates_count=0, "
+        f"children_count=0, "
+        f"consensus_timestamp=None, "
+        f"schedule_ref=None, "
+        f"assessed_custom_fees=[], "
+        f"automatic_token_associations=[], "
+        f"parent_consensus_timestamp=None, "
+        f"alias=None, "
+        f"ethereum_hash=None, "
+        f"paid_staking_rewards=[], "
+        f"evm_address=None, "
+        f"contract_create_result=None)"
+    )
     assert repr(record_with_transfers) == expected_repr_with_transfers
 
 
@@ -764,13 +760,12 @@ def test_repr_includes_duplicates_count(transaction_id):
     assert "duplicates_count=2" in repr(record), "duplicates_count should reflect list length"
 
 
-
 def test_from_proto_raises_when_no_transaction_id_available():
     """Verify error is raised when neither transaction_id param nor proto.transactionID is present."""
     proto = transaction_record_pb2.TransactionRecord()
 
     # Force-clear the field (works in protobuf 3 & 4)
-    
+
     proto.ClearField("transactionID")
 
     assert not proto.HasField("transactionID"), "Field should be absent after ClearField"
@@ -788,6 +783,7 @@ def test_transaction_record_children_not_shared_between_instances():
 
     assert len(r1.children) == 1
     assert len(r2.children) == 0
+
 
 def test_round_trip_consensus_timestamp(transaction_id):
     """Test consensus timestamp survives protobuf round-trip."""
@@ -809,10 +805,7 @@ def test_round_trip_schedule_ref(transaction_id):
 
 def test_round_trip_assessed_custom_fees(transaction_id):
     """Test custom fees survive protobuf round-trip."""
-    fee = AssessedCustomFee(
-        amount=500000000,
-        fee_collector_account_id=AccountId(0, 0, 98)
-    )
+    fee = AssessedCustomFee(amount=500000000, fee_collector_account_id=AccountId(0, 0, 98))
     original = TransactionRecord(assessed_custom_fees=[fee])
     proto = original._to_proto()
     round_tripped = TransactionRecord._from_proto(proto, transaction_id)
@@ -822,10 +815,7 @@ def test_round_trip_assessed_custom_fees(transaction_id):
 
 def test_round_trip_automatic_token_associations(transaction_id):
     """Test token associations survive protobuf round-trip."""
-    assoc = TokenAssociation(
-        token_id=TokenId(0, 0, 5678),
-        account_id=AccountId(0, 0, 1234)
-    )
+    assoc = TokenAssociation(token_id=TokenId(0, 0, 5678), account_id=AccountId(0, 0, 1234))
     original = TransactionRecord(automatic_token_associations=[assoc])
     proto = original._to_proto()
     round_tripped = TransactionRecord._from_proto(proto, transaction_id)
@@ -844,18 +834,18 @@ def test_round_trip_parent_consensus_timestamp(transaction_id):
 
 def test_round_trip_alias(transaction_id):
     """Test alias bytes survive protobuf round-trip."""
-    original = TransactionRecord(alias=b'\x12\x34')
+    original = TransactionRecord(alias=b"\x12\x34")
     proto = original._to_proto()
     round_tripped = TransactionRecord._from_proto(proto, transaction_id)
-    assert round_tripped.alias == b'\x12\x34'
+    assert round_tripped.alias == b"\x12\x34"
 
 
 def test_round_trip_ethereum_hash(transaction_id):
     """Test ethereum hash survives protobuf round-trip."""
-    original = TransactionRecord(ethereum_hash=b'\xab' * 32)
+    original = TransactionRecord(ethereum_hash=b"\xab" * 32)
     proto = original._to_proto()
     round_tripped = TransactionRecord._from_proto(proto, transaction_id)
-    assert round_tripped.ethereum_hash == b'\xab' * 32
+    assert round_tripped.ethereum_hash == b"\xab" * 32
 
 
 def test_round_trip_paid_staking_rewards(transaction_id):
@@ -869,23 +859,21 @@ def test_round_trip_paid_staking_rewards(transaction_id):
 
 def test_round_trip_evm_address(transaction_id):
     """Test EVM address survives protobuf round-trip."""
-    original = TransactionRecord(evm_address=b'\x12' * 20)
+    original = TransactionRecord(evm_address=b"\x12" * 20)
     proto = original._to_proto()
     round_tripped = TransactionRecord._from_proto(proto, transaction_id)
-    assert round_tripped.evm_address == b'\x12' * 20
+    assert round_tripped.evm_address == b"\x12" * 20
 
 
 def test_round_trip_contract_create_result(transaction_id):
     """Test contract creation result survives round-trip."""
-    result = ContractFunctionResult(
-        contract_id=ContractId(0, 0, 789),
-        contract_call_result=b"Created!"
-    )
+    result = ContractFunctionResult(contract_id=ContractId(0, 0, 789), contract_call_result=b"Created!")
     original = TransactionRecord(contract_create_result=result)
     proto = original._to_proto()
     round_tripped = TransactionRecord._from_proto(proto, transaction_id)
     assert round_tripped.contract_create_result.contract_id == result.contract_id
     assert round_tripped.contract_create_result.contract_call_result == b"Created!"
+
 
 def test_to_proto_raises_when_both_call_and_create_result_set(transaction_id):
     """Setting both call_result and contract_create_result must raise (protobuf oneof)."""
@@ -902,6 +890,7 @@ def test_to_proto_raises_when_both_call_and_create_result_set(transaction_id):
     with pytest.raises(ValueError, match="mutually exclusive"):
         record._to_proto()
 
+
 def test_to_proto_raises_when_both_prng_fields_set(transaction_id):
     """Setting both prng_number and prng_bytes must raise (entropy oneof)."""
     record = TransactionRecord(
@@ -912,4 +901,3 @@ def test_to_proto_raises_when_both_prng_fields_set(transaction_id):
 
     with pytest.raises(ValueError, match="mutually exclusive"):
         record._to_proto()
-        

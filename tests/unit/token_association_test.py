@@ -1,4 +1,5 @@
 """Unit tests for the TokenAssociation class."""
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -31,10 +32,7 @@ def test_default_initialization():
 
 def test_initialization_both_fields(sample_token_id: TokenId, sample_account_id: AccountId):
     """Test initialization with both token_id and account_id provided."""
-    assoc = TokenAssociation(
-        token_id=sample_token_id,
-        account_id=sample_account_id
-    )
+    assoc = TokenAssociation(token_id=sample_token_id, account_id=sample_account_id)
 
     assert assoc.token_id == sample_token_id
     assert assoc.account_id == sample_account_id
@@ -109,10 +107,7 @@ def test_from_proto_empty():
 
 def test_to_proto_both_fields(sample_token_id: TokenId, sample_account_id: AccountId):
     """Test _to_proto serializes both fields correctly."""
-    assoc = TokenAssociation(
-        token_id=sample_token_id,
-        account_id=sample_account_id
-    )
+    assoc = TokenAssociation(token_id=sample_token_id, account_id=sample_account_id)
 
     proto = assoc._to_proto()
 
@@ -156,10 +151,7 @@ def test_to_proto_empty():
 
 def test_round_trip_both_fields(sample_token_id: TokenId, sample_account_id: AccountId):
     """Test full round-trip conversion preserves both fields."""
-    original = TokenAssociation(
-        token_id=sample_token_id,
-        account_id=sample_account_id
-    )
+    original = TokenAssociation(token_id=sample_token_id, account_id=sample_account_id)
 
     proto = original._to_proto()
     reconstructed = TokenAssociation._from_proto(proto)
@@ -187,6 +179,7 @@ def test_round_trip_account_only(sample_account_id: AccountId):
     assert reconstructed.token_id is None
     assert reconstructed.account_id == original.account_id
 
+
 def test_round_trip_empty():
     """Test round-trip with empty/default instance."""
     original = TokenAssociation()
@@ -196,10 +189,11 @@ def test_round_trip_empty():
     assert reconstructed.token_id is None
     assert reconstructed.account_id is None
 
+
 def test_bytes_round_trip_both_fields(
     sample_token_id: TokenId,
     sample_account_id: AccountId,
-    ):
+):
     """Test round-trip via public to_bytes() / from_bytes() preserves both fields."""
     original = TokenAssociation(
         token_id=sample_token_id,
@@ -210,6 +204,7 @@ def test_bytes_round_trip_both_fields(
 
     assert reconstructed == original
 
+
 def test_bytes_round_trip_empty():
     """Test round-trip via to_bytes()/from_bytes() with empty/default instance."""
     original = TokenAssociation()
@@ -218,12 +213,10 @@ def test_bytes_round_trip_empty():
     assert reconstructed.token_id is None
     assert reconstructed.account_id is None
 
+
 def test_repr_representation(sample_token_id: TokenId, sample_account_id: AccountId):
     """Test __repr__ output for TokenAssociation."""
-    assoc = TokenAssociation(
-        token_id=sample_token_id,
-        account_id=sample_account_id
-    )
+    assoc = TokenAssociation(token_id=sample_token_id, account_id=sample_account_id)
     repr_str = repr(assoc)
 
     assert "TokenAssociation" in repr_str
