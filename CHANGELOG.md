@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -7,7 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
-- 
+- Exposed all missing `TransactionRecord` protobuf fields `consensusTimestamp`, `scheduleRef`, `assessed_custom_fees`, `automatic_token_associations`, `parent_consensus_timestamp`, `alias`, `ethereum_hash`, `paid_staking_rewards`, `evm_address`, `contractCreateResult` with proper `None` handling, PRNG oneof handling with unset values return `None` instead of default values 0 / b"" (#1636)
 
 ### Tests
 - Refactor `mock_server` setup for network level TLS handling and added thread safety
@@ -15,16 +15,19 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Examples
 
+- Add the missing `setup_client()` docstring in `examples/tokens/token_dissociate_transaction.py` for consistency with the other example functions. (#2058)
 
 ### Docs
 
 
 ### .github
+- chore: pin pip packages to exact versions in publish.yml to improve supply chain security and reproducibility (#2056)
 - chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md (#2021)
 - Refactored the Advanced Issue Template to V2 with stricter prerequisites and a focus on architectural design (#2016).
 - Refactored the Advanced Issue Template to ensure PR-level quality checklists do not block maintainers during issue creation (#2036)
 - chore: add concurrency to unit and integration tests (#2071)
 - Add automated label sync workflow to propagate labels from linked issues to pull requests (#1716)
+- chore: update spam list (#2035)
 
 ## [0.2.3] - 2026-03-26
 
@@ -36,6 +39,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix the TransactionGetReceiptQuery to raise ReceiptStatusError for the non-retryable and non success receipt status
 - Refactor `AccountInfo` to use the existing `StakingInfo` wrapper class instead of flattened staking fields. Access is now via `info.staking_info.staked_account_id`, `info.staking_info.staked_node_id`, and `info.staking_info.decline_reward`. The old flat accessors (`info.staked_account_id`, `info.staked_node_id`, `info.decline_staking_reward`) are still available as deprecated properties and will emit a `DeprecationWarning`. (#1366)
 - Added abstract `Key` supper class to handle various proto Keys.
+
+
 ### Examples
 
 ### Tests
