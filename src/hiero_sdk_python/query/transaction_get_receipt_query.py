@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import traceback
+from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -277,7 +278,7 @@ class TransactionGetReceiptQuery(Query):
             TransactionReceipt._from_proto(response.transactionGetReceipt.receipt, self.transaction_id),
         )
 
-    def _map_receipt_list(self, receipts:  List[transaction_receipt_pb2.TransactionReceipt], include_parent_tx_id: bool = False) -> List["TransactionReceipt"]:
+    def _map_receipt_list(self, receipts: list[transaction_receipt_pb2.TransactionReceipt], include_parent_tx_id: bool = False) -> list[TransactionReceipt]:
         """
         Maps a list of protobuf transaction receipts to TransactionReceipt objects.
 

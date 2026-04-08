@@ -13,11 +13,8 @@ produce child receipts, so we only assert API correctness and stability,
 not children count > 0.
 """
 
-from __future__ import annotations
-
-import threading
-
 import pytest
+import threading
 
 from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
 from hiero_sdk_python.account.account_id import AccountId
@@ -131,8 +128,7 @@ def _setup_contract_and_execute(env, memo):
     execute_receipt = execute_tx.execute(env.client)
     assert execute_receipt.status == ResponseCode.SUCCESS
 
-    tx_id = _extract_tx_id(execute_tx, execute_receipt)
-    return tx_id
+    return _extract_tx_id(execute_tx, execute_receipt)
 
 
 @pytest.mark.integration
