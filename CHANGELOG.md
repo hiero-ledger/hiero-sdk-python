@@ -29,6 +29,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add automated label sync workflow to propagate labels from linked issues to pull requests (#1716)
 - chore: update spam list (#2035)
 - Add CodeRabbit release gate workflow and prompt for PR audits `release-pr-prompt.md`, `release-pr-coderabbit-gate.yml` and `release-pr-coderabbit-gate.js`
+- Add CodeQL advanced analysis workflow configuration
 
 ## [0.2.3] - 2026-03-26
 
