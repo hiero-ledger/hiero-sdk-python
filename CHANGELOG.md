@@ -41,7 +41,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Fix the TransactionGetReceiptQuery to raise ReceiptStatusError for the non-retryable and non success receipt status
 - Refactor `AccountInfo` to use the existing `StakingInfo` wrapper class instead of flattened staking fields. Access is now via `info.staking_info.staked_account_id`, `info.staking_info.staked_node_id`, and `info.staking_info.decline_reward`. The old flat accessors (`info.staked_account_id`, `info.staked_node_id`, `info.decline_staking_reward`) are still available as deprecated properties and will emit a `DeprecationWarning`. (#1366)
 - Added abstract `Key` supper class to handle various proto Keys.
-- Fix child transaction receipts in `TransactionGetReceiptQuery` to properly expose protobuf fields like `accountID` by passing `None` instead of parent transaction_id (#1849)
 
 
 ### Examples
