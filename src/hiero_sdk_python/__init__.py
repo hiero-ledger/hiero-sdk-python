@@ -52,6 +52,7 @@ from .tokens.token_unpause_transaction import TokenUnpauseTransaction
 from .tokens.token_pause_transaction import TokenPauseTransaction
 from .tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 from .tokens.assessed_custom_fee import AssessedCustomFee
+from .tokens.token_association import TokenAssociation
 
 # Transaction
 from .transaction.transaction import Transaction
@@ -193,6 +194,7 @@ __all__ = [
     "TokenBurnTransaction",
     "TokenGrantKycTransaction",
     "TokenRelationship",
+    "TokenAssociation",
     "TokenUpdateTransaction",
     "TokenAirdropTransaction",
     "TokenCancelAirdropTransaction",

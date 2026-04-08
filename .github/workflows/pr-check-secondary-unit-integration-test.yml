@@ -1,5 +1,4 @@
-name: Hiero Solo Integration & Unit Tests
-
+name: Secondary PR Check - Hiero Solo Integration & Unit Tests
 on:
   push:
     branches:
@@ -9,20 +8,26 @@ on:
       - "docs/**"
       - "examples/**"
       - "tck/**"
+      - "tests/fuzz/**"
       - ".github/**"
-      - "!.github/workflows/pr-check-test.yml"
+      - "!.github/workflows/pr-check-secondary-unit-integration-test.yml"
   pull_request:
     paths-ignore:
       - "**/*.md"
       - "docs/**"
       - "examples/**"
       - "tck/**"
+      - "tests/fuzz/**"
       - ".github/**"
-      - "!.github/workflows/pr-check-test.yml"
+      - "!.github/workflows/pr-check-secondary-unit-integration-test.yml"
   workflow_dispatch: {}
 
 permissions:
   contents: read
+
+concurrency:
+  group: pr-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   unit-tests:
