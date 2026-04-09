@@ -38,15 +38,9 @@ OPERATOR_KEY = os.getenv("OPERATOR_KEY", "")
 def setup_client() -> Client:
     """Initialize the client using operator credentials from .env."""
     try:
-        network = Network(NETWORK)
-        client = Client(network)
-
-        operator_id = AccountId.from_string(OPERATOR_ID)
-        operator_key = PrivateKey.from_string(OPERATOR_KEY)
-
-        client.set_operator(operator_id, operator_key)
-
-        print(f"Connected to network '{NETWORK}' as {operator_id}")
+        client = Client.from_env()
+        print(f"Network: {client.network.network}")
+        print(f"Connected as {client.operator_account_id}")
         return client
 
     except Exception as e:

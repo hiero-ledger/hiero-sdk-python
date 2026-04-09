@@ -35,21 +35,17 @@ load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
 
 
-def setup_client():
-    """Initialize and set up the client with operator account."""
-    # Initialize network and client
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
+def setup_client() -> tuple[Client, AccountId, PrivateKey]:
+    """Setup Client."""
+    client = Client.from_env()
 
-    # Set up operator account
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-    client.set_operator(operator_id, operator_key)
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
+
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key
-
 
 def create_test_account(client):
     """Create a new account for testing."""

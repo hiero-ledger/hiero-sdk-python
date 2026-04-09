@@ -28,31 +28,19 @@ from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 
 def setup_client() -> tuple[Client, AccountId]:
     """Initialize client and operator from .env file."""
-    load_dotenv()
-
-    if "OPERATOR_ID" not in os.environ or "OPERATOR_KEY" not in os.environ:
-        print("Environment variables OPERATOR_ID or OPERATOR_KEY are missing.")
-        sys.exit(1)
-
     try:
-        operator_id = AccountId.from_string(os.environ["OPERATOR_ID"])
-        operator_key = PrivateKey.from_string(os.environ["OPERATOR_KEY"])
-    except Exception as e:  # noqa: BLE001
-        print(f"Failed to parse OPERATOR_ID or OPERATOR_KEY: {e}")
-        sys.exit(1)
+        client = Client.from_env()
 
-    network_name = os.environ.get("NETWORK", "testnet")
+        operator_id = client.operator_account_id
 
-    try:
-        client = Client(Network(network_name))
+        print(f"Network: {client.network.network}")
+        print(f"Operator set: {operator_id}")
+
+        return client, operator_id
+
     except Exception as e:
-        print(f"Failed to create client for network '{network_name}': {e}")
+        print(f"Failed to initialize client: {e}")
         sys.exit(1)
-
-    client.set_operator(operator_id, operator_key)
-    print(f"Operator set: {operator_id}")
-
-    return client, operator_id
 
 
 def create_revenue_generating_topic(client: Client, operator_id: AccountId):

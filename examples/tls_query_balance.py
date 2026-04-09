@@ -49,25 +49,10 @@ def _load_operator_credentials() -> tuple[AccountId, PrivateKey]:
 
 
 def setup_client() -> Client:
-    """Create and configure a client with TLS enabled using env settings."""
-    network_name = os.getenv("NETWORK", "testnet")
-    verify_certs = _bool_env("VERIFY_CERTS", True)
-
-    network = Network(network_name)
-    client = Client(network)
-
-    # Enable TLS for hosted networks (mainnet, testnet, previewnet)
-    # Disable TLS for local networks (localhost, solo, local)
-    hosted_networks = ("mainnet", "testnet", "previewnet")
-    local_networks = ("localhost", "solo", "local")
-
-    if network_name.lower() in hosted_networks:
-        client.set_transport_security(True)
-    elif network_name.lower() in local_networks:
-        client.set_transport_security(False)
-    # For custom networks, use Network's default (disabled)
-
-    client.set_verify_certificates(verify_certs)
+    """Setup Client."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
 
