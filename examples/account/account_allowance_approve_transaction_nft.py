@@ -60,15 +60,16 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 def setup_client() -> tuple[Client, AccountId, PrivateKey]:
     """Setup Client."""
-    client = Client.from_env()
-
-    operator_id = client.operator_account_id
-    operator_key = client.operator_private_key
-
-    print(f"Network: {client.network.network}")
-    print(f"Client setup for NFT Owner (Operator): {client.operator_account_id}")
-
-    return client, operator_id, operator_key
+    try:
+        client = Client.from_env()
+        operator_id = client.operator_account_id
+        operator_key = client.operator_private_key
+        print(f"Network: {client.network.network}")
+        print(f"Client setup for NFT Owner (Operator): {client.operator_account_id}")
+        return client, operator_id, operator_key
+    except Exception:
+        print("Error: Please check OPERATOR_ID, OPERATOR_KEY, and NETWORK in your .env file.")
+        sys.exit(1)
 
 
 def create_account(client, memo="Test Account"):
