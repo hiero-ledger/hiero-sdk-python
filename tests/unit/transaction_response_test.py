@@ -118,7 +118,8 @@ def test_get_receipt_returns_failure_status_without_validate_status(
     transaction_response,
 ):
     """Test failing status returns a receipt instead of raising an error 
-    when validation is disabled."""
+    when validation is disabled.
+    """
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
             header=response_header_pb2.ResponseHeader(
@@ -226,7 +227,7 @@ def test_get_record_executes_and_returns_record(transaction_response):
 
 
 def test_transaction_response_fields(transaction_id):
-    """asserting response is correctly populated"""
+    """Asserting response is correctly populated."""
     resp = TransactionResponse()
 
 
