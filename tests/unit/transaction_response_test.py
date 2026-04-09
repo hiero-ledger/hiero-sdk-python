@@ -1,9 +1,12 @@
-"""Tests for TransactionResponse behavior including receipt handling,
-record queries, and validation scenarios."""
+"""
+Tests for TransactionResponse behavior.
+
+Includes receipt handling, record queries, and validation scenarios.
+"""
 
 
 # pylint: disable=no-member,no-name-in-module
-# no-memeber is disabled because Protobuf uses runtime descriptors
+# no-member is disabled because Protobuf uses runtime descriptors
 # no-name-in-module is disabled above because of the dynamic nature of the generated protobuf
 
 
@@ -114,8 +117,8 @@ def test_get_receipt_query_set_validate_status(transaction_response):
 def test_get_receipt_returns_failure_status_without_validate_status(
     transaction_response,
 ):
-    """Test failing status returns a receipt instead of raising an error
-       when validation is disabled."""
+    """Test failing status returns a receipt instead of raising an error 
+    when validation is disabled."""
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
             header=response_header_pb2.ResponseHeader(
@@ -219,9 +222,7 @@ def test_get_record_executes_and_returns_record(transaction_response):
         assert result.transaction_memo == record.memo
 
 
-"""
-Tests for TransactionResponse behavior.
-"""
+# Tests for TransactionResponse behavior.
 
 
 def test_transaction_response_fields(transaction_id):
@@ -255,8 +256,6 @@ def test_transaction_response_fields(transaction_id):
 def test_transaction_response_get_receipt_is_pinned_to_submitting_node(
     transaction_id,
 ):
-
-
     """
     mock_hedera_servers assigns:
       - server[0] -> node 0.0.3

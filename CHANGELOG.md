@@ -11,7 +11,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Tests
 - Refactor `mock_server` setup for network level TLS handling and added thread safety
-- Refactor `transaction_response_test.py` by grouping them `test_transaction_response.py` and  `transaction_response_test.py`.(#2066)
+- Refactor `transaction_response_test.py` by organizing the tests into `test_transaction_response.py` and `transaction_response_test.py`. (#2066)
 
 
 
