@@ -32,7 +32,11 @@ network_name = os.getenv("NETWORK", "testnet").lower()
 
 def setup_client() -> Client:
     """Setup Client."""
-    client = Client.from_env()
+    try:
+        client = Client.from_env()
+    except Exception as exc:
+        print(f"Failed to initialize client: {exc}")
+        sys.exit(1)
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
