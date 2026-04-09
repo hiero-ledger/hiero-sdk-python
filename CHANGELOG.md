@@ -35,7 +35,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Add automated label sync workflow to propagate labels from linked issues to pull requests (#1716)
 - chore: update spam list (#2035)
 - Add CodeRabbit release gate workflow and prompt for PR audits `release-pr-prompt.md`, `release-pr-coderabbit-gate.yml` and `release-pr-coderabbit-gate.js`
-- Refactor `sync-issue-labels-compute.yml` and `sync-issue-labels-add.yml` to properly sync issue and skip for the bot PR.
+- Refactor `sync-issue-labels-compute.yml` and `sync-issue-labels-add.yml` to properly sync issue labels and skip bot PRs.
 
 ## [0.2.3] - 2026-03-26
 
