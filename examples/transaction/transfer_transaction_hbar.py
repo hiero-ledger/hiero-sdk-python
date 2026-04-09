@@ -44,7 +44,7 @@ def setup_client() -> tuple[Client, AccountId, PrivateKey]:
 
         return client, operator_id, operator_key
 
-    except Exception:
+    except (TypeError, ValueError):
         print("❌ Error: Creating client, Please check your .env file")
         sys.exit(1)
 
