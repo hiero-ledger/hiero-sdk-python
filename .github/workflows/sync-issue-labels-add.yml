@@ -1,128 +1,59 @@
-name: Add Linked Issue Labels to PR
+name: Sync Linked Issue Labels - Apply
 
 on:
-  workflow_dispatch:
-    inputs:
-      upstream_run_id:
-        description: "Upstream compute workflow run ID"
-        required: true
-        type: string
-      pr_number:
-        description: "Pull request number"
-        required: true
-        type: string
-      dry_run:
-        description: "Dry run flag"
-        required: false
-        type: string
-        default: "true"
-      is_fork_pr:
-        description: "Fork PR flag"
-        required: false
-        type: string
-        default: "false"
-defaults:
-  run:
-    shell: bash
-permissions:
-  actions: read
-  issues: write
+  workflow_run:
+    workflows: ["Sync Linked Issue Labels - Compute"]
+    types: [completed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
 
 jobs:
-  add-labels:
-    concurrency:
-      group: sync-issue-labels-pr-${{ github.event.inputs.pr_number }}
-      cancel-in-progress: true
+  apply:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+      actions: read
+    
     steps:
-      - name: Harden the runner
+      - name: Harden Runner
         uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
         with:
           egress-policy: audit
-
-      - name: Download labels artifact
-        id: download
-        continue-on-error: true
+      
+      - name: Download Artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: pr-labels-${{ github.event.inputs.pr_number }}
-          path: artifacts
-          run-id: ${{ github.event.inputs.upstream_run_id }}
+          name: pr-labels-data
+          run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Read labels payload
-        id: read
-        env:
-          INPUT_PR_NUMBER: ${{ github.event.inputs.pr_number }}
-          INPUT_IS_FORK_PR: ${{ github.event.inputs.is_fork_pr }}
-          INPUT_DRY_RUN: ${{ github.event.inputs.dry_run }}
-        run: |
-          labels_file="artifacts/labels.json"
-          if [ ! -f "$labels_file" ]; then
-            echo "::error::Labels artifact not found. Cross-workflow handoff is broken."
-            echo "labels=[]" >> "$GITHUB_OUTPUT"
-            echo "labels_count=0" >> "$GITHUB_OUTPUT"
-            echo "labels_multiline=" >> "$GITHUB_OUTPUT"
-            echo "pr_number=$INPUT_PR_NUMBER" >> "$GITHUB_OUTPUT"
-            echo "is_fork_pr=$INPUT_IS_FORK_PR" >> "$GITHUB_OUTPUT"
-            echo "dry_run=$INPUT_DRY_RUN" >> "$GITHUB_OUTPUT"
-            echo "source_event=workflow_dispatch" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-          labels=$(jq -c '.labels // []' "$labels_file")
-          pr_number=$(jq -r '.pr_number // 0' "$labels_file")
-          is_fork_pr=$(jq -r '.is_fork_pr // false' "$labels_file")
-          dry_run=$(jq -r '.dry_run // "true"' "$labels_file")
-          source_event=$(jq -r '.source_event // ""' "$labels_file")
-          labels_multiline=$(jq -r '.labels // [] | .[]' "$labels_file")
-          labels_count=$(echo "$labels" | jq 'length')
-          echo "labels=$labels" >> "$GITHUB_OUTPUT"
-          echo "labels_count=$labels_count" >> "$GITHUB_OUTPUT"
-          {
-            echo "labels_multiline<<EOF"
-            echo "$labels_multiline"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
-          echo "is_fork_pr=$is_fork_pr" >> "$GITHUB_OUTPUT"
-          echo "dry_run=$dry_run" >> "$GITHUB_OUTPUT"
-          echo "source_event=$source_event" >> "$GITHUB_OUTPUT"
-
-      - name: Validate labels payload
-        id: validate
-        run: |
-          if [ "$PR_NUMBER" = "0" ] || [ "$(echo "$LABELS" | jq -r '. | length')" = "0" ]; then
-            echo "Invalid payload: pr_number=$PR_NUMBER or labels empty. Skipping label addition."
-            echo "valid_payload=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "valid_payload=true" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          PR_NUMBER: ${{ steps.read.outputs.pr_number }}
-          LABELS: ${{ steps.read.outputs.labels }}
-
-      - name: Determine if labels should be applied
-        id: should_apply
-        run: |
-          if [ "${{ steps.read.outputs.is_fork_pr }}" = "true" ]; then
-            echo "apply=false" >> "$GITHUB_OUTPUT"
-            echo "reason=fork PR" >> "$GITHUB_OUTPUT"
-          elif [ "${{ steps.validate.outputs.valid_payload }}" != "true" ]; then
-            echo "apply=false" >> "$GITHUB_OUTPUT"
-            echo "reason=invalid payload" >> "$GITHUB_OUTPUT"
-          elif [ "${{ steps.read.outputs.source_event }}" = "workflow_dispatch" ] && [ "${{ steps.read.outputs.dry_run }}" = "true" ]; then
-            echo "apply=false" >> "$GITHUB_OUTPUT"
-            echo "reason=dry run" >> "$GITHUB_OUTPUT"
-          else
-            echo "apply=true" >> "$GITHUB_OUTPUT"
-            echo "reason=" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Add labels to PR
-        if: ${{ steps.should_apply.outputs.apply == 'true' }}
-        uses: actions-ecosystem/action-add-labels@1a9c3715c0037e96b97bb38cb4c4b56a1f1d4871 # main
+      - name: Apply Labels
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          labels: ${{ steps.read.outputs.labels_multiline }}
-          number: ${{ steps.read.outputs.pr_number }}
+          script: |
+            const fs = require('fs');
+            if (!fs.existsSync('labels.json')) {
+               console.log("No payload file found. Nothing to apply.");
+               return;
+            }
 
+            const data = JSON.parse(fs.readFileSync('labels.json', 'utf8'));
+
+            if (!data.labels || data.labels.length === 0) {
+              console.log(`SKIPPING: PR #${data.pr_number} already has all labels or no labels were found.`);
+              return;
+            }
+
+            console.log(`Applying labels to PR #${data.pr_number}: ${data.labels.join(', ')}`);
+            
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: data.pr_number,
+              labels: data.labels
+            });
+            console.log("Successfully applied labels!");
