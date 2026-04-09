@@ -117,7 +117,9 @@ def test_get_receipt_query_set_validate_status(transaction_response):
 def test_get_receipt_returns_failure_status_without_validate_status(
     transaction_response,
 ):
-    """Test failing status returns a receipt instead of raising an error 
+    """Test failing status behavior.
+    
+    Ensures a receipt is returned instead of raising an error 
     when validation is disabled.
     """
     receipt_response = response_pb2.Response(
