@@ -171,8 +171,8 @@ body:
         Beginner PRs must be **working and follow best practices**.
 
           1. **Working:** The implementation must solve the problem and meet the acceptance criteria.
-          3. **SDK Best Practices:** The solution should fit well with existing SDK patterns and abstractions.
-          5. **Testing:** basic unit and possibly integration tests to demonstrate the implementation works as expected.
+          2. **SDK Best Practices:** The solution should fit well with existing SDK patterns and abstractions.
+          3. **Testing:** basic unit and possibly integration tests to demonstrate the implementation works as expected.
 
         **⚠️ Breaking changes**
         - Watch for any changes that could impact existing users, even if they seem small.

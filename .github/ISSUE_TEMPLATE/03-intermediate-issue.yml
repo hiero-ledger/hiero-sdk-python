@@ -191,7 +191,7 @@ body:
         - All existing tests should pass as-is.
 
         **🤖 AI notes**
-        - AI often has out-dated real-world knowledge: it will not be able to identify current packages.
+        - AI often has outdated real-world knowledge: it will not be able to identify current packages.
         - AI has gaps or incorrect understanding of repo-specific patterns, logic, and protobuf schemes.
 
   - type: textarea

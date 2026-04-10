@@ -123,9 +123,9 @@ body:
       label: 📋 Step-by-Step Setup Procedure
       description: Provide a step-by-step setup guide for new contributors
       value: |
-        - [ ] Visual Studio (VS) Code: [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-setup.md#1-setting-up-supporting-infrastructure#visual-studio-code)
+        - [ ] Visual Studio (VS) Code: [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-setup.md#visual-studio-code)
 
-        - [ ] GitHub Desktop: [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-setup.md#1-setting-up-supporting-infrastructure#github-desktop)
+        - [ ] GitHub Desktop: [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-setup.md#github-desktop)
 
         - [ ] Hedera Testnet Account with root .env file: [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-setup.md#2-setting-up-a-portal-account)
 
@@ -169,7 +169,7 @@ body:
 
         - [ ] **Commit with Conventional format and DCO, GPG signing:**  commit changes using: `git commit -S -s -m "chore: your message"`, [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-workflow.md#3-commit-your-changes)
 
-        - [ ] **Add a `.CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and commit as `git commit -S -s -m "chore: changelog entry"` [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-workflow.md#4-create-a-changelog-entry)
+        - [ ] **Add a `CHANGELOG.md` entry:** under the appropriate **[UNRELEASED]** section and commit as `git commit -S -s -m "chore: changelog entry"` [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-workflow.md#4-create-a-changelog-entry)
 
         #### 🚀 Create the pull request
 
@@ -220,7 +220,7 @@ body:
         **😎 2. Initial Team review**
         Once tests pass, a team member will check if your PR follows the workflow.
 
-        **✅ 2. Team review**
+        **✅ 3. Team review**
         Once your tests pass and the workflow is followed, a team member will review the implementation. 
         You may be asked to make changes or your PR may be approved.
         Approved PRs are usually merged within **one day**.
