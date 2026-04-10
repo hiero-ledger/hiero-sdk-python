@@ -242,7 +242,7 @@ def test_transaction_response_fields(transaction_id):
 
 
     # Assert default values
-    assert resp.hash == bytes()
+    assert resp.hash == b""
     assert resp.validate_status is False
     assert resp.transaction is None
 
@@ -260,6 +260,8 @@ def test_transaction_response_get_receipt_is_pinned_to_submitting_node(
     transaction_id,
 ):
     """
+    Test receipt retrieval behavior with node pinning.
+    
     mock_hedera_servers assigns:
       - server[0] -> node 0.0.3
       - server[1] -> node 0.0.4
