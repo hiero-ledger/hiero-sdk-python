@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -11,6 +11,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Tests
 - Refactor `mock_server` setup for network level TLS handling and added thread safety
+- Refactor `transaction_response_test.py` by organizing the tests into `test_transaction_response.py` and `transaction_response_test.py`. (#2066)
+
 
 
 ### Examples
@@ -21,6 +23,8 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
+- Renamed community call and office hour bots to use the `cron-` prefix (#2068)
+- chore: Replace issue templates with upstream sdk-collaboration-hub versions; fix broken `tree/main` links, YAML indentation bugs, `.CHANGELOG.md` typo, duplicate step numbering, and misnumbered list in beginner quality standards; add Python SDK-specific resources and Windows setup guide links (#2088)
 - chore: Added check for the discussion label in the inactivity bot (#1583)
 - chore: pin pip packages to exact versions in publish.yml to improve supply chain security and reproducibility (#2056)
 - chore: update GitHub Actions runners from ubuntu-latest to hl-sdk-py-lin-md (#2021)
