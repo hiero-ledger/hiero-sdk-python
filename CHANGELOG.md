@@ -7,6 +7,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Chore
+
 - Update generate_proto.py VERSION from v0.72.0-rc.2 to v0.72.1
 
 ### Src
