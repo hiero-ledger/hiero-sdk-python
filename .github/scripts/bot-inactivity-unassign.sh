@@ -212,6 +212,13 @@ EOF
         continue
       fi
 
+      PR_LABELS=$(gh pr view "$PR_NUM" --repo "$REPO" --json labels --jq '.labels[].name' 2>/dev/null || true)
+
+      if echo "$PR_LABELS" | grep -qi '^discussion$'; then
+        echo "    [SKIP] PR #$PR_NUM has 'discussion' label — skipping close & unassign"
+        continue
+      fi
+
 
 
       COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate 2>/dev/null || echo "[]")
