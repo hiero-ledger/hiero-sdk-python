@@ -1,212 +1,106 @@
-name: Compute Linked Issue Labels
+name: Sync Linked Issue Labels - Compute
 
 on:
   pull_request:
-    types: [opened, edited, reopened, synchronize, ready_for_review]
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: "PR number to sync labels for"
-        required: true
-        type: number
-      dry-run-enabled:
-        description: "Dry run (log only, do not apply labels)"
-        required: false
-        type: boolean
-        default: true
+    types: [opened, edited, reopened, synchronize]
 
 permissions:
-  actions: write
-  pull-requests: read
   issues: read
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
-  compute-labels:
-    concurrency:
-      group: sync-issue-labels-compute-pr-${{ github.event.pull_request.number || github.event.inputs.pr_number }}
-      cancel-in-progress: true
+  sync:
     runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.compute.outputs.pr_number }}
-      dry_run: ${{ steps.compute.outputs.dry_run }}
-      is_fork_pr: ${{ steps.compute.outputs.is_fork_pr }}
     steps:
-      - name: Harden the runner
+      - name: Harden Runner
         uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
         with:
           egress-policy: audit
 
-      - name: Compute linked issue labels
+      - name: Compute Labels
         id: compute
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number || github.event.inputs.pr_number }}
-          DRY_RUN: 'true'
-          REQUESTED_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && format('{0}', github.event.inputs['dry-run-enabled']) || 'true' }}
-          IS_FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork || 'false' }}
-          MAX_LINKED_ISSUES: '20'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
-          result-encoding: json
           script: |
-            const MAX_LINKED_ISSUES = Number(process.env.MAX_LINKED_ISSUES || "20");
-
-            function extractLabels(labelData) {
-              const result = [];
-              for (const item of labelData) {
-                const name = typeof item === "string" ? item : item && item.name;
-                if (name && name.trim()) result.push(name.trim());
-              }
-              return result;
-            }
-
-            function extractLinkedIssueNumbers(prBody, owner, repo) {
-              const numbers = new Set();
-              const closingRefRegex = /(?:fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)\s+(?:([A-Za-z0-9_.-]+)\/([A-Za-z0-9_.-]+))?#(\d+)\b/gi;
-              const lines = String(prBody || "").split(/\r?\n/);
-              for (const line of lines) {
-                let m;
-                while ((m = closingRefRegex.exec(line)) !== null) {
-                  const refOwner = (m[1] || "").toLowerCase();
-                  const refRepo = (m[2] || "").toLowerCase();
-                  if (refOwner && refRepo && (refOwner !== owner.toLowerCase() || refRepo !== repo.toLowerCase())) continue;
-                  numbers.add(Number(m[3]));
-                }
-              }
-              const all = Array.from(numbers);
-              if (all.length > MAX_LINKED_ISSUES) {
-                console.log(`[sync] Limiting linked issue refs from ${all.length} to ${MAX_LINKED_ISSUES}.`);
-              }
-              return all.slice(0, MAX_LINKED_ISSUES);
-            }
-
-            const prNumber = Number(process.env.PR_NUMBER);
-            if (!prNumber) {
-              core.setOutput('has_labels', 'false');
-              core.setOutput('labels', '[]');
-              core.setOutput('pr_number', '');
-              core.setOutput('dry_run', 'true');
-              core.setOutput('is_fork_pr', String(process.env.IS_FORK_PR || 'false'));
-              core.setOutput('source_event', context.eventName);
-              return;
-            }
+            const prNumber = context.payload.pull_request.number;
+            console.log(`--- Processing PR #${prNumber} ---`);
 
             const { data: prData } = await github.rest.pulls.get({
               owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber
             });
 
-            const prAuthor = (prData.user && prData.user.login) || "";
+            const prAuthor = prData.user.login;
             if (/\[bot\]$/i.test(prAuthor) || /dependabot/i.test(prAuthor)) {
-              console.log(`[sync] Skipping bot-authored PR from ${prAuthor}.`);
-              core.setOutput('has_labels', 'false');
-              core.setOutput('labels', '[]');
-              core.setOutput('pr_number', String(prNumber));
-              core.setOutput('dry_run', 'true');
-              core.setOutput('is_fork_pr', String(process.env.IS_FORK_PR || 'false'));
-              core.setOutput('source_event', context.eventName);
+              console.log(`Skipping bot-authored PR (Author: ${prAuthor})`);
               return;
             }
 
-            const linkedIssues = extractLinkedIssueNumbers(prData.body || "", context.repo.owner, context.repo.repo);
-            if (!linkedIssues.length) {
-              console.log("[sync] No linked issue references found in PR body.");
-              core.setOutput('has_labels', 'false');
-              core.setOutput('labels', '[]');
-              core.setOutput('pr_number', String(prNumber));
-              core.setOutput('dry_run', 'true');
-              core.setOutput('is_fork_pr', String(process.env.IS_FORK_PR || 'false'));
-              core.setOutput('source_event', context.eventName);
+            const regex = /(?:fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)[:\s]+\s*#(\d+)\b/gi;
+            const issueNumbers = new Set();
+            let match;
+            while ((match = regex.exec(prData.body || "")) !== null) {
+              issueNumbers.add(Number(match[1]));
+            }
+
+            if (issueNumbers.size === 0) {
+              console.log("No linked issues found in the PR description.");
               return;
             }
 
-            console.log(`[sync] Linked issues: ${linkedIssues.map(n => '#' + n).join(', ')}`);
+            console.log(`Detected linked issues: #${Array.from(issueNumbers).join(', #')}`);
 
-            const allLabels = [];
-            for (const num of linkedIssues) {
+            const discoveredLabels = new Set();
+            for (const num of issueNumbers) {
               try {
-                const { data } = await github.rest.issues.get({
+                const { data: issue } = await github.rest.issues.get({
                   owner: context.repo.owner, repo: context.repo.repo, issue_number: num
                 });
-                if (data.pull_request) { console.log(`[sync] Skipping #${num}: is a PR reference.`); continue; }
-                const labels = extractLabels(data.labels || []);
-                console.log(`[sync] Issue #${num} labels: ${labels.length ? labels.join(', ') : '(none)'}`);
-                allLabels.push(...labels);
-              } catch (err) {
-                if (err && err.status === 404) { console.log(`[sync] Issue #${num} not found. Skipping.`); continue; }
-                throw err;
+                if (!issue.pull_request) {
+                  const names = (issue.labels || []).map(l => typeof l === 'string' ? l : l.name);
+                  console.log(`Found labels on issue #${num}: [${names.join(', ')}]`);
+                  names.forEach(l => discoveredLabels.add(l));
+                } else {
+                  console.log(`Skipping #${num} because it is a Pull Request, not an Issue.`);
+                }
+              } catch (e) { 
+                console.log(`Error fetching labels for issue #${num}: ${e.message}`); 
               }
             }
 
-            const existing = extractLabels(prData.labels || []);
-            const existingSet = new Set(existing);
-            const deduped = Array.from(new Set(allLabels));
-            const toAdd = deduped.filter(l => !existingSet.has(l));
+            const currentLabels = (prData.labels || []).map(l => typeof l === 'string' ? l : l.name);
+            console.log(`Current PR labels: [${currentLabels.join(', ')}]`);
 
-            console.log(`[sync] Existing: ${existing.length ? existing.join(', ') : '(none)'}`);
-            console.log(`[sync] To add: ${toAdd.length ? toAdd.join(', ') : '(none)'}`);
-
-            const labels = toAdd;
-            const hasLabels = labels.length > 0;
-            core.setOutput('has_labels', String(hasLabels));
-            core.setOutput('labels', JSON.stringify(labels));
-            core.setOutput('pr_number', String(prNumber));
-            core.setOutput('dry_run', String(process.env.REQUESTED_DRY_RUN || 'true'));
-            core.setOutput('is_fork_pr', String(process.env.IS_FORK_PR || 'false'));
-            core.setOutput('source_event', context.eventName);
-            return { has_labels: hasLabels, labels, pr_number: String(prNumber), dry_run: process.env.REQUESTED_DRY_RUN, is_fork_pr: process.env.IS_FORK_PR, source_event: context.eventName };
-
-      - name: Write labels artifact payload
-        env:
-          LABELS_JSON: ${{ steps.compute.outputs.labels }}
-          PR_NUMBER: ${{ steps.compute.outputs.pr_number }}
-          IS_FORK_PR: ${{ steps.compute.outputs.is_fork_pr }}
-          DRY_RUN: ${{ steps.compute.outputs.dry_run }}
-          SOURCE_EVENT: ${{ steps.compute.outputs.source_event }}
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          script: |
-            const fs = require('fs');
-            const parsed = JSON.parse(process.env.LABELS_JSON || '[]');
-            const payload = {
-              pr_number: Number(process.env.PR_NUMBER || 0),
-              labels: Array.isArray(parsed) ? parsed : [],
-              is_fork_pr: /^true$/i.test(process.env.IS_FORK_PR || ''),
-              dry_run: /^true$/i.test(process.env.DRY_RUN || ''),
-              source_event: process.env.SOURCE_EVENT || '',
-            };
-            fs.writeFileSync('labels.json', JSON.stringify(payload));
-            console.log(`Wrote labels artifact payload for PR #${payload.pr_number}: ${payload.labels.length} labels`);
-
-      - name: Upload labels artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        with:
-          name: pr-labels-${{ steps.compute.outputs.pr_number }}
-          path: labels.json
-          retention-days: 1
-
-  dispatch-add:
-    needs: compute-labels
-    if: ${{ needs.compute-labels.outputs.is_fork_pr != 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@fa2e9d605c4eeb9fcad4c99c224cee0c6c7f3594 # v2.16.0
-        with:
-          egress-policy: audit
-
-      - name: Trigger add workflow
-        uses: step-security/workflow-dispatch@acca1a315af3bf7f33dd116d3cb405cb83f5cbdc # v1.2.8
-        with:
-          workflow: .github/workflows/sync-issue-labels-add.yml
-          repo: ${{ github.repository }}
-          ref: main
-          token: ${{ secrets.GH_ACCESS_TOKEN }}
-          inputs: >-
-            {
-              "upstream_run_id":"${{ github.run_id }}",
-              "pr_number":"${{ needs.compute-labels.outputs.pr_number }}",
-              "dry_run":"${{ needs.compute-labels.outputs.dry_run }}",
-              "is_fork_pr":"${{ needs.compute-labels.outputs.is_fork_pr }}"
+            const newLabels = Array.from(discoveredLabels).filter(label => !currentLabels.includes(label));
+            
+            if (newLabels.length > 0) {
+              console.log(`New labels to be added: [${newLabels.join(', ')}]`);
+            } else {
+              console.log("No new labels to add. Skipping artifact creation");
+              return;
             }
 
+            const fs = require('fs');
+            const result = { pr_number: prNumber, labels: newLabels };
+            fs.writeFileSync('labels.json', JSON.stringify(result));
+            console.log(`Calculated labels: ${newLabels.join(', ')}`);
+
+      - name: Check for Labels File
+        id: check_file
+        run: |
+          if [ -f labels.json ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Upload Artifact
+        if: steps.check_file.outputs.exists == 'true'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: pr-labels-data
+          path: labels.json
+          retention-days: 1
