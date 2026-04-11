@@ -23,6 +23,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 
 ### .github
+- Renamed community call and office hour bots to use the `cron-` prefix (#2068)
 - chore: Replace issue templates with upstream sdk-collaboration-hub versions; fix broken `tree/main` links, YAML indentation bugs, `.CHANGELOG.md` typo, duplicate step numbering, and misnumbered list in beginner quality standards; add Python SDK-specific resources and Windows setup guide links (#2088)
 - chore: Added check for the discussion label in the inactivity bot (#1583)
 - chore: pin pip packages to exact versions in publish.yml to improve supply chain security and reproducibility (#2056)
