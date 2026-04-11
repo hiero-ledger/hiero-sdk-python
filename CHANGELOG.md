@@ -6,6 +6,9 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Chore
+- Update generate_proto.py VERSION from v0.72.0-rc.2 to v0.72.1
+
 ### Src
 - Exposed all missing `TransactionRecord` protobuf fields `consensusTimestamp`, `scheduleRef`, `assessed_custom_fees`, `automatic_token_associations`, `parent_consensus_timestamp`, `alias`, `ethereum_hash`, `paid_staking_rewards`, `evm_address`, `contractCreateResult` with proper `None` handling, PRNG oneof handling with unset values return `None` instead of default values 0 / b"" (#1636)
 
