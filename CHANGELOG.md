@@ -41,7 +41,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 >>>>>>> 12aefcf (update spam list  (#2078))
 =======
 - Add CodeRabbit release gate workflow and prompt for PR audits `release-pr-prompt.md`, `release-pr-coderabbit-gate.yml` and `release-pr-coderabbit-gate.js`
->>>>>>> c9acb5c (feat: add CodeRabbit release gate workflow and prompt for PR audits (#2049))
+- Refactor `sync-issue-labels-compute.yml` and `sync-issue-labels-add.yml` to properly sync issue labels and skip bot PRs.
 
 ## [0.2.3] - 2026-03-26
 
