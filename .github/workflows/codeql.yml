@@ -10,6 +10,9 @@ on:
     schedule:
         - cron: "28 23 * * *" # Runs every day at 23:28 UTC.
 
+permissions:
+  contents: read
+
 jobs:
     analyze:
         name: Analyze (${{ matrix.language }})
