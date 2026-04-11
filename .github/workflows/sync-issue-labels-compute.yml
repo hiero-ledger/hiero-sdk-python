@@ -46,7 +46,7 @@ jobs:
           REQUESTED_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && format('{0}', github.event.inputs['dry-run-enabled']) || 'true' }}
           IS_FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork || 'false' }}
           MAX_LINKED_ISSUES: '20'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           result-encoding: json
           script: |
@@ -163,7 +163,7 @@ jobs:
           IS_FORK_PR: ${{ steps.compute.outputs.is_fork_pr }}
           DRY_RUN: ${{ steps.compute.outputs.dry_run }}
           SOURCE_EVENT: ${{ steps.compute.outputs.source_event }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const fs = require('fs');
