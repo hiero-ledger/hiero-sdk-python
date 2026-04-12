@@ -21,6 +21,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ### Docs
 
+- docs: Refactor and organise SDK documentation; delete obsolete directories (`community-calls`, `github`, `workflows`, `maintainers`, `sdk_developers/automations`) and generic guides (`signing.md`, `rebasing.md`, `merge_conflicts.md`, `changelog_entry.md`) now maintained in the upstream `sdk-collaboration-hub`; relocate `team.md` to `docs/team.md`; redirect all affected inbound links in `README.md`, `CONTRIBUTING.md`, and internal developer docs to upstream equivalents (#2101)
 
 ### .github
 - Renamed community call and office hour bots to use the `cron-` prefix (#2068)

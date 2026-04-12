@@ -155,7 +155,7 @@ Lastly, create a branch:
 git checkout -b my-new-branch-name
 ```
 
-Eventually, you'll need to regularly rebase to keep your branch in sync with the upstream repository [Rebase Guide](rebasing.md)
+Eventually, you'll need to regularly rebase to keep your branch in sync with the upstream repository [Rebase Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md)
 
 ## 5. Commit Your Changes
 Solve the issue and commit your changes.
@@ -195,7 +195,7 @@ For example:
 git commit -S -s -m "chore: changelog entry for TokenCreateTransaction"
 ```
 
-Follow our [Signing Guide](signing.md) with step-by-step instructions.
+Follow our [Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md) with step-by-step instructions.
 
 **WARNING**: using the default commit button on GitHub desktop or VS Studio will result in un-signed commits.
 

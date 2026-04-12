@@ -38,10 +38,10 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 **Detailed Docs:**
 
 - [Setup Guide](docs/sdk_developers/setup.md)
-- [Signing Guide](docs/sdk_developers/signing.md)
-- [Changelog Guide](docs/sdk_developers/changelog_entry.md)
-- [Rebasing Guide](docs/sdk_developers/rebasing.md)
-- [Merge Conflicts Guide](docs/sdk_developers/merge_conflicts.md)
+- [Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)
+- [Changelog Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/changelog-guide.md)
+- [Rebasing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md)
+- [Merge Conflicts Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md)
 - [Testing Guide](docs/sdk_developers/testing.md)
 
 
@@ -103,11 +103,11 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 |-------|----------------|
 | [Setup](docs/sdk_developers/setup.md) | Fork, clone, install, configure |
 | [Workflow](docs/sdk_developers/workflow.md) | Branching, committing, PRs |
-| [Signing](docs/sdk_developers/signing.md) | GPG + DCO commit signing |
-| [Changelog](docs/sdk_developers/changelog_entry.md) | Writing changelog entries |
+| [Signing](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md) | GPG + DCO commit signing |
+| [Changelog](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/changelog-guide.md) | Writing changelog entries |
 | [Checklist](docs/sdk_developers/checklist.md) | Pre-submission checklist |
-| [Rebasing](docs/sdk_developers/rebasing.md) | Keeping branch updated |
-| [Merge Conflicts](docs/sdk_developers/merge_conflicts.md) | Resolving conflicts |
+| [Rebasing](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md) | Keeping branch updated |
+| [Merge Conflicts](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md) | Resolving conflicts |
 | [Types](docs/sdk_developers/types.md) | Python type hints |
 | [Linting](docs/sdk_developers/linting.md) | Code quality tools |
 
@@ -158,7 +158,7 @@ git checkout your-branch
 git rebase main -S
 ```
 
-**Full guide:** [Rebasing Guide](docs/sdk_developers/rebasing.md)
+**Full guide:** [Rebasing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md)
 
 
 ---
