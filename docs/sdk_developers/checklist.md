@@ -40,10 +40,10 @@ Navigate to your PR page on GitHub and use the **Checks** and **Commits** tabs t
 
 | Requirement | GitHub Location | Status to Look For | Action if Failed |
 | :--- | :--- | :--- | :--- |
-| **Commit Signature** | **Commits Tab** | Must show **"Verified"** (Green badge) | See **[Signing Guide](signing.md)** for how to set up GPG and fix unverified commits. |
-| **DCO Check** | **Checks Tab** | The "DCO" or "License" check must show a **Green Checkmark**. | See **[Signing Guide](signing.md)** to ensure your commits have the DCO sign-off (`-s`). |
+| **Commit Signature** | **Commits Tab** | Must show **"Verified"** (Green badge) | See **[Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)** for how to set up GPG and fix unverified commits. |
+| **DCO Check** | **Checks Tab** | The "DCO" or "License" check must show a **Green Checkmark**. | See **[Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)** to ensure your commits have the DCO sign-off (`-s`). |
 | **Tests Pass (CI)** | **Checks Tab** (Workflows like 'Integration Tests') | All required tests must show a **Green Checkmark**. | View the logs for the failing check to debug the error locally. |
-| **Changelog Formatting** | **Checks Tab** ('PR Formatting / Changelog Check') | Must show a **Green Checkmark**. | Correct the `CHANGELOG.md` and force push. See **[Changelog Guide](changelog_entry.md)**. |
+| **Changelog Formatting** | **Checks Tab** ('PR Formatting / Changelog Check') | Must show a **Green Checkmark**. | Correct the `CHANGELOG.md` and force push. See **[Changelog Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/changelog-guide.md)**. |
 
 ### The Files Changed Tab
 
@@ -54,6 +54,6 @@ The **Files Changed Tab** shows the exact **difference** between your branch and
 
 ## Need Help?
 
-- **Signing issues?** → [Signing Guide](signing.md)
-- **Merge conflicts?** → [Merge Conflicts Guide](merge_conflicts.md)
-- **Changelog format?** → [Changelog Guide](changelog_entry.md)
+- **Signing issues?** → [Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)
+- **Merge conflicts?** → [Merge Conflicts Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md)
+- **Changelog format?** → [Changelog Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/changelog-guide.md)

@@ -14,4 +14,4 @@ For example:
 ### Added
 - Added `.github/workflows/merge-conflict-bot.yml` to automatically detect and notify users of merge conflicts in Pull Requests.
 
-[Read more](../../changelog_entry.md) about creating changelog entries 
+[Read more](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/changelog-guide.md) about creating changelog entries 
