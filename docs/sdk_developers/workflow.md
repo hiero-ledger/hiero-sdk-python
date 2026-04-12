@@ -297,7 +297,7 @@ We have several security and quality checks.
 Please review and check they all pass.
 
 If they are failing and you require help, you can:
-- Contact us on [discord](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md)
+- Contact us on [Discord](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md)
 - Attend [Python SDK Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)
 - Attend [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581)
 - Ask for help on the pull request
