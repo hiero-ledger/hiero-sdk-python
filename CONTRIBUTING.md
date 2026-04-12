@@ -32,14 +32,12 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 3. Follow [Setup Guide](docs/sdk_developers/training/setup)
 4. Follow [Workflow Guide](docs/sdk_developers/workflow.md)
 5. GPG and DCO sign commits [Quickstart Signing](docs/sdk_developers/training/workflow/07_signing_requirements.md)
-6. Add a Changelog Entry [Quickstart Changelog](docs/sdk_developers/training/workflow/09_changelog_entry.md)
-7. Submit a PR [Quickstart Submit PR](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+6. Submit a PR [Quickstart Submit PR](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
 
 **Detailed Docs:**
 
 - [Setup Guide](docs/sdk_developers/setup.md)
 - [Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)
-- [Changelog Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/changelog-guide.md)
 - [Rebasing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md)
 - [Merge Conflicts Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md)
 - [Testing Guide](docs/sdk_developers/testing.md)
@@ -104,7 +102,6 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 | [Setup](docs/sdk_developers/setup.md) | Fork, clone, install, configure |
 | [Workflow](docs/sdk_developers/workflow.md) | Branching, committing, PRs |
 | [Signing](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md) | GPG + DCO commit signing |
-| [Changelog](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/changelog-guide.md) | Writing changelog entries |
 | [Checklist](docs/sdk_developers/checklist.md) | Pre-submission checklist |
 | [Rebasing](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md) | Keeping branch updated |
 | [Merge Conflicts](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md) | Resolving conflicts |
@@ -140,9 +137,6 @@ git checkout -b "name-of-your-issue"
 # Make changes, then commit (signed!)
 git add .
 git commit -S -s -m "feat: add new feature"
-
-# Update changelog
-# Edit CHANGELOG.md, add entry under [Unreleased]
 
 # Push and create PR
 git push origin "name-of-your-issue"
