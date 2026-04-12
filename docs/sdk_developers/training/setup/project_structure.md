@@ -28,7 +28,7 @@ The repository is organized into four main directories:
 This directory contains all documentation for both users and developers of the SDK.
 
 -   **`docs/sdk_users/`**: Guides for people *using* the SDK in their applications (e.g., `running_examples.md`).
--   **`docs/sdk_developers/`**: Guides for people *contributing* to the SDK (e.g., `CONTRIBUTING.md`, `signing.md`, `testing.md`).
+-   **`docs/sdk_developers/`**: Guides for people *contributing* to the SDK (e.g., `setup.md`, `workflow.md`, `testing.md`).
 
 ### The `examples` Directory
 

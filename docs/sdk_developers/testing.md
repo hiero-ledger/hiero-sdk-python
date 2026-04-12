@@ -1232,7 +1232,7 @@ If you encounter issues or have questions:
 ### Useful Resources
 
 - **Contributing Guide**: [CONTRIBUTING.md](../../CONTRIBUTING.md)
-- **Commit Signing Guide**: [signing.md](signing.md)
+- **Commit Signing Guide**: [Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)
 - **pytest Documentation**: https://docs.pytest.org/
 - **Hedera Documentation**: https://docs.hedera.com/
 - **Hiero Solo**: https://github.com/hiero-ledger/solo
