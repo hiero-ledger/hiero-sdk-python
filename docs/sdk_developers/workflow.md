@@ -192,7 +192,7 @@ Read about conventional commit messages here: [Conventional Commits](https://www
 
 For example:
 ```bash
-git commit -S -s -m "chore: changelog entry for TokenCreateTransaction"
+git commit -S -s -m "chore: docs for TokenCreateTransaction"
 ```
 
 Follow our [Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md) with step-by-step instructions.
@@ -247,11 +247,10 @@ Examples include:
 - Replacing deprecated functionality that cannot be maintained
 
 If a breaking change must occur:
-- Clearly communicate it in your commit messages and changelog.
-- Provide a detailed explanation in the changelog.
+- Clearly communicate it your pull request description.
 - When possible, implement or propose backwards compatibility solutions (deprecation warnings, transitional methods, alternative APIs, etc.).
 
-Example changelog entry:
+Example entry:
 
 `BREAKING CHANGE: transfer_tokens() now requires an AccountId object instead of a string.`
 
