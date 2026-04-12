@@ -31,5 +31,8 @@ jobs:
         with:
           fetch-depth: 1 # Only fetch the latest commit
 
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+
       - name: Run test file naming check
         run: node .github/scripts/pr-check-test-files.js
