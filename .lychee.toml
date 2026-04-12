@@ -1,0 +1,22 @@
+# Lychee link checker configuration
+# Excludes intentional placeholder URLs from link checking
+
+[exclusions]
+# Placeholder pattern used in bot documentation examples
+exclude = [
+    "github.com/owner/repo",
+    # Placeholder patterns for user-specific fork URLs
+    "github.com/YOUR_",
+    # Fake example transaction IDs
+    "testnet.mirrornode.hedera.com/api/v1/transactions/0.0.123",
+    # Local development URLs
+    "localhost",
+    # GitHub CDN URLs that may be ephemeral
+    "github.com/user-attachments/assets/",
+]
+
+[request]
+# Timeout and retry settings for external URLs
+timeout = 20
+retry_wait_time = 2
+max_retries = 3
