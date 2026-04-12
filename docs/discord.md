@@ -30,7 +30,7 @@ Follow these essential steps:
 
         - **[#hiero-sdk-python](https://discord.com/channels/905194001349627914/1336494517544681563)**
         - **[#hiero-general](https://discord.com/channels/905194001349627914/1289954446712770600)**
-        - **#hiero-announcements**
+        - **#hiero-announcements** (no stable direct URL; open it from the channel list)
 
 
 4.  **Introduce Yourself!**
