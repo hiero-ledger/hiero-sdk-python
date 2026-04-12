@@ -30,7 +30,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-VERSION="v0.72.0-rc.2"
+VERSION="v0.72.1"
 SOURCES = [
     {
         "name": "hedera-protobufs",
