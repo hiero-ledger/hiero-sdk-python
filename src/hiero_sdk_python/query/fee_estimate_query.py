@@ -6,7 +6,6 @@ from hiero_sdk_python.fees.fee_estimate_response import FeeEstimateResponse
 from hiero_sdk_python.fees.fee_extra import FeeExtra
 from hiero_sdk_python.fees.fee_estimate import FeeEstimate
 from hiero_sdk_python.fees.network_fee import NetworkFee
-from hiero_sdk_python.fees.fee_estimate_response import FeeEstimateResponse
 
 from typing import TYPE_CHECKING
 
