@@ -60,7 +60,7 @@ We have several workflows that check:
 - All Examples Pass
 
 If they are failing and you require help, you can:
-- Contact us on [Discord](../../../discord.md)
+- Contact us on [Discord](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md)
 - Attend the Python SDK Office Hours using the [LFDT Calendar](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)
 - Ask for help on the pull request
 
