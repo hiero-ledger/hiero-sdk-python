@@ -1,9 +1,15 @@
-name: Code Coverage
+name: Primary PR Check - Code-coverage
 
 on:
   push:
     branches: [main]
+    paths:
+      - "src/**"
+      - "tests/unit/**"
   pull_request:
+    paths:
+      - "src/**"
+      - "tests/unit/**"
 
 permissions:
   contents: read

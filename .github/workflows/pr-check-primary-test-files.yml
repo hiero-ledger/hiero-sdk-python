@@ -1,9 +1,15 @@
-name: Test Files Naming Check
+# This workflow checks that all test files in the repository follow the naming convention of ending with "_test.py".
+name: Primary PR Check - Test Files Naming
 
 on:
   push:
-    branches-ignore:
-      - main
+    branches: [main]
+    paths:
+      - "tests/**"
+  pull_request:
+    types: [opened, synchronize, review_requested, ready_for_review, reopened]
+    paths:
+      - "tests/**"
 
 permissions:
   contents: read
