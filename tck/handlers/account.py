@@ -1,13 +1,14 @@
+"""TCK RPC handlers for account-related endpoints."""
+
 from __future__ import annotations
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_info import AccountInfo
-from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
-from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
 from tck.param.account import CreateAccountParams, GetAccountInfoParams
 from tck.response.account import (
@@ -59,6 +60,7 @@ def _build_create_account_transaction(params: CreateAccountParams) -> AccountCre
 
 @rpc_method("createAccount")
 def create_account(params: CreateAccountParams) -> CreateAccountResponse:
+    """Create a new account using TCK createAccount parameters."""
     client = get_client(params.sessionId)
 
     transaction = _build_create_account_transaction(params)
@@ -176,19 +178,12 @@ def _build_account_info_response(info: AccountInfo) -> GetAccountInfoResponse:
 
 @rpc_method("getAccountInfo")
 def get_account_info(params: GetAccountInfoParams) -> GetAccountInfoResponse:
+    """Query account info and map SDK fields to the TCK response contract."""
     client = get_client(params.sessionId)
 
-    if not params.accountId:
-        raise JsonRpcError.hiero_error({"status": ResponseCode.INVALID_ACCOUNT_ID.name})
-
-    try:
-        account_id = AccountId.from_string(params.accountId)
-    except (TypeError, ValueError) as error:
-        raise JsonRpcError.hiero_error(
-            {"status": ResponseCode.INVALID_ACCOUNT_ID.name}
-        ) from error
-
-    query = AccountInfoQuery().set_account_id(account_id)
+    query = AccountInfoQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+    if params.accountId is not None:
+        query.set_account_id(AccountId.from_string(params.accountId))
 
     info = query.execute(client)
     return _build_account_info_response(info)

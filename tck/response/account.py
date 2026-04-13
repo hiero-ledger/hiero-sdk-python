@@ -1,17 +1,22 @@
+"""TCK response models for account endpoints."""
+
 from __future__ import annotations
 
-from typing import List, Optional
 from dataclasses import dataclass, field
 
 
 @dataclass
 class CreateAccountResponse:
+    """Response payload for createAccount."""
+
     accountId: str | None = None
     status: str | None = None
 
 
 @dataclass
 class StakingInfoResponse:
+    """Nested staking fields in the getAccountInfo response."""
+
     declineStakingReward: bool | None = None
     stakePeriodStart: str | None = None
     pendingReward: str | None = None
@@ -22,6 +27,8 @@ class StakingInfoResponse:
 
 @dataclass
 class TokenRelationshipResponse:
+    """Nested token relationship details for getAccountInfo."""
+
     tokenId: str | None = None
     symbol: str | None = None
     balance: str | None = None
@@ -33,6 +40,8 @@ class TokenRelationshipResponse:
 
 @dataclass
 class GetAccountInfoResponse:
+    """Response payload for getAccountInfo."""
+
     accountId: str | None = None
     contractAccountId: str | None = None
     isDeleted: bool | None = None
