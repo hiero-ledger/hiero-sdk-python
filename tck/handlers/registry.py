@@ -7,7 +7,7 @@ from __future__ import annotations
 import inspect
 from collections.abc import Callable
 from dataclasses import asdict
-from typing import Any
+from typing import Any, get_type_hints
 
 from tck.errors import JsonRpcError, handle_sdk_errors
 from tck.protocol import build_json_rpc_error_response
@@ -46,11 +46,16 @@ def dispatch(method_name: str, params: Any) -> Any:
         raise JsonRpcError.method_not_found_error(message=f"Method not found: {method_name}")
 
     try:
+        target_func = getattr(handler, "__wrapped__", handler)
+
+        hints = get_type_hints(target_func)
         signature = inspect.signature(handler)
         parameters = list(signature.parameters.values())
-        param_type = parameters[0].annotation
+
+        param_name = parameters[0].name
 
         try:
+            param_type = hints.get(param_name, parameters[0].annotation)
             params = param_type.parse_json_params(params)
         except (TypeError, ValueError) as e:
             raise JsonRpcError.invalid_params_error(data=str(e)) from e
