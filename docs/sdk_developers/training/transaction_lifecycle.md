@@ -178,4 +178,4 @@ transaction.set_account_id(new_id)  # Error: Transaction is immutable
 - **Auto-freeze/sign:** Works for simple transactions but can hide issues in complex ones.
 - **Order dependency:** Construct → Freeze → Sign → Execute → Receipt.
 
-For more details, refer to the SDK documentation or community calls on [Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md).
+For more details, refer to the SDK documentation or community calls on [Discord](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md).
