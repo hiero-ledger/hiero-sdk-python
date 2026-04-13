@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org).
@@ -7,7 +7,6 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ## [Unreleased]
 
 ### Src
-- Fix child transaction receipts in `TransactionGetReceiptQuery` to properly expose protobuf fields like `accountID` by passing `None` instead of parent transaction_id (#1849).
 - Exposed all missing `TransactionRecord` protobuf fields `consensusTimestamp`, `scheduleRef`, `assessed_custom_fees`, `automatic_token_associations`, `parent_consensus_timestamp`, `alias`, `ethereum_hash`, `paid_staking_rewards`, `evm_address`, `contractCreateResult` with proper `None` handling, PRNG oneof handling with unset values return `None` instead of default values 0 / b"" (#1636)
 
 ### Tests
@@ -437,7 +436,7 @@ This changelog is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - chore: clarify wording in the bot-assignment-check.sh (#1748)
 - Refactored SDK dependencies to use version ranges, moved build-only deps out of runtime, removed unused core deps and added optional extras.
 
-   
+
 ### Fixed
 - Added a fork guard condition to prevent Codecov upload failures on fork PRs due to missing token. (`#1485`)
 - Corrected broken documentation links in SDK developer training files.(#1707)

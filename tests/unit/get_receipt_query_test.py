@@ -353,20 +353,13 @@ def test_transaction_receipt_query_should_raise_receipt_error(transaction_id):
 def test_child_receipts_with_account_id(transaction_id):
     """Test that child receipts can have accountID populated from network response."""
     child_account_id = basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=999)
-    
+
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
             child_transaction_receipts=[
-                transaction_receipt_pb2.TransactionReceipt(
-                    status=ResponseCode.SUCCESS,
-                    accountID=child_account_id
-                ),
+                transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS, accountID=child_account_id),
             ],
         )
     )
@@ -374,17 +367,13 @@ def test_child_receipts_with_account_id(transaction_id):
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_include_children(True)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_children(True)
 
         result = query.execute(client)
 
         assert len(result.children) == 1
         child_receipt = result.children[0]
-        
+
         # Verify: child receipt has account_id accessible and transaction_id is None
         assert child_receipt.account_id is not None
         assert child_receipt.account_id.num == 999
@@ -398,20 +387,13 @@ def test_child_receipts_with_zero_accountnum(transaction_id):
     """
     # EVM auto-created accounts may have accountNum=0 initially
     child_account_id = basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=0)
-    
+
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
             child_transaction_receipts=[
-                transaction_receipt_pb2.TransactionReceipt(
-                    status=ResponseCode.SUCCESS,
-                    accountID=child_account_id
-                ),
+                transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS, accountID=child_account_id),
             ],
         )
     )
@@ -419,17 +401,13 @@ def test_child_receipts_with_zero_accountnum(transaction_id):
     response_sequences = [[response]]
 
     with mock_hedera_servers(response_sequences) as client:
-        query = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_include_children(True)
-        )
+        query = TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_children(True)
 
         result = query.execute(client)
 
         assert len(result.children) == 1
         child_receipt = result.children[0]
-        
+
         # Verify: account_id is accessible even with accountNum=0
         assert child_receipt.account_id is not None
         assert child_receipt.account_id.num == 0
@@ -441,12 +419,10 @@ def test_child_receipts_with_zero_accountnum(transaction_id):
 def test_duplicate_receipts_with_account_id(transaction_id):
     """Test that duplicate receipts can have accountID populated from network response."""
     duplicate_account_id = basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=999)
-    
+
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
             duplicateTransactionReceipts=[
                 transaction_receipt_pb2.TransactionReceipt(
@@ -459,15 +435,12 @@ def test_duplicate_receipts_with_account_id(transaction_id):
 
     with mock_hedera_servers([[response]]) as client:
         result = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_include_duplicates(True)
-            .execute(client)
+            TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_duplicates(True).execute(client)
         )
 
         assert len(result.duplicates) == 1
         duplicate_receipt = result.duplicates[0]
-        
+
         # Verify: duplicate receipt has account_id accessible
         assert duplicate_receipt.account_id is not None
         assert duplicate_receipt.account_id.num == 999
@@ -479,9 +452,7 @@ def test_account_id_returns_none_when_not_set(transaction_id):
     """Test that account_id returns None when accountID is not set in the protobuf."""
     response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=transaction_receipt_pb2.TransactionReceipt(
                 status=ResponseCode.SUCCESS
                 # Note: accountID is NOT set
@@ -492,10 +463,7 @@ def test_account_id_returns_none_when_not_set(transaction_id):
 
     with mock_hedera_servers([[response]]) as client:
         result = (
-            TransactionGetReceiptQuery()
-            .set_transaction_id(transaction_id)
-            .set_include_children(True)
-            .execute(client)
+            TransactionGetReceiptQuery().set_transaction_id(transaction_id).set_include_children(True).execute(client)
         )
 
         # Verify: account_id is None when accountID is not set in protobuf
