@@ -89,7 +89,7 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 - Blog posts are submitted to the [Hiero Website Repository](https://github.com/hiero-ledger/hiero-website) in a Pull Request
 - Written in Markdown
 
-**Full guide with step-by-step instructions:** [Blog Post Guide](docs/blogs.md)
+**Full guide with step-by-step instructions:** [Blog Post Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/blogs.md)
 
 ---
 
@@ -159,7 +159,7 @@ git rebase main -S
 
 Thank you for contributing to the Hiero Python SDK! 🎉
 
-- **Need help or want to connect?** Join our community on Discord! See the **[Discord Joining Guide](docs/discord.md)** for detailed steps on how to join the LFDT server
+- **Need help or want to connect?** Join our community on Discord! See the **[Discord Joining Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md)** for detailed steps on how to join the LFDT server
 - **Quick Links:**
     - Join the main [Linux Foundation Decentralized Trust (LFDT) Discord Server](https://discord.gg/hyperledger).
     - Go directly to the [#hiero-python-sdk channel](https://discord.com/channels/905194001349627914/1336494517544681563)
