@@ -8,6 +8,8 @@ on:
       - "tests/**"
   pull_request:
     types: [opened, synchronize, review_requested, ready_for_review, reopened]
+    paths:
+      - "tests/**"
 
 permissions:
   contents: read
