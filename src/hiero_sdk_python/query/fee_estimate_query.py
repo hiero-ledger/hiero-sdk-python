@@ -1,5 +1,6 @@
 from typing import Optional
 import requests
+import time
 from hiero_sdk_python.fees.fee_estimate_mode import FeeEstimateMode
 from hiero_sdk_python.fees.fee_estimate_response import FeeEstimateResponse
 from hiero_sdk_python.fees.fee_extra import FeeExtra
@@ -17,6 +18,8 @@ class FeeEstimateQuery:
     def __init__(self):
         self._mode: Optional[FeeEstimateMode] = None
         self._transaction: Optional["Transaction"] = None
+        self._max_attempts = 10
+        self._max_backoff = 0
 
     def set_mode(self, mode: FeeEstimateMode) -> "FeeEstimateQuery":
         self._mode = mode 
@@ -38,66 +41,88 @@ class FeeEstimateQuery:
 
     def get_transaction(self) -> Optional["Transaction"]:
         return self._transaction
+
+    def _backoff(self, attempt: int):
+        delay = min(0.5 * (2 ** attempt), self._max_backoff)
+        time.sleep(delay)
+    
+    def _ensure_frozen(self, tx, client):
+        try:
+            tx._require_frozen()
+        except Exception:
+            # fallback: fully prepare transaction before serialization
+            if hasattr(tx, "freeze_with"):
+                tx.freeze_with(client)
+            else:
+                tx.freeze()
+
+    def set_max_attempts(self, attempts: int) -> "FeeEstimateQuery":
+        self._max_attempts = attempts
+        return self
+
+    def get_max_attempts(self) -> int:
+        return self._max_attempts
+
+    def set_max_backoff(self, backoff: int) -> "FeeEstimateQuery":
+        self._max_backoff = backoff
+        return self
+
+    def get_max_backoff(self) -> int:
+        return self._max_backoff
     
     def execute(self, client) -> FeeEstimateResponse:
         if self._transaction is None:
             raise ValueError("Transaction must be set")
 
         mode = self._mode or FeeEstimateMode.STATE
-
         url = f"{client.mirror_network}/api/v1/network/fees?mode={mode.value}"
 
-        transactions = [b"dummy"]
+        tx = self._transaction
 
-        if not isinstance(transactions, list):
-            transactions = [transactions]
+        if not tx._transaction_body_bytes:
+            tx.freeze_with(client)
+        
+        try:
+            tx_bytes = tx.to_bytes()
+        except Exception:
+            try:
+                tx_bytes = tx.build_transaction_body().SerializeToString()
+            except Exception:
+                tx_bytes = b""  # fallback for incomplete tx
 
         node_total = 0
         service_total = 0
         network_multiplier = None
         notes = []
+        
+        max_retries = 2
+        
+        for attempt in range(max_retries):
+            try:
+                response = requests.post(
+                    url,
+                    data=tx_bytes,
+                    headers={"Content-Type": "application/protobuf"},
+                    timeout=10,
+                )
 
-        max_retries = getattr(client, "max_retries", 3)
+                if response.status_code == 400:
+                    raise ValueError("Invalid argument")
+                    
+                break  # success → exit loop
 
-        for tx in transactions:
+            except Exception as e:
+                message = str(e)
 
-            tx_bytes = b"dummy"
-            for attempt in range(max_retries):
+                if attempt == max_retries - 1:
+                    raise  # out of retries
 
-                try:
+                if "UNAVAILABLE" in message or "DEADLINE_EXCEEDED" in message:
+                    continue  # retry
+                else:
+                    raise  # non-retryable error
 
-                    response = requests.post(
-                        url,
-                        data=tx_bytes,
-                        headers={"Content-Type": "application/protobuf"},
-                        timeout=10,
-                    )
-
-                    if response.status_code == 400:
-                        raise ValueError("INVALID_ARGUMENT")
-
-                    response.raise_for_status()
-
-                    data = response.json()
-
-                    parsed = self._parse_response(data)
-
-                    node_total += parsed.node_fee.subtotal
-                    service_total += parsed.service_fee.subtotal
-
-                    network_multiplier = parsed.network_fee.multiplier
-                    notes.extend(parsed.notes)
-
-                    break
-                except Exception as e:
-
-                    if "UNAVAILABLE" in str(e) or "DEADLINE_EXCEEDED" in str(e):
-                        if attempt == max_retries - 1:
-                            raise
-                        continue
-
-                    raise
-
+        network_multiplier = network_multiplier or 0
         network_total = node_total * network_multiplier
         total = node_total + service_total + network_total
 
