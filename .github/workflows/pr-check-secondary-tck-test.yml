@@ -1,14 +1,16 @@
-name: TCK Unit Test
+name: Secondary PR Check - TCK Unit Test
 
 on:
   push:
     branches:
       - "main"
     paths:
+      - "src/**"
       - "tck/**"
       - "tests/tck/**"
   pull_request:
     paths:
+      - "src/**"
       - "tck/**"
       - "tests/tck/**"
   workflow_dispatch: {}
@@ -16,10 +18,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: tck-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   tck-unit-test:
-    name: Tck Unit Test
+    name: TCK Unit Test
     runs-on: hl-sdk-py-lin-md
 
     steps:
@@ -27,7 +32,7 @@ jobs:
         uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
         with:
           egress-policy: audit
-      
+
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -46,7 +51,7 @@ jobs:
 
       - name: Generate Proto Files
         run: uv run generate_proto.py
-      
+
       - name: Run unit tests
         run: |
           uv run pytest tests/tck -v
