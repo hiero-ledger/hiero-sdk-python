@@ -33,7 +33,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.parse import urlparse
 
-VERSION="v0.72.1"
+
+VERSION = "v0.72.1"
 SOURCES = [
     {
         "name": "hedera-protobufs",

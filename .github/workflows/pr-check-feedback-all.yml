@@ -50,8 +50,8 @@ jobs:
           REPO="${{ github.repository }}"
           COMMENT=$(cat <<EOF
           <!-- workflow-failure-bot -->
-          Hi, this is WorkflowBot. 
-          Your pull request cannot be merged as it is not passing all our workflow checks. 
+          Hi, this is WorkflowBot.
+          Your pull request cannot be merged as it is not passing all our workflow checks.
           Please click on each check to review the logs and resolve issues so all checks pass.
           To help you:
           - [DCO signing guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/signing.md)
