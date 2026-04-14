@@ -105,10 +105,6 @@ class TransactionRecord:
     prng_bytes: bytes | None = None
     duplicates: list[TransactionRecord] = field(default_factory=list)
     children: list[TransactionRecord] = field(default_factory=list)
-    prng_number: int | None = None
-    prng_bytes: bytes | None = None
-    duplicates: list[TransactionRecord] = field(default_factory=list)
-    children: list[TransactionRecord] = field(default_factory=list)
 
     consensus_timestamp: Timestamp | None = None
     schedule_ref: ScheduleId | None = None

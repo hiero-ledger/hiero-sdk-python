@@ -597,27 +597,7 @@ def test_repr_method(transaction_id):
     record_with_transfers.transfers[AccountId(0, 0, 200)] = 1000
     repr_transfers = repr(record_with_transfers)
     assert "duplicates_count=0" in repr_transfers
-    assert (
-        "transfers={AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}"
-        in repr_transfers
-    )
 
-    expected_repr_with_transfers = (
-        f"TransactionRecord(transaction_id='{transaction_id}', "
-        f"transaction_hash=None, "
-        f"transaction_memo='None', "
-        f"transaction_fee=None, "
-        f"receipt_status='SUCCESS', "
-        f"token_transfers={{}}, "
-        f"nft_transfers={{}}, "
-        f"transfers={{AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}}, "
-        f"new_pending_airdrops={[]}, "
-        f"call_result=None, "
-        f"prng_number=None, "
-        f"prng_bytes=None, "
-        f"duplicates_count=0, "
-        f"children_count=0)"
-    )
     assert (
         "transfers={AccountId(shard=0, realm=0, num=100): -1000, AccountId(shard=0, realm=0, num=200): 1000}"
         in repr_transfers
