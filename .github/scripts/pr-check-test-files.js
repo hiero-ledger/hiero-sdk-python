@@ -39,7 +39,7 @@ for (const file of files) {
   // Skip allowed special files
   if (EXCEPTIONS.includes(name)) continue;
 
-  // Enforce naming rule on files 
+  // Enforce naming rule on files
   if (!name.endsWith("_test.py")) {
     console.error(`Invalid test file name: ${file}`);
     console.error(`::error file=${file}::Must end with '_test.py'`);
