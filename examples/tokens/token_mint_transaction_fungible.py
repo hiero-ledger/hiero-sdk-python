@@ -6,6 +6,7 @@ uv run examples/tokens/token_mint_transaction_fungible.py
 python examples/tokens/token_mint_transaction_fungible.py
 Creates a mintable fungible token and then mints additional supply.
 """
+
 import os
 import sys
 
@@ -24,6 +25,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def generate_supply_key():
     """Generate a new supply key for the token."""
@@ -103,9 +105,7 @@ def token_mint_fungible(client, token_id, supply_key):
             .sign(supply_key)  # Must be signed by the supply key
             .execute(client)
         )
-        print(
-            f"✅ Success! Token minting complete, Status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"✅ Success! Token minting complete, Status: {ResponseCode(receipt.status).name}")
 
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)

@@ -1,40 +1,37 @@
+from __future__ import annotations
+
 import os
 import time
-from pytest import fixture
-from dotenv import load_dotenv
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable, Optional, TypeVar
+from typing import TypeVar
+
+from dotenv import load_dotenv
+
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_associate_transaction import (
+    TokenAssociateTransaction,
+)
 from hiero_sdk_python.tokens.token_create_transaction import (
     TokenCreateTransaction,
     TokenKeys,
     TokenParams,
 )
-from hiero_sdk_python.tokens.token_associate_transaction import (
-    TokenAssociateTransaction,
-)
-from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from hiero_sdk_python.hbar import Hbar
+
 
 T = TypeVar("T")
 
 load_dotenv(override=True)
-
-
-@fixture
-def env():
-    """Integration test environment with client/operator set up."""
-    e = IntegrationTestEnv()
-    yield e
-    e.close()
 
 
 @dataclass
@@ -44,7 +41,6 @@ class Account:
 
 
 class IntegrationTestEnv:
-
     def __init__(self) -> None:
         network_name = os.getenv("NETWORK", "solo").lower()
 
@@ -53,8 +49,8 @@ class IntegrationTestEnv:
 
         network = Network(network=network_name)
         self.client = Client(network)
-        self.operator_id: Optional[AccountId] = None
-        self.operator_key: Optional[PrivateKey] = None
+        self.operator_id: AccountId | None = None
+        self.operator_key: PrivateKey | None = None
         operator_id = os.getenv("OPERATOR_ID")
         operator_key = os.getenv("OPERATOR_KEY")
         if operator_id and operator_key:
@@ -73,21 +69,13 @@ class IntegrationTestEnv:
     def create_account(self, initial_hbar: float = 1.0) -> Account:
         """Create a new account funded with `initial_hbar` HBAR, defaulting to 1."""
         key = PrivateKey.generate()
-        tx = (
-            AccountCreateTransaction()
-            .set_key_without_alias(key.public_key())
-            .set_initial_balance(Hbar(initial_hbar))
-        )
+        tx = AccountCreateTransaction().set_key_without_alias(key.public_key()).set_initial_balance(Hbar(initial_hbar))
         receipt = tx.execute(self.client)
         if receipt.status != ResponseCode.SUCCESS:
-            raise AssertionError(
-                f"Account creation failed: {ResponseCode(receipt.status).name}"
-            )
+            raise AssertionError(f"Account creation failed: {ResponseCode(receipt.status).name}")
         return Account(id=receipt.account_id, key=key)
 
-    def associate_and_transfer(
-        self, receiver: AccountId, receiver_key: PrivateKey, token_id, amount: int
-    ):
+    def associate_and_transfer(self, receiver: AccountId, receiver_key: PrivateKey, token_id, amount: int):
         """
         Associate the token with `receiver`, then transfer `amount` of the token
         from the operator to that receiver.
@@ -101,9 +89,7 @@ class IntegrationTestEnv:
             .execute(self.client)
         )
         if assoc_receipt.status != ResponseCode.SUCCESS:
-            raise AssertionError(
-                f"Association failed: {ResponseCode(assoc_receipt.status).name}"
-            )
+            raise AssertionError(f"Association failed: {ResponseCode(assoc_receipt.status).name}")
 
         transfer_receipt = (
             TransferTransaction()
@@ -112,12 +98,10 @@ class IntegrationTestEnv:
             .execute(self.client)  # auto-signs with operator’s key
         )
         if transfer_receipt.status != ResponseCode.SUCCESS:
-            raise AssertionError(
-                f"Transfer failed: {ResponseCode(transfer_receipt.status).name}"
-            )
+            raise AssertionError(f"Transfer failed: {ResponseCode(transfer_receipt.status).name}")
 
 
-def create_fungible_token(env, opts=[]):
+def create_fungible_token(env, opts=None):
     """
     Create a fungible token with the given options.
 
@@ -127,6 +111,9 @@ def create_fungible_token(env, opts=[]):
              Example opt function:
              lambda tx: tx.set_treasury_account_id(custom_treasury_id).freeze_with(client)
     """
+    if opts is None:
+        opts = []
+
     token_params = TokenParams(
         token_name="PTokenTest34",
         token_symbol="PTT34",
@@ -154,14 +141,14 @@ def create_fungible_token(env, opts=[]):
 
     token_receipt = token_transaction.execute(env.client)
 
-    assert (
-        token_receipt.status == ResponseCode.SUCCESS
-    ), f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
+    assert token_receipt.status == ResponseCode.SUCCESS, (
+        f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
+    )
 
     return token_receipt.token_id
 
 
-def create_nft_token(env, opts=[]):
+def create_nft_token(env, opts=None):
     """
     Create a non-fungible token (NFT) with the given options.
 
@@ -171,6 +158,9 @@ def create_nft_token(env, opts=[]):
              Example opt function:
              lambda tx: tx.set_treasury_account_id(custom_treasury_id).freeze_with(client)
     """
+    if opts is None:
+        opts = []
+
     token_params = TokenParams(
         token_name="PythonNFTToken",
         token_symbol="PNFT",
@@ -197,9 +187,9 @@ def create_nft_token(env, opts=[]):
 
     token_receipt = transaction.execute(env.client)
 
-    assert (
-        token_receipt.status == ResponseCode.SUCCESS
-    ), f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
+    assert token_receipt.status == ResponseCode.SUCCESS, (
+        f"Token creation failed with status: {ResponseCode(token_receipt.status).name}"
+    )
 
     return token_receipt.token_id
 
@@ -237,10 +227,6 @@ def wait_for_mirror_node(
         time.sleep(interval)
 
     if last_exception is not None:
-        raise TimeoutError(
-            "Timed out waiting for mirror node, Last call raised an exception"
-        ) from last_exception
+        raise TimeoutError("Timed out waiting for mirror node, Last call raised an exception") from last_exception
 
-    raise TimeoutError(
-        f"Timed out waiting for mirror node. Last response: {last_response}"
-    )
+    raise TimeoutError(f"Timed out waiting for mirror node. Last response: {last_response}")

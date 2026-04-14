@@ -1,6 +1,6 @@
 # pylint: disable=[too-many-lines]
 """
-ContractFunctionParameters Type Stub File
+ContractFunctionParameters Type Stub File.
 
 This module provides comprehensive type hints for the ContractFunctionParameters class,
 which handles Ethereum ABI encoding for smart contract function calls.
@@ -13,7 +13,9 @@ Key Features:
 - Method chaining for fluent API
 """
 
-from typing import Any, List, Optional, Union
+from __future__ import annotations
+
+from typing import Any
 
 class ContractFunctionParameters:
     """
@@ -22,11 +24,11 @@ class ContractFunctionParameters:
     dynamic type checking and IDE support.
     """
 
-    function_name: Optional[str]
-    _types: List[str]
-    _values: List[Any]
+    function_name: str | None
+    _types: list[str]
+    _values: list[Any]
 
-    def __init__(self, function_name: Optional[str] = None) -> None:
+    def __init__(self, function_name: str | None = None) -> None:
         """
         Initialize a new ContractFunctionParameters instance.
 
@@ -34,7 +36,7 @@ class ContractFunctionParameters:
             function_name: Optional function name to use for the function selector
         """
 
-    def _add_param(self, type_name: str, value: Any) -> "ContractFunctionParameters":
+    def _add_param(self, type_name: str, value: Any) -> ContractFunctionParameters:
         """
         Internal helper to add a parameter.
 
@@ -46,7 +48,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
     # Explicitly defined methods
-    def add_bool(self, value: bool) -> "ContractFunctionParameters":
+    def add_bool(self, value: bool) -> ContractFunctionParameters:
         """
         Add a boolean parameter.
 
@@ -57,7 +59,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_address(self, value: Union[str, bytes]) -> "ContractFunctionParameters":
+    def add_address(self, value: str | bytes) -> ContractFunctionParameters:
         """
         Add an address parameter.
 
@@ -68,7 +70,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_string(self, value: str) -> "ContractFunctionParameters":
+    def add_string(self, value: str) -> ContractFunctionParameters:
         """
         Add a string parameter.
 
@@ -79,7 +81,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_bytes(self, value: bytes) -> "ContractFunctionParameters":
+    def add_bytes(self, value: bytes) -> ContractFunctionParameters:
         """
         Add a bytes parameter.
 
@@ -90,7 +92,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_bytes32(self, value: bytes) -> "ContractFunctionParameters":
+    def add_bytes32(self, value: bytes) -> ContractFunctionParameters:
         """
         Add a bytes32 parameter.
 
@@ -105,7 +107,7 @@ class ContractFunctionParameters:
             TypeError: If value is not bytes type
         """
     # Array methods for basic types
-    def add_bool_array(self, value: List[bool]) -> "ContractFunctionParameters":
+    def add_bool_array(self, value: list[bool]) -> ContractFunctionParameters:
         """
         Add a boolean array parameter.
 
@@ -116,9 +118,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_address_array(
-        self, value: List[Union[str, bytes]]
-    ) -> "ContractFunctionParameters":
+    def add_address_array(self, value: list[str | bytes]) -> ContractFunctionParameters:
         """
         Add an address array parameter.
 
@@ -129,7 +129,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_string_array(self, value: List[str]) -> "ContractFunctionParameters":
+    def add_string_array(self, value: list[str]) -> ContractFunctionParameters:
         """
         Add a string array parameter.
 
@@ -140,7 +140,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_bytes_array(self, value: List[bytes]) -> "ContractFunctionParameters":
+    def add_bytes_array(self, value: list[bytes]) -> ContractFunctionParameters:
         """
         Add a bytes array parameter.
 
@@ -151,7 +151,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_bytes32_array(self, value: List[bytes]) -> "ContractFunctionParameters":
+    def add_bytes32_array(self, value: list[bytes]) -> ContractFunctionParameters:
         """
         Add a bytes32 array parameter.
 
@@ -199,7 +199,7 @@ class ContractFunctionParameters:
     def __bytes__(self) -> bytes:
         """Allow conversion to bytes using bytes() function."""
 
-    def clear(self) -> "ContractFunctionParameters":
+    def clear(self) -> ContractFunctionParameters:
         """
         Clear all parameters.
 
@@ -208,7 +208,7 @@ class ContractFunctionParameters:
         """
     # Comprehensive integer type support (int8-256, uint8-256)
     # Each type has its own method for explicit type checking and IDE support
-    def add_int8(self, value: int) -> "ContractFunctionParameters":
+    def add_int8(self, value: int) -> ContractFunctionParameters:
         """
         Add an int8 parameter.
 
@@ -219,7 +219,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int16(self, value: int) -> "ContractFunctionParameters":
+    def add_int16(self, value: int) -> ContractFunctionParameters:
         """
         Add an int16 parameter.
 
@@ -230,7 +230,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int24(self, value: int) -> "ContractFunctionParameters":
+    def add_int24(self, value: int) -> ContractFunctionParameters:
         """
         Add an int24 parameter.
 
@@ -241,7 +241,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int32(self, value: int) -> "ContractFunctionParameters":
+    def add_int32(self, value: int) -> ContractFunctionParameters:
         """
         Add an int32 parameter.
 
@@ -252,7 +252,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int40(self, value: int) -> "ContractFunctionParameters":
+    def add_int40(self, value: int) -> ContractFunctionParameters:
         """
         Add an int40 parameter.
 
@@ -263,7 +263,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int48(self, value: int) -> "ContractFunctionParameters":
+    def add_int48(self, value: int) -> ContractFunctionParameters:
         """
         Add an int48 parameter.
 
@@ -274,7 +274,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int56(self, value: int) -> "ContractFunctionParameters":
+    def add_int56(self, value: int) -> ContractFunctionParameters:
         """
         Add an int56 parameter.
 
@@ -285,7 +285,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int64(self, value: int) -> "ContractFunctionParameters":
+    def add_int64(self, value: int) -> ContractFunctionParameters:
         """
         Add an int64 parameter.
 
@@ -296,7 +296,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int72(self, value: int) -> "ContractFunctionParameters":
+    def add_int72(self, value: int) -> ContractFunctionParameters:
         """
         Add an int72 parameter.
 
@@ -307,7 +307,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int80(self, value: int) -> "ContractFunctionParameters":
+    def add_int80(self, value: int) -> ContractFunctionParameters:
         """
         Add an int80 parameter.
 
@@ -318,7 +318,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int88(self, value: int) -> "ContractFunctionParameters":
+    def add_int88(self, value: int) -> ContractFunctionParameters:
         """
         Add an int88 parameter.
 
@@ -329,7 +329,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int96(self, value: int) -> "ContractFunctionParameters":
+    def add_int96(self, value: int) -> ContractFunctionParameters:
         """
         Add an int96 parameter.
 
@@ -340,7 +340,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int104(self, value: int) -> "ContractFunctionParameters":
+    def add_int104(self, value: int) -> ContractFunctionParameters:
         """
         Add an int104 parameter.
 
@@ -351,7 +351,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int112(self, value: int) -> "ContractFunctionParameters":
+    def add_int112(self, value: int) -> ContractFunctionParameters:
         """
         Add an int112 parameter.
 
@@ -362,7 +362,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int120(self, value: int) -> "ContractFunctionParameters":
+    def add_int120(self, value: int) -> ContractFunctionParameters:
         """
         Add an int120 parameter.
 
@@ -373,7 +373,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int128(self, value: int) -> "ContractFunctionParameters":
+    def add_int128(self, value: int) -> ContractFunctionParameters:
         """
         Add an int128 parameter.
 
@@ -384,7 +384,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int136(self, value: int) -> "ContractFunctionParameters":
+    def add_int136(self, value: int) -> ContractFunctionParameters:
         """
         Add an int136 parameter.
 
@@ -395,7 +395,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int144(self, value: int) -> "ContractFunctionParameters":
+    def add_int144(self, value: int) -> ContractFunctionParameters:
         """
         Add an int144 parameter.
 
@@ -406,7 +406,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int152(self, value: int) -> "ContractFunctionParameters":
+    def add_int152(self, value: int) -> ContractFunctionParameters:
         """
         Add an int152 parameter.
 
@@ -417,7 +417,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int160(self, value: int) -> "ContractFunctionParameters":
+    def add_int160(self, value: int) -> ContractFunctionParameters:
         """
         Add an int160 parameter.
 
@@ -428,7 +428,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int168(self, value: int) -> "ContractFunctionParameters":
+    def add_int168(self, value: int) -> ContractFunctionParameters:
         """
         Add an int168 parameter.
 
@@ -439,7 +439,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int176(self, value: int) -> "ContractFunctionParameters":
+    def add_int176(self, value: int) -> ContractFunctionParameters:
         """
         Add an int176 parameter.
 
@@ -450,7 +450,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int184(self, value: int) -> "ContractFunctionParameters":
+    def add_int184(self, value: int) -> ContractFunctionParameters:
         """
         Add an int184 parameter.
 
@@ -461,7 +461,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int192(self, value: int) -> "ContractFunctionParameters":
+    def add_int192(self, value: int) -> ContractFunctionParameters:
         """
         Add an int192 parameter.
 
@@ -472,7 +472,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int200(self, value: int) -> "ContractFunctionParameters":
+    def add_int200(self, value: int) -> ContractFunctionParameters:
         """
         Add an int200 parameter.
 
@@ -483,7 +483,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int208(self, value: int) -> "ContractFunctionParameters":
+    def add_int208(self, value: int) -> ContractFunctionParameters:
         """
         Add an int208 parameter.
 
@@ -494,7 +494,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int216(self, value: int) -> "ContractFunctionParameters":
+    def add_int216(self, value: int) -> ContractFunctionParameters:
         """
         Add an int216 parameter.
 
@@ -505,7 +505,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int224(self, value: int) -> "ContractFunctionParameters":
+    def add_int224(self, value: int) -> ContractFunctionParameters:
         """
         Add an int224 parameter.
 
@@ -516,7 +516,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int232(self, value: int) -> "ContractFunctionParameters":
+    def add_int232(self, value: int) -> ContractFunctionParameters:
         """
         Add an int232 parameter.
 
@@ -527,7 +527,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int240(self, value: int) -> "ContractFunctionParameters":
+    def add_int240(self, value: int) -> ContractFunctionParameters:
         """
         Add an int240 parameter.
 
@@ -538,7 +538,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int248(self, value: int) -> "ContractFunctionParameters":
+    def add_int248(self, value: int) -> ContractFunctionParameters:
         """
         Add an int248 parameter.
 
@@ -549,7 +549,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int256(self, value: int) -> "ContractFunctionParameters":
+    def add_int256(self, value: int) -> ContractFunctionParameters:
         """
         Add an int256 parameter.
 
@@ -560,7 +560,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint8(self, value: int) -> "ContractFunctionParameters":
+    def add_uint8(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint8 parameter.
 
@@ -571,7 +571,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint16(self, value: int) -> "ContractFunctionParameters":
+    def add_uint16(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint16 parameter.
 
@@ -582,7 +582,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint24(self, value: int) -> "ContractFunctionParameters":
+    def add_uint24(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint24 parameter.
 
@@ -593,7 +593,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint32(self, value: int) -> "ContractFunctionParameters":
+    def add_uint32(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint32 parameter.
 
@@ -604,7 +604,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint40(self, value: int) -> "ContractFunctionParameters":
+    def add_uint40(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint40 parameter.
 
@@ -615,7 +615,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint48(self, value: int) -> "ContractFunctionParameters":
+    def add_uint48(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint48 parameter.
 
@@ -626,7 +626,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint56(self, value: int) -> "ContractFunctionParameters":
+    def add_uint56(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint56 parameter.
 
@@ -637,7 +637,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint64(self, value: int) -> "ContractFunctionParameters":
+    def add_uint64(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint64 parameter.
 
@@ -648,7 +648,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint72(self, value: int) -> "ContractFunctionParameters":
+    def add_uint72(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint72 parameter.
 
@@ -659,7 +659,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint80(self, value: int) -> "ContractFunctionParameters":
+    def add_uint80(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint80 parameter.
 
@@ -670,7 +670,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint88(self, value: int) -> "ContractFunctionParameters":
+    def add_uint88(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint88 parameter.
 
@@ -681,7 +681,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint96(self, value: int) -> "ContractFunctionParameters":
+    def add_uint96(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint96 parameter.
 
@@ -692,7 +692,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint104(self, value: int) -> "ContractFunctionParameters":
+    def add_uint104(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint104 parameter.
 
@@ -703,7 +703,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint112(self, value: int) -> "ContractFunctionParameters":
+    def add_uint112(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint112 parameter.
 
@@ -714,7 +714,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint120(self, value: int) -> "ContractFunctionParameters":
+    def add_uint120(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint120 parameter.
 
@@ -725,7 +725,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint128(self, value: int) -> "ContractFunctionParameters":
+    def add_uint128(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint128 parameter.
 
@@ -736,7 +736,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint136(self, value: int) -> "ContractFunctionParameters":
+    def add_uint136(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint136 parameter.
 
@@ -747,7 +747,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint144(self, value: int) -> "ContractFunctionParameters":
+    def add_uint144(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint144 parameter.
 
@@ -758,7 +758,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint152(self, value: int) -> "ContractFunctionParameters":
+    def add_uint152(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint152 parameter.
 
@@ -769,7 +769,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint160(self, value: int) -> "ContractFunctionParameters":
+    def add_uint160(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint160 parameter.
 
@@ -780,7 +780,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint168(self, value: int) -> "ContractFunctionParameters":
+    def add_uint168(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint168 parameter.
 
@@ -791,7 +791,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint176(self, value: int) -> "ContractFunctionParameters":
+    def add_uint176(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint176 parameter.
 
@@ -802,7 +802,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint184(self, value: int) -> "ContractFunctionParameters":
+    def add_uint184(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint184 parameter.
 
@@ -813,7 +813,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint192(self, value: int) -> "ContractFunctionParameters":
+    def add_uint192(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint192 parameter.
 
@@ -824,7 +824,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint200(self, value: int) -> "ContractFunctionParameters":
+    def add_uint200(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint200 parameter.
 
@@ -835,7 +835,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint208(self, value: int) -> "ContractFunctionParameters":
+    def add_uint208(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint208 parameter.
 
@@ -846,7 +846,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint216(self, value: int) -> "ContractFunctionParameters":
+    def add_uint216(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint216 parameter.
 
@@ -857,7 +857,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint224(self, value: int) -> "ContractFunctionParameters":
+    def add_uint224(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint224 parameter.
 
@@ -868,7 +868,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint232(self, value: int) -> "ContractFunctionParameters":
+    def add_uint232(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint232 parameter.
 
@@ -879,7 +879,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint240(self, value: int) -> "ContractFunctionParameters":
+    def add_uint240(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint240 parameter.
 
@@ -890,7 +890,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint248(self, value: int) -> "ContractFunctionParameters":
+    def add_uint248(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint248 parameter.
 
@@ -901,7 +901,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint256(self, value: int) -> "ContractFunctionParameters":
+    def add_uint256(self, value: int) -> ContractFunctionParameters:
         """
         Add a uint256 parameter.
 
@@ -912,7 +912,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int8_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int8_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int8 array parameter.
 
@@ -923,7 +923,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int16_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int16_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int16 array parameter.
 
@@ -934,7 +934,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int24_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int24_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int24 array parameter.
 
@@ -945,7 +945,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int32_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int32_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int32 array parameter.
 
@@ -956,7 +956,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int40_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int40_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int40 array parameter.
 
@@ -967,7 +967,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int48_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int48_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int48 array parameter.
 
@@ -978,7 +978,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int56_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int56_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int56 array parameter.
 
@@ -989,7 +989,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int64_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int64_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int64 array parameter.
 
@@ -1000,7 +1000,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int72_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int72_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int72 array parameter.
 
@@ -1011,7 +1011,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int80_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int80_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int80 array parameter.
 
@@ -1022,7 +1022,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int88_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int88_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int88 array parameter.
 
@@ -1033,7 +1033,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int96_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int96_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int96 array parameter.
 
@@ -1044,7 +1044,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int104_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int104_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int104 array parameter.
 
@@ -1055,7 +1055,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int112_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int112_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int112 array parameter.
 
@@ -1066,7 +1066,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int120_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int120_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int120 array parameter.
 
@@ -1077,7 +1077,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int128_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int128_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int128 array parameter.
 
@@ -1088,7 +1088,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int136_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int136_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int136 array parameter.
 
@@ -1099,7 +1099,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int144_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int144_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int144 array parameter.
 
@@ -1110,7 +1110,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int152_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int152_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int152 array parameter.
 
@@ -1121,7 +1121,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int160_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int160_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int160 array parameter.
 
@@ -1132,7 +1132,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int168_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int168_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int168 array parameter.
 
@@ -1143,7 +1143,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int176_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int176_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int176 array parameter.
 
@@ -1154,7 +1154,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int184_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int184_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int184 array parameter.
 
@@ -1165,7 +1165,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int192_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int192_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int192 array parameter.
 
@@ -1176,7 +1176,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int200_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int200_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int200 array parameter.
 
@@ -1187,7 +1187,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int208_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int208_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int208 array parameter.
 
@@ -1198,7 +1198,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int216_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int216_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int216 array parameter.
 
@@ -1209,7 +1209,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int224_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int224_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int224 array parameter.
 
@@ -1220,7 +1220,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int232_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int232_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int232 array parameter.
 
@@ -1231,7 +1231,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int240_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int240_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int240 array parameter.
 
@@ -1242,7 +1242,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int248_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int248_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int248 array parameter.
 
@@ -1253,7 +1253,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_int256_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_int256_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add an int256 array parameter.
 
@@ -1264,7 +1264,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint8_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint8_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint8 array parameter.
 
@@ -1275,7 +1275,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint16_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint16_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint16 array parameter.
 
@@ -1286,7 +1286,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint24_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint24_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint24 array parameter.
 
@@ -1297,7 +1297,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint32_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint32_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint32 array parameter.
 
@@ -1308,7 +1308,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint40_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint40_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint40 array parameter.
 
@@ -1319,7 +1319,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint48_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint48_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint48 array parameter.
 
@@ -1330,7 +1330,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint56_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint56_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint56 array parameter.
 
@@ -1341,7 +1341,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint64_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint64_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint64 array parameter.
 
@@ -1352,7 +1352,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint72_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint72_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint72 array parameter.
 
@@ -1363,7 +1363,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint80_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint80_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint80 array parameter.
 
@@ -1374,7 +1374,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint88_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint88_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint88 array parameter.
 
@@ -1385,7 +1385,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint96_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint96_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint96 array parameter.
 
@@ -1396,7 +1396,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint104_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint104_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint104 array parameter.
 
@@ -1407,7 +1407,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint112_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint112_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint112 array parameter.
 
@@ -1418,7 +1418,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint120_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint120_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint120 array parameter.
 
@@ -1429,7 +1429,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint128_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint128_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint128 array parameter.
 
@@ -1440,7 +1440,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint136_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint136_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint136 array parameter.
 
@@ -1451,7 +1451,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint144_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint144_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint144 array parameter.
 
@@ -1462,7 +1462,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint152_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint152_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint152 array parameter.
 
@@ -1473,7 +1473,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint160_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint160_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint160 array parameter.
 
@@ -1484,7 +1484,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint168_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint168_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint168 array parameter.
 
@@ -1495,7 +1495,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint176_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint176_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint176 array parameter.
 
@@ -1506,7 +1506,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint184_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint184_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint184 array parameter.
 
@@ -1517,7 +1517,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint192_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint192_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint192 array parameter.
 
@@ -1528,7 +1528,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint200_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint200_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint200 array parameter.
 
@@ -1539,7 +1539,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint208_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint208_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint208 array parameter.
 
@@ -1550,7 +1550,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint216_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint216_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint216 array parameter.
 
@@ -1561,7 +1561,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint224_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint224_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint224 array parameter.
 
@@ -1572,7 +1572,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint232_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint232_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint232 array parameter.
 
@@ -1583,7 +1583,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint240_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint240_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint240 array parameter.
 
@@ -1594,7 +1594,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint248_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint248_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint248 array parameter.
 
@@ -1605,7 +1605,7 @@ class ContractFunctionParameters:
             This instance for method chaining
         """
 
-    def add_uint256_array(self, value: List[int]) -> "ContractFunctionParameters":
+    def add_uint256_array(self, value: list[int]) -> ContractFunctionParameters:
         """
         Add a uint256 array parameter.
 

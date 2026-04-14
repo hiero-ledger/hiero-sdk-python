@@ -23,16 +23,14 @@ def submit_alias_auto_create_transfer(client):
     """Transfer HBAR to a fresh EVM alias to trigger auto-account creation."""
     try:
         alias_key = PrivateKey.generate_ecdsa()
-        alias_account_id = AccountId.from_evm_address(
-            alias_key.public_key().to_evm_address(), 0, 0
-        )
+        alias_account_id = AccountId.from_evm_address(alias_key.public_key().to_evm_address(), 0, 0)
 
         transaction = (
             TransferTransaction()
             .add_hbar_transfer(alias_account_id, Hbar(1).to_tinybars())
             .add_hbar_transfer(client.operator_account_id, Hbar(-1).to_tinybars())
         )
-        receipt = transaction.execute(client)
+        transaction.execute(client)
 
         return transaction.transaction_id
     except Exception as e:
@@ -60,28 +58,19 @@ def print_child_records(record):
     if not record.children:
         sys.exit(1)
 
-    print_transaction_record(record.children[0], f"Child record")
+    print_transaction_record(record.children[0], "Child record")
 
 
 def main():
     try:
         client = Client.from_env()
 
-        print(
-            "\nSTEP 1: Create a parent transaction with child records"
-        )
+        print("\nSTEP 1: Create a parent transaction with child records")
         transaction_id = submit_alias_auto_create_transfer(client)
         print(f"Parent transaction ID: {transaction_id}")
 
-        print(
-            "\nSTEP 2: Querying parent transaction record with include_children=True..."
-        )
-        record = (
-            TransactionRecordQuery()
-            .set_transaction_id(transaction_id)
-            .set_include_children(True)
-            .execute(client)
-        )
+        print("\nSTEP 2: Querying parent transaction record with include_children=True...")
+        record = TransactionRecordQuery().set_transaction_id(transaction_id).set_include_children(True).execute(client)
 
         print_transaction_record(record, "Parent Transaction Record")
         print_child_records(record)

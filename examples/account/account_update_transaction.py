@@ -7,6 +7,7 @@ run with:
 uv run examples/account/account_update_transaction.py
 python examples/account/account_update_transaction.py
 """
+
 import datetime
 import sys
 
@@ -42,9 +43,7 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id

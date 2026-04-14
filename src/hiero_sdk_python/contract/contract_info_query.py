@@ -1,9 +1,8 @@
-"""
-Query to get information about a contract on the network.
-"""
+"""Query to get information about a contract on the network."""
+
+from __future__ import annotations
 
 import traceback
-from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -28,22 +27,22 @@ class ContractInfoQuery(Query):
 
     """
 
-    def __init__(self, contract_id: Optional[ContractId] = None) -> None:
+    def __init__(self, contract_id: ContractId | None = None) -> None:
         """
         Initializes a new ContractInfoQuery instance with an optional contract_id.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract to query.
+            contract_id (ContractId, optional): The ID of the contract to query.
         """
         super().__init__()
-        self.contract_id: Optional[ContractId] = contract_id
+        self.contract_id: ContractId | None = contract_id
 
-    def set_contract_id(self, contract_id: Optional[ContractId]) -> "ContractInfoQuery":
+    def set_contract_id(self, contract_id: ContractId | None) -> ContractInfoQuery:
         """
         Sets the ID of the contract to query.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract.
+            contract_id (ContractId | None): The ID of the contract.
         """
         self.contract_id = contract_id
         return self
@@ -94,11 +93,9 @@ class ContractInfoQuery(Query):
         Returns:
             _Method: The method wrapper containing the query function
         """
-        return _Method(
-            transaction_func=None, query_func=channel.smart_contract.getContractInfo
-        )
+        return _Method(transaction_func=None, query_func=channel.smart_contract.getContractInfo)
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> ContractInfo:
+    def execute(self, client: Client, timeout: int | float | None = None) -> ContractInfo:
         """
         Executes the contract info query.
 
@@ -110,7 +107,7 @@ class ContractInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
 
         Returns:
             ContractInfo: The contract info from the network
@@ -125,9 +122,7 @@ class ContractInfoQuery(Query):
 
         return ContractInfo._from_proto(response.contractGetInfo.contractInfo)
 
-    def _get_query_response(
-        self, response: response_pb2.Response
-    ) -> ContractGetInfoResponse.ContractInfo:
+    def _get_query_response(self, response: response_pb2.Response) -> ContractGetInfoResponse.ContractInfo:
         """
         Extracts the contract info response from the full response.
 

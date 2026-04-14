@@ -55,7 +55,7 @@ DAYS="${DAYS:-21}"
 **After (Testing Code):**
 ```bash
 # Set to 0 to treat everything as immediately stale for testing
-DAYS="${DAYS:-0}" 
+DAYS="${DAYS:-0}"
 ```
 
 ### 2. accelerating Cron Schedules

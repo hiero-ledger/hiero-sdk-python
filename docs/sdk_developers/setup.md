@@ -174,6 +174,42 @@ Optional: To install all available extras (useful full-matrix testing):
 uv sync --dev --all-extras
 ```
 
+## Pre-Commit Tool Setup
+
+To maintain high code quality and security, this repository uses `re-commit` hooks. These hooks automatically run checks (like `Ruff` for linting and `Gitleaks` for security) every time you attempt to commit code.
+
+**Option 1: Using `uv` (Recommended)**
+
+`uv` is recommended because it manages pre-commit within your project’s locked environment, ensuring your local linting matches the CI exactly.
+
+1. **Install the git hooks:**
+```bash
+uv run pre-commit install
+```
+
+2. **Verify your setup (Optional):**
+```bash
+uv run pre-commit run --all-files
+```
+
+**Option 2: Using pip**
+
+If you are using a standard virtual environment:
+
+1. **Install the package:**
+```bash
+  pip install pre-commit
+```
+
+2. **Install the git hooks:**
+```bash
+pre-commit install
+```
+
+Once installed, `git commit` will automatically trigger the checks.
+- If they **pass**: Your commit is created normally.
+- If they **fail**: The hooks will often fix the files for you (e.g., `Ruff` reformatting). Simply `git add` the changed files and commit again.
+
 ## Generate Protocol Buffers
 
 The SDK uses protocol buffers to communicate with the Hedera network. Generate the Python code from the protobuf definitions:

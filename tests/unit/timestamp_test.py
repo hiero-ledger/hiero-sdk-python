@@ -6,12 +6,16 @@ serialization, arithmetic, comparison, and time-based behavior to
 ensure robust coverage of timestamp functionality.
 """
 
+from __future__ import annotations
+
 import time
-import pytest
 from datetime import datetime, timezone
 
-from hiero_sdk_python.timestamp import Timestamp
+import pytest
+
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
+from hiero_sdk_python.timestamp import Timestamp
+
 
 pytestmark = pytest.mark.unit
 
@@ -66,7 +70,7 @@ def test_from_date_unix_epoch():
     ts = Timestamp.from_date(dt)
     assert ts.seconds == 0
     assert ts.nanos == 0
-    
+
 
 def test_from_date_max_microseconds():
     """Test from_date with maximum microseconds to ensure nanos calculation is correct."""
@@ -75,6 +79,7 @@ def test_from_date_max_microseconds():
 
     expected = 999_999_000
     assert abs(ts.nanos - expected) < 1_000
+
 
 @pytest.mark.parametrize("bad_input", [None, [], {}, 3.14])
 def test_from_date_invalid_type(bad_input):
@@ -181,7 +186,6 @@ def test_generate_without_jitter():
     assert delta < 0.1
 
 
-
 def test_generate_with_jitter():
     """Verify that generated timestamps with jitter remain close to the system time within a safe tolerance."""
     ts = Timestamp.generate(has_jitter=True)
@@ -189,6 +193,7 @@ def test_generate_with_jitter():
 
     # Jitter is explicitly 3-8 seconds backward
     assert 3.0 <= delta <= 9.0
+
 
 # Protobuf serialization tests
 

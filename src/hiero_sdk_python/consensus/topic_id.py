@@ -7,15 +7,14 @@ string representations, making it easier to work with topics in different
 formats within the Hiero SDK.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
-from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.utils.entity_id_helper import (
-    parse_from_string,
-    validate_checksum,
-    format_to_string_with_checksum
-)
+from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.utils.entity_id_helper import format_to_string_with_checksum, parse_from_string, validate_checksum
+
 
 @dataclass(frozen=True)
 class TopicId:
@@ -31,13 +30,14 @@ class TopicId:
         realm (int): The realm number of the topic. Defaults to 0.
         num (int): The topic number. Defaults to 0.
     """
+
     shard: int = 0
     realm: int = 0
     num: int = 0
     checksum: str | None = field(default=None, init=False)
 
     @classmethod
-    def _from_proto(cls, topic_id_proto: basic_types_pb2.TopicID) -> "TopicId":
+    def _from_proto(cls, topic_id_proto: basic_types_pb2.TopicID) -> TopicId:
         """
         Creates a TopicId instance from a protobuf TopicID object.
 
@@ -47,11 +47,7 @@ class TopicId:
         Returns:
             TopicId: A new TopicId instance.
         """
-        return cls(
-            shard=topic_id_proto.shardNum,
-            realm=topic_id_proto.realmNum,
-            num=topic_id_proto.topicNum
-        )
+        return cls(shard=topic_id_proto.shardNum, realm=topic_id_proto.realmNum, num=topic_id_proto.topicNum)
 
     def _to_proto(self) -> basic_types_pb2.TopicID:
         """
@@ -85,7 +81,7 @@ class TopicId:
         return f"TopicId(shard={self.shard}, realm={self.realm}, num={self.num})"
 
     @classmethod
-    def from_string(cls, topic_id_str: str) -> "TopicId":
+    def from_string(cls, topic_id_str: str) -> TopicId:
         """
         Parses a string in the format 'shard.realm.num' to create a TopicId instance.
 
@@ -101,21 +97,15 @@ class TopicId:
         try:
             shard, realm, num, checksum = parse_from_string(topic_id_str)
 
-            topic_id: TopicId = cls(
-                shard=int(shard),
-                realm=int(realm),
-                num=int(num)
-            )
+            topic_id: TopicId = cls(shard=int(shard), realm=int(realm), num=int(num))
             object.__setattr__(topic_id, "checksum", checksum)
 
             return topic_id
         except Exception as e:
-            raise ValueError(
-                f"Invalid topic ID string '{topic_id_str}'. Expected format 'shard.realm.num'."
-            ) from e
+            raise ValueError(f"Invalid topic ID string '{topic_id_str}'. Expected format 'shard.realm.num'.") from e
 
     def validate_checksum(self, client: Client) -> None:
-        """Validate the checksum for the topicId"""
+        """Validate the checksum for the topicId."""
         validate_checksum(
             self.shard,
             self.realm,
@@ -126,12 +116,7 @@ class TopicId:
 
     def to_string_with_checksum(self, client: Client) -> str:
         """
-        Returns the string representation of the TopicId with checksum 
+        Returns the string representation of the TopicId with checksum
         in 'shard.realm.num-checksum' format.
         """
-        return format_to_string_with_checksum(
-            self.shard,
-            self.realm,
-            self.num,
-            client
-        )
+        return format_to_string_with_checksum(self.shard, self.realm, self.num, client)

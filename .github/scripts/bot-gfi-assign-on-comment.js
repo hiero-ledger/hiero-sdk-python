@@ -94,7 +94,7 @@ function commentAlreadyAssigned(requesterUsername, issue) {
     return (
         `Hi @${requesterUsername} — this issue is already assigned to ${getCurrentAssigneeMention(issue)}, so I can’t assign it again.
 
-👉 **Choose a different Good First Issue to work on next:**  
+👉 **Choose a different Good First Issue to work on next:**
 [Browse unassigned Good First Issues](${UNASSIGNED_GFI_SEARCH_URL})
 
 Once you find one you like, comment \`/assign\` to get started.`
@@ -248,7 +248,7 @@ module.exports = async ({ github, context }) => {
                     username,
                 });
 
-                if (isTeamMember) {          
+                if (isTeamMember) {
                     console.log('[gfi-assign] Skip reminder: commenter is collaborator');
                     return;
                 }
@@ -403,7 +403,7 @@ module.exports = async ({ github, context }) => {
         if (mentorAssignmentSucceeded) {
             try {
                 const { triggerCodeRabbitPlan, hasExistingCodeRabbitPlan } = require('./coderabbit_plan_trigger.js');
-                
+
                 // Check if CodeRabbit plan already exists to avoid duplicate comments
                 const planExists = await hasExistingCodeRabbitPlan(github, owner, repo, issueNumber);
                 if (planExists) {

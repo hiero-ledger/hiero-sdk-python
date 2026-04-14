@@ -1,9 +1,10 @@
-"""
-HbarAllowance class for handling HBAR allowances.
-"""
+"""HbarAllowance class for handling HBAR allowances."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.crypto_approve_allowance_pb2 import (
@@ -20,17 +21,17 @@ class HbarAllowance:
     spender account, and amount.
 
     Attributes:
-        owner_account_id (Optional[AccountId]): The account that owns the HBAR.
-        spender_account_id (Optional[AccountId]): The account permitted to transfer the HBAR.
-        amount (int): The amount of HBAR allowed for transfer (in tinybars).
+        owner_account_id (AccountId, optional): The account that owns the HBAR.
+        spender_account_id (AccountId, optional): The account permitted to transfer the HBAR.
+        amount (int, optional): The amount of HBAR allowed for transfer (in tinybars).
     """
 
-    owner_account_id: Optional[AccountId] = None
-    spender_account_id: Optional[AccountId] = None
+    owner_account_id: AccountId | None = None
+    spender_account_id: AccountId | None = None
     amount: int = 0
 
     @classmethod
-    def _from_proto(cls, proto: CryptoAllowanceProto) -> "HbarAllowance":
+    def _from_proto(cls, proto: CryptoAllowanceProto) -> HbarAllowance:
         """
         Creates a HbarAllowance instance from its protobuf representation.
 
@@ -86,22 +87,11 @@ class HbarAllowance:
                 f"amount={self.amount}"
                 f")"
             )
-        elif self.owner_account_id is not None:
-            return (
-                f"HbarAllowance("
-                f"owner_account_id={self.owner_account_id}, "
-                f"amount={self.amount}"
-                f")"
-            )
-        elif self.spender_account_id is not None:
-            return (
-                f"HbarAllowance("
-                f"spender_account_id={self.spender_account_id}, "
-                f"amount={self.amount}"
-                f")"
-            )
-        else:
-            return f"HbarAllowance(amount={self.amount})"
+        if self.owner_account_id is not None:
+            return f"HbarAllowance(owner_account_id={self.owner_account_id}, amount={self.amount})"
+        if self.spender_account_id is not None:
+            return f"HbarAllowance(spender_account_id={self.spender_account_id}, amount={self.amount})"
+        return f"HbarAllowance(amount={self.amount})"
 
     def __repr__(self) -> str:
         """

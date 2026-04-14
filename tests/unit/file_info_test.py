@@ -2,6 +2,8 @@
 Unit tests for the FileInfo class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -10,6 +12,7 @@ from hiero_sdk_python.file.file_info import FileInfo
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
 from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
 from hiero_sdk_python.timestamp import Timestamp
+
 
 pytestmark = pytest.mark.unit
 
@@ -32,7 +35,7 @@ def file_info():
 def proto_file_info():
     """Fixture for a proto FileInfo object"""
     public_key = PrivateKey.generate_ed25519().public_key()
-    proto = FileGetInfoResponse.FileInfo(
+    return FileGetInfoResponse.FileInfo(
         fileID=FileId(0, 0, 100)._to_proto(),
         size=1024,
         expirationTime=Timestamp(1625097600, 0)._to_protobuf(),
@@ -41,7 +44,6 @@ def proto_file_info():
         memo="Test file memo",
         ledger_id=b"test_ledger_id",
     )
-    return proto
 
 
 def test_file_info_initialization(file_info):

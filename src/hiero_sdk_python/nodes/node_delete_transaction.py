@@ -1,8 +1,6 @@
-"""
-NodeDeleteTransaction class.
-"""
+"""NodeDeleteTransaction class."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -24,23 +22,23 @@ class NodeDeleteTransaction(Transaction):
     to build and execute a node delete transaction.
     """
 
-    def __init__(self, node_id: Optional[int] = None):
+    def __init__(self, node_id: int | None = None):
         """
         Initializes a new NodeDeleteTransaction instance with the specified parameters.
 
         Args:
-            node_id (Optional[int]):
+            node_id (int, optional):
                 The parameters for the node delete transaction.
         """
         super().__init__()
-        self.node_id: Optional[int] = node_id
+        self.node_id: int | None = node_id
 
-    def set_node_id(self, node_id: Optional[int]) -> "NodeDeleteTransaction":
+    def set_node_id(self, node_id: int | None) -> NodeDeleteTransaction:
         """
         Sets the node id for this node delete transaction.
 
         Args:
-            node_id (Optional[int]):
+            node_id (int | None):
                 The node id of the node.
 
         Returns:
@@ -107,6 +105,4 @@ class NodeDeleteTransaction(Transaction):
         Returns:
             _Method: An object containing the transaction function to delete a node.
         """
-        return _Method(
-            transaction_func=channel.address_book.deleteNode, query_func=None
-        )
+        return _Method(transaction_func=channel.address_book.deleteNode, query_func=None)

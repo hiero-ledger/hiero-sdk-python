@@ -2,6 +2,8 @@
 Unit tests for the TokenAllowance class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -10,6 +12,7 @@ from hiero_sdk_python.hapi.services.crypto_approve_allowance_pb2 import (
 )
 from hiero_sdk_python.tokens.token_allowance import TokenAllowance
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 pytestmark = pytest.mark.unit
 
@@ -32,13 +35,12 @@ def proto_token_allowance():
     owner_account_id = AccountId(0, 0, 200)
     spender_account_id = AccountId(0, 0, 300)
 
-    proto = TokenAllowanceProto(
+    return TokenAllowanceProto(
         tokenId=token_id._to_proto(),
         owner=owner_account_id._to_proto(),
         spender=spender_account_id._to_proto(),
         amount=1000,
     )
-    return proto
 
 
 def test_token_allowance_initialization(token_allowance):

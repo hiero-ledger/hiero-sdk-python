@@ -12,6 +12,7 @@ Usage:
     uv run examples/logger/logging_example.py
     python examples/logger/logging_example.py
 """
+
 import os
 
 from dotenv import load_dotenv
@@ -25,6 +26,7 @@ from hiero_sdk_python import (
     Network,
     PrivateKey,
 )
+
 
 load_dotenv()
 

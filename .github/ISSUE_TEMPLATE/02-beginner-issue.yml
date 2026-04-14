@@ -38,10 +38,10 @@ body:
     attributes:
       label: 🐞 Problem Description
       description: |
-        Describe the issue so it is easy for a beginner contributor to understand what needs to be done and why. 
+        Describe the issue so it is easy for a beginner contributor to understand what needs to be done and why.
         Include which file(s) to look at, what the current behaviour is, and what the desired behaviour is.
       value: |
-        <!-- Describe the issue here -->  
+        <!-- Describe the issue here -->
 
         <!-- Identify which files to look at and patterns to recognise -->
 
@@ -137,7 +137,7 @@ body:
     attributes:
       label: 🧪 Testing Requirements
       description: |
-        Edit this section to set clear expectations for testing. 
+        Edit this section to set clear expectations for testing.
         What types of tests should they write? How should they run them? What should they link in their PR as evidence?
       value: |
         > [!IMPORTANT]

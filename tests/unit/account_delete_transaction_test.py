@@ -2,6 +2,8 @@
 Test cases for the AccountDeleteTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -11,6 +13,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+
 
 pytestmark = pytest.mark.unit
 
@@ -45,9 +48,7 @@ def test_constructor_with_account_id_only(delete_params):
 
 def test_constructor_with_transfer_account_id_only(delete_params):
     """Test creating an account delete transaction with only transfer_account_id."""
-    delete_tx = AccountDeleteTransaction(
-        transfer_account_id=delete_params["transfer_account_id"]
-    )
+    delete_tx = AccountDeleteTransaction(transfer_account_id=delete_params["transfer_account_id"])
 
     assert delete_tx.account_id is None
     assert delete_tx.transfer_account_id == delete_params["transfer_account_id"]
@@ -76,14 +77,8 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, delete_p
 
     transaction_body = delete_tx.build_transaction_body()
 
-    assert (
-        transaction_body.cryptoDelete.deleteAccountID
-        == delete_params["account_id"]._to_proto()
-    )
-    assert (
-        transaction_body.cryptoDelete.transferAccountID
-        == delete_params["transfer_account_id"]._to_proto()
-    )
+    assert transaction_body.cryptoDelete.deleteAccountID == delete_params["account_id"]._to_proto()
+    assert transaction_body.cryptoDelete.transferAccountID == delete_params["transfer_account_id"]._to_proto()
 
 
 def test_build_transaction_body_missing_account_id():
@@ -126,9 +121,9 @@ def test_method_chaining_with_all_setters(delete_params):
     """Test that all setter methods support method chaining."""
     delete_tx = AccountDeleteTransaction()
 
-    result = delete_tx.set_account_id(
-        delete_params["account_id"]
-    ).set_transfer_account_id(delete_params["transfer_account_id"])
+    result = delete_tx.set_account_id(delete_params["account_id"]).set_transfer_account_id(
+        delete_params["transfer_account_id"]
+    )
 
     assert result is delete_tx
     assert delete_tx.account_id == delete_params["account_id"]
@@ -160,9 +155,7 @@ def test_set_methods_require_not_frozen(mock_client, delete_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(delete_tx, method_name)(value)
 
 
@@ -250,14 +243,8 @@ def test_build_scheduled_body(delete_params):
     assert schedulable_body.HasField("cryptoDelete")
 
     # Verify fields in the schedulable body
-    assert (
-        schedulable_body.cryptoDelete.deleteAccountID
-        == delete_params["account_id"]._to_proto()
-    )
-    assert (
-        schedulable_body.cryptoDelete.transferAccountID
-        == delete_params["transfer_account_id"]._to_proto()
-    )
+    assert schedulable_body.cryptoDelete.deleteAccountID == delete_params["account_id"]._to_proto()
+    assert schedulable_body.cryptoDelete.transferAccountID == delete_params["transfer_account_id"]._to_proto()
 
 
 def test_parameter_validation_none_values():

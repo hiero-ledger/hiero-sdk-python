@@ -17,6 +17,7 @@ Usage:
 uv run examples/tokens/token_create_transaction_admin_key.py
 python examples/tokens/token_create_transaction_admin_key.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -37,6 +38,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def generate_admin_key():
     """Generate a new admin key for the token."""
@@ -123,12 +125,8 @@ def demonstrate_failed_supply_key_addition(client, token_id, admin_key):
     try:
         receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ As expected, adding supply key failed: {ResponseCode(receipt.status).name}"
-            )
-            print(
-                "   Admin key cannot authorize adding keys that were not present during token creation."
-            )
+            print(f"❌ As expected, adding supply key failed: {ResponseCode(receipt.status).name}")
+            print("   Admin key cannot authorize adding keys that were not present during token creation.")
             return True  # Expected failure
         print("⚠️  Unexpectedly succeeded - this shouldn't happen")
         return False
@@ -156,9 +154,7 @@ def demonstrate_admin_key_update(client, token_id, admin_key, operator_key):
 
     receipt = transaction.execute(client)
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Admin key update failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Admin key update failed with status: {ResponseCode(receipt.status).name}")
         return False
 
     print("✅ Admin key updated successfully")

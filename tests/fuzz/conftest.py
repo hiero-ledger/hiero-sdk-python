@@ -1,5 +1,7 @@
 """Shared Hypothesis setup, fixtures, and compatibility re-exports for fuzz tests."""
 
+from __future__ import annotations
+
 from tests.fuzz.support.classes import (
     AccountIdAliasCase,
     ContractValueCase,
@@ -15,6 +17,7 @@ from tests.fuzz.support.registry import (
     get_strategy,
     get_strategy_fixture,
 )
+
 
 load_hypothesis_profile()
 

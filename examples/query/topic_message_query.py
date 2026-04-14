@@ -5,6 +5,7 @@ Example demonstrating topic message query.
 uv run examples/query/topic_message_query.py
 python examples/query/topic_message_query.py
 """
+
 import sys
 import time
 from datetime import datetime, timezone
@@ -35,9 +36,7 @@ def create_topic(client, operator_key):
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
-            TopicCreateTransaction(
-                memo="Python SDK created topic", admin_key=operator_key.public_key()
-            )
+            TopicCreateTransaction(memo="Python SDK created topic", admin_key=operator_key.public_key())
             .freeze_with(client)
             .sign(operator_key)
         )
@@ -75,9 +74,7 @@ def query_topic_messages():
         chunking_enabled=True,
     )
 
-    handle = query.subscribe(
-        client, on_message=on_message_handler, on_error=on_error_handler
-    )
+    handle = query.subscribe(client, on_message=on_message_handler, on_error=on_error_handler)
 
     print("Subscription started. Will auto-cancel after 10 seconds or on Ctrl+C...")
     try:

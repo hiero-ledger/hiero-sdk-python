@@ -1,8 +1,10 @@
 """Network module for managing Hedera SDK connections."""
 
+from __future__ import annotations
+
 import secrets
 import time
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Any
 
 import requests
 
@@ -12,12 +14,10 @@ from hiero_sdk_python.node import _Node
 
 
 class Network:
-    """
-    Manages the network configuration for connecting to the Hedera network.
-    """
+    """Manages the network configuration for connecting to the Hedera network."""
 
     # Mirror node gRPC addresses (always use TLS, port 443 for HTTPS)
-    MIRROR_ADDRESS_DEFAULT: Dict[str, str] = {
+    MIRROR_ADDRESS_DEFAULT: dict[str, str] = {
         "mainnet": "mainnet.mirrornode.hedera.com:443",
         "testnet": "testnet.mirrornode.hedera.com:443",
         "previewnet": "previewnet.mirrornode.hedera.com:443",
@@ -25,14 +25,14 @@ class Network:
     }
 
     # Mirror node REST API base URLs (HTTPS for production networks, HTTP for localhost)
-    MIRROR_NODE_URLS: Dict[str, str] = {
+    MIRROR_NODE_URLS: dict[str, str] = {
         "mainnet": "https://mainnet-public.mirrornode.hedera.com",
         "testnet": "https://testnet.mirrornode.hedera.com",
         "previewnet": "https://previewnet.mirrornode.hedera.com",
         "solo": "http://localhost:5551",  # Local development only
     }
 
-    DEFAULT_NODES: Dict[str, List[_Node]] = {
+    DEFAULT_NODES: dict[str, list[_Node]] = {
         "mainnet": [
             ("35.237.200.180:50211", AccountId(0, 0, 3)),
             ("35.186.191.247:50211", AccountId(0, 0, 4)),
@@ -64,7 +64,7 @@ class Network:
         "local": [("localhost:50211", AccountId(0, 0, 3))],
     }
 
-    LEDGER_ID: Dict[str, bytes] = {
+    LEDGER_ID: dict[str, bytes] = {
         "mainnet": bytes.fromhex("00"),
         "testnet": bytes.fromhex("01"),
         "previewnet": bytes.fromhex("02"),
@@ -74,8 +74,8 @@ class Network:
     def __init__(
         self,
         network: str = "testnet",
-        nodes: Optional[List[_Node]] = None,
-        mirror_address: Optional[str] = None,
+        nodes: list[_Node] | None = None,
+        mirror_address: str | None = None,
         ledger_id: bytes | None = None,
     ) -> None:
         """
@@ -97,9 +97,7 @@ class Network:
             Use Client.set_transport_security() and Client.set_verify_certificates() to customize.
         """
         self.network: str = network or "testnet"
-        self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(
-            network, "localhost:5600"
-        )
+        self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(network, "localhost:5600")
 
         self.ledger_id = ledger_id or self.LEDGER_ID.get(network, bytes.fromhex("03"))
 
@@ -107,10 +105,10 @@ class Network:
         hosted_networks = ("mainnet", "testnet", "previewnet")
         self._transport_security: bool = self.network in hosted_networks
         self._verify_certificates: bool = True  # Always enabled by default
-        self._root_certificates: Optional[bytes] = None
+        self._root_certificates: bytes | None = None
 
-        self.nodes: List[_Node] = []
-        self._healthy_nodes: List[_Node] = []
+        self.nodes: list[_Node] = []
+        self._healthy_nodes: list[_Node] = []
 
         self._set_network_nodes(nodes)
 
@@ -124,23 +122,15 @@ class Network:
         self._node_index: int = secrets.randbelow(len(self._healthy_nodes))
         self.current_node: _Node = self._healthy_nodes[self._node_index]
 
-    def _set_network_nodes(self, nodes: Optional[List[_Node]] = None):
-        """
-        Configure the consensus nodes used by this network.
-        """
+    def _set_network_nodes(self, nodes: list[_Node] | None = None):
+        """Configure the consensus nodes used by this network."""
         final_nodes = self._resolve_nodes(nodes)
 
         # Apply TLS configuration to all nodes
         for node in final_nodes:
-            node._apply_transport_security(
-                self._transport_security
-            )  # pylint: disable=protected-access
-            node._set_verify_certificates(
-                self._verify_certificates
-            )  # pylint: disable=protected-access
-            node._set_root_certificates(
-                self._root_certificates
-            )  # pylint: disable=protected-access
+            node._apply_transport_security(self._transport_security)  # pylint: disable=protected-access
+            node._set_verify_certificates(self._verify_certificates)  # pylint: disable=protected-access
+            node._set_root_certificates(self._root_certificates)  # pylint: disable=protected-access
 
         self.nodes = final_nodes
         self._healthy_nodes = []
@@ -150,7 +140,7 @@ class Network:
                 continue
             self._healthy_nodes.append(node)
 
-    def _resolve_nodes(self, nodes: Optional[List[_Node]]) -> List[_Node]:
+    def _resolve_nodes(self, nodes: list[_Node] | None) -> list[_Node]:
         if nodes:
             return nodes
 
@@ -166,29 +156,26 @@ class Network:
 
         raise ValueError(f"No nodes available for network='{self.network}'")
 
-    def _fetch_nodes_from_mirror_node(self) -> List[_Node]:
+    def _fetch_nodes_from_mirror_node(self) -> list[_Node]:
         """
         Fetches the list of nodes from the Hedera Mirror Node REST API.
+
         Returns:
             list: A list of _Node objects.
         """
-        base_url: Optional[str] = self.MIRROR_NODE_URLS.get(self.network)
+        base_url: str | None = self.MIRROR_NODE_URLS.get(self.network)
         if not base_url:
-            print(
-                f"No known mirror node URL for network='{self.network}'. Skipping fetch."
-            )
+            print(f"No known mirror node URL for network='{self.network}'. Skipping fetch.")
             return []
 
         url: str = f"{base_url}/api/v1/network/nodes?limit=100&order=desc"
 
         try:
-            response: requests.Response = requests.get(
-                url, timeout=30
-            )  # Add 30 second timeout
+            response: requests.Response = requests.get(url, timeout=30)  # Add 30 second timeout
             response.raise_for_status()
-            data: Dict[str, Any] = response.json()
+            data: dict[str, Any] = response.json()
 
-            nodes: List[_Node] = []
+            nodes: list[_Node] = []
             # Process each node from the mirror node API response
             for node in data.get("nodes", []):
                 address_book: NodeAddress = NodeAddress._from_dict(node)
@@ -202,14 +189,9 @@ class Network:
             print(f"Error fetching nodes from mirror node API: {e}")
             return []
 
-    def _fetch_nodes_from_default_nodes(self) -> List[_Node]:
-        """
-        Fetches the list of nodes from the default nodes for the network.
-        """
-        nodes: List[_Node] = []
-        for node in self.DEFAULT_NODES[self.network]:
-            nodes.append(_Node(node[1], node[0], None))
-        return nodes
+    def _fetch_nodes_from_default_nodes(self) -> list[_Node]:
+        """Fetches the list of nodes from the default nodes for the network."""
+        return [_Node(node[1], node[0], None) for node in self.DEFAULT_NODES[self.network]]
 
     def _select_node(self) -> _Node:
         """
@@ -235,7 +217,7 @@ class Network:
         self.current_node = self._healthy_nodes[self._node_index]
         return self.current_node
 
-    def _get_node(self, account_id: AccountId) -> Optional[_Node]:
+    def _get_node(self, account_id: AccountId) -> _Node | None:
         """
         Get a node matching the given account ID.
 
@@ -243,7 +225,7 @@ class Network:
             account_id (AccountId): The account ID of the node to locate.
 
         Returns:
-            Optional[_Node]: The matching node, or None if not found.
+            _Node | None: The matching node, or None if not found.
         """
         self._readmit_nodes()
         for node in self.nodes:
@@ -258,12 +240,12 @@ class Network:
         """
         return self.mirror_address
 
-    def _parse_mirror_address(self) -> Tuple[str, int]:
+    def _parse_mirror_address(self) -> tuple[str, int]:
         """
         Parse mirror_address into host and port.
 
         Returns:
-            Tuple[str, int]: (host, port) tuple
+            tuple[str, int]: (host, port) tuple
         """
         mirror_addr = self.mirror_address
         if ":" in mirror_addr:
@@ -277,7 +259,7 @@ class Network:
             port = 443
         return (host, port)
 
-    def _determine_scheme_and_port(self, host: str, port: int) -> Tuple[str, int]:
+    def _determine_scheme_and_port(self, host: str, port: int) -> tuple[str, int]:
         """
         Determine the scheme (http/https) and port for the REST URL.
 
@@ -286,7 +268,7 @@ class Network:
             port: The port number
 
         Returns:
-            Tuple[str, int]: (scheme, port) tuple
+            tuple[str, int]: (scheme, port) tuple
         """
         is_localhost = host in ("localhost", "127.0.0.1")
 
@@ -313,9 +295,7 @@ class Network:
         Returns:
             str: Complete REST URL with /api/v1 suffix
         """
-        is_default_port = (scheme == "https" and port == 443) or (
-            scheme == "http" and port == 80
-        )
+        is_default_port = (scheme == "https" and port == 443) or (scheme == "http" and port == 80)
 
         if is_default_port:
             return f"{scheme}://{host}/api/v1"
@@ -338,9 +318,7 @@ class Network:
         return self._build_rest_url(scheme, host, port)
 
     def set_transport_security(self, enabled: bool) -> None:
-        """
-        Enable or disable TLS for consensus node connections.
-        """
+        """Enable or disable TLS for consensus node connections."""
         if self._transport_security == enabled:
             return
         for node in self.nodes:
@@ -348,47 +326,33 @@ class Network:
         self._transport_security = enabled
 
     def is_transport_security(self) -> bool:
-        """
-        Determine if TLS is enabled for consensus node connections.
-        """
+        """Determine if TLS is enabled for consensus node connections."""
         return self._transport_security
 
     def set_verify_certificates(self, verify: bool) -> None:
-        """
-        Enable or disable server certificate verification when TLS is enabled.
-        """
+        """Enable or disable server certificate verification when TLS is enabled."""
         if self._verify_certificates == verify:
             return
         for node in self.nodes:
             node._set_verify_certificates(verify)  # pylint: disable=protected-access
         self._verify_certificates = verify
 
-    def set_tls_root_certificates(self, root_certificates: Optional[bytes]) -> None:
-        """
-        Provide custom root certificates to use when establishing TLS channels.
-        """
+    def set_tls_root_certificates(self, root_certificates: bytes | None) -> None:
+        """Provide custom root certificates to use when establishing TLS channels."""
         self._root_certificates = root_certificates
         for node in self.nodes:
-            node._set_root_certificates(
-                root_certificates
-            )  # pylint: disable=protected-access
+            node._set_root_certificates(root_certificates)  # pylint: disable=protected-access
 
-    def get_tls_root_certificates(self) -> Optional[bytes]:
-        """
-        Retrieve the configured root certificates used for TLS channels.
-        """
+    def get_tls_root_certificates(self) -> bytes | None:
+        """Retrieve the configured root certificates used for TLS channels."""
         return self._root_certificates
 
     def is_verify_certificates(self) -> bool:
-        """
-        Determine if certificate verification is enabled.
-        """
+        """Determine if certificate verification is enabled."""
         return self._verify_certificates
 
     def _readmit_nodes(self) -> None:
-        """
-        Re-admit nodes whose backoff period has expired.
-        """
+        """Re-admit nodes whose backoff period has expired."""
         now = time.monotonic()
 
         if self._earliest_readmit_time > now:
@@ -414,9 +378,7 @@ class Network:
         self._earliest_readmit_time = now + delay
 
     def _increase_backoff(self, node: _Node) -> None:
-        """
-        Increase the node's backoff duration after a failure and remove node from healthy node.
-        """
+        """Increase the node's backoff duration after a failure and remove node from healthy node."""
         if not isinstance(node, _Node):
             raise TypeError("node must be of type _Node")
 
@@ -424,9 +386,7 @@ class Network:
         self._mark_node_unhealthy(node)
 
     def _decrease_backoff(self, node: _Node) -> None:
-        """
-        Decrease the node's backoff duration after a successful operation.
-        """
+        """Decrease the node's backoff duration after a successful operation."""
         if not isinstance(node, _Node):
             raise TypeError("node must be of type _Node")
 

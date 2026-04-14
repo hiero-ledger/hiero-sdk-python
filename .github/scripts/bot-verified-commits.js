@@ -58,11 +58,11 @@ function validatePRNumber(prNumber) {
 // Fetches commits with bounded pagination and counts unverified ones
 async function getCommitVerificationStatus(github, owner, repo, prNumber) {
   console.log(`[${CONFIG.BOT_NAME}] Fetching commits for PR #${prNumber}...`);
-  
+
   const commits = [];
   let page = 0;
   let truncated = false;
-  
+
   try {
     for await (const response of github.paginate.iterator(
       github.rest.pulls.listCommits,
@@ -85,18 +85,18 @@ async function getCommitVerificationStatus(github, owner, repo, prNumber) {
     });
     throw error;
   }
-  
+
   const unverifiedCommits = commits.filter(
     commit => commit.commit?.verification?.verified !== true
   );
-  
+
   console.log(`[${CONFIG.BOT_NAME}] Found ${commits.length} total, ${unverifiedCommits.length} unverified`);
-  
+
   // Fail-closed: if truncated and no unverified found, treat as potentially unverified
   const unverifiedCount = truncated && unverifiedCommits.length === 0
     ? 1
     : unverifiedCommits.length;
-  
+
   return {
     total: commits.length,
     unverified: unverifiedCount,
@@ -109,14 +109,14 @@ async function getCommitVerificationStatus(github, owner, repo, prNumber) {
 // Uses bounded pagination and early return for efficiency
 async function hasExistingBotComment(github, owner, repo, prNumber) {
   console.log(`[${CONFIG.BOT_NAME}] Checking for existing bot comments...`);
-  
+
   // Support both with and without [bot] suffix for GitHub Actions bot account
   const botLogins = new Set([
     CONFIG.BOT_LOGIN,
     `${CONFIG.BOT_LOGIN}[bot]`,
     'github-actions[bot]',
   ]);
-  
+
   let page = 0;
   try {
     for await (const response of github.paginate.iterator(
@@ -150,7 +150,7 @@ async function hasExistingBotComment(github, owner, repo, prNumber) {
     });
     throw error;
   }
-  
+
   console.log(`[${CONFIG.BOT_NAME}] Existing bot comment: false`);
   return false;
 }
@@ -171,9 +171,9 @@ function buildVerificationComment(
         return `- \`${sha}\` ${msg}`;
       }).join('\n')
     : (truncated ? '- Unable to enumerate commits due to pagination limit.' : '');
-  
-  const moreCommits = unverifiedCommits.length > maxDisplay 
-    ? `\n- ...and ${unverifiedCommits.length - maxDisplay} more` 
+
+  const moreCommits = unverifiedCommits.length > maxDisplay
+    ? `\n- ...and ${unverifiedCommits.length - maxDisplay} more`
     : '';
 
   const countText = truncated ? `at least ${unverifiedCount}` : `${unverifiedCount}`;
@@ -182,7 +182,7 @@ function buildVerificationComment(
     : '';
 
   return `${CONFIG.COMMENT_MARKER}
-Hi, this is ${CONFIG.BOT_NAME}. 
+Hi, this is ${CONFIG.BOT_NAME}.
 Your pull request cannot be merged as it has **${countText} unverified commit(s)**:
 
 ${commitList}${moreCommits}${truncationNote}
@@ -220,7 +220,7 @@ async function postVerificationComment(
   }
 
   console.log(`[${CONFIG.BOT_NAME}] Posting verification failure comment...`);
-  
+
   try {
 
     await github.rest.issues.createComment({
@@ -252,37 +252,37 @@ async function main({ github, context }) {
     process.env.PR_NUMBER || context.payload?.pull_request?.number
   );
   const repoPattern = /^[A-Za-z0-9_.-]+$/;
-  
+
   // Validate repo context
   if (!repoPattern.test(owner) || !repoPattern.test(repo)) {
     console.error(`[${CONFIG.BOT_NAME}] Invalid repo context`, { owner, repo });
     return { success: false, unverifiedCount: 0 };
   }
-  
+
   console.log(`[${CONFIG.BOT_NAME}] Starting verification for ${owner}/${repo} PR #${prNumber}`);
-  
+
   if (!prNumber) {
     console.log(`[${CONFIG.BOT_NAME}] Invalid PR number`);
     return { success: false, unverifiedCount: 0 };
   }
-  
+
   try {
     // Get commit verification status
-    const { total, unverified, unverifiedCommits, truncated } = 
+    const { total, unverified, unverifiedCommits, truncated } =
       await getCommitVerificationStatus(github, owner, repo, prNumber);
-    
+
     // All commits verified - success
     if (unverified === 0) {
       console.log(`[${CONFIG.BOT_NAME}] ✅ All ${total} commits are verified`);
       return { success: true, unverifiedCount: 0 };
     }
-    
+
     // Some commits unverified
     console.log(`[${CONFIG.BOT_NAME}] ❌ Found ${unverified} unverified commits`);
-    
+
     // Check for existing comment to avoid duplicates
     const existingComment = await hasExistingBotComment(github, owner, repo, prNumber);
-    
+
     if (existingComment) {
       console.log(`[${CONFIG.BOT_NAME}] Bot already commented. Skipping duplicate.`);
     } else {
@@ -298,7 +298,7 @@ async function main({ github, context }) {
         truncated
       );
     }
-    
+
     return { success: false, unverifiedCount: unverified };
   } catch (error) {
     console.error(`[${CONFIG.BOT_NAME}] Verification failed`, {

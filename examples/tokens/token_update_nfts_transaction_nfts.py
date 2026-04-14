@@ -5,6 +5,7 @@ Example demonstrating token update nfts transaction nfts.
 uv run examples/tokens/token_update_transaction_nfts.py
 python examples/tokens/token_update_transaction_nfts.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -28,6 +29,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def create_nft(client, operator_id, operator_key, metadata_key):
     """Create a non-fungible token."""
@@ -62,12 +64,7 @@ def create_nft(client, operator_id, operator_key, metadata_key):
 
 def mint_nfts(client, nft_token_id, metadata_list):
     """Mint a non-fungible token."""
-    receipt = (
-        TokenMintTransaction()
-        .set_token_id(nft_token_id)
-        .set_metadata(metadata_list)
-        .execute(client)
-    )
+    receipt = TokenMintTransaction().set_token_id(nft_token_id).set_metadata(metadata_list).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT minting failed with status: {ResponseCode(receipt.status).name}")
@@ -75,9 +72,7 @@ def mint_nfts(client, nft_token_id, metadata_list):
 
     print(f"NFT minted with serial numbers: {receipt.serial_numbers}")
 
-    return [
-        NftId(nft_token_id, serial_number) for serial_number in receipt.serial_numbers
-    ], receipt.serial_numbers
+    return [NftId(nft_token_id, serial_number) for serial_number in receipt.serial_numbers], receipt.serial_numbers
 
 
 def get_nft_info(client, nft_id):
@@ -85,10 +80,7 @@ def get_nft_info(client, nft_id):
     return TokenNftInfoQuery().set_nft_id(nft_id).execute(client)
 
 
-
-def update_nft_metadata(
-    client, nft_token_id, serial_numbers, new_metadata, metadata_private_key
-):
+def update_nft_metadata(client, nft_token_id, serial_numbers, new_metadata, metadata_private_key):
     """Update metadata for NFTs in a collection."""
     receipt = (
         TokenUpdateNftsTransaction()
@@ -101,14 +93,10 @@ def update_nft_metadata(
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"NFT metadata update failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"NFT metadata update failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
-    print(
-        f"Successfully updated metadata for NFTs with serial numbers: {serial_numbers}"
-    )
+    print(f"Successfully updated metadata for NFTs with serial numbers: {serial_numbers}")
 
 
 def token_update_nfts():

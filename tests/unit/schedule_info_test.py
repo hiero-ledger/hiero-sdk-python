@@ -2,6 +2,8 @@
 Unit tests for the ScheduleInfo class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -17,6 +19,7 @@ from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_info import ScheduleInfo
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+
 
 pytestmark = pytest.mark.unit
 
@@ -50,7 +53,7 @@ def proto_schedule_info():
     payer_account_id = AccountId(0, 0, 300)
     scheduled_transaction_id = TransactionId.generate(creator_account_id)
 
-    proto = ScheduleInfoProto(
+    return ScheduleInfoProto(
         scheduleID=schedule_id._to_proto(),
         creatorAccountID=creator_account_id._to_proto(),
         payerAccountID=payer_account_id._to_proto(),
@@ -65,7 +68,6 @@ def proto_schedule_info():
         ledger_id=b"test_ledger_id",
         wait_for_expiry=True,
     )
-    return proto
 
 
 def test_schedule_info_initialization(schedule_info):
@@ -227,9 +229,7 @@ def test_proto_conversion_full_object(schedule_info):
     assert converted.executed_at == schedule_info.executed_at
     assert converted.expiration_time == schedule_info.expiration_time
     assert converted.scheduled_transaction_id == schedule_info.scheduled_transaction_id
-    assert (
-        converted.scheduled_transaction_body == schedule_info.scheduled_transaction_body
-    )
+    assert converted.scheduled_transaction_body == schedule_info.scheduled_transaction_body
     assert converted.schedule_memo == schedule_info.schedule_memo
     assert converted.admin_key.to_bytes_raw() == schedule_info.admin_key.to_bytes_raw()
     assert len(converted.signers) == len(schedule_info.signers)
@@ -284,9 +284,7 @@ def test_from_proto_field_helper():
     assert result == schedule_id
 
     # Test with empty field
-    result = ScheduleInfo._from_proto_field(
-        proto, "execution_time", ScheduleId._from_proto
-    )
+    result = ScheduleInfo._from_proto_field(proto, "execution_time", ScheduleId._from_proto)
     assert result is None
 
 

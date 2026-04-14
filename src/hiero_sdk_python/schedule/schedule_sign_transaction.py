@@ -1,8 +1,6 @@
-"""
-ScheduleSignTransaction class.
-"""
+"""ScheduleSignTransaction class."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -33,25 +31,23 @@ class ScheduleSignTransaction(Transaction):
 
     """
 
-    def __init__(self, schedule_id: Optional[ScheduleId] = None):
+    def __init__(self, schedule_id: ScheduleId | None = None):
         """
         Initializes a new ScheduleSignTransaction instance with the specified parameters.
 
         Args:
-            schedule_id (Optional[ScheduleId]): The ID of the schedule to sign.
+            schedule_id (ScheduleId, optional): The ID of the schedule to sign.
         """
         super().__init__()
-        self.schedule_id: Optional[ScheduleId] = schedule_id
+        self.schedule_id: ScheduleId | None = schedule_id
         self._default_transaction_fee = Hbar(5).to_tinybars()
 
-    def set_schedule_id(
-        self, schedule_id: Optional[ScheduleId]
-    ) -> "ScheduleSignTransaction":
+    def set_schedule_id(self, schedule_id: ScheduleId | None) -> ScheduleSignTransaction:
         """
         Sets the schedule ID for this schedule sign transaction.
 
         Args:
-            schedule_id (Optional[ScheduleId]):
+            schedule_id (ScheduleId | None):
                 The ID of the schedule to sign.
 
         Returns:

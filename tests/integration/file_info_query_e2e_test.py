@@ -2,6 +2,8 @@
 Integration tests for FileInfoQuery.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -10,7 +12,7 @@ from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.hbar import Hbar
-from tests.integration.utils import env
+
 
 FILE_CONTENT = b"Hello, World"
 FILE_MEMO = "python sdk e2e tests"
@@ -99,9 +101,7 @@ def test_integration_file_info_query_multiple_keys(env):
 
     # Verify each key is present
     key_bytes = [key.to_bytes_raw() for key in info.keys]
-    assert (
-        env.operator_key.public_key().to_bytes_raw() in key_bytes
-    ), "Operator key not found"
+    assert env.operator_key.public_key().to_bytes_raw() in key_bytes, "Operator key not found"
     assert key1.public_key().to_bytes_raw() in key_bytes, "Key1 not found"
     assert key2.public_key().to_bytes_raw() in key_bytes, "Key2 not found"
 
@@ -118,9 +118,7 @@ def test_integration_file_info_query_insufficient_payment(env):
     file_info = FileInfoQuery().set_file_id(file_id)
     file_info.set_query_payment(Hbar.from_tinybars(1))  # Set very low query payment
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"):
         file_info.execute(env.client)
 
 
@@ -130,7 +128,5 @@ def test_integration_file_info_query_fails_with_invalid_file_id(env):
     # Create a file ID that doesn't exist on the network
     file_id = FileId(0, 0, 999999999)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INVALID_FILE_ID"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_FILE_ID"):
         FileInfoQuery(file_id).execute(env.client)

@@ -5,6 +5,7 @@ Example demonstrating transaction record query.
 uv run examples/query/transaction_record_query.py
 python examples/query/transaction_record_query.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -53,9 +54,7 @@ def create_account_transaction(client):
 
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     # Get the new account ID and transaction ID from receipt
@@ -67,7 +66,7 @@ def create_account_transaction(client):
     return new_account_id, new_account_key, transaction_id
 
 
-def create_fungible_token(client: "Client", account_id, account_private_key):
+def create_fungible_token(client: Client, account_id, account_private_key):
     """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()
@@ -85,9 +84,7 @@ def create_fungible_token(client: "Client", account_id, account_private_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     token_id = receipt.token_id
@@ -109,17 +106,13 @@ def associate_token(client, token_id, receiver_id, receiver_private_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token association failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Token successfully associated with account: {receiver_id}")
 
 
-def transfer_tokens(
-    client, treasury_id, treasury_private_key, receiver_id, token_id, amount=10
-):
+def transfer_tokens(client, treasury_id, treasury_private_key, receiver_id, token_id, amount=10):
     """Transfer tokens to the receiver account so we can later reject them."""
     # Transfer tokens to the receiver account
     receipt = (
@@ -175,15 +168,9 @@ def query_record():
 
     token_id = create_fungible_token(client, operator_id, operator_key)
     associate_token(client, token_id, new_account_id, new_account_key)
-    transfer_receipt = transfer_tokens(
-        client, operator_id, operator_key, new_account_id, token_id
-    )
+    transfer_receipt = transfer_tokens(client, operator_id, operator_key, new_account_id, token_id)
 
-    transfer_record = (
-        TransactionRecordQuery()
-        .set_transaction_id(transfer_receipt.transaction_id)
-        .execute(client)
-    )
+    transfer_record = TransactionRecordQuery().set_transaction_id(transfer_receipt.transaction_id).execute(client)
     print("Transaction record for token transfer:")
     print_transaction_record(transfer_record)
 

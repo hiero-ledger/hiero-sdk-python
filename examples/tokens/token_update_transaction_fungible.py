@@ -5,6 +5,7 @@ Example demonstrating token update transaction fungible.
 uv run examples/tokens/token_update_transaction_fungible.py
 python examples/tokens/token_update_transaction_fungible.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -24,6 +25,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def create_fungible_token(client, operator_id, operator_key, metadata_key):
     """
@@ -55,9 +57,7 @@ def create_fungible_token(client, operator_id, operator_key, metadata_key):
 
     # Check if token creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     # Get token ID from receipt
@@ -70,7 +70,6 @@ def create_fungible_token(client, operator_id, operator_key, metadata_key):
 def get_token_info(client, token_id):
     """Get information about a fungible token."""
     return TokenInfoQuery().set_token_id(token_id).execute(client)
-
 
 
 def update_token_data(
@@ -93,9 +92,7 @@ def update_token_data(
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token metadata update failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token metadata update failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print("Successfully updated token data")
@@ -118,9 +115,7 @@ def token_update_fungible():
     # Create metadata key
     metadata_private_key = PrivateKey.generate_ed25519()
 
-    token_id = create_fungible_token(
-        client, operator_id, operator_key, metadata_private_key
-    )
+    token_id = create_fungible_token(client, operator_id, operator_key, metadata_private_key)
 
     print("\nToken info before update:")
     token_info = get_token_info(client, token_id)

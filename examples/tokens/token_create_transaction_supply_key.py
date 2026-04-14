@@ -16,6 +16,7 @@ Required environment variables:
 Usage:
 uv run examples/tokens/token_create_transaction_supply_key.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -35,6 +36,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def create_token_no_supply_key(client, operator_id, operator_key):
     """
@@ -62,9 +64,7 @@ def create_token_no_supply_key(client, operator_id, operator_key):
     try:
         reciept = transaction.execute(client)
         if reciept.status != ResponseCode.SUCCESS:
-            print(
-                f"Token creation failed with status: {ResponseCode(reciept.status).name}"
-            )
+            print(f"Token creation failed with status: {ResponseCode(reciept.status).name}")
             sys.exit(1)
 
         token_id = reciept.token_id
@@ -94,9 +94,7 @@ def demonstrate_mint_fail(client, token_id):
     try:
         receipt = transaction.execute(client)
         if receipt.status == ResponseCode.TOKEN_HAS_NO_SUPPLY_KEY:
-            print(
-                f" -->  Mint failed as expected! Status: {ResponseCode(receipt.status).name}"
-            )
+            print(f" -->  Mint failed as expected! Status: {ResponseCode(receipt.status).name}")
         else:
             print(f"Mint failed with status: {ResponseCode(receipt.status).name}")
 
@@ -133,9 +131,7 @@ def create_token_with_supply_key(client, operator_id, operator_key):
     try:
         receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"Token creation failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"Token creation failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
         token_id = receipt.token_id
@@ -195,9 +191,7 @@ def main():
     demonstrate_mint_fail(client, token_id_no_key)
 
     # 2. Demonstrate Success (With Supply Key)
-    token_id_with_key, supply_key = create_token_with_supply_key(
-        client, operator_id, operator_key
-    )
+    token_id_with_key, supply_key = create_token_with_supply_key(client, operator_id, operator_key)
     demonstrate_mint_success(client, token_id_with_key, supply_key)
     verify_token_info(client, token_id_with_key)
 

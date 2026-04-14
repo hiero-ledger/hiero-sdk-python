@@ -1,4 +1,5 @@
 """Dataclass for automatic token associations in Hedera transaction records."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -30,16 +31,8 @@ class TokenAssociation:
     def _from_proto(cls, proto: TokenAssociationProto) -> TokenAssociation:
         """Create a TokenAssociation instance from the protobuf message."""
         return cls(
-            token_id=(
-                TokenId._from_proto(proto.token_id)
-                if proto.HasField("token_id")
-                else None
-            ),
-            account_id=(
-                AccountId._from_proto(proto.account_id)
-                if proto.HasField("account_id")
-                else None
-            ),
+            token_id=(TokenId._from_proto(proto.token_id) if proto.HasField("token_id") else None),
+            account_id=(AccountId._from_proto(proto.account_id) if proto.HasField("account_id") else None),
         )
 
     def _to_proto(self) -> TokenAssociationProto:
@@ -64,7 +57,7 @@ class TokenAssociation:
         proto = TokenAssociationProto()
         proto.ParseFromString(data)
         return cls._from_proto(proto)
-    
+
     def __repr__(self) -> str:
         """Returns an unambiguous string representation for debugging."""
         return f"TokenAssociation(token_id={self.token_id!r}, account_id={self.account_id!r})"
@@ -72,4 +65,3 @@ class TokenAssociation:
     def __str__(self) -> str:
         """Returns a human-readable string representation."""
         return self.__repr__()
-    

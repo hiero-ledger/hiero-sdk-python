@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from unittest.mock import Mock
 
 from hiero_sdk_python.utils.subscription_handle import SubscriptionHandle

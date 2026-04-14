@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from tck.param.base import BaseTransactionParams
@@ -23,7 +25,7 @@ class CreateAccountParams(BaseTransactionParams):
     alias: str | None = None
 
     @classmethod
-    def parse_json_params(cls, params: dict) -> "CreateAccountParams":
+    def parse_json_params(cls, params: dict) -> CreateAccountParams:
         return cls(
             key=params.get("key"),
             initialBalance=to_int(params.get("initialBalance")),

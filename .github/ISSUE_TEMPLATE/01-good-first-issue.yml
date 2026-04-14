@@ -87,13 +87,13 @@ body:
         > [!IMPORTANT]
         > **This issue does not require prior domain knowledge.**
         >
-        > - No Hiero or Hedera experience needed  
-        > - No distributed ledger background required  
+        > - No Hiero or Hedera experience needed
+        > - No distributed ledger background required
         > - **Beginner Programming is sufficient**
 
         > [!NOTE]
-        > ⏱️ **Typical time to complete:** ~1 Day / ~4 hours (including set-up)  
-        > 🧩 **Difficulty:** Small, well-contained change  
+        > ⏱️ **Typical time to complete:** ~1 Day / ~4 hours (including set-up)
+        > 🧩 **Difficulty:** Small, well-contained change
         > 🎓 **Best for:** New contributors
 
         🤖 AI Usage Policy
@@ -205,7 +205,7 @@ body:
         Once tests pass, a team member will check if your PR follows the workflow.
 
         **✅ 3. Team review**
-        Once your tests pass and the workflow is followed, a team member will review the implementation. 
+        Once your tests pass and the workflow is followed, a team member will review the implementation.
         You may be asked to make changes or your PR may be approved.
         Approved PRs are usually merged within **one day**.
 
@@ -213,7 +213,7 @@ body:
         Conflicts can happen and are normal as the SDK updates. Resolve using this [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md)
 
         > [!TIP]
-        > **Follow the workflow and double check your work** 
+        > **Follow the workflow and double check your work**
         > This is the best way to ensure a fast review and merge process.
         ---
 

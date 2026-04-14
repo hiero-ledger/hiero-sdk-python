@@ -2,11 +2,14 @@
 Test the ContractNonceInfo class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_nonce_info import ContractNonceInfo
 from hiero_sdk_python.hapi.services import contract_types_pb2
+
 
 pytestmark = pytest.mark.unit
 

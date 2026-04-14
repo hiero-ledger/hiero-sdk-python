@@ -5,6 +5,7 @@ Example demonstrating account info query.
 uv run examples/query/account_info_query.py
 python examples/query/account_info_query.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -56,9 +57,7 @@ def create_test_account(client, operator_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     new_account_id = receipt.account_id
@@ -159,9 +158,7 @@ def associate_token_with_account(client, token_id, account_id, account_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token association failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Token {token_id} associated with account {account_id}")
@@ -169,12 +166,7 @@ def associate_token_with_account(client, token_id, account_id, account_key):
 
 def grant_kyc_for_token(client, account_id, token_id):
     """Grant KYC for the token to the account."""
-    receipt = (
-        TokenGrantKycTransaction()
-        .set_account_id(account_id)
-        .set_token_id(token_id)
-        .execute(client)
-    )
+    receipt = TokenGrantKycTransaction().set_account_id(account_id).set_token_id(token_id).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"KYC grant failed with status: {ResponseCode(receipt.status).name}")
@@ -203,9 +195,7 @@ def display_account_info(info):
 
 def display_token_relationships(info):
     """Display token relationships information."""
-    print(
-        f"\nToken Relationships ({len(info.token_relationships)} total) for account {info.account_id}:"
-    )
+    print(f"\nToken Relationships ({len(info.token_relationships)} total) for account {info.account_id}:")
     if info.token_relationships:
         for i, relationship in enumerate(info.token_relationships, 1):
             print(f"  Token {i}:")

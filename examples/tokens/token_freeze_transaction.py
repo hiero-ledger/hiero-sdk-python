@@ -8,6 +8,7 @@ the token for the operator (treasury) account.
 uv run examples/tokens/token_freeze_transaction.py
 python examples/tokens/token_freeze_transaction.py
 """
+
 import os
 import sys
 
@@ -56,12 +57,7 @@ def create_freezeable_token(client, operator_id, operator_key):
             .set_freeze_key(freeze_key)
         )
 
-        receipt = (
-            tx.freeze_with(client)
-            .sign(operator_key)
-            .sign(freeze_key)
-            .execute(client)
-        )
+        receipt = tx.freeze_with(client).sign(operator_key).sign(freeze_key).execute(client)
 
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
@@ -87,9 +83,7 @@ def freeze_token(token_id, client, operator_id, freeze_key):
             .execute(client)
         )
 
-        print(
-            f"✅ Success! Token freeze complete. Status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"✅ Success! Token freeze complete. Status: {ResponseCode(receipt.status).name}")
 
     except Exception as e:
         print(f"❌ Error freezing token: {e}")
@@ -113,13 +107,9 @@ def verify_freeze(token_id, client, operator_id, operator_key):
         status_name = ResponseCode(transfer_receipt.status).name
 
         if status_name == "ACCOUNT_FROZEN_FOR_TOKEN":
-            print(
-                f"✅ Verified: Transfer blocked as expected due to freeze. Status: {status_name}"
-            )
+            print(f"✅ Verified: Transfer blocked as expected due to freeze. Status: {status_name}")
         elif status_name == "SUCCESS":
-            print(
-                "❌ Error: Transfer succeeded, but should have failed because the account is frozen."
-            )
+            print("❌ Error: Transfer succeeded, but should have failed because the account is frozen.")
         else:
             print(f"❌ Unexpected transfer result. Status: {status_name}")
 
@@ -137,9 +127,7 @@ def main():
     """
     client, operator_id, operator_key = setup_client()
 
-    freeze_key, token_id, client, operator_id, operator_key = create_freezeable_token(
-        client, operator_id, operator_key
-    )
+    freeze_key, token_id, client, operator_id, operator_key = create_freezeable_token(client, operator_id, operator_key)
 
     freeze_token(token_id, client, operator_id, freeze_key)
     verify_freeze(token_id, client, operator_id, operator_key)

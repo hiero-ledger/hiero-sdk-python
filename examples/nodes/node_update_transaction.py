@@ -17,6 +17,7 @@ Setup options:
 1. GitHub repository with full setup instructions: https://github.com/hiero-ledger/solo
 2. Official documentation with step-by-step guide: https://solo.hiero.org/v0.43.0/docs/step-by-step-guide/
 """
+
 import sys
 
 from dotenv import load_dotenv
@@ -26,6 +27,7 @@ from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.nodes.node_create_transaction import NodeCreateTransaction
 from hiero_sdk_python.nodes.node_update_transaction import NodeUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+
 
 # Gossip certificate is a DER-encoded x509 certificate used for secure communication between nodes.
 # This certificate authenticates the node's identity during gossip protocol communication.
@@ -51,8 +53,7 @@ def setup_client():
     # The private key is intentionally public for local development.
     # Note: This setup only works on solo network and will not work on testnet/mainnet.
     original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e7"
-        "2057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
     )
     client.set_operator(AccountId(0, 0, 2), original_operator_key)
 
@@ -116,21 +117,11 @@ def update_node(client, node_id, admin_key):
     updated_description = "Updated example node"
 
     # Updated endpoints for node services
-    updated_gossip_endpoint1 = Endpoint(
-        domain_name="updated-gossip1.example.com", port=50311
-    )
-    updated_gossip_endpoint2 = Endpoint(
-        domain_name="updated-gossip2.example.com", port=50312
-    )
-    updated_service_endpoint1 = Endpoint(
-        domain_name="updated-service1.example.com", port=50311
-    )
-    updated_service_endpoint2 = Endpoint(
-        domain_name="updated-service2.example.com", port=50312
-    )
-    updated_grpc_proxy_endpoint = Endpoint(
-        domain_name="updated-grpc.example.com", port=50313
-    )
+    updated_gossip_endpoint1 = Endpoint(domain_name="updated-gossip1.example.com", port=50311)
+    updated_gossip_endpoint2 = Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+    updated_service_endpoint1 = Endpoint(domain_name="updated-service1.example.com", port=50311)
+    updated_service_endpoint2 = Endpoint(domain_name="updated-service2.example.com", port=50312)
+    updated_grpc_proxy_endpoint = Endpoint(domain_name="updated-grpc.example.com", port=50313)
 
     # DER encoded x509 certificate
     updated_gossip_ca_cert = bytes.fromhex(GOSSIP_CERTIFICATE)

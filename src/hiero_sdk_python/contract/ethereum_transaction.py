@@ -1,8 +1,6 @@
-"""
-EthereumTransaction class.
-"""
+"""EthereumTransaction class."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -28,31 +26,31 @@ class EthereumTransaction(Transaction):
 
     def __init__(
         self,
-        ethereum_data: Optional[bytes] = None,
-        call_data_file_id: Optional[FileId] = None,
-        max_gas_allowed: Optional[int] = None,
+        ethereum_data: bytes | None = None,
+        call_data_file_id: FileId | None = None,
+        max_gas_allowed: int | None = None,
     ):
         """
         Initializes a new EthereumTransaction instance.
 
         Args:
-            ethereum_data (Optional[bytes]): The Ethereum transaction data to execute.
-            call_data_file_id (Optional[FileId]):
+            ethereum_data (bytes, optional): The Ethereum transaction data to execute.
+            call_data_file_id (FileId, optional):
                 The FileId containing call data for the transaction.
-            max_gas_allowed (Optional[int]): The maximum gas allowed for the transaction execution.
+            max_gas_allowed (int, optional): The maximum gas allowed for the transaction execution.
         """
         super().__init__()
 
-        self.ethereum_data: Optional[bytes] = ethereum_data
-        self.call_data: Optional[FileId] = call_data_file_id
-        self.max_gas_allowed: Optional[int] = max_gas_allowed
+        self.ethereum_data: bytes | None = ethereum_data
+        self.call_data: FileId | None = call_data_file_id
+        self.max_gas_allowed: int | None = max_gas_allowed
 
-    def set_ethereum_data(self, ethereum_data: Optional[bytes]) -> "EthereumTransaction":
+    def set_ethereum_data(self, ethereum_data: bytes | None) -> EthereumTransaction:
         """
         Sets the Ethereum transaction data to execute.
 
         Args:
-            ethereum_data (Optional[bytes]): The Ethereum transaction data to execute.
+            ethereum_data (bytes, None): The Ethereum transaction data to execute.
 
         Returns:
             EthereumTransaction: This transaction instance.
@@ -61,14 +59,12 @@ class EthereumTransaction(Transaction):
         self.ethereum_data = ethereum_data
         return self
 
-    def set_call_data_file_id(
-        self, call_data_file_id: Optional[FileId]
-    ) -> "EthereumTransaction":
+    def set_call_data_file_id(self, call_data_file_id: FileId | None) -> EthereumTransaction:
         """
         Sets the call data for the transaction.
 
         Args:
-            call_data_file_id (Optional[FileId]): The FileId containing call data for the transaction.
+            call_data_file_id (FileId | None): The FileId containing call data for the transaction.
 
         Returns:
             EthereumTransaction: This transaction instance.
@@ -77,14 +73,12 @@ class EthereumTransaction(Transaction):
         self.call_data = call_data_file_id
         return self
 
-    def set_max_gas_allowed(
-        self, max_gas_allowed: Optional[int]
-    ) -> "EthereumTransaction":
+    def set_max_gas_allowed(self, max_gas_allowed: int | None) -> EthereumTransaction:
         """
         Sets the maximum gas allowed for the transaction execution.
 
         Args:
-            max_gas_allowed (Optional[int]): The maximum gas allowed for the transaction execution.
+            max_gas_allowed (int | None): The maximum gas allowed for the transaction execution.
 
         Returns:
             EthereumTransaction: This transaction instance.

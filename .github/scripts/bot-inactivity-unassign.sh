@@ -91,7 +91,7 @@ fi
 
 # Get list of open issues with assignees (pagination via gh)
 ISSUES=$(
-  gh api "repos/$REPO/issues" --paginate --jq '.[] 
+  gh api "repos/$REPO/issues" --paginate --jq '.[]
     | select(.state=="open" and (.assignees|length>0) and (.pull_request|not))
     | .number' 2>/dev/null || true
 )
@@ -108,7 +108,7 @@ for ISSUE in $ISSUES; do
   echo "  [INFO] Issue created at: ${ISSUE_CREATED_AT:-(unknown)}"
   echo
 
-  # Fetch full timeline with pagination and flatten array 
+  # Fetch full timeline with pagination and flatten array
   TIMELINE=$(gh api --paginate -H "Accept: application/vnd.github.mockingbird-preview+json" "repos/$REPO/issues/$ISSUE/timeline" 2>/dev/null | jq -s 'add' || echo "[]")
   TIMELINE=${TIMELINE:-'[]'}
 

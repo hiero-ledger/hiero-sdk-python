@@ -19,7 +19,7 @@ from hiero_sdk_python.tokens import token_create_transaction
 ```
 
 ### Advanced Example
-You'll need to import everything you require. 
+You'll need to import everything you require.
 
 In this more advanced example, we are using imports to load env, to set up the client and network, and to form the Token Create Transaction and check the response:
 
@@ -69,7 +69,7 @@ print(f"🎉 Created new token on the Hedera network with ID: {token_id}")
 ```
 
 ## Extra Support
-It takes time to be familiar with where everything is located to import correctly. 
+It takes time to be familiar with where everything is located to import correctly.
 
 - For reference, look at the [examples](../../../../examples)
 - For an explanation of the project structure read [project_structure.md](project_structure.md)

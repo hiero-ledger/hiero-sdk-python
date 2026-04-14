@@ -5,6 +5,7 @@ Example: Update Custom Fees for a Fungible Token.
 uv run examples/tokens/token_fee_schedule_update_transaction_fungible.py
 python examples/tokens/token_fee_schedule_update_transaction_fungible.py
 """
+
 import sys
 
 from hiero_sdk_python import Client
@@ -28,6 +29,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def create_fungible_token(client, operator_id, fee_schedule_key):
     """Create a fungible token with only a fee schedule key."""
@@ -69,11 +71,7 @@ def update_custom_fixed_fee(client, token_id, fee_schedule_key, treasury_account
         CustomFixedFee(amount=150, fee_collector_account_id=treasury_account_id)
     ]
     print(f" Defined {len(new_fees)} new custom fees.\n")
-    tx = (
-        TokenFeeScheduleUpdateTransaction()
-        .set_token_id(token_id)
-        .set_custom_fees(new_fees)
-    )
+    tx = TokenFeeScheduleUpdateTransaction().set_token_id(token_id).set_custom_fees(new_fees)
 
     # The transaction MUST be signed by the fee_schedule_key
     tx.freeze_with(client).sign(fee_schedule_key)
@@ -110,9 +108,7 @@ def query_token_info(client, token_id):
             print(f"Found {len(custom_fees)} custom fee(s):")
             for i, fee in enumerate(custom_fees, 1):
                 print(f"  Fee #{i}: {type(fee).__name__}")
-                print(
-                    f"    Collector: {getattr(fee, 'fee_collector_account_id', 'N/A')}"
-                )
+                print(f"    Collector: {getattr(fee, 'fee_collector_account_id', 'N/A')}")
                 if isinstance(fee, CustomFixedFee):
                     print(f"    Amount: {getattr(fee, 'amount', 'N/A')}")
         else:

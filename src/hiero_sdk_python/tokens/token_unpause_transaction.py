@@ -1,67 +1,67 @@
 """
-hiero_sdk_python.tokens.token_unpause_transaction.py
+hiero_sdk_python.tokens.token_unpause_transaction.py.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Provides the TokenUnpauseTransaction class a subclass of Transaction that
 facilitates unpausing a specified token on the Hedera network using the
 Hedera Token Service (HTS) API.
 """
-from typing import Optional
-from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
-    SchedulableTransactionBody
-)
-from hiero_sdk_python.hapi.services.token_unpause_pb2 import TokenUnpauseTransactionBody
-from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
+
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
+from hiero_sdk_python.hapi.services.token_unpause_pb2 import TokenUnpauseTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction import Transaction
+
 
 class TokenUnpauseTransaction(Transaction):
     """
     Represents a token unpause transaction on the Hedera network.
-    
+
     This transaction unpauses specified tokens.
-    
+
     Inherits from the base Transaction class and implements the required methods
     to build and execute a token unpause transaction.
     """
 
-    def __init__(self, token_id: Optional[TokenId] = None) -> None:
+    def __init__(self, token_id: TokenId | None = None) -> None:
         """
         Initializes a new TokenUnpauseTransaction instance with default values.
 
         Args:
-            token_id (Optional[TokenId]): The ID of the token to unpause.
+            token_id (TokenId, optional): The ID of the token to unpause.
         """
         super().__init__()
-        self.token_id:  Optional[TokenId] = None
+        self.token_id: TokenId | None = None
 
         if token_id is not None:
             self.set_token_id(token_id)
 
-    def set_token_id(self, token_id: TokenId) -> "TokenUnpauseTransaction":
+    def set_token_id(self, token_id: TokenId) -> TokenUnpauseTransaction:
         """
         Sets the token ID for this unpause transaction.
 
         Args:
             token_id (TokenId): The ID of the token to unpause.
-            
+
         Returns:
             TokenUnpauseTransaction: This current instance of transaction.
         """
         self._require_not_frozen()
 
-        #Check if the tokenId is instance of TokenId
+        # Check if the tokenId is instance of TokenId
         if not isinstance(token_id, TokenId):
             raise TypeError("token_id must be an instance of TokenId")
 
         self.token_id = token_id
         return self
 
-    def _validate_checksum(self, client: "Client") -> None:
+    def _validate_checksum(self, client: Client) -> None:
         """
         Validates the checksum for the token ID associated with this transaction.
 
@@ -72,13 +72,13 @@ class TokenUnpauseTransaction(Transaction):
             self.token_id.validate_checksum(client)
 
     @classmethod
-    def _from_proto(cls, proto: TokenUnpauseTransactionBody) -> "TokenUnpauseTransaction":
+    def _from_proto(cls, proto: TokenUnpauseTransactionBody) -> TokenUnpauseTransaction:
         """
         Construct TokenUnpauseTransaction from TokenUnpauseTransactionBody.
 
         Args:
             proto (TokenUnpauseTransactionBody): The protobuf body of TokenUnpauseTransaction
-        
+
         Returns:
             TokenUnpauseTransaction: A new instance of TokenUnpauseTransaction
         """
@@ -88,19 +88,17 @@ class TokenUnpauseTransaction(Transaction):
     def _build_proto_body(self) -> TokenUnpauseTransactionBody:
         """
         Returns the protobuf body for the token unpause transaction.
-        
+
         Returns:
             TokenUnpauseTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If account ID or token ID is not set.
         """
         if self.token_id is None:
             raise ValueError("Missing token ID")
 
-        return TokenUnpauseTransactionBody(
-            token=self.token_id._to_proto()
-        )
+        return TokenUnpauseTransactionBody(token=self.token_id._to_proto())
 
     def build_transaction_body(self) -> TransactionBody:
         """
@@ -127,7 +125,4 @@ class TokenUnpauseTransaction(Transaction):
         return schedulable_body
 
     def _get_method(self, channel: _Channel) -> _Method:
-        return _Method(
-            transaction_func=channel.token.unpauseToken,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.token.unpauseToken, query_func=None)

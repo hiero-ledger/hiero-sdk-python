@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 from decimal import Decimal
 
 from hypothesis import strategies as st
 from hypothesis.strategies import SearchStrategy
 
 from hiero_sdk_python import AccountId, HbarUnit, PrivateKey, TransactionId, TransferTransaction
-
 from tests.fuzz.support.classes import HbarConstructorCase, HbarStringCase
 
 
@@ -49,11 +50,7 @@ def build_valid_transaction_bytes() -> tuple[bytes, bytes]:
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
 
-    tx = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
-    )
+    tx = TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_id
     tx.freeze()

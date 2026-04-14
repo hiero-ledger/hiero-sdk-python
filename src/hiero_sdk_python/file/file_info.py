@@ -1,36 +1,40 @@
-from dataclasses import dataclass, field
+from __future__ import annotations
+
 import datetime
-from typing import Optional
+from dataclasses import dataclass, field
+
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
+from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
+from hiero_sdk_python.timestamp import Timestamp
+
 
 @dataclass
 class FileInfo:
     """
     Information about a file stored on the Hedera network.
-    
+
     Attributes:
-        file_id (Optional[FileId]): The ID of the file
-        size (Optional[int]): The size of the file in bytes
-        expiration_time (Optional[Timestamp]): When the file will expire
-        is_deleted (Optional[bool]): Whether the file has been deleted
+        file_id (FileId, optional): The ID of the file
+        size (int, optional): The size of the file in bytes
+        expiration_time (Timestamp, optional): When the file will expire
+        is_deleted (bool, optional): Whether the file has been deleted
         keys (list[PublicKey]): The keys that can modify this file
-        file_memo (Optional[str]): The memo associated with the file
-        ledger_id (Optional[bytes]): The ID of the ledger this file exists in
+        file_memo (str, optional): The memo associated with the file
+        ledger_id (bytes, optional): The ID of the ledger this file exists in
     """
-    file_id: Optional[FileId] = None
-    size: Optional[int] = None
-    expiration_time: Optional[Timestamp] = None
-    is_deleted: Optional[bool] = None
+
+    file_id: FileId | None = None
+    size: int | None = None
+    expiration_time: Timestamp | None = None
+    is_deleted: bool | None = None
     keys: list[PublicKey] = field(default_factory=list)
-    file_memo: Optional[str] = None
-    ledger_id: Optional[bytes] = None
+    file_memo: str | None = None
+    ledger_id: bytes | None = None
 
     @classmethod
-    def _from_proto(cls, proto: FileGetInfoResponse.FileInfo) -> 'FileInfo':
+    def _from_proto(cls, proto: FileGetInfoResponse.FileInfo) -> FileInfo:
         """
         Creates a FileInfo instance from its protobuf representation.
 
@@ -42,7 +46,7 @@ class FileInfo:
         """
         if proto is None:
             raise ValueError("File info proto is None")
-        
+
         return cls(
             file_id=FileId._from_proto(proto.fileID),
             size=proto.size,
@@ -50,7 +54,7 @@ class FileInfo:
             is_deleted=proto.deleted,
             keys=[PublicKey._from_proto(key) for key in proto.keys.keys],
             file_memo=proto.memo,
-            ledger_id=proto.ledger_id
+            ledger_id=proto.ledger_id,
         )
 
     def _to_proto(self) -> FileGetInfoResponse.FileInfo:
@@ -67,9 +71,9 @@ class FileInfo:
             deleted=self.is_deleted,
             keys=KeyListProto(keys=[key._to_proto() for key in self.keys or []]),
             memo=self.file_memo,
-            ledger_id=self.ledger_id
+            ledger_id=self.ledger_id,
         )
-        
+
     def __repr__(self) -> str:
         """
         Returns a string representation of the FileInfo object.
@@ -80,9 +84,7 @@ class FileInfo:
         return self.__str__()
 
     def __str__(self) -> str:
-        """
-        Pretty-print the FileInfo.
-        """
+        """Pretty-print the FileInfo."""
         # Format expiration time as datetime if available
         exp_dt = (
             datetime.datetime.fromtimestamp(self.expiration_time.seconds)
@@ -95,9 +97,7 @@ class FileInfo:
 
         # Format ledger_id as hex if it's bytes
         ledger_id_display = (
-            f"0x{self.ledger_id.hex()}"
-            if isinstance(self.ledger_id, (bytes, bytearray))
-            else self.ledger_id
+            f"0x{self.ledger_id.hex()}" if isinstance(self.ledger_id, (bytes, bytearray)) else self.ledger_id
         )
 
         return (
