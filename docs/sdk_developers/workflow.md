@@ -1,6 +1,6 @@
 # Contribution Workflow
 
-This guide explains the recommended workflow for contributing to the **Hiero Python SDK**.  
+This guide explains the recommended workflow for contributing to the **Hiero Python SDK**.
 It covers tooling, repository setup, branching, commit standards, testing, and submitting pull requests.
 
 ---
@@ -11,8 +11,8 @@ For the best development experience and smoother support, we strongly recommend 
 
 ### Recommended Tools
 
-- [ ] GitHub Desktop  
-- [ ] Visual Studio Code  
+- [ ] GitHub Desktop
+- [ ] Visual Studio Code
     - Pylance (extension)
 
 > These tools are recommendations, not requirements. You are free to use alternatives that fit your workflow.
@@ -89,7 +89,7 @@ Click Create fork.
 Your new fork will appear at:
 `https://github.com/<your-username>/hiero-sdk-python`
 
-This is your copy of the repository. You can work on this safely without fear of impacting the original repository. 
+This is your copy of the repository. You can work on this safely without fear of impacting the original repository.
 
 
 3. Clone Your Fork Locally

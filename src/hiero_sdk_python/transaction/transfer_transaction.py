@@ -1,20 +1,16 @@
-"""
-Defines TransferTransaction for transferring HBAR or tokens between accounts.
-"""
+"""Defines TransferTransaction for transferring HBAR or tokens between accounts."""
 
-from typing import Dict, List, Optional, Tuple, Union
+from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.hapi.services import basic_types_pb2, crypto_transfer_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.tokens.abstract_token_transfer_transaction import (
-    AbstractTokenTransferTransaction
-)
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.tokens.abstract_token_transfer_transaction import AbstractTokenTransferTransaction
 from hiero_sdk_python.tokens.hbar_transfer import HbarTransfer
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
@@ -22,16 +18,13 @@ from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 
 
 class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"]):
-    """
-    Represents a transaction to transfer HBAR or tokens between accounts.
-    """
+    """Represents a transaction to transfer HBAR or tokens between accounts."""
 
     def __init__(
         self,
-        hbar_transfers: Optional[Dict[AccountId, int]] = None,
-        token_transfers: Optional[Dict[TokenId, Dict[AccountId, int]]] = None,
-        nft_transfers: Optional[Dict[TokenId,
-                                     List[Tuple[AccountId, AccountId, int, bool]]]] = None,
+        hbar_transfers: dict[AccountId, int] | None = None,
+        token_transfers: dict[TokenId, dict[AccountId, int]] | None = None,
+        nft_transfers: dict[TokenId, list[tuple[AccountId, AccountId, int, bool]]] | None = None,
     ) -> None:
         """
         Initializes a new TransferTransaction instance.
@@ -44,7 +37,7 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
                 Initial NFT transfers.
         """
         super().__init__()
-        self.hbar_transfers: List[HbarTransfer] = []
+        self.hbar_transfers: list[HbarTransfer] = []
 
         if hbar_transfers:
             self._init_hbar_transfers(hbar_transfers)
@@ -53,22 +46,20 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
         if nft_transfers:
             self._init_nft_transfers(nft_transfers)
 
-    def _init_hbar_transfers(self, hbar_transfers: Dict[AccountId, int]) -> None:
-        """
-        Initializes HBAR transfers from a dictionary.
-        """
+    def _init_hbar_transfers(self, hbar_transfers: dict[AccountId, int]) -> None:
+        """Initializes HBAR transfers from a dictionary."""
         for account_id, amount in hbar_transfers.items():
             self.add_hbar_transfer(account_id, amount)
 
     def _add_hbar_transfer(
-        self, account_id: AccountId, amount: Union[int, Hbar], is_approved: bool = False
-    ) -> "TransferTransaction":
+        self, account_id: AccountId, amount: int | Hbar, is_approved: bool = False
+    ) -> TransferTransaction:
         """
         Internal method to add a HBAR transfer to the transaction.
 
         Args:
             account_id (AccountId): The account ID of the sender or receiver.
-            amount (Union[int, Hbar]): The amount of the HBAR to transfer.
+            amount (int | Hbar): The amount of the HBAR to transfer.
             is_approved (bool, optional): Whether the transfer is approved. Defaults to False.
 
         Returns:
@@ -91,17 +82,16 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
                 transfer.amount += amount
                 return self
 
-        self.hbar_transfers.append(
-            HbarTransfer(account_id, amount, is_approved))
+        self.hbar_transfers.append(HbarTransfer(account_id, amount, is_approved))
         return self
 
-    def add_hbar_transfer(self, account_id: AccountId, amount: Union[int, Hbar]) -> "TransferTransaction":
+    def add_hbar_transfer(self, account_id: AccountId, amount: int | Hbar) -> TransferTransaction:
         """
         Adds a HBAR transfer to the transaction.
 
         Args:
             account_id (AccountId): The account ID of the sender or receiver.
-            amount (Union[int, Hbar]): The amount of the HBAR to transfer.
+            amount (int | Hbar): The amount of the HBAR to transfer.
 
         Returns:
             TransferTransaction: The current instance of the transaction for chaining.
@@ -109,15 +99,13 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
         self._add_hbar_transfer(account_id, amount, False)
         return self
 
-    def add_approved_hbar_transfer(
-        self, account_id: AccountId, amount: Union[int, Hbar]
-    ) -> "TransferTransaction":
+    def add_approved_hbar_transfer(self, account_id: AccountId, amount: int | Hbar) -> TransferTransaction:
         """
         Adds a HBAR transfer with approval to the transaction.
 
         Args:
             account_id (AccountId): The account ID of the sender or receiver.
-            amount (Union[int, Hbar]): The amount of the HBAR to transfer.
+            amount (int | Hbar): The amount of the HBAR to transfer.
 
         Returns:
             TransferTransaction: The current instance of the transaction for chaining.
@@ -126,9 +114,7 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
         return self
 
     def _build_proto_body(self) -> crypto_transfer_pb2.CryptoTransferTransactionBody:
-        """
-        Returns the protobuf body for the transfer transaction.
-        """
+        """Returns the protobuf body for the transfer transaction."""
         crypto_transfer_tx_body = crypto_transfer_pb2.CryptoTransferTransactionBody()
 
         # HBAR
@@ -161,7 +147,7 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
 
         return transaction_body
 
-    def build_scheduled_body(self) -> "SchedulableTransactionBody":
+    def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the transaction body for this transfer transaction.
 
@@ -197,13 +183,10 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
 
             if crypto_transfer.HasField("transfers"):
                 for account_amount in crypto_transfer.transfers.accountAmounts:
-                    account_id = AccountId._from_proto(
-                        account_amount.accountID)
+                    account_id = AccountId._from_proto(account_amount.accountID)
                     amount = account_amount.amount
                     is_approved = account_amount.is_approval
-                    transaction.hbar_transfers.append(
-                        HbarTransfer(account_id, amount, is_approved)
-                    )
+                    transaction.hbar_transfers.append(HbarTransfer(account_id, amount, is_approved))
 
             for token_transfer_list in crypto_transfer.tokenTransfers:
                 token_id = TokenId._from_proto(token_transfer_list.token)
@@ -218,21 +201,17 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
                         expected_decimals = token_transfer_list.expected_decimals.value
 
                     transaction.token_transfers[token_id].append(
-                        TokenTransfer(token_id, account_id, amount,
-                                      expected_decimals, is_approved)
+                        TokenTransfer(token_id, account_id, amount, expected_decimals, is_approved)
                     )
 
                 for nft_transfer in token_transfer_list.nftTransfers:
-                    sender_id = AccountId._from_proto(
-                        nft_transfer.senderAccountID)
-                    receiver_id = AccountId._from_proto(
-                        nft_transfer.receiverAccountID)
+                    sender_id = AccountId._from_proto(nft_transfer.senderAccountID)
+                    receiver_id = AccountId._from_proto(nft_transfer.receiverAccountID)
                     serial_number = nft_transfer.serialNumber
                     is_approved = nft_transfer.is_approval
 
                     transaction.nft_transfers[token_id].append(
-                        TokenNftTransfer(
-                            token_id, sender_id, receiver_id, serial_number, is_approved)
+                        TokenNftTransfer(token_id, sender_id, receiver_id, serial_number, is_approved)
                     )
 
         return transaction

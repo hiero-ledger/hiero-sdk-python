@@ -1,18 +1,17 @@
 # pylint: disable=too-many-instance-attributes
-"""
-AccountInfo class.
-"""
+"""AccountInfo class."""
+
+from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass, field
-from typing import Optional
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services.crypto_get_info_pb2 import CryptoGetInfoResponse
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
 
@@ -23,60 +22,63 @@ class AccountInfo:
     Contains information about an account.
 
     Attributes:
-        account_id (Optional[AccountId]): The ID of this account.
-        contract_account_id (Optional[str]): The contract account ID.
-        is_deleted (Optional[bool]): Whether the account has been deleted.
-        proxy_received (Optional[Hbar]): The total number of tinybars proxy staked to this account.
-        key (Optional[Key]): The key for this account.
-        balance (Optional[Hbar]): The current balance of account in hbar.
+        account_id (AccountId, optional): The ID of this account.
+        contract_account_id (str, optional): The contract account ID.
+        is_deleted (bool, optional): Whether the account has been deleted.
+        proxy_received (Hbar, optional): The total number of tinybars proxy staked to this account.
+        key (Key, optional): The key for this account.
+        balance (Hbar, optional): The current balance of account in hbar.
         receiver_signature_required (Optional[bool]): If true, this account's key must sign
             any transaction depositing into this account.
-        expiration_time (Optional[Timestamp]): The timestamp at which this account
+        expiration_time (Timestamp, optional): The timestamp at which this account
             is set to expire.
-        auto_renew_period (Optional[Duration]): The duration for which this account
+        auto_renew_period (Duration, optional): The duration for which this account
             will automatically renew.
-        token_relationships (list[TokenRelationship]): List of token relationships
+        token_relationships (list[TokenRelationship], optional): List of token relationships
             associated with this account.
-        account_memo (Optional[str]): The memo associated with this account.
-        owned_nfts (Optional[int]): The number of NFTs owned by this account.
-        staking_info (Optional[StakingInfo]): The staking information for this account.
+        account_memo (str, optional): The memo associated with this account.
+        owned_nfts (int, optional): The number of NFTs owned by this account.
+        staking_info (StakingInfo, optional): The staking information for this account.
     """
 
-    account_id: Optional[AccountId] = None
-    contract_account_id: Optional[str] = None
-    is_deleted: Optional[bool] = None
-    proxy_received: Optional[Hbar] = None
-    key: Optional[Key] = None
-    balance: Optional[Hbar] = None
-    receiver_signature_required: Optional[bool] = None
-    expiration_time: Optional[Timestamp] = None
-    auto_renew_period: Optional[Duration] = None
+    account_id: AccountId | None = None
+    contract_account_id: str | None = None
+    is_deleted: bool | None = None
+    proxy_received: Hbar | None = None
+    key: Key | None = None
+    balance: Hbar | None = None
+    receiver_signature_required: bool | None = None
+    expiration_time: Timestamp | None = None
+    auto_renew_period: Duration | None = None
     token_relationships: list[TokenRelationship] = field(default_factory=list)
-    account_memo: Optional[str] = None
-    owned_nfts: Optional[int] = None
-    max_automatic_token_associations: Optional[int] = None
-    staking_info: Optional[StakingInfo] = None
+    account_memo: str | None = None
+    owned_nfts: int | None = None
+    max_automatic_token_associations: int | None = None
+    staking_info: StakingInfo | None = None
 
     @classmethod
-    def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> "AccountInfo":
+    def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> AccountInfo:
         """Creates an AccountInfo instance from its protobuf representation.
         Deserializes a `CryptoGetInfoResponse.AccountInfo` message into this
         SDK's `AccountInfo` object. This method handles the conversion of
         protobuf types to their corresponding SDK types (e.g., tinybars to
         `Hbar`, proto `Timestamp` to SDK `Timestamp`).
+
         Args:
             proto (CryptoGetInfoResponse.AccountInfo): The source protobuf
                 message containing account information.
+
         Returns:
             AccountInfo: A new `AccountInfo` instance populated with data
                 from the protobuf message.
+
         Raises:
             ValueError: If the input `proto` is None.
         """
         if proto is None:
             raise ValueError("Account info proto is None")
 
-        account_info: "AccountInfo" = cls(
+        account_info: AccountInfo = cls(
             account_id=AccountId._from_proto(proto.accountID) if proto.accountID else None,
             contract_account_id=proto.contractAccountID,
             is_deleted=proto.deleted,
@@ -84,23 +86,15 @@ class AccountInfo:
             key=Key.from_proto_key(proto.key) if proto.key else None,
             balance=Hbar.from_tinybars(proto.balance),
             receiver_signature_required=proto.receiverSigRequired,
-            expiration_time=(
-                Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None
-            ),
-            auto_renew_period=(
-                Duration._from_proto(proto.autoRenewPeriod) if proto.autoRenewPeriod else None
-            ),
+            expiration_time=(Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None),
+            auto_renew_period=(Duration._from_proto(proto.autoRenewPeriod) if proto.autoRenewPeriod else None),
             token_relationships=[
-                TokenRelationship._from_proto(relationship)
-                for relationship in proto.tokenRelationships
+                TokenRelationship._from_proto(relationship) for relationship in proto.tokenRelationships
             ],
             account_memo=proto.memo,
             owned_nfts=proto.ownedNfts,
             max_automatic_token_associations=proto.max_automatic_token_associations,
-            staking_info=(
-                StakingInfo._from_proto(proto.staking_info)
-                if proto.HasField('staking_info') else None
-            ),
+            staking_info=(StakingInfo._from_proto(proto.staking_info) if proto.HasField("staking_info") else None),
         )
 
         return account_info
@@ -111,10 +105,12 @@ class AccountInfo:
         `CryptoGetInfoResponse.AccountInfo` message. This method handles
         the conversion of SDK types back to their protobuf equivalents
         (e.g., `Hbar` to tinybars, SDK `Timestamp` to proto `Timestamp`).
+
         Note:
             SDK fields that are `None` will be serialized as their
             default protobuf values (e.g., 0 for integers, False for booleans,
             empty strings/bytes).
+
         Returns:
             CryptoGetInfoResponse.AccountInfo: The protobuf message
                 representation of this `AccountInfo` object.
@@ -129,9 +125,7 @@ class AccountInfo:
             receiverSigRequired=self.receiver_signature_required,
             expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
             autoRenewPeriod=self.auto_renew_period._to_proto() if self.auto_renew_period else None,
-            tokenRelationships=[
-                relationship._to_proto() for relationship in self.token_relationships
-            ],
+            tokenRelationships=[relationship._to_proto() for relationship in self.token_relationships],
             memo=self.account_memo,
             ownedNfts=self.owned_nfts,
             max_automatic_token_associations=self.max_automatic_token_associations,
@@ -192,8 +186,7 @@ class AccountInfo:
     def staked_account_id(self):
         """Deprecated: use staking_info.staked_account_id instead."""
         warnings.warn(
-            "AccountInfo.staked_account_id is deprecated, "
-            "use AccountInfo.staking_info.staked_account_id instead",
+            "AccountInfo.staked_account_id is deprecated, use AccountInfo.staking_info.staked_account_id instead",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -203,30 +196,32 @@ class AccountInfo:
     def staked_account_id(self, value):
         """Deprecated setter: use staking_info.staked_account_id instead."""
         warnings.warn(
-            "AccountInfo.staked_account_id setter is deprecated, "
-            "use AccountInfo.staking_info instead",
+            "AccountInfo.staked_account_id setter is deprecated, use AccountInfo.staking_info instead",
             DeprecationWarning,
             stacklevel=2,
         )
         if self.staking_info is None:
-            object.__setattr__(self, 'staking_info', StakingInfo(staked_account_id=value))
+            object.__setattr__(self, "staking_info", StakingInfo(staked_account_id=value))
         else:
             # Reconstruct StakingInfo with updated field, clearing staked_node_id oneof conflict
-            object.__setattr__(self, 'staking_info', StakingInfo(
-                pending_reward=self.staking_info.pending_reward,
-                staked_to_me=self.staking_info.staked_to_me,
-                stake_period_start=self.staking_info.stake_period_start,
-                staked_account_id=value,
-                staked_node_id=None,  # Clear oneof conflict
-                decline_reward=self.staking_info.decline_reward,
-            ))
+            object.__setattr__(
+                self,
+                "staking_info",
+                StakingInfo(
+                    pending_reward=self.staking_info.pending_reward,
+                    staked_to_me=self.staking_info.staked_to_me,
+                    stake_period_start=self.staking_info.stake_period_start,
+                    staked_account_id=value,
+                    staked_node_id=None,  # Clear oneof conflict
+                    decline_reward=self.staking_info.decline_reward,
+                ),
+            )
 
     @property
     def staked_node_id(self):
         """Deprecated: use staking_info.staked_node_id instead."""
         warnings.warn(
-            "AccountInfo.staked_node_id is deprecated, "
-            "use AccountInfo.staking_info.staked_node_id instead",
+            "AccountInfo.staked_node_id is deprecated, use AccountInfo.staking_info.staked_node_id instead",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -236,30 +231,32 @@ class AccountInfo:
     def staked_node_id(self, value):
         """Deprecated setter: use staking_info.staked_node_id instead."""
         warnings.warn(
-            "AccountInfo.staked_node_id setter is deprecated, "
-            "use AccountInfo.staking_info instead",
+            "AccountInfo.staked_node_id setter is deprecated, use AccountInfo.staking_info instead",
             DeprecationWarning,
             stacklevel=2,
         )
         if self.staking_info is None:
-            object.__setattr__(self, 'staking_info', StakingInfo(staked_node_id=value))
+            object.__setattr__(self, "staking_info", StakingInfo(staked_node_id=value))
         else:
             # Reconstruct StakingInfo with updated field, clearing staked_account_id oneof conflict
-            object.__setattr__(self, 'staking_info', StakingInfo(
-                pending_reward=self.staking_info.pending_reward,
-                staked_to_me=self.staking_info.staked_to_me,
-                stake_period_start=self.staking_info.stake_period_start,
-                staked_account_id=None,  # Clear oneof conflict
-                staked_node_id=value,
-                decline_reward=self.staking_info.decline_reward,
-            ))
+            object.__setattr__(
+                self,
+                "staking_info",
+                StakingInfo(
+                    pending_reward=self.staking_info.pending_reward,
+                    staked_to_me=self.staking_info.staked_to_me,
+                    stake_period_start=self.staking_info.stake_period_start,
+                    staked_account_id=None,  # Clear oneof conflict
+                    staked_node_id=value,
+                    decline_reward=self.staking_info.decline_reward,
+                ),
+            )
 
     @property
     def decline_staking_reward(self):
         """Deprecated: use staking_info.decline_reward instead."""
         warnings.warn(
-            "AccountInfo.decline_staking_reward is deprecated, "
-            "use AccountInfo.staking_info.decline_reward instead",
+            "AccountInfo.decline_staking_reward is deprecated, use AccountInfo.staking_info.decline_reward instead",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -269,23 +266,26 @@ class AccountInfo:
     def decline_staking_reward(self, value):
         """Deprecated setter: use staking_info.decline_reward instead."""
         warnings.warn(
-            "AccountInfo.decline_staking_reward setter is deprecated, "
-            "use AccountInfo.staking_info instead",
+            "AccountInfo.decline_staking_reward setter is deprecated, use AccountInfo.staking_info instead",
             DeprecationWarning,
             stacklevel=2,
         )
         if self.staking_info is None:
-            object.__setattr__(self, 'staking_info', StakingInfo(decline_reward=value))
+            object.__setattr__(self, "staking_info", StakingInfo(decline_reward=value))
         else:
             # Reconstruct StakingInfo with updated field
-            object.__setattr__(self, 'staking_info', StakingInfo(
-                pending_reward=self.staking_info.pending_reward,
-                staked_to_me=self.staking_info.staked_to_me,
-                stake_period_start=self.staking_info.stake_period_start,
-                staked_account_id=self.staking_info.staked_account_id,
-                staked_node_id=self.staking_info.staked_node_id,
-                decline_reward=value,
-            ))
+            object.__setattr__(
+                self,
+                "staking_info",
+                StakingInfo(
+                    pending_reward=self.staking_info.pending_reward,
+                    staked_to_me=self.staking_info.staked_to_me,
+                    stake_period_start=self.staking_info.stake_period_start,
+                    staked_account_id=self.staking_info.staked_account_id,
+                    staked_node_id=self.staking_info.staked_node_id,
+                    decline_reward=value,
+                ),
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -305,7 +305,8 @@ def _wrapped_account_info_init(
 ):
     _orig_account_info_init(self, *args, **kwargs)
     _legacy = [
-        k for k, v in [
+        k
+        for k, v in [
             ("staked_account_id", staked_account_id),
             ("staked_node_id", staked_node_id),
             ("decline_staking_reward", decline_staking_reward),
@@ -314,8 +315,7 @@ def _wrapped_account_info_init(
     ]
     if _legacy:
         warnings.warn(
-            f"Passing {', '.join(_legacy)} to AccountInfo() is deprecated; "
-            "use staking_info=StakingInfo(...) instead.",
+            f"Passing {', '.join(_legacy)} to AccountInfo() is deprecated; use staking_info=StakingInfo(...) instead.",
             DeprecationWarning,
             stacklevel=2,
         )

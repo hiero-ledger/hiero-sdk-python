@@ -5,6 +5,7 @@ Example demonstrating token reject transaction nft.
 uv run examples/tokens/token_reject_transaction_nft.py
 python examples/tokens/token_reject_transaction_nft.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -33,6 +34,7 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
+
 def create_test_account(client):
     """Create a new account for testing."""
     # Generate private key for new account
@@ -49,9 +51,7 @@ def create_test_account(client):
 
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     # Get account ID from receipt
@@ -102,9 +102,7 @@ def mint_nfts(client, nft_token_id, metadata_list, treasury_private_key):
         .set_token_id(nft_token_id)
         .set_metadata(metadata_list)
         .freeze_with(client)
-        .sign(
-            treasury_private_key
-        )  # Has to be signed here by treasury's key because they own the supply key
+        .sign(treasury_private_key)  # Has to be signed here by treasury's key because they own the supply key
         .execute(client)
     )
 
@@ -114,9 +112,7 @@ def mint_nfts(client, nft_token_id, metadata_list, treasury_private_key):
 
     print(f"NFT minted with serial numbers: {receipt.serial_numbers}")
 
-    return [
-        NftId(nft_token_id, serial_number) for serial_number in receipt.serial_numbers
-    ]
+    return [NftId(nft_token_id, serial_number) for serial_number in receipt.serial_numbers]
 
 
 def associate_token(client, receiver_id, nft_token_id, receiver_private_key):
@@ -132,9 +128,7 @@ def associate_token(client, receiver_id, nft_token_id, receiver_private_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token association failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Token successfully associated with account: {receiver_id}")
@@ -162,19 +156,11 @@ def transfer_nfts(client, treasury_id, treasury_private_key, receiver_id, nft_id
 
 def get_nft_balances(client, treasury_id, receiver_id, nft_token_id):
     """Get NFT balances for both accounts."""
-    token_balance = (
-        CryptoGetAccountBalanceQuery().set_account_id(treasury_id).execute(client)
-    )
-    print(
-        f"NFT balance of treasury {treasury_id}: {token_balance.token_balances[nft_token_id]}"
-    )
+    token_balance = CryptoGetAccountBalanceQuery().set_account_id(treasury_id).execute(client)
+    print(f"NFT balance of treasury {treasury_id}: {token_balance.token_balances[nft_token_id]}")
 
-    receiver_token_balance = (
-        CryptoGetAccountBalanceQuery().set_account_id(receiver_id).execute(client)
-    )
-    print(
-        f"NFT balance of receiver {receiver_id}: {receiver_token_balance.token_balances[nft_token_id]}"
-    )
+    receiver_token_balance = CryptoGetAccountBalanceQuery().set_account_id(receiver_id).execute(client)
+    print(f"NFT balance of receiver {receiver_id}: {receiver_token_balance.token_balances[nft_token_id]}")
 
 
 def token_reject_nft():
@@ -229,9 +215,7 @@ def token_reject_nft():
         print(f"NFT rejection failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
-    print(
-        f"Successfully rejected NFTs {nft_ids[0]} and {nft_ids[1]} from account {receiver_id}"
-    )
+    print(f"Successfully rejected NFTs {nft_ids[0]} and {nft_ids[1]} from account {receiver_id}")
 
     # Get and print NFT balances after rejection to show the final state
     print("\nNFT balances after rejection:")

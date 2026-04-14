@@ -7,7 +7,7 @@
 
 A Python SDK for interacting with the Hedera Hashgraph platform.
 
->**Python compatibility:** 
+>**Python compatibility:**
 > The SDK supports Python ≥ 3.10 and is tested on Python 3.10–3.14. Newer Python versions may work but have not yet been validated.
 
 ## Quick Start

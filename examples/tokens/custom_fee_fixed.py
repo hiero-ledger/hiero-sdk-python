@@ -6,6 +6,7 @@ Run with:
 uv run examples/tokens/custom_fixed_fee.py
 python examples/tokens/custom_fixed_fee.py
 """
+
 import sys
 
 from hiero_sdk_python.client.client import Client
@@ -23,6 +24,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def custom_fixed_fee_example():
     """Demonstrates how to create a token with a Custom Fixed Fee."""
@@ -59,9 +61,7 @@ def custom_fixed_fee_example():
 
         # Check if the status is explicitly SUCCESS
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"Transaction failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"Transaction failed with status: {ResponseCode(receipt.status).name}")
 
         token_id = receipt.token_id
         print(f"Token created successfully with ID: {token_id}")

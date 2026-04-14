@@ -28,6 +28,7 @@ Notes:
     - Each contract's bytecode is loaded into a constant (e.g. SIMPLE_CONTRACT_BYTECODE)
     - The _load_contract_bytecode() utility handles loading and validation
 """
+
 from pathlib import Path
 
 
@@ -48,14 +49,10 @@ def _load_contract_bytecode(contract_name: str, extension: str = "bin") -> str:
     """
     try:
         # Look for contract in the main contracts directory (relative to project root)
-        contract_path = Path(__file__).parent.joinpath(
-            contract_name, f"{contract_name}.{extension}"
-        )
+        contract_path = Path(__file__).parent.joinpath(contract_name, f"{contract_name}.{extension}")
 
         if not contract_path.exists():
-            raise FileNotFoundError(
-                f"Contract bytecode file not found: {contract_path}"
-            )
+            raise FileNotFoundError(f"Contract bytecode file not found: {contract_path}")
 
         bytecode = contract_path.read_bytes().decode("utf-8").strip()
 
@@ -65,9 +62,7 @@ def _load_contract_bytecode(contract_name: str, extension: str = "bin") -> str:
         return bytecode
 
     except Exception as e:
-        raise RuntimeError(
-            f"Failed to load contract bytecode for {contract_name}: {e}"
-        ) from e
+        raise RuntimeError(f"Failed to load contract bytecode for {contract_name}: {e}") from e
 
 
 # Contract bytecode constants — loaded from hex-encoded .bin files
@@ -78,9 +73,7 @@ def _load_contract_bytecode(contract_name: str, extension: str = "bin") -> str:
 SIMPLE_CONTRACT_BYTECODE = _load_contract_bytecode("SimpleContract")
 
 # The deployed (runtime) bytecode for SimpleContract, loaded from its .bin-runtime file.
-SIMPLE_CONTRACT_RUNTIME_BYTECODE = _load_contract_bytecode(
-    "SimpleContract", "bin-runtime"
-)
+SIMPLE_CONTRACT_RUNTIME_BYTECODE = _load_contract_bytecode("SimpleContract", "bin-runtime")
 
 # StatefulContract:
 # Initializes a bytes32 message via constructor, stores it on-chain,

@@ -7,6 +7,7 @@ Create a Non-Fungible Token (NFT) Collection and Mint NFTs.
 uv run examples/token_mint_transaction_non_fungible.py
 python examples/token_mint_transaction_non_fungible.py
 """
+
 import os
 import sys
 
@@ -98,9 +99,7 @@ def token_mint_non_fungible(client, token_id, supply_key):
         )
 
         # THE FIX: The receipt confirms status, it does not contain serial numbers.
-        print(
-            f"✅ Success! NFT minting complete, Status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"✅ Success! NFT minting complete, Status: {ResponseCode(receipt.status).name}")
         # Confirm total supply after minting
         info_after = TokenInfoQuery().set_token_id(token_id).execute(client)
         print(f"Total supply after minting: {info_after.total_supply}")

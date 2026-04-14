@@ -18,6 +18,7 @@ Usage:
     python -m examples.contract.contract_info_query
 
 """
+
 import sys
 
 from hiero_sdk_python import Client, Duration
@@ -45,9 +46,7 @@ def create_contract_file(client):
 
     # Check if file creation was successful
     if file_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
-        )
+        print(f"File creation failed with status: {ResponseCode(file_receipt.status).name}")
         sys.exit(1)
 
     return file_receipt.file_id
@@ -70,9 +69,7 @@ def create_contract(client, file_id):
 
     # Check if contract creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Contract creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Contract created with ID: {receipt.contract_id}")

@@ -2,6 +2,8 @@
 Unit tests for the ContractCallQuery class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import Mock
 
 import pytest
@@ -15,14 +17,15 @@ from hiero_sdk_python.contract.contract_function_parameters import (
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.hapi.services import (
+    contract_call_local_pb2,
     contract_types_pb2,
     response_header_pb2,
     response_pb2,
-    contract_call_local_pb2,
 )
 from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -60,9 +63,7 @@ def test_setters_combined():
     max_result_size = 1024
     sender_account = AccountId(0, 0, 1)
     function_params_only = ContractFunctionParameters().add_string("test_param")
-    function_params_with_name = ContractFunctionParameters("testFunction").add_string(
-        "test_param"
-    )
+    function_params_with_name = ContractFunctionParameters("testFunction").add_string("test_param")
 
     query = (
         ContractCallQuery()
@@ -89,19 +90,14 @@ def test_setters_combined():
 
     # Test set_function with default parameters
     query.set_function("testFunction")
-    assert (
-        query.function_parameters
-        == ContractFunctionParameters("testFunction").to_bytes()
-    )
+    assert query.function_parameters == ContractFunctionParameters("testFunction").to_bytes()
 
 
 def test_execute_fails_with_missing_contract_id(mock_client):
     """Test request creation with missing Contract ID."""
     query = ContractCallQuery()
 
-    with pytest.raises(
-        ValueError, match="Contract ID must be set before making the request."
-    ):
+    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
         query.execute(mock_client)
 
 

@@ -2,6 +2,8 @@
 Unit tests for the ContractInfo class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -17,6 +19,7 @@ from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
+
 
 pytestmark = pytest.mark.unit
 
@@ -90,7 +93,7 @@ def proto_contract_info(token_relationship):
     """Fixture for a proto ContractInfo object"""
     public_key = PrivateKey.generate_ed25519().public_key()
 
-    proto = ContractGetInfoResponse.ContractInfo(
+    return ContractGetInfoResponse.ContractInfo(
         contractID=ContractId(0, 0, 200)._to_proto(),
         accountID=AccountId(0, 0, 300)._to_proto(),
         contractAccountID="0.0.300",
@@ -110,7 +113,6 @@ def proto_contract_info(token_relationship):
             decline_reward=False,
         ),
     )
-    return proto
 
 
 def test_contract_info_initialization(contract_info):
@@ -285,10 +287,7 @@ def test_proto_conversion_full_object(contract_info):
     assert converted.balance == contract_info.balance
     assert converted.is_deleted == contract_info.is_deleted
     assert converted.ledger_id == contract_info.ledger_id
-    assert (
-        converted.max_automatic_token_associations
-        == contract_info.max_automatic_token_associations
-    )
+    assert converted.max_automatic_token_associations == contract_info.max_automatic_token_associations
     assert len(converted.token_relationships) == len(contract_info.token_relationships)
     assert converted.staking_info.staked_account_id == contract_info.staking_info.staked_account_id
     assert converted.staking_info.staked_node_id == contract_info.staking_info.staked_node_id
@@ -341,9 +340,9 @@ def test_from_proto_with_no_staking_info():
         storage=1024,
         balance=5000000,
     )
-    
+
     contract_info = ContractInfo._from_proto(proto)
-    
+
     assert contract_info.contract_id == ContractId(0, 0, 200)
     assert contract_info.staking_info is None
 
@@ -360,9 +359,9 @@ def test_from_proto_with_staked_node_id():
             decline_reward=True,
         ),
     )
-    
+
     contract_info = ContractInfo._from_proto(proto)
-    
+
     assert contract_info.staking_info is not None
     assert contract_info.staking_info.staked_account_id is None
     assert contract_info.staking_info.staked_node_id == 3
@@ -380,11 +379,11 @@ def test_to_proto_with_staked_account_id():
             decline_reward=False,
         ),
     )
-    
+
     proto = contract_info._to_proto()
-    
-    assert proto.HasField('staking_info')
-    assert proto.staking_info.HasField('staked_account_id')
+
+    assert proto.HasField("staking_info")
+    assert proto.staking_info.HasField("staked_account_id")
     assert proto.staking_info.staked_account_id == AccountId(0, 0, 500)._to_proto()
     assert proto.staking_info.decline_reward is False
 
@@ -400,10 +399,10 @@ def test_to_proto_with_staked_node_id():
             decline_reward=True,
         ),
     )
-    
+
     proto = contract_info._to_proto()
-    
-    assert proto.HasField('staking_info')
+
+    assert proto.HasField("staking_info")
     assert proto.staking_info.staked_node_id == 5
     assert proto.staking_info.decline_reward is True
 
@@ -419,9 +418,9 @@ def test_proto_conversion_staking_node_round_trip():
             decline_reward=False,
         ),
     )
-    
+
     converted = ContractInfo._from_proto(contract_info._to_proto())
-    
+
     assert converted.contract_id == contract_info.contract_id
     assert converted.account_id == contract_info.account_id
     assert converted.balance == contract_info.balance
@@ -442,9 +441,9 @@ def test_proto_conversion_staking_account_round_trip():
             decline_reward=True,
         ),
     )
-    
+
     converted = ContractInfo._from_proto(contract_info._to_proto())
-    
+
     assert converted.contract_id == contract_info.contract_id
     assert converted.account_id == contract_info.account_id
     assert converted.balance == contract_info.balance
@@ -465,9 +464,9 @@ def test_proto_conversion_with_staked_node_zero():
             decline_reward=True,
         ),
     )
-    
+
     converted = ContractInfo._from_proto(contract_info._to_proto())
-    
+
     assert converted.staking_info is not None
     assert converted.staking_info.staked_node_id == 0
     assert isinstance(converted.staking_info.staked_node_id, int)
@@ -482,9 +481,9 @@ def test_proto_conversion_no_staking_info_round_trip():
         balance=5000000,
         staking_info=None,
     )
-    
+
     converted = ContractInfo._from_proto(contract_info._to_proto())
-    
+
     assert converted.contract_id == contract_info.contract_id
     assert converted.account_id == contract_info.account_id
     assert converted.balance == contract_info.balance

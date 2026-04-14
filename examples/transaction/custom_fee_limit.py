@@ -7,6 +7,7 @@ Example: Using CustomFeeLimit with a revenue-generating topic.
 - Submits a message with a CustomFeeLimit specifying how much the payer is
   willing to pay in custom fees for that message.
 """
+
 import os
 import sys
 
@@ -85,9 +86,7 @@ def create_revenue_generating_topic(client: Client, operator_id: AccountId):
         return None
 
 
-def submit_message_with_custom_fee_limit(
-    client: Client, topic_id, operator_id: AccountId
-) -> None:
+def submit_message_with_custom_fee_limit(client: Client, topic_id, operator_id: AccountId) -> None:
     """
     Submit a message to the topic with a CustomFeeLimit applied.
 
@@ -106,10 +105,7 @@ def submit_message_with_custom_fee_limit(
     fee_limit.set_payer_id(operator_id)
     fee_limit.add_custom_fee(limit_fee)
 
-    print(
-        f"Setting fee limit: max {limit_fee.amount} tinybars "
-        f"in custom fees for payer {operator_id}"
-    )
+    print(f"Setting fee limit: max {limit_fee.amount} tinybars in custom fees for payer {operator_id}")
 
     try:
         submit_tx = TopicMessageSubmitTransaction()

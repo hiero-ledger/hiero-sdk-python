@@ -28,6 +28,7 @@ High-Level Steps:
 Usage:
     uv run examples/account/account_allowance_approve_transaction_nft.py
 """
+
 import os
 import sys
 
@@ -50,6 +51,7 @@ from hiero_sdk_python import (
     TransferTransaction,
 )
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+
 
 load_dotenv()
 
@@ -129,21 +131,14 @@ def create_nft_token(client, owner_id, owner_key):
 
 def mint_nft(client, token_id, metadata_list):
     """Mint NFT(s) with metadata."""
-    tx = (
-        TokenMintTransaction()
-        .set_token_id(token_id)
-        .set_metadata(metadata_list)
-        .execute(client)
-    )
+    tx = TokenMintTransaction().set_token_id(token_id).set_metadata(metadata_list).execute(client)
 
     if tx.status != ResponseCode.SUCCESS:
         print(f"Mint failed: {ResponseCode(tx.status).name}")
         sys.exit(1)
 
     serials = tx.serial_numbers
-    print(
-        f"NFT Owner ({client.operator_account_id}) minted {len(serials)} NFT(s) for Token {token_id}: {serials}"
-    )
+    print(f"NFT Owner ({client.operator_account_id}) minted {len(serials)} NFT(s) for Token {token_id}: {serials}")
     return [NftId(token_id, s) for s in serials]
 
 
@@ -179,22 +174,14 @@ def approve_nft_allowance(client, nft_id, owner_id, spender_id, owner_key):
         print(f"Approval failed: {ResponseCode(tx.status).name}")
         sys.exit(1)
 
-    print(
-        f"NFT Owner ({owner_id}) approved Spender ({spender_id}) for NFT {nft_id.token_id} (all serials)"
-    )
+    print(f"NFT Owner ({owner_id}) approved Spender ({spender_id}) for NFT {nft_id.token_id} (all serials)")
 
 
 def transfer_nft_using_allowance(spender_client, nft_id, owner_id, receiver_id):
     """Transfer an NFT using approved allowance via the spender client."""
-    print(
-        f"Spender ({spender_client.operator_account_id}) transferring NFT {nft_id} from Owner ({owner_id})..."
-    )
+    print(f"Spender ({spender_client.operator_account_id}) transferring NFT {nft_id} from Owner ({owner_id})...")
 
-    tx = (
-        TransferTransaction()
-        .add_approved_nft_transfer(nft_id, owner_id, receiver_id)
-        .execute(spender_client)
-    )
+    tx = TransferTransaction().add_approved_nft_transfer(nft_id, owner_id, receiver_id).execute(spender_client)
 
     if tx.status != ResponseCode.SUCCESS:
         print(f"Transfer failed: {ResponseCode(tx.status).name}")

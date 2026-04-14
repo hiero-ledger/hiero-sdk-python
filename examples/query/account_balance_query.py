@@ -14,6 +14,7 @@ Run with:
   python examples/query/account_balance_query.py
 
 """
+
 import sys
 import time
 
@@ -80,9 +81,7 @@ def create_account(client, operator_key, initial_balance=Hbar(10)):
 
     print("✓ Account created successfully")
     print(f"  Account ID: {new_account_id}")
-    print(
-        f"  Initial balance: {initial_balance.to_hbars()} hbars ({initial_balance.to_tinybars()} tinybars)\n"
-    )
+    print(f"  Initial balance: {initial_balance.to_hbars()} hbars ({initial_balance.to_tinybars()} tinybars)\n")
 
     return new_account_id, new_account_private_key
 
@@ -151,9 +150,7 @@ def main():
         client, operator_id, operator_key = setup_client()
 
         #  Create a new account with initial balance
-        new_account_id, new_account_private_key = create_account(
-            client, operator_key, initial_balance=Hbar(10)
-        )
+        new_account_id, new_account_private_key = create_account(client, operator_key, initial_balance=Hbar(10))
 
         #  Query and display the initial balance
         print("=" * 60)
@@ -168,9 +165,7 @@ def main():
         print("EXECUTING TRANSFER")
         print("=" * 60)
         transfer_amount = Hbar(5)
-        transfer_status = transfer_hbars(
-            client, operator_id, operator_key, new_account_id, transfer_amount
-        )
+        transfer_status = transfer_hbars(client, operator_id, operator_key, new_account_id, transfer_amount)
         print(f"Transfer transaction status: {transfer_status}")
         print("=" * 60 + "\n")
 

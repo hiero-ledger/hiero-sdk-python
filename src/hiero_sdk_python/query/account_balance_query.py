@@ -1,13 +1,16 @@
+from __future__ import annotations
+
 import traceback
-from typing import Optional, Any, Union
-from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
-from hiero_sdk_python.account.account_id import AccountId
+from typing import Any
+
 from hiero_sdk_python.account.account_balance import AccountBalance
-from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
+from hiero_sdk_python.query.query import Query
 
 
 class CryptoGetAccountBalanceQuery(Query):
@@ -20,8 +23,8 @@ class CryptoGetAccountBalanceQuery(Query):
 
     def __init__(
         self,
-        account_id: Optional[AccountId] = None,
-        contract_id: Optional[ContractId] = None,
+        account_id: AccountId | None = None,
+        contract_id: ContractId | None = None,
     ) -> None:
         """
         Initializes a new instance of the CryptoGetAccountBalanceQuery class.
@@ -31,15 +34,15 @@ class CryptoGetAccountBalanceQuery(Query):
             contract_id (ContractId, optional): The ID of the contract to retrieve the balance for.
         """
         super().__init__()
-        self.account_id: Optional[AccountId] = None
-        self.contract_id: Optional[ContractId] = None
+        self.account_id: AccountId | None = None
+        self.contract_id: ContractId | None = None
 
         if account_id is not None:
             self.set_account_id(account_id)
         if contract_id is not None:
             self.set_contract_id(contract_id)
 
-    def set_account_id(self, account_id: AccountId) -> "CryptoGetAccountBalanceQuery":
+    def set_account_id(self, account_id: AccountId) -> CryptoGetAccountBalanceQuery:
         """
         Sets the account ID for which to retrieve the balance.
         Resets to None the contract ID.
@@ -56,7 +59,7 @@ class CryptoGetAccountBalanceQuery(Query):
         self.account_id = account_id
         return self
 
-    def set_contract_id(self, contract_id: ContractId) -> "CryptoGetAccountBalanceQuery":
+    def set_contract_id(self, contract_id: ContractId) -> CryptoGetAccountBalanceQuery:
         """
         Sets the contract ID for which to retrieve the balance.
         Resets to None the account ID.
@@ -94,9 +97,7 @@ class CryptoGetAccountBalanceQuery(Query):
                 raise ValueError("Specify either account_id or contract_id, not both.")
 
             query_header = self._make_request_header()
-            crypto_get_balance = (
-                crypto_get_account_balance_pb2.CryptoGetAccountBalanceQuery()
-            )
+            crypto_get_balance = crypto_get_account_balance_pb2.CryptoGetAccountBalanceQuery()
             crypto_get_balance.header.CopyFrom(query_header)
 
             if self.account_id:
@@ -106,9 +107,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
             query = query_pb2.Query()
             if not hasattr(query, "cryptogetAccountBalance"):
-                raise AttributeError(
-                    "Query object has no attribute 'cryptogetAccountBalance'"
-                )
+                raise AttributeError("Query object has no attribute 'cryptogetAccountBalance'")
             query.cryptogetAccountBalance.CopyFrom(crypto_get_balance)
 
             return query
@@ -130,11 +129,9 @@ class CryptoGetAccountBalanceQuery(Query):
         Returns:
             _Method: The method wrapper containing the query function
         """
-        return _Method(
-            transaction_func=None, query_func=channel.crypto.cryptoGetBalance
-        )
+        return _Method(transaction_func=None, query_func=channel.crypto.cryptoGetBalance)
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> AccountBalance:
+    def execute(self, client: Client, timeout: int | float | None = None) -> AccountBalance:
         """
         Executes the account balance query.
 
@@ -160,9 +157,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
         return AccountBalance._from_proto(response.cryptogetAccountBalance)
 
-    def _get_query_response(
-        self, response: Any
-    ) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
+    def _get_query_response(self, response: Any) -> crypto_get_account_balance_pb2.CryptoGetAccountBalanceResponse:
         """
         Extracts the account balance response from the full response.
 

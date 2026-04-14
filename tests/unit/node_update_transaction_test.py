@@ -2,6 +2,8 @@
 Test cases for the NodeUpdateTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -16,6 +18,7 @@ from hiero_sdk_python.nodes.node_update_transaction import (
     NodeUpdateParams,
     NodeUpdateTransaction,
 )
+
 
 pytestmark = pytest.mark.unit
 
@@ -104,26 +107,14 @@ def test_build_transaction_body(mock_account_ids, node_params):
     assert node_update.account_id == node_params["account_id"]._to_proto()
     assert node_update.description.value == node_params["description"]
     assert len(node_update.gossip_endpoint) == 1
-    assert (
-        node_update.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
-    )
+    assert node_update.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
     assert len(node_update.service_endpoint) == 1
-    assert (
-        node_update.service_endpoint[0]
-        == node_params["service_endpoints"][0]._to_proto()
-    )
-    assert (
-        node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
-    )
-    assert (
-        node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
-    )
+    assert node_update.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
+    assert node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
+    assert node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
     assert node_update.admin_key == node_params["admin_key"]._to_proto()
     assert node_update.decline_reward.value == node_params["decline_reward"]
-    assert (
-        node_update.grpc_proxy_endpoint
-        == node_params["grpc_web_proxy_endpoint"]._to_proto()
-    )
+    assert node_update.grpc_proxy_endpoint == node_params["grpc_web_proxy_endpoint"]._to_proto()
 
 
 def test_build_scheduled_body(node_params):
@@ -145,26 +136,14 @@ def test_build_scheduled_body(node_params):
     assert node_update.account_id == node_params["account_id"]._to_proto()
     assert node_update.description.value == node_params["description"]
     assert len(node_update.gossip_endpoint) == 1
-    assert (
-        node_update.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
-    )
+    assert node_update.gossip_endpoint[0] == node_params["gossip_endpoints"][0]._to_proto()
     assert len(node_update.service_endpoint) == 1
-    assert (
-        node_update.service_endpoint[0]
-        == node_params["service_endpoints"][0]._to_proto()
-    )
-    assert (
-        node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
-    )
-    assert (
-        node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
-    )
+    assert node_update.service_endpoint[0] == node_params["service_endpoints"][0]._to_proto()
+    assert node_update.gossip_ca_certificate.value == node_params["gossip_ca_certificate"]
+    assert node_update.grpc_certificate_hash.value == node_params["grpc_certificate_hash"]
     assert node_update.admin_key == node_params["admin_key"]._to_proto()
     assert node_update.decline_reward.value == node_params["decline_reward"]
-    assert (
-        node_update.grpc_proxy_endpoint
-        == node_params["grpc_web_proxy_endpoint"]._to_proto()
-    )
+    assert node_update.grpc_proxy_endpoint == node_params["grpc_web_proxy_endpoint"]._to_proto()
 
 
 def test_set_node_id(node_params):
@@ -316,9 +295,7 @@ def test_set_methods_require_not_frozen(mock_client, node_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(node_tx, method_name)(value)
 
 

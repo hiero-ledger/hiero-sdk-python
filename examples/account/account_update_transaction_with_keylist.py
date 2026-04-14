@@ -6,6 +6,7 @@ uv run examples/account/account_update_transaction_with_keylist.py
 python examples/account/account_update_transaction_with_keylist.py
 
 """
+
 import sys
 
 from hiero_sdk_python import Client, Hbar, PrivateKey
@@ -40,9 +41,7 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id
@@ -82,9 +81,7 @@ def account_update_with_keylist():
     # Rotate from a single key to a threshold KeyList (2 of 2).
     threshold_key_1 = PrivateKey.generate_ed25519()
     threshold_key_2 = PrivateKey.generate_ed25519()
-    threshold_key = KeyList(
-        [threshold_key_1.public_key(), threshold_key_2.public_key()], threshold=2
-    )
+    threshold_key = KeyList([threshold_key_1.public_key(), threshold_key_2.public_key()], threshold=2)
 
     print("\nRotating account key to a 2-of-2 threshold KeyList...")
     key_list_receipt = (
@@ -99,9 +96,7 @@ def account_update_with_keylist():
     )
 
     if key_list_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"KeyList rotation failed with status: {ResponseCode(key_list_receipt.status).name}"
-        )
+        print(f"KeyList rotation failed with status: {ResponseCode(key_list_receipt.status).name}")
         sys.exit(1)
 
     print("\nAccount info after KeyList update:")
@@ -120,10 +115,7 @@ def account_update_with_keylist():
     )
 
     if memo_receipt.status != ResponseCode.SUCCESS:
-        print(
-            "Memo update with threshold key failed with status: "
-            f"{ResponseCode(memo_receipt.status).name}"
-        )
+        print(f"Memo update with threshold key failed with status: {ResponseCode(memo_receipt.status).name}")
         sys.exit(1)
 
     print("\nAccount info after memo update:")

@@ -2,6 +2,8 @@
 Unit tests for the ContractFunctionResult class.
 """
 
+from __future__ import annotations
+
 import pytest
 from google.protobuf.wrappers_pb2 import BytesValue, Int64Value
 
@@ -10,6 +12,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
 from hiero_sdk_python.contract.contract_nonce_info import ContractNonceInfo
 from hiero_sdk_python.hapi.services import contract_types_pb2
+
 
 pytestmark = pytest.mark.unit
 
@@ -29,47 +32,29 @@ def log_info():
 def contract_call_result_bytes():
     """Fixture for contract call result bytes."""
     # Static types (32 bytes each)
-    uint256_bytes = bytes.fromhex(
-        "000000000000000000000000000000000000000000000000000000000000002a"
-    )  # 42
+    uint256_bytes = bytes.fromhex("000000000000000000000000000000000000000000000000000000000000002a")  # 42
 
-    bool_bytes = bytes.fromhex(
-        "0000000000000000000000000000000000000000000000000000000000000001"
-    )  # true
+    bool_bytes = bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000001")  # true
 
-    address_bytes = bytes.fromhex(
-        "000000000000000000000000abcdef0123456789abcdef0123456789abcdef01"
-    )  # address
+    address_bytes = bytes.fromhex("000000000000000000000000abcdef0123456789abcdef0123456789abcdef01")  # address
 
-    bytes32_value = bytes.fromhex(
-        "1122334455667788990011223344556677889900112233445566778899001122"
-    )  # bytes32
+    bytes32_value = bytes.fromhex("1122334455667788990011223344556677889900112233445566778899001122")  # bytes32
 
     # Dynamic type offsets (32 bytes each)
-    bytes_offset = bytes.fromhex(
-        "00000000000000000000000000000000000000000000000000000000000000c0"
-    )  # offset to bytes
+    bytes_offset = bytes.fromhex("00000000000000000000000000000000000000000000000000000000000000c0")  # offset to bytes
 
     string_offset = bytes.fromhex(
         "0000000000000000000000000000000000000000000000000000000000000100"
     )  # offset to string
 
     # Dynamic data section
-    bytes_length = bytes.fromhex(
-        "000000000000000000000000000000000000000000000000000000000000000a"
-    )  # length: 10
+    bytes_length = bytes.fromhex("000000000000000000000000000000000000000000000000000000000000000a")  # length: 10
 
-    bytes_value = bytes.fromhex(
-        "1234567890123456789000000000000000000000000000000000000000000000"
-    )  # bytes data
+    bytes_value = bytes.fromhex("1234567890123456789000000000000000000000000000000000000000000000")  # bytes data
 
-    string_length = bytes.fromhex(
-        "000000000000000000000000000000000000000000000000000000000000000d"
-    )  # length: 13
+    string_length = bytes.fromhex("000000000000000000000000000000000000000000000000000000000000000d")  # length: 13
 
-    string_value = bytes.fromhex(
-        "48656c6c6f2c20776f726c642100000000000000000000000000000000000000"
-    )  # "Hello, world!"
+    string_value = bytes.fromhex("48656c6c6f2c20776f726c642100000000000000000000000000000000000000")  # "Hello, world!"
 
     return (
         uint256_bytes  # 32 bytes: uint256 = 42
@@ -95,9 +80,7 @@ def contract_function_result(contract_id, log_info, contract_call_result_bytes):
         bloom=bytes.fromhex("ffff"),
         gas_used=100000,
         log_info=[log_info],
-        evm_address=ContractId(
-            evm_address=bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
-        ),
+        evm_address=ContractId(evm_address=bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")),
         gas_available=1000000,
         amount=50,
         function_parameters=bytes.fromhex("aabb"),
@@ -122,9 +105,7 @@ def proto_contract_function_result(contract_id, log_info):
         bloom=bytes.fromhex("ffff"),
         gasUsed=100000,
         logInfo=[log_info_proto],
-        evm_address=BytesValue(
-            value=bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
-        ),
+        evm_address=BytesValue(value=bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")),
         gas=1000000,
         amount=50,
         functionParameters=bytes.fromhex("aabb"),
@@ -160,9 +141,7 @@ def test_initialization_with_values(contract_id, log_info, contract_call_result_
         bloom=bytes.fromhex("ffff"),
         gas_used=100000,
         log_info=[log_info],
-        evm_address=ContractId(
-            evm_address=bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
-        ),
+        evm_address=ContractId(evm_address=bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")),
         gas_available=1000000,
         amount=50,
         function_parameters=bytes.fromhex("aabb"),
@@ -176,9 +155,7 @@ def test_initialization_with_values(contract_id, log_info, contract_call_result_
     assert result.bloom == bytes.fromhex("ffff")
     assert result.gas_used == 100000
     assert result.log_info == [log_info]
-    assert result.evm_address.evm_address == bytes.fromhex(
-        "abcdef0123456789abcdef0123456789abcdef01"
-    )
+    assert result.evm_address.evm_address == bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
     assert result.gas_available == 1000000
     assert result.amount == 50
     assert result.function_parameters == bytes.fromhex("aabb")
@@ -219,16 +196,11 @@ def test_contract_function_result_getters(contract_function_result):
     # Test all getters with the fixture data
     assert contract_function_result.get_uint256(0) == 42
     assert contract_function_result.get_bool(1) is True
-    assert (
-        contract_function_result.get_address(2)
-        == "abcdef0123456789abcdef0123456789abcdef01"
-    )
+    assert contract_function_result.get_address(2) == "abcdef0123456789abcdef0123456789abcdef01"
     assert contract_function_result.get_bytes32(3) == bytes.fromhex(
         "1122334455667788990011223344556677889900112233445566778899001122"
     )
-    assert contract_function_result.get_bytes(4) == bytes.fromhex(
-        "12345678901234567890"
-    )
+    assert contract_function_result.get_bytes(4) == bytes.fromhex("12345678901234567890")
     assert contract_function_result.get_string(5) == "Hello, world!"
 
     # Test get_result with all supported Solidity output types and verify decoded values
@@ -246,9 +218,7 @@ def test_contract_function_result_getters(contract_function_result):
         42,
         True,
         "0xabcdef0123456789abcdef0123456789abcdef01",  # address starting with 0x
-        bytes.fromhex(
-            "1122334455667788990011223344556677889900112233445566778899001122"
-        ),
+        bytes.fromhex("1122334455667788990011223344556677889900112233445566778899001122"),
         bytes.fromhex("12345678901234567890"),
         "Hello, world!",
     ]
@@ -278,9 +248,7 @@ def test_get_address(contract_function_result):
 def test_uint256_values():
     """Test uint256 getter with various values."""
     test_values = [0, 1, 2**32, 2**64, 2**255, 2**256 - 1]
-    encoded_bytes = b"".join(
-        value.to_bytes(32, byteorder="big", signed=False) for value in test_values
-    )
+    encoded_bytes = b"".join(value.to_bytes(32, byteorder="big", signed=False) for value in test_values)
     result = ContractFunctionResult(contract_call_result=encoded_bytes)
     for idx, expected in enumerate(test_values):
         assert result.get_uint256(idx) == expected, f"Failed at idx={idx} for uint256"
@@ -289,9 +257,7 @@ def test_uint256_values():
 def test_int256_values():
     """Test int256 getter with various values."""
     test_values = [0, 1, -1, 2**127 - 1, -(2**127), 123456789, -123456789]
-    encoded_bytes = b"".join(
-        value.to_bytes(32, byteorder="big", signed=True) for value in test_values
-    )
+    encoded_bytes = b"".join(value.to_bytes(32, byteorder="big", signed=True) for value in test_values)
     result = ContractFunctionResult(contract_call_result=encoded_bytes)
     for idx, expected in enumerate(test_values):
         assert result.get_int256(idx) == expected, f"Failed at idx={idx} for int256"
@@ -328,44 +294,29 @@ def test_edge_case_values():
     """Test edge cases for integer getters."""
     # Test maximum values for different bit sizes
     max_values = [255, 65535, 16777215, 4294967295, 1099511627775, 281474976710655]
-    encoded_bytes = b"".join(
-        value.to_bytes(32, byteorder="big", signed=False) for value in max_values
-    )
+    encoded_bytes = b"".join(value.to_bytes(32, byteorder="big", signed=False) for value in max_values)
     result = ContractFunctionResult(contract_call_result=encoded_bytes)
 
     # Test uint getters with max values
     assert result.get_uint8(0) == 255 and result.get_uint16(1) == 65535
     assert result.get_uint24(2) == 16777215 and result.get_uint32(3) == 4294967295
-    assert (
-        result.get_uint40(4) == 1099511627775
-        and result.get_uint48(5) == 281474976710655
-    )
+    assert result.get_uint40(4) == 1099511627775 and result.get_uint48(5) == 281474976710655
 
     # Test negative values for int getters
     neg_values = [-1, -32768, -8388608, -2147483648]
-    neg_encoded = b"".join(
-        value.to_bytes(32, byteorder="big", signed=True) for value in neg_values
-    )
+    neg_encoded = b"".join(value.to_bytes(32, byteorder="big", signed=True) for value in neg_values)
     neg_result = ContractFunctionResult(contract_call_result=neg_encoded)
 
     assert neg_result.get_int8(0) == -1 and neg_result.get_int16(1) == -32768
-    assert (
-        neg_result.get_int24(2) == -8388608 and neg_result.get_int32(3) == -2147483648
-    )
+    assert neg_result.get_int24(2) == -8388608 and neg_result.get_int32(3) == -2147483648
 
 
 def test_string_retrieval():
     """Test string retrieval from contract function result."""
     greet_result_bytes = (
-        bytes.fromhex(
-            "0000000000000000000000000000000000000000000000000000000000000020"
-        )  # offset
-        + bytes.fromhex(
-            "000000000000000000000000000000000000000000000000000000000000000d"
-        )  # length
-        + bytes.fromhex(
-            "48656c6c6f2c20776f726c642100000000000000000000000000000000000000"
-        )  # "Hello, world!"
+        bytes.fromhex("0000000000000000000000000000000000000000000000000000000000000020")  # offset
+        + bytes.fromhex("000000000000000000000000000000000000000000000000000000000000000d")  # length
+        + bytes.fromhex("48656c6c6f2c20776f726c642100000000000000000000000000000000000000")  # "Hello, world!"
     )
     greet_result = ContractFunctionResult(contract_call_result=greet_result_bytes)
     assert greet_result.get_string(0) == "Hello, world!"
@@ -375,9 +326,7 @@ def test_string_retrieval():
 
 def test_bytes32_retrieval():
     """Test bytes32 retrieval from contract function result."""
-    message_result_bytes = bytes.fromhex(
-        "1122334455667788990011223344556677889900112233445566778899001122"
-    )
+    message_result_bytes = bytes.fromhex("1122334455667788990011223344556677889900112233445566778899001122")
     message_result = ContractFunctionResult(contract_call_result=message_result_bytes)
     assert message_result.get_bytes32(0) == bytes.fromhex(
         "1122334455667788990011223344556677889900112233445566778899001122"
@@ -388,12 +337,8 @@ def test_large_numbers():
     """Test handling of large numbers (uint256 max, int256 -1)."""
     large_numbers_bytes = bytes.fromhex(
         "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-    ) + bytes.fromhex(
-        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
-    )
-    large_numbers_result = ContractFunctionResult(
-        contract_call_result=large_numbers_bytes
-    )
+    ) + bytes.fromhex("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
+    large_numbers_result = ContractFunctionResult(contract_call_result=large_numbers_bytes)
     assert large_numbers_result.get_uint256(0) == 2**256 - 1
     assert large_numbers_result.get_int256(1) == -1
 
@@ -416,9 +361,7 @@ def test_error_handling():
     ) + bytes.fromhex(  # valid uint256
         "000000000000000000000000000000000000000000000000000000000000ffff"
     )  # invalid offset
-    invalid_offset_result = ContractFunctionResult(
-        contract_call_result=invalid_offset_bytes
-    )
+    invalid_offset_result = ContractFunctionResult(contract_call_result=invalid_offset_bytes)
     with pytest.raises(ValueError, match="Result index out of bounds"):
         invalid_offset_result.get_bytes(1)
 
@@ -433,9 +376,7 @@ def test_from_proto(proto_contract_function_result):
     assert result.bloom == bytes.fromhex("ffff")
     assert result.gas_used == 100000
     assert len(result.log_info) == 1
-    assert result.evm_address.evm_address == bytes.fromhex(
-        "abcdef0123456789abcdef0123456789abcdef01"
-    )
+    assert result.evm_address.evm_address == bytes.fromhex("abcdef0123456789abcdef0123456789abcdef01")
     assert result.gas_available == 1000000
     assert result.amount == 50
     assert result.function_parameters == bytes.fromhex("aabb")

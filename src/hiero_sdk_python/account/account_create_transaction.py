@@ -1,9 +1,8 @@
-"""
-AccountCreateTransaction class.
-"""
+"""AccountCreateTransaction class."""
+
+from __future__ import annotations
 
 import ctypes
-from typing import Optional, Union
 import warnings
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -20,60 +19,59 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
+
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
 DEFAULT_TRANSACTION_FEE = Hbar(3).to_tinybars()  # 3 Hbars
 
 
 class AccountCreateTransaction(Transaction):
-    """
-    Represents an account creation transaction on the Hedera network.
-    """
+    """Represents an account creation transaction on the Hedera network."""
 
     def __init__(
         self,
-        key: Optional[Key] = None,
-        initial_balance: Union[Hbar, int] = 0,
-        receiver_signature_required: Optional[bool] = None,
-        auto_renew_period: Optional[Duration] = AUTO_RENEW_PERIOD,
-        memo: Optional[str] = None,
-        max_automatic_token_associations: Optional[int] = 0,
-        alias: Optional[EvmAddress] = None,
-        staked_account_id: Optional[AccountId] = None,
-        staked_node_id: Optional[int] = None,
-        decline_staking_reward: Optional[bool] = False
+        key: Key | None = None,
+        initial_balance: Hbar | int = 0,
+        receiver_signature_required: bool | None = None,
+        auto_renew_period: Duration | None = AUTO_RENEW_PERIOD,
+        memo: str | None = None,
+        max_automatic_token_associations: int | None = 0,
+        alias: EvmAddress | None = None,
+        staked_account_id: AccountId | None = None,
+        staked_node_id: int | None = None,
+        decline_staking_reward: bool | None = False,
     ) -> None:
         """
         Initializes a new AccountCreateTransaction instance with default values
         or specified keyword arguments.
 
         Attributes:
-            key (Optional[PublicKey]): The public key for the new account.
-            initial_balance (Union[Hbar, int]): Initial balance in Hbar or tinybars.
-            receiver_signature_required (Optional[bool]): Whether receiver signature is required.
+            key (PublicKey, optional): The public key for the new account.
+            initial_balance (Hbar | int, optional): Initial balance in Hbar or tinybars.
+            receiver_signature_required (bool, optional): Whether receiver signature is required.
             auto_renew_period (Duration): Auto-renew period in seconds (default is ~90 days).
-            memo (Optional[str]): Memo for the account.
-            max_automatic_token_associations (Optional[int]): The maximum number of tokens that 
+            memo (str, optional): Memo for the account.
+            max_automatic_token_associations (int, optional): The maximum number of tokens that
                 can be auto-associated.
-            alias (Optional[EvmAddress]): The 20-byte EVM address to be used as the account's alias.
-            staked_account_id (Optional[AccountId]): The account to which this account will stake.
-            staked_node_id (Optional[int]): ID of the node this account is staked to.
-            decline_staking_reward (Optional[bool]): If true, the account declines receiving a 
+            alias (EvmAddress, optional): The 20-byte EVM address to be used as the account's alias.
+            staked_account_id (AccountId, optional): The account to which this account will stake.
+            staked_node_id (int, optional): ID of the node this account is staked to.
+            decline_staking_reward (bool, optional): If true, the account declines receiving a
                 staking reward (default is False).
         """
         super().__init__()
-        self.key: Optional[Key] = key
-        self.initial_balance: Union[Hbar, int] = initial_balance
-        self.receiver_signature_required: Optional[bool] = receiver_signature_required
-        self.auto_renew_period: Optional[Duration] = auto_renew_period
-        self.account_memo: Optional[str] = memo
-        self.max_automatic_token_associations: Optional[int] = max_automatic_token_associations
+        self.key: Key | None = key
+        self.initial_balance: Hbar | int = initial_balance
+        self.receiver_signature_required: bool | None = receiver_signature_required
+        self.auto_renew_period: Duration | None = auto_renew_period
+        self.account_memo: str | None = memo
+        self.max_automatic_token_associations: int | None = max_automatic_token_associations
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
-        self.alias: Optional[EvmAddress] = alias
-        self.staked_account_id: Optional[AccountId] = staked_account_id
-        self.staked_node_id: Optional[int] = staked_node_id
+        self.alias: EvmAddress | None = alias
+        self.staked_account_id: AccountId | None = staked_account_id
+        self.staked_node_id: int | None = staked_node_id
         self.decline_staking_reward = decline_staking_reward
 
-    def set_key(self, key: Key) -> "AccountCreateTransaction":
+    def set_key(self, key: Key) -> AccountCreateTransaction:
         """
         Sets the key for the new account (accepts both PrivateKey or PublicKey).
 
@@ -86,12 +84,13 @@ class AccountCreateTransaction(Transaction):
         warnings.warn(
             "The 'set_key' method is deprecated, Use `set_key_without_alias` instead.",
             DeprecationWarning,
+            stacklevel=2,
         )
         self._require_not_frozen()
         self.key = key
         return self
 
-    def set_key_without_alias(self, key: Key) -> "AccountCreateTransaction":
+    def set_key_without_alias(self, key: Key) -> AccountCreateTransaction:
         """
         Sets the key for the new account without alias (accepts both PrivateKey or PublicKey).
 
@@ -106,20 +105,16 @@ class AccountCreateTransaction(Transaction):
         self.alias = None
         return self
 
-    def set_key_with_alias(
-        self,
-        key: Key,
-        ecdsa_key: Optional[Key]=None
-    ) -> "AccountCreateTransaction":
+    def set_key_with_alias(self, key: Key, ecdsa_key: Key | None = None) -> AccountCreateTransaction:
         """
         Sets the key for the new account and assigns an alias derived from an ECDSA key.
-        
+
         If `ecdsa_key` is provided, its corresponding EVM address will be used as the account alias.
         Otherwise, the alias will be derived from the provided `key`.
 
         Args:
             key (Key): The key to assign to the account (PrivateKey or PublicKey).
-            ecdsa_key (Optional[PublicKey]): An optional ECDSA public key used 
+            ecdsa_key (PublicKey, optional): An optional ECDSA public key used
                 to derive the account alias.
 
         Returns:
@@ -134,7 +129,7 @@ class AccountCreateTransaction(Transaction):
         self.alias = evm_source_key.to_evm_address()
         return self
 
-    def set_initial_balance(self, balance: Union[Hbar, int]) -> "AccountCreateTransaction":
+    def set_initial_balance(self, balance: Hbar | int) -> AccountCreateTransaction:
         """
         Sets the initial balance for the new account.
 
@@ -146,13 +141,11 @@ class AccountCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         if not isinstance(balance, (Hbar, int)):
-            raise TypeError(
-                "initial_balance must be either an instance of Hbar or an integer (tinybars)."
-            )
+            raise TypeError("initial_balance must be either an instance of Hbar or an integer (tinybars).")
         self.initial_balance = balance
         return self
 
-    def set_receiver_signature_required(self, required: bool) -> "AccountCreateTransaction":
+    def set_receiver_signature_required(self, required: bool) -> AccountCreateTransaction:
         """
         Sets whether a receiver signature is required.
 
@@ -166,7 +159,7 @@ class AccountCreateTransaction(Transaction):
         self.receiver_signature_required = required
         return self
 
-    def set_auto_renew_period(self, seconds: Union[int, Duration]) -> "AccountCreateTransaction":
+    def set_auto_renew_period(self, seconds: int | Duration) -> AccountCreateTransaction:
         """
         Sets the auto-renew period in seconds.
 
@@ -185,7 +178,7 @@ class AccountCreateTransaction(Transaction):
             raise TypeError("Duration of invalid type")
         return self
 
-    def set_account_memo(self, memo: str) -> "AccountCreateTransaction":
+    def set_account_memo(self, memo: str) -> AccountCreateTransaction:
         """
         Sets the memo for the new account.
 
@@ -199,12 +192,12 @@ class AccountCreateTransaction(Transaction):
         self.account_memo = memo
         return self
 
-    def set_max_automatic_token_associations(self, max_assoc: int) -> "AccountCreateTransaction":
+    def set_max_automatic_token_associations(self, max_assoc: int) -> AccountCreateTransaction:
         """
         Sets the maximum number of automatic token associations for the account.
 
         Args:
-            max_assoc (int): The maximum number of automatic 
+            max_assoc (int): The maximum number of automatic
                 token associations to allow (default 0).
 
         Returns:
@@ -217,12 +210,12 @@ class AccountCreateTransaction(Transaction):
         self.max_automatic_token_associations = max_assoc
         return self
 
-    def set_alias(self, alias_evm_address: Union[EvmAddress, str]) -> "AccountCreateTransaction":
+    def set_alias(self, alias_evm_address: EvmAddress | str) -> AccountCreateTransaction:
         """
         Sets the EVM Address alias for the account.
 
         Args:
-            alias_evm_address (Union[EvmAddress, str]): The 20-byte EVM address to 
+            alias_evm_address (EvmAddress | str): The 20-byte EVM address to
                 be used as the account's alias.
 
         Returns:
@@ -243,15 +236,12 @@ class AccountCreateTransaction(Transaction):
 
         return self
 
-    def set_staked_account_id(
-        self,
-        account_id: Union[AccountId, str]
-    ) -> "AccountCreateTransaction":
+    def set_staked_account_id(self, account_id: AccountId | str) -> AccountCreateTransaction:
         """
         Sets the staked account id for the account.
 
         Args:
-            account_id (Union[AccountId, str]): The account to which this account will stake.
+            account_id (AccountId | str): The account to which this account will stake.
 
         Returns:
             AccountCreateTransaction: The current transaction instance for method chaining.
@@ -261,12 +251,12 @@ class AccountCreateTransaction(Transaction):
             account_id = AccountId.from_string(account_id)
         elif not isinstance(account_id, AccountId):
             raise TypeError("account_id must be of type str or AccountId")
-        
+
         self.staked_account_id = account_id
         self.staked_node_id = None
         return self
 
-    def set_staked_node_id(self, node_id: int) -> "AccountCreateTransaction":
+    def set_staked_node_id(self, node_id: int) -> AccountCreateTransaction:
         """
         Sets the staked node id for the account.
 
@@ -284,15 +274,12 @@ class AccountCreateTransaction(Transaction):
         self.staked_account_id = None
         return self
 
-    def set_decline_staking_reward(
-        self,
-        decline_staking_reward: bool
-    ) -> "AccountCreateTransaction":
+    def set_decline_staking_reward(self, decline_staking_reward: bool) -> AccountCreateTransaction:
         """
         Sets the decline staking reward for the account.
 
         Args:
-            decline_staking_reward (bool): If true, the account declines 
+            decline_staking_reward (bool): If true, the account declines
             receiving a staking reward (default is False)
 
         Returns:
@@ -316,14 +303,13 @@ class AccountCreateTransaction(Transaction):
             ValueError: If required fields are missing.
             TypeError: If initial_balance is an invalid type.
         """
-
         if isinstance(self.initial_balance, Hbar):
             initial_balance_tinybars = self.initial_balance.to_tinybars()
         elif isinstance(self.initial_balance, int):
             initial_balance_tinybars = self.initial_balance
         else:
             raise TypeError("initial_balance must be Hbar or int (tinybars).")
-        
+
         # Check for overflow
         if initial_balance_tinybars >= (2**64):
             raise OverflowError(f"Value {initial_balance_tinybars} exceeds 64-bit unsigned integer limit.")
@@ -337,7 +323,7 @@ class AccountCreateTransaction(Transaction):
             memo=self.account_memo,
             max_automatic_token_associations=self.max_automatic_token_associations,
             alias=self.alias.address_bytes if self.alias else None,
-            decline_reward=self.decline_staking_reward
+            decline_reward=self.decline_staking_reward,
         )
 
         if self.staked_node_id is not None and self.staked_account_id is not None:
@@ -377,8 +363,10 @@ class AccountCreateTransaction(Transaction):
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the method for executing the account creation transaction.
+
         Args:
             channel (_Channel): The channel to use for the transaction.
+
         Returns:
             _Method: An instance of _Method containing the transaction and query functions.
         """

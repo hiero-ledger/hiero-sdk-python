@@ -95,7 +95,7 @@ body:
       description: |
         Adapt as needed. Technical areas this issue touches to help developers self-select based on expertise.
       value: |
-        <!-- Edit Technical Domains If needed -->      
+        <!-- Edit Technical Domains If needed -->
 
         - [ ] **Intermediate to Advanced Programming** (Object oriented design, inheritance, complex type systems)
         - [ ] **File Specific Knowledge** (request → serialization → execution → response mapping)
@@ -140,7 +140,7 @@ body:
     attributes:
       label: 🧪 Testing Requirements
       description: |
-        Edit this section to set clear expectations for testing. 
+        Edit this section to set clear expectations for testing.
         What types of tests should they write? How should they run them? What should they link in their PR as evidence?
       value: |
         How you test depends on the type of change.

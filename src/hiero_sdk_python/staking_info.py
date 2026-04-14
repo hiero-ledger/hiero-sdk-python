@@ -1,9 +1,8 @@
-"""
-StakingInfo class.
-"""
+"""StakingInfo class."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo as StakingInfoProto
@@ -17,41 +16,37 @@ class StakingInfo:
     Represents staking-related information for an account.
 
     Attributes:
-        decline_reward (Optional[bool]): Whether rewards are declined.
-        stake_period_start (Optional[Timestamp]): Start of the staking period.
-        pending_reward (Optional[Hbar]): Pending staking reward in Hbar.
-        staked_to_me (Optional[Hbar]): Amount staked to this account in Hbar.
-        staked_account_id (Optional[AccountId]): Account ID this account is staked to.
-        staked_node_id (Optional[int]): Node ID this account is staked to.
+        decline_reward (bool, optional): Whether rewards are declined.
+        stake_period_start (Timestamp, optional): Start of the staking period.
+        pending_reward (Hbar, optional): Pending staking reward in Hbar.
+        staked_to_me (Hbar, optional): Amount staked to this account in Hbar.
+        staked_account_id (AccountId, optional): Account ID this account is staked to.
+        staked_node_id (int, optional): Node ID this account is staked to.
     """
 
-    decline_reward: Optional[bool] = None
-    stake_period_start: Optional[Timestamp] = None
-    pending_reward: Optional[Hbar] = None
-    staked_to_me: Optional[Hbar] = None
-    staked_account_id: Optional[AccountId] = None
-    staked_node_id: Optional[int] = None
+    decline_reward: bool | None = None
+    stake_period_start: Timestamp | None = None
+    pending_reward: Hbar | None = None
+    staked_to_me: Hbar | None = None
+    staked_account_id: AccountId | None = None
+    staked_node_id: int | None = None
 
     def __post_init__(self) -> None:
         if self.staked_account_id is not None and self.staked_node_id is not None:
             raise ValueError("Only one of staked_account_id or staked_node_id can be set.")
 
     @classmethod
-    def _from_proto(cls, proto: StakingInfoProto) -> "StakingInfo":
-        """
-        Creates a StakingInfo instance from its protobuf representation.
-        """
+    def _from_proto(cls, proto: StakingInfoProto) -> StakingInfo:
+        """Creates a StakingInfo instance from its protobuf representation."""
         if proto is None:
             raise ValueError("Staking info proto is None")
 
-        decline_reward = proto.decline_reward
-        
         stake_period_start = None
         if proto.HasField("stake_period_start"):
             stake_period_start = Timestamp._from_protobuf(proto.stake_period_start)
 
-        pending_reward=Hbar.from_tinybars(proto.pending_reward)
-        staked_to_me=Hbar.from_tinybars(proto.staked_to_me)
+        pending_reward = Hbar.from_tinybars(proto.pending_reward)
+        staked_to_me = Hbar.from_tinybars(proto.staked_to_me)
 
         staked_account_id = None
         if proto.HasField("staked_account_id"):
@@ -71,9 +66,7 @@ class StakingInfo:
         )
 
     def _to_proto(self) -> StakingInfoProto:
-        """
-        Converts this StakingInfo instance to its protobuf representation.
-        """
+        """Converts this StakingInfo instance to its protobuf representation."""
         proto = StakingInfoProto()
 
         if self.decline_reward is not None:
@@ -92,10 +85,8 @@ class StakingInfo:
         return proto
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> "StakingInfo":
-        """
-        Creates a StakingInfo instance from protobuf-encoded bytes.
-        """
+    def from_bytes(cls, data: bytes) -> StakingInfo:
+        """Creates a StakingInfo instance from protobuf-encoded bytes."""
         if not isinstance(data, bytes):
             raise TypeError("data must be bytes")
         if len(data) == 0:
@@ -109,9 +100,7 @@ class StakingInfo:
         return cls._from_proto(proto)
 
     def to_bytes(self) -> bytes:
-        """
-        Serializes this StakingInfo instance to protobuf-encoded bytes.
-        """
+        """Serializes this StakingInfo instance to protobuf-encoded bytes."""
         return self._to_proto().SerializeToString()
 
     def __str__(self) -> str:

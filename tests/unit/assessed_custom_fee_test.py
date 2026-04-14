@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -43,10 +45,10 @@ def test_constructor_all_fields(
     assert fee.fee_collector_account_id == sample_account_id
     assert fee.effective_payer_account_ids == payers
     # Protect against breaking changes
-    assert hasattr(fee, 'amount')
-    assert hasattr(fee, 'token_id')
-    assert hasattr(fee, 'fee_collector_account_id')
-    assert hasattr(fee, 'effective_payer_account_ids')
+    assert hasattr(fee, "amount")
+    assert hasattr(fee, "token_id")
+    assert hasattr(fee, "fee_collector_account_id")
+    assert hasattr(fee, "effective_payer_account_ids")
 
 
 def test_constructor_hbar_case(sample_account_id: AccountId):
@@ -71,6 +73,7 @@ def test_constructor_empty_payers(sample_account_id: AccountId, sample_token_id:
     assert fee.effective_payer_account_ids == []
     assert fee.token_id == sample_token_id
 
+
 def test_constructor_missing_fee_collector_raises():
     """Verify that omitting fee_collector_account_id raises ValueError."""
     with pytest.raises(ValueError, match="fee_collector_account_id is required"):
@@ -79,6 +82,7 @@ def test_constructor_missing_fee_collector_raises():
             token_id=None,
             fee_collector_account_id=None,
         )
+
 
 def test_from_proto_missing_token_id(sample_account_id: AccountId):
     """Verify that absence of token_id in protobuf correctly maps to None."""
@@ -94,6 +98,7 @@ def test_from_proto_missing_token_id(sample_account_id: AccountId):
     assert fee.token_id is None, "token_id should be None when not present in proto"
     assert fee.fee_collector_account_id == sample_account_id
     assert fee.effective_payer_account_ids == [], "effective payers should default to empty list"
+
 
 def test_from_proto_with_token_id(sample_account_id: AccountId, sample_token_id: TokenId):
     """Verify that token_id is correctly deserialized when present in proto."""
@@ -112,11 +117,13 @@ def test_from_proto_with_token_id(sample_account_id: AccountId, sample_token_id:
     assert fee.fee_collector_account_id == sample_account_id
     assert len(fee.effective_payer_account_ids) == 1
 
+
 def test_from_proto_missing_fee_collector_raises():
     """Verify that missing fee_collector_account_id in proto raises ValueError."""
     proto = AssessedCustomFeeProto(amount=750_000)
     with pytest.raises(ValueError, match="fee_collector_account_id is required"):
         AssessedCustomFee._from_proto(proto)
+
 
 def test_to_proto_basic_fields(
     sample_account_id: AccountId,

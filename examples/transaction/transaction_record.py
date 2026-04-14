@@ -33,19 +33,16 @@ def create_mock_record():
     tx_id = TransactionId.from_string("0.0.1234@1698765432.000000000")
 
     receipt_proto = transaction_receipt_pb2.TransactionReceipt()
-    receipt_proto.status = ResponseCode.SUCCESS.value  
+    receipt_proto.status = ResponseCode.SUCCESS.value
 
-    receipt = TransactionReceipt(
-        receipt_proto=receipt_proto,
-        transaction_id=tx_id
-    )
+    receipt = TransactionReceipt(receipt_proto=receipt_proto, transaction_id=tx_id)
 
     ts = Timestamp(seconds=1698765432, nanos=123456789)
     sched = ScheduleId(0, 0, 9999)
 
     record = TransactionRecord(
         transaction_id=tx_id,
-        transaction_hash=b'\x01\x02\x03\x04' * 12,
+        transaction_hash=b"\x01\x02\x03\x04" * 12,
         transaction_memo="Hello from example!",
         transaction_fee=50000,
         receipt=receipt,
@@ -63,26 +60,25 @@ def create_mock_record():
             AssessedCustomFee(
                 amount=1000000,
                 fee_collector_account_id=AccountId(shard=0, realm=0, num=98),
-                effective_payer_account_ids=[AccountId(shard=0, realm=0, num=100)]
+                effective_payer_account_ids=[AccountId(shard=0, realm=0, num=100)],
             )
         ],
         automatic_token_associations=[
             TokenAssociation(
-                token_id=TokenId(shard=0, realm=0, num=5678),
-                account_id=AccountId(shard=0, realm=0, num=1234)
+                token_id=TokenId(shard=0, realm=0, num=5678), account_id=AccountId(shard=0, realm=0, num=1234)
             )
         ],
         parent_consensus_timestamp=ts,
-        alias=b'\x12\x34\x56\x78\x9a\xbc',
-        ethereum_hash=b'\xab' * 32,
+        alias=b"\x12\x34\x56\x78\x9a\xbc",
+        ethereum_hash=b"\xab" * 32,
         paid_staking_rewards=[
             (AccountId(shard=0, realm=0, num=456), 500000),
-            (AccountId(shard=0, realm=0, num=789), 250000)
+            (AccountId(shard=0, realm=0, num=789), 250000),
         ],
-        evm_address=b'\xef' * 20,
+        evm_address=b"\xef" * 20,
         contract_create_result=ContractFunctionResult(
             contract_id=ContractId(shard=0, realm=0, contract=1000),
-            contract_call_result=b"Contract created successfully!"
+            contract_call_result=b"Contract created successfully!",
         ),
     )
 
@@ -90,6 +86,7 @@ def create_mock_record():
     record.transfers[AccountId(shard=0, realm=0, num=200)] = 10000
 
     return record
+
 
 def _print_basic_fields(record):
     print("Basic:")
@@ -112,7 +109,9 @@ def _print_basic_fields(record):
 def _print_transfer_fields(record):
     print(f"  HBAR Transfers: {dict(record.transfers) if record.transfers else 'None'}")
     print(f"  Token Transfers: {dict(record.token_transfers) if record.token_transfers else 'None'}")
-    print(f"  NFT Transfers: { {k: len(v) for k, v in record.nft_transfers.items()} if record.nft_transfers else 'None'}")
+    print(
+        f"  NFT Transfers: { {k: len(v) for k, v in record.nft_transfers.items()} if record.nft_transfers else 'None' }"
+    )
     print(f"  Pending Airdrops: {len(record.new_pending_airdrops)}")
 
 
@@ -123,7 +122,9 @@ def _print_new_fields(record):
     print(f"  Assessed Custom Fees ({len(record.assessed_custom_fees)}):")
     for fee in record.assessed_custom_fees:
         token = fee.token_id if fee.token_id else "HBAR"
-        payers = ", ".join(str(p) for p in fee.effective_payer_account_ids) if fee.effective_payer_account_ids else "N/A"
+        payers = (
+            ", ".join(str(p) for p in fee.effective_payer_account_ids) if fee.effective_payer_account_ids else "N/A"
+        )
         print(f"    - {fee.amount} {token} → Collector: {fee.fee_collector_account_id}, Payers: {payers}")
     print(f"  Automatic Token Associations ({len(record.automatic_token_associations)}):")
     for assoc in record.automatic_token_associations:
@@ -136,7 +137,9 @@ def _print_new_fields(record):
     print(f"  EVM Address (hex): {record.evm_address.hex() if record.evm_address else 'None'}")
     if record.contract_create_result:
         print(f"  Contract Create Result: {record.contract_create_result.contract_id}")
-        print(f"    Result bytes (first 32): {record.contract_create_result.contract_call_result[:32].hex() if record.contract_create_result.contract_call_result else 'None'}...")
+        print(
+            f"    Result bytes (first 32): {record.contract_create_result.contract_call_result[:32].hex() if record.contract_create_result.contract_call_result else 'None'}..."
+        )
     else:
         print("  Contract Create Result: None")
 
@@ -147,7 +150,8 @@ def print_all_fields(record):
     _print_basic_fields(record)
     _print_transfer_fields(record)
     _print_new_fields(record)
-    
+
+
 def main():
     """Run the TransactionRecord example."""
     print("Creating mock TransactionRecord...\n")
@@ -157,4 +161,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    

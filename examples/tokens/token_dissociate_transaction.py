@@ -1,6 +1,7 @@
 # uv run examples/tokens/token_dissociate_transaction.py
 # python examples/tokens/token_dissociate_transaction.py
 """A full example that creates an account, two tokens, associates them, and finally dissociates them."""
+
 import os
 import sys
 
@@ -24,8 +25,6 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
-
-
 
 
 def create_new_account(client, operator_id, operator_key):
@@ -79,14 +78,10 @@ def create_token(client, operator_key, recipient_id, recipient_key, operator_id)
             .set_initial_supply(1)
             .set_treasury_account_id(operator_id)
         )
-        fungible_receipt = (
-            fungible_tx.freeze_with(client).sign(operator_key).execute(client)
-        )
+        fungible_receipt = fungible_tx.freeze_with(client).sign(operator_key).execute(client)
         fungible_token_id = fungible_receipt.token_id
 
-        print(
-            f"✅ Success! Created NFT token: {nft_token_id} and fungible token: {fungible_token_id}"
-        )
+        print(f"✅ Success! Created NFT token: {nft_token_id} and fungible token: {fungible_token_id}")
         return client, nft_token_id, fungible_token_id, recipient_id, recipient_key
 
     except Exception as e:
@@ -94,21 +89,15 @@ def create_token(client, operator_key, recipient_id, recipient_key, operator_id)
         sys.exit(1)
 
 
-def token_associate(
-    client, nft_token_id, fungible_token_id, recipient_id, recipient_key
-):
+def token_associate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key):
     """
     Associate the tokens with the new account.
 
     Note: Tokens must be associated with an account before they can be used or dissociated.
     Association is a prerequisite for holding, transferring, or later dissociating tokens.
     """
-    print(
-        f"\nSTEP 3: Associating NFT and fungible tokens with account {recipient_id}..."
-    )
-    print(
-        "Note: Tokens must be associated with an account before they can be used or dissociated."
-    )
+    print(f"\nSTEP 3: Associating NFT and fungible tokens with account {recipient_id}...")
+    print("Note: Tokens must be associated with an account before they can be used or dissociated.")
     try:
         receipt = (
             TokenAssociateTransaction()
@@ -130,21 +119,14 @@ def verify_dissociation(client, nft_token_id, fungible_token_id, recipient_id):
     """Verify that the specified tokens are dissociated from the account."""
     print("\nVerifying token dissociation...")
     info = AccountInfoQuery().set_account_id(recipient_id).execute(client)
-    associated_tokens = [
-        rel.token_id for rel in getattr(info, "token_relationships", [])
-    ]
-    if (
-        nft_token_id not in associated_tokens
-        and fungible_token_id not in associated_tokens
-    ):
+    associated_tokens = [rel.token_id for rel in getattr(info, "token_relationships", [])]
+    if nft_token_id not in associated_tokens and fungible_token_id not in associated_tokens:
         print("✅ Verified: Both tokens are dissociated from the account.")
     else:
         print("❌ Verification failed: Some tokens are still associated.")
 
 
-def token_dissociate(
-    client, nft_token_id, fungible_token_id, recipient_id, recipient_key
-):
+def token_dissociate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key):
     """
     Dissociate the tokens from the new account.
 
@@ -154,9 +136,7 @@ def token_dissociate(
     - For security or privacy reasons
     - To comply with business or regulatory requirements
     """
-    print(
-        f"\nSTEP 4: Dissociating NFT and fungible tokens from account {recipient_id}..."
-    )
+    print(f"\nSTEP 4: Dissociating NFT and fungible tokens from account {recipient_id}...")
     try:
         receipt = (
             TokenDissociateTransaction()
@@ -194,12 +174,8 @@ def main():
     client, nft_token_id, fungible_token_id, recipient_id, recipient_key = create_token(
         client, operator_key, recipient_id, recipient_key, operator_id
     )
-    token_associate(
-        client, nft_token_id, fungible_token_id, recipient_id, recipient_key
-    )
-    token_dissociate(
-        client, nft_token_id, fungible_token_id, recipient_id, recipient_key
-    )
+    token_associate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key)
+    token_dissociate(client, nft_token_id, fungible_token_id, recipient_id, recipient_key)
     # Optional: Verify dissociation
     verify_dissociation(client, nft_token_id, fungible_token_id, recipient_id)
 

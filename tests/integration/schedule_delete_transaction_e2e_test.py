@@ -2,6 +2,8 @@
 Integration tests for ScheduleDeleteTransaction.
 """
 
+from __future__ import annotations
+
 import datetime
 
 import pytest
@@ -14,7 +16,6 @@ from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils import env
 
 
 @pytest.mark.integration
@@ -30,9 +31,7 @@ def test_integration_schedule_delete_transaction_can_execute(env):
     )
 
     current_time = datetime.datetime.now()
-    future_expiration = Timestamp.from_date(
-        current_time + datetime.timedelta(seconds=30)
-    )
+    future_expiration = Timestamp.from_date(current_time + datetime.timedelta(seconds=30))
 
     receipt = (
         schedule_create_tx.set_payer_account_id(account.id)
@@ -45,19 +44,17 @@ def test_integration_schedule_delete_transaction_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
     schedule_id = receipt.schedule_id
 
-    receipt = (
-        ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    receipt = ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
     assert schedule_info is not None, "Schedule Info should not be None"
@@ -68,12 +65,10 @@ def test_integration_schedule_delete_transaction_can_execute(env):
 def test_integration_schedule_delete_transaction_fails_with_invalid_schedule_id(env):
     """Test that ScheduleDeleteTransaction fails if schedule_id is invalid."""
     schedule_id = ScheduleId(0, 0, 999999999)
-    receipt = (
-        ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    receipt = ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    assert receipt.status == ResponseCode.INVALID_SCHEDULE_ID, (
+        f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.INVALID_SCHEDULE_ID
-    ), f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
 
 
 @pytest.mark.integration
@@ -89,9 +84,7 @@ def test_integration_schedule_delete_transaction_fails_with_invalid_signature(en
     )
 
     current_time = datetime.datetime.now()
-    future_expiration = Timestamp.from_date(
-        current_time + datetime.timedelta(seconds=30)
-    )
+    future_expiration = Timestamp.from_date(current_time + datetime.timedelta(seconds=30))
 
     receipt = (
         schedule_create_tx.set_payer_account_id(env.operator_id)
@@ -104,19 +97,17 @@ def test_integration_schedule_delete_transaction_fails_with_invalid_signature(en
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
     schedule_id = receipt.schedule_id
 
-    receipt = (
-        ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    receipt = ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
+        f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.INVALID_SIGNATURE
-    ), f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
     assert schedule_info is not None, "Schedule Info should not be None"
@@ -140,19 +131,17 @@ def test_integration_schedule_delete_transaction_fails_with_immutable_schedule(e
         .set_schedule_memo("test schedule delete transaction")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
     schedule_id = receipt.schedule_id
 
-    receipt = (
-        ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    receipt = ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    assert receipt.status == ResponseCode.SCHEDULE_IS_IMMUTABLE, (
+        f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.SCHEDULE_IS_IMMUTABLE
-    ), f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
     assert schedule_info is not None, "Schedule Info should not be None"
@@ -178,19 +167,17 @@ def test_integration_schedule_delete_transaction_fails_schedule_already_executed
         .sign(account.key)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
     schedule_id = receipt.schedule_id
 
-    receipt = (
-        ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    receipt = ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    assert receipt.status == ResponseCode.SCHEDULE_ALREADY_EXECUTED, (
+        f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.SCHEDULE_ALREADY_EXECUTED
-    ), f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
     assert schedule_info is not None, "Schedule Info should not be None"
@@ -214,27 +201,23 @@ def test_integration_schedule_delete_transaction_fails_schedule_already_deleted(
         .set_schedule_memo("test schedule delete transaction")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
     schedule_id = receipt.schedule_id
 
-    receipt = (
-        ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    receipt = ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
 
     schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
     assert schedule_info is not None, "Schedule Info should not be None"
     assert schedule_info.deleted_at is not None, "Schedule should be deleted"
 
-    receipt = (
-        ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    receipt = ScheduleDeleteTransaction().set_schedule_id(schedule_id).execute(env.client)
+    assert receipt.status == ResponseCode.SCHEDULE_ALREADY_DELETED, (
+        f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.SCHEDULE_ALREADY_DELETED
-    ), f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"

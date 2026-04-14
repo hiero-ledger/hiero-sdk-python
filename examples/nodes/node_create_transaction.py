@@ -17,6 +17,7 @@ Setup options:
 1. GitHub repository with full setup instructions: https://github.com/hiero-ledger/solo
 2. Official documentation with step-by-step guide: https://solo.hiero.org/v0.43.0/docs/step-by-step-guide/
 """
+
 import sys
 
 from dotenv import load_dotenv
@@ -25,6 +26,7 @@ from hiero_sdk_python import AccountId, Client, Network, PrivateKey
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.nodes.node_create_transaction import NodeCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+
 
 # Gossip certificate is a DER-encoded x509 certificate used for secure communication between nodes.
 # This certificate authenticates the node's identity during gossip protocol communication.
@@ -50,8 +52,7 @@ def setup_client():
     # The private key is intentionally public for local development.
     # Note: This setup only works on solo network and will not work on testnet/mainnet.
     original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e7"
-        "2057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
+        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
     )
     client.set_operator(AccountId(0, 0, 2), original_operator_key)
 

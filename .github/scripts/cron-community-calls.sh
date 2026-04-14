@@ -90,7 +90,7 @@ echo "$ISSUE_DATA" |
       echo "Skipping issue #$ISSUE_NUM created by bot account @$AUTHOR"
       continue
     fi
-    
+
     for EXCLUDED in "${EXCLUDED_AUTHORS[@]}"; do
       if [ "$AUTHOR" = "$EXCLUDED" ]; then
         echo "Skipping issue #$ISSUE_NUM by excluded author @$AUTHOR"

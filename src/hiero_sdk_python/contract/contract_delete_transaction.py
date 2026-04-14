@@ -1,8 +1,6 @@
-"""
-ContractDeleteTransaction class.
-"""
+"""ContractDeleteTransaction class."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -25,49 +23,47 @@ class ContractDeleteTransaction(Transaction):
     from the network state.
 
     Args:
-        contract_id (Optional[ContractId]): The ID of the contract to delete.
-        transfer_contract_id (Optional[ContractId]): The contract ID to transfer
+        contract_id (ContractId, optional): The ID of the contract to delete.
+        transfer_contract_id (ContractId, optional): The contract ID to transfer
             remaining balance to.
-        transfer_account_id (Optional[AccountId]): The account ID to transfer
+        transfer_account_id (AccountId, optional): The account ID to transfer
             remaining balance to.
-        permanent_removal (Optional[bool]): Whether to permanently remove the
+        permanent_removal (bool, optional): Whether to permanently remove the
             contract from network state.
     """
 
     def __init__(
         self,
-        contract_id: Optional[ContractId] = None,
-        transfer_contract_id: Optional[ContractId] = None,
-        transfer_account_id: Optional[AccountId] = None,
-        permanent_removal: Optional[bool] = None,
+        contract_id: ContractId | None = None,
+        transfer_contract_id: ContractId | None = None,
+        transfer_account_id: AccountId | None = None,
+        permanent_removal: bool | None = None,
     ):
         """
         Initializes a new ContractDeleteTransaction instance.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract to delete.
-            transfer_contract_id (Optional[ContractId]): The contract ID to transfer
+            contract_id (ContractId, optional): The ID of the contract to delete.
+            transfer_contract_id (ContractId, optional): The contract ID to transfer
                 remaining balance to.
-            transfer_account_id (Optional[AccountId]): The account ID to transfer
+            transfer_account_id (AccountId, optional): The account ID to transfer
                 remaining balance to.
-            permanent_removal (Optional[bool]): Whether to permanently remove the
+            permanent_removal (bool, optional): Whether to permanently remove the
                 contract from network state.
         """
         super().__init__()
-        self.contract_id: Optional[ContractId] = contract_id
-        self.transfer_contract_id: Optional[ContractId] = transfer_contract_id
-        self.transfer_account_id: Optional[AccountId] = transfer_account_id
-        self.permanent_removal: Optional[bool] = permanent_removal
+        self.contract_id: ContractId | None = contract_id
+        self.transfer_contract_id: ContractId | None = transfer_contract_id
+        self.transfer_account_id: AccountId | None = transfer_account_id
+        self.permanent_removal: bool | None = permanent_removal
         self._default_transaction_fee = Hbar(2).to_tinybars()
 
-    def set_contract_id(
-        self, contract_id: Optional[ContractId]
-    ) -> "ContractDeleteTransaction":
+    def set_contract_id(self, contract_id: ContractId | None) -> ContractDeleteTransaction:
         """
         Sets the ID of the contract to delete.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract to delete.
+            contract_id (ContractId | None): The ID of the contract to delete.
 
         Returns:
             ContractDeleteTransaction: This transaction instance.
@@ -76,9 +72,7 @@ class ContractDeleteTransaction(Transaction):
         self.contract_id = contract_id
         return self
 
-    def set_transfer_contract_id(
-        self, transfer_contract_id: Optional[ContractId]
-    ) -> "ContractDeleteTransaction":
+    def set_transfer_contract_id(self, transfer_contract_id: ContractId | None) -> ContractDeleteTransaction:
         """
         Sets the contract ID to transfer the remaining balance to.
 
@@ -87,7 +81,7 @@ class ContractDeleteTransaction(Transaction):
         contract for the balance transfer.
 
         Args:
-            transfer_contract_id (Optional[ContractId]): The contract ID to transfer
+            transfer_contract_id (ContractId | None): The contract ID to transfer
                 remaining balance to.
 
         Returns:
@@ -97,9 +91,7 @@ class ContractDeleteTransaction(Transaction):
         self.transfer_contract_id = transfer_contract_id
         return self
 
-    def set_transfer_account_id(
-        self, transfer_account_id: Optional[AccountId]
-    ) -> "ContractDeleteTransaction":
+    def set_transfer_account_id(self, transfer_account_id: AccountId | None) -> ContractDeleteTransaction:
         """
         Sets the account ID to transfer the remaining balance to.
 
@@ -108,7 +100,7 @@ class ContractDeleteTransaction(Transaction):
         account for the balance transfer.
 
         Args:
-            transfer_account_id (Optional[AccountId]): The account ID to transfer
+            transfer_account_id (AccountId | None): The account ID to transfer
                 remaining balance to.
 
         Returns:
@@ -118,9 +110,7 @@ class ContractDeleteTransaction(Transaction):
         self.transfer_account_id = transfer_account_id
         return self
 
-    def set_permanent_removal(
-        self, permanent_removal: Optional[bool]
-    ) -> "ContractDeleteTransaction":
+    def set_permanent_removal(self, permanent_removal: bool | None) -> ContractDeleteTransaction:
         """
         Sets whether to permanently remove the contract from network state.
 
@@ -129,7 +119,7 @@ class ContractDeleteTransaction(Transaction):
         be recoverable depending on network configuration.
 
         Args:
-            permanent_removal (Optional[bool]): Whether to permanently remove the
+            permanent_removal (bool | None): Whether to permanently remove the
                 contract from network state.
 
         Returns:
@@ -154,16 +144,8 @@ class ContractDeleteTransaction(Transaction):
 
         contract_delete_body = ContractDeleteTransactionBody(
             contractID=self.contract_id._to_proto(),
-            transferContractID=(
-                self.transfer_contract_id._to_proto()
-                if self.transfer_contract_id
-                else None
-            ),
-            transferAccountID=(
-                self.transfer_account_id._to_proto()
-                if self.transfer_account_id
-                else None
-            ),
+            transferContractID=(self.transfer_contract_id._to_proto() if self.transfer_contract_id else None),
+            transferAccountID=(self.transfer_account_id._to_proto() if self.transfer_account_id else None),
             permanent_removal=self.permanent_removal,
         )
 
@@ -182,6 +164,4 @@ class ContractDeleteTransaction(Transaction):
             _Method: An object containing the transaction function to
                 delete contracts.
         """
-        return _Method(
-            transaction_func=channel.smart_contract.deleteContract, query_func=None
-        )
+        return _Method(transaction_func=channel.smart_contract.deleteContract, query_func=None)

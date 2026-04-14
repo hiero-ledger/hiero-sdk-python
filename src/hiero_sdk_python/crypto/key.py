@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 from hiero_sdk_python.hapi.services import basic_types_pb2
@@ -12,7 +14,7 @@ class Key(ABC):
     """
 
     @classmethod
-    def from_proto_key(cls, proto: basic_types_pb2.Key) -> "Key":
+    def from_proto_key(cls, proto: basic_types_pb2.Key) -> Key:
         """
         Convert a protobuf Key message into the appropriate SDK Key object.
 
@@ -37,11 +39,11 @@ class Key(ABC):
           TypeError: If proto is not a Key protobuf message.
           ValueError: If the key type is unknown.
         """
-        from hiero_sdk_python.crypto.public_key import PublicKey
-        from hiero_sdk_python.crypto.evm_address import EvmAddress
         from hiero_sdk_python.contract.contract_id import ContractId
         from hiero_sdk_python.contract.delegate_contract_id import DelegateContractId
+        from hiero_sdk_python.crypto.evm_address import EvmAddress
         from hiero_sdk_python.crypto.key_list import KeyList
+        from hiero_sdk_python.crypto.public_key import PublicKey
 
         if not isinstance(proto, basic_types_pb2.Key):
             raise TypeError("proto must be an instance of basic_types_pb2.Key")
@@ -77,7 +79,7 @@ class Key(ABC):
                 raise ValueError(f"Unknown key type: {key_type}")
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> "Key":
+    def from_bytes(cls, data: bytes) -> Key:
         """
         Deserialize a Key object from protobuf-encoded bytes.
 

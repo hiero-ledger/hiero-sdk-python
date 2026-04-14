@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import pytest
 
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 pytestmark = pytest.mark.unit
 
@@ -188,9 +191,7 @@ def test_from_proto_threshold():
 
     proto_key = kl.to_proto_key()
 
-    loaded = KeyList.from_proto(
-        proto_key.thresholdKey.keys, threshold=proto_key.thresholdKey.threshold
-    )
+    loaded = KeyList.from_proto(proto_key.thresholdKey.keys, threshold=proto_key.thresholdKey.threshold)
 
     assert loaded.threshold == 2
     assert len(loaded.keys) == 3

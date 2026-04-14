@@ -17,6 +17,7 @@ Required environment variables:
 Usage:
 uv run examples/token_create_transaction_pause_key.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -42,6 +43,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 # -------------------------------------------------------
 # TOKEN CREATION (NO PAUSE KEY)
@@ -75,19 +77,12 @@ def create_token_without_pause_key(client, operator_id, operator_key):
 def attempt_pause_should_fail(client, token_id, operator_key):
     print("🔹 Attempting to pause token WITHOUT a pause key... (expected failure)")
 
-    tx = (
-        TokenPauseTransaction()
-        .set_token_id(token_id)
-        .freeze_with(client)
-        .sign(operator_key)
-    )
+    tx = TokenPauseTransaction().set_token_id(token_id).freeze_with(client).sign(operator_key)
 
     receipt = tx.execute(client)
 
     if receipt.status == ResponseCode.TOKEN_HAS_NO_PAUSE_KEY:
-        print(
-            "✅ Expected failure: token cannot be paused because no pause key exists.\n"
-        )
+        print("✅ Expected failure: token cannot be paused because no pause key exists.\n")
     else:
         print(f"❌ Unexpected status: {ResponseCode(receipt.status).name}\n")
 
@@ -130,12 +125,7 @@ def create_token_with_pause_key(client, operator_id, operator_key, pause_key):
 def pause_token(client, token_id, pause_key):
     print("🔹 Pausing token...")
 
-    tx = (
-        TokenPauseTransaction()
-        .set_token_id(token_id)
-        .freeze_with(client)
-        .sign(pause_key)
-    )
+    tx = TokenPauseTransaction().set_token_id(token_id).freeze_with(client).sign(pause_key)
 
     receipt = tx.execute(client)
     if receipt.status == ResponseCode.SUCCESS:
@@ -147,12 +137,7 @@ def pause_token(client, token_id, pause_key):
 def unpause_token(client, token_id, pause_key):
     print("🔹 Unpausing token...")
 
-    tx = (
-        TokenUnpauseTransaction()
-        .set_token_id(token_id)
-        .freeze_with(client)
-        .sign(pause_key)
-    )
+    tx = TokenUnpauseTransaction().set_token_id(token_id).freeze_with(client).sign(pause_key)
 
     receipt = tx.execute(client)
     if receipt.status == ResponseCode.SUCCESS:
@@ -191,9 +176,7 @@ def create_temp_account(client, operator_key):
     return account_id, new_key
 
 
-def test_transfer_while_paused(
-    client, operator_id, operator_key, recipient_id, token_id
-):
+def test_transfer_while_paused(client, operator_id, operator_key, recipient_id, token_id):
     print("🔹 Attempting transfer WHILE token is paused (expected failure)...")
 
     tx = (
@@ -227,16 +210,12 @@ def main():
     print("\n==================== PART 2 — WITH PAUSE KEY ====================\n")
     pause_key = PrivateKey.generate_ed25519()
 
-    token_with_pause = create_token_with_pause_key(
-        client, operator_id, operator_key, pause_key
-    )
+    token_with_pause = create_token_with_pause_key(client, operator_id, operator_key, pause_key)
 
     pause_token(client, token_with_pause, pause_key)
 
     recipient_id, _ = create_temp_account(client, operator_key)
-    test_transfer_while_paused(
-        client, operator_id, operator_key, recipient_id, token_with_pause
-    )
+    test_transfer_while_paused(client, operator_id, operator_key, recipient_id, token_with_pause)
 
     unpause_token(client, token_with_pause, pause_key)
 

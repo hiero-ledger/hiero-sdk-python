@@ -2,6 +2,8 @@
 Test cases for the ScheduleDeleteTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -23,6 +25,7 @@ from hiero_sdk_python.schedule.schedule_delete_transaction import (
 )
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -62,10 +65,7 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, delete_p
 
     transaction_body = delete_tx.build_transaction_body()
 
-    assert (
-        transaction_body.scheduleDelete.scheduleID
-        == delete_params["schedule_id"]._to_proto()
-    )
+    assert transaction_body.scheduleDelete.scheduleID == delete_params["schedule_id"]._to_proto()
 
 
 def test_build_transaction_body_missing_schedule_id():
@@ -232,9 +232,7 @@ def test_schedule_delete_transaction_can_execute():
     # Create a response for the receipt query
     receipt_query_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=mock_receipt_proto,
         )
     )
@@ -250,6 +248,4 @@ def test_schedule_delete_transaction_can_execute():
 
         receipt = transaction.execute(client)
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), "Transaction should have succeeded"
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"

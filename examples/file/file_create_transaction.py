@@ -9,18 +9,14 @@ python examples/file_create_transaction.py
 """
 
 import sys
-import os
-
-from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    AccountId,
     Client,
-    Network,
     PrivateKey,
 )
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+
 
 def setup_client():
     """Initialize and set up the client with operator account."""
@@ -46,9 +42,7 @@ def file_create():
     # Create file
     receipt = (
         FileCreateTransaction()
-        .set_keys(
-            file_private_key.public_key()
-        )  # Set the keys required to sign any modifications to this file
+        .set_keys(file_private_key.public_key())  # Set the keys required to sign any modifications to this file
         .set_contents(b"Hello, this is the content of my file on Hedera!")
         .set_file_memo("My first file on Hedera")
         .freeze_with(client)

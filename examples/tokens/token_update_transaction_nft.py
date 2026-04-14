@@ -5,6 +5,7 @@ Example demonstrating token update transaction nft.
 uv run examples/tokens/token_update_transaction_nft.py
 python examples/tokens/token_update_transaction_nft.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -24,6 +25,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def create_nft(client, operator_id, operator_key, metadata_key):
     """
@@ -70,7 +72,6 @@ def get_nft_info(client, nft_token_id):
     return TokenInfoQuery().set_token_id(nft_token_id).execute(client)
 
 
-
 def update_nft_data(
     client,
     nft_token_id,
@@ -91,9 +92,7 @@ def update_nft_data(
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"NFT data update failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"NFT data update failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print("Successfully updated NFT data")

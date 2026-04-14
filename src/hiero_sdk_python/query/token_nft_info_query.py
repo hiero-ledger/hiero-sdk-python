@@ -1,23 +1,26 @@
-from typing import Optional, Any, Union
-from hiero_sdk_python.query.query import Query
-from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_nft_info_pb2
-from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.channels import _Channel
+from __future__ import annotations
+
 import traceback
 
+from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_nft_info_pb2
+from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_nft_info import TokenNftInfo
+
 
 class TokenNftInfoQuery(Query):
     """
     A query to retrieve information about a specific Hedera NFT.
-    
+
     This class constructs and executes a query to retrieve information about a NFT
     on the Hedera network, including the NFT's properties and settings.
-    
+
     """
-    def __init__(self, nft_id: Optional[NftId] = None) -> None:
+
+    def __init__(self, nft_id: NftId | None = None) -> None:
         """
         Initializes a new TokenNftInfoQuery instance with an optional nft_id.
 
@@ -25,9 +28,9 @@ class TokenNftInfoQuery(Query):
             nft_id (NftId, optional): The ID of the NFT to query.
         """
         super().__init__()
-        self.nft_id: Optional[NftId] = nft_id
+        self.nft_id: NftId | None = nft_id
 
-    def set_nft_id(self, nft_id: NftId) -> "TokenNftInfoQuery":
+    def set_nft_id(self, nft_id: NftId) -> TokenNftInfoQuery:
         """
         Sets the ID of the NFT to query.
 
@@ -40,7 +43,7 @@ class TokenNftInfoQuery(Query):
     def _make_request(self) -> query_pb2.Query:
         """
         Constructs the protobuf request for the query.
-        
+
         Builds a TokenGetNftInfoQuery protobuf message with the
         appropriate header and nft ID.
 
@@ -63,7 +66,7 @@ class TokenNftInfoQuery(Query):
 
             query = query_pb2.Query()
             query.tokenGetNftInfo.CopyFrom(nft_info_query)
-                  
+
             return query
         except Exception as e:
             print(f"Exception in _make_request: {e}")
@@ -73,7 +76,7 @@ class TokenNftInfoQuery(Query):
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the nft info query.
-        
+
         Implements the abstract method from Query to provide the specific
         gRPC method for getting nft information.
 
@@ -83,15 +86,12 @@ class TokenNftInfoQuery(Query):
         Returns:
             _Method: The method wrapper containing the query function
         """
-        return _Method(
-            transaction_func=None,
-            query_func=channel.token.getTokenNftInfo
-        )
+        return _Method(transaction_func=None, query_func=channel.token.getTokenNftInfo)
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> TokenNftInfo:
+    def execute(self, client: Client, timeout: int | float | None = None) -> TokenNftInfo:
         """
         Executes the nft info query.
-        
+
         Sends the query to the Hedera network and processes the response
         to return a TokenNftInfo object.
 
@@ -99,7 +99,7 @@ class TokenNftInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TokenNftInfo: The token nft info from the network
@@ -117,13 +117,13 @@ class TokenNftInfoQuery(Query):
     def _get_query_response(self, response: response_pb2.Response) -> token_get_nft_info_pb2.TokenGetNftInfoResponse:
         """
         Extracts the nft info response from the full response.
-        
+
         Implements the abstract method from Query to extract the
         specific nft info response object.
-        
+
         Args:
             response: The full response from the network
-            
+
         Returns:
             The token get nft info response object
         """

@@ -20,13 +20,13 @@ jobs:
       pull-requests: write
       issues: write
       actions: read
-    
+
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 # v2.17.0
         with:
           egress-policy: audit
-      
+
       - name: Download Artifact
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         continue-on-error: true
@@ -40,7 +40,7 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
+
             if (!fs.existsSync('labels.json')) {
                console.log("No payload file found. Nothing to apply.");
                return;
@@ -54,7 +54,7 @@ jobs:
             }
 
             console.log(`Applying labels to PR #${data.pr_number}: ${data.labels.join(', ')}`);
-            
+
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
               repo: context.repo.repo,

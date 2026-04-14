@@ -2,6 +2,8 @@
 Unit tests for the ContractExecuteTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -27,6 +29,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -84,16 +87,10 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, execute_
 
     transaction_body = execute_tx.build_transaction_body()
 
-    assert (
-        transaction_body.contractCall.contractID
-        == execute_params["contract_id"]._to_proto()
-    )
+    assert transaction_body.contractCall.contractID == execute_params["contract_id"]._to_proto()
     assert transaction_body.contractCall.gas == execute_params["gas"]
     assert transaction_body.contractCall.amount == execute_params["amount"]
-    assert (
-        transaction_body.contractCall.functionParameters
-        == execute_params["function_parameters"]
-    )
+    assert transaction_body.contractCall.functionParameters == execute_params["function_parameters"]
 
 
 def test_build_scheduled_body_with_valid_parameters(mock_account_ids, execute_params):
@@ -120,16 +117,10 @@ def test_build_scheduled_body_with_valid_parameters(mock_account_ids, execute_pa
     assert schedulable_body.HasField("contractCall")
 
     # Verify fields in the schedulable body
-    assert (
-        schedulable_body.contractCall.contractID
-        == execute_params["contract_id"]._to_proto()
-    )
+    assert schedulable_body.contractCall.contractID == execute_params["contract_id"]._to_proto()
     assert schedulable_body.contractCall.gas == execute_params["gas"]
     assert schedulable_body.contractCall.amount == execute_params["amount"]
-    assert (
-        schedulable_body.contractCall.functionParameters
-        == execute_params["function_parameters"]
-    )
+    assert schedulable_body.contractCall.functionParameters == execute_params["function_parameters"]
 
 
 def test_build_transaction_body_missing_contract_id():
@@ -207,9 +198,7 @@ def test_set_function_parameters_with_contract_function_parameters():
 
 def test_set_function_parameters_with_none(execute_params):
     """Test setting function parameters to None."""
-    execute_tx = ContractExecuteTransaction(
-        function_parameters=execute_params["function_parameters"]
-    )
+    execute_tx = ContractExecuteTransaction(function_parameters=execute_params["function_parameters"])
 
     result = execute_tx.set_function_parameters(None)
 
@@ -288,9 +277,7 @@ def test_set_methods_require_not_frozen(mock_client, execute_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(execute_tx, method_name)(value)
 
 
@@ -328,9 +315,7 @@ def test_build_transaction_body_with_required_params(mock_account_ids, contract_
 
 def test_sign_transaction(mock_client, execute_params):
     """Test signing the contract execute transaction with a private key."""
-    execute_tx = ContractExecuteTransaction(
-        contract_id=execute_params["contract_id"], gas=execute_params["gas"]
-    )
+    execute_tx = ContractExecuteTransaction(contract_id=execute_params["contract_id"], gas=execute_params["gas"])
 
     private_key = MagicMock()
     private_key.sign.return_value = b"signature"
@@ -350,9 +335,7 @@ def test_sign_transaction(mock_client, execute_params):
 
 def test_to_proto(mock_client, execute_params):
     """Test converting the contract execute transaction to protobuf format after signing."""
-    execute_tx = ContractExecuteTransaction(
-        contract_id=execute_params["contract_id"], gas=execute_params["gas"]
-    )
+    execute_tx = ContractExecuteTransaction(contract_id=execute_params["contract_id"], gas=execute_params["gas"])
 
     private_key = MagicMock()
     private_key.sign.return_value = b"signature"
@@ -371,9 +354,7 @@ def test_contract_execute_transaction_can_execute():
     ok_response = transaction_response_pb2.TransactionResponse()
     ok_response.nodeTransactionPrecheckCode = ResponseCode.OK
 
-    contract_id_proto = basic_types_pb2.ContractID(
-        shardNum=0, realmNum=0, contractNum=1234
-    )
+    contract_id_proto = basic_types_pb2.ContractID(shardNum=0, realmNum=0, contractNum=1234)
     mock_receipt_proto = transaction_receipt_pb2.TransactionReceipt(
         status=ResponseCode.SUCCESS, contractID=contract_id_proto
     )
@@ -381,9 +362,7 @@ def test_contract_execute_transaction_can_execute():
     # Create a response for the receipt query
     receipt_query_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=mock_receipt_proto,
         )
     )
@@ -398,14 +377,10 @@ def test_contract_execute_transaction_can_execute():
             ContractExecuteTransaction()
             .set_contract_id(contract_id)
             .set_gas(1000000)
-            .set_function(
-                "setMessage", ContractFunctionParameters().add_bytes32(b"Test message")
-            )
+            .set_function("setMessage", ContractFunctionParameters().add_bytes32(b"Test message"))
         )
 
         receipt = transaction.execute(client)
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), "Transaction should have succeeded"
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
         assert str(receipt.contract_id) == str(contract_id)

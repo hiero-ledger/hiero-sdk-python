@@ -1,10 +1,8 @@
-import hashlib
-import math
-from typing import Optional, Tuple
+from __future__ import annotations
 
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec
+
 
 try:
     from Crypto.Hash import keccak
@@ -30,7 +28,6 @@ def keccak256(data: bytes) -> bytes:
     Raises:
         RuntimeError: If pycryptodome or similar keccak library is not installed.
     """
-
     global keccak
     if keccak is None:
         raise RuntimeError("Keccak not available. Install pycryptodome or similar.")
@@ -55,11 +52,11 @@ def compress_point_unchecked(x: int, y: int) -> bytes:
     Returns:
         bytes: A 33-byte compressed point representation.
     """
-    prefix = 0x02 | (y & 1) 
+    prefix = 0x02 | (y & 1)
     return bytes([prefix]) + x.to_bytes(32, "big")
 
 
-def decompress_point(data: bytes) -> Tuple[int, int]:
+def decompress_point(data: bytes) -> tuple[int, int]:
     """
     Decompress a 33-byte point for secp256k1 into (x, y).
     If 65 bytes, interpret as uncompressed and re-compress or decode, etc.
@@ -68,7 +65,7 @@ def decompress_point(data: bytes) -> Tuple[int, int]:
         x = int.from_bytes(data[1:33], "big")
         y = int.from_bytes(data[33:], "big")
         return (x, y)
-    elif len(data) == 33 and (data[0] in (0x02, 0x03)):
+    if len(data) == 33 and (data[0] in (0x02, 0x03)):
         x = int.from_bytes(data[1:], "big")
     else:
         raise ValueError("Not recognized as compressed or uncompressed SEC1 point.")
@@ -96,8 +93,7 @@ def compress_with_cryptography(encoded: bytes) -> bytes:
         ValueError: If the input is not a valid SEC1 encoded point.
     """
     pub = ec.EllipticCurvePublicKey.from_encoded_point(SECP256K1_CURVE, encoded)
-    compressed = pub.public_bytes(
+    return pub.public_bytes(
         encoding=serialization.Encoding.X962,
         format=serialization.PublicFormat.CompressedPoint,
     )
-    return compressed

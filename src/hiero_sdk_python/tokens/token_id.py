@@ -1,21 +1,24 @@
 """
-hiero_sdk_python.tokens.token_id.py
+hiero_sdk_python.tokens.token_id.py.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines TokenId, a frozen dataclass for representing Hedera token identifiers
 (shard, realm, num) with validation and protobuf conversion utilities.
 """
-from dataclasses import dataclass, field
-from typing import Optional
 
-from hiero_sdk_python.hapi.services import basic_types_pb2
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
+    format_to_string,
+    format_to_string_with_checksum,
     parse_from_string,
     validate_checksum,
-    format_to_string,
-    format_to_string_with_checksum
 )
+
 
 @dataclass(frozen=True, eq=True, init=True, repr=True)
 class TokenId:
@@ -32,6 +35,7 @@ class TokenId:
             when parsing from a string with a checksum. Not directly
             initializable.
     """
+
     shard: int
     realm: int
     num: int
@@ -45,18 +49,18 @@ class TokenId:
             ValueError: If shard, realm, or num is less than 0.
         """
         if self.shard < 0:
-            raise ValueError('Shard must be >= 0')
+            raise ValueError("Shard must be >= 0")
         if self.realm < 0:
-            raise ValueError('Realm must be >= 0')
+            raise ValueError("Realm must be >= 0")
         if self.num < 0:
-            raise ValueError('Num must be >= 0')
+            raise ValueError("Num must be >= 0")
 
     @classmethod
-    def _from_proto(cls, token_id_proto: Optional[basic_types_pb2.TokenID] = None) -> "TokenId":
+    def _from_proto(cls, token_id_proto: basic_types_pb2.TokenID) -> TokenId:
         """Creates a TokenId instance from a protobuf TokenID object.
 
         Args:
-            token_id_proto (Optional[basic_types_pb2.TokenID]): The protobuf
+            token_id_proto (basic_types_pb2.TokenID): The protobuf
                 TokenID object.
 
         Returns:
@@ -66,13 +70,9 @@ class TokenId:
             ValueError: If token_id_proto is None.
         """
         if token_id_proto is None:
-            raise ValueError('TokenId is required')
+            raise ValueError("TokenId is required")
 
-        return cls(
-            shard=token_id_proto.shardNum,
-            realm=token_id_proto.realmNum,
-            num=token_id_proto.tokenNum
-        )
+        return cls(shard=token_id_proto.shardNum, realm=token_id_proto.realmNum, num=token_id_proto.tokenNum)
 
     def _to_proto(self) -> basic_types_pb2.TokenID:
         """Converts the TokenId instance to a protobuf TokenID object.
@@ -87,14 +87,14 @@ class TokenId:
         return token_id_proto
 
     @classmethod
-    def from_string(cls, token_id_str: Optional[str] = None) -> "TokenId":
+    def from_string(cls, token_id_str: str) -> TokenId:
         """Parses a string to create a TokenId instance.
 
         The string can be in the format 'shard.realm.num' or
         'shard.realm.num-checksum'.
 
         Args:
-            token_id_str (Optional[str]): The token ID string to parse.
+            token_id_str (str): The token ID string to parse.
 
         Returns:
             TokenId: The corresponding TokenId instance.
@@ -104,22 +104,17 @@ class TokenId:
                 invalid format.
         """
         if token_id_str is None:
-            raise ValueError("token_id_str cannot be None") 
+            raise ValueError("token_id_str cannot be None")
 
         try:
             shard, realm, num, checksum = parse_from_string(token_id_str)
 
-            token_id = cls(
-                shard=int(shard),
-                realm=int(realm),
-                num=int(num))
-            object.__setattr__(token_id, 'checksum', checksum)
+            token_id = cls(shard=int(shard), realm=int(realm), num=int(num))
+            object.__setattr__(token_id, "checksum", checksum)
 
             return token_id
         except Exception as e:
-            raise ValueError(
-                f"Invalid token ID string '{token_id_str}'. Expected format 'shard.realm.num'."
-            )from e
+            raise ValueError(f"Invalid token ID string '{token_id_str}'. Expected format 'shard.realm.num'.") from e
 
     def validate_checksum(self, client: Client) -> None:
         """Validates the checksum (if present) against the client's network.
@@ -135,15 +130,9 @@ class TokenId:
                 expected checksum for the client's network (e.g.,
                 "Checksum mismatch for 0.0.123").
         """
-        validate_checksum(
-            shard=self.shard,
-            realm=self.realm,
-            num=self.num,
-            checksum=self.checksum,
-            client=client
-        )
+        validate_checksum(shard=self.shard, realm=self.realm, num=self.num, checksum=self.checksum, client=client)
 
-    def to_string_with_checksum(self, client:Client) -> str:
+    def to_string_with_checksum(self, client: Client) -> str:
         """Returns the string representation with a network-specific checksum.
 
         Generates a checksum based on the client's network and returns
@@ -156,12 +145,7 @@ class TokenId:
         Returns:
             str: The token ID string with a calculated checksum.
         """
-        return format_to_string_with_checksum(
-            shard=self.shard,
-            realm=self.realm,
-            num=self.num,
-            client=client
-        )
+        return format_to_string_with_checksum(shard=self.shard, realm=self.realm, num=self.num, client=client)
 
     def __str__(self) -> str:
         """Returns the simple string representation 'shard.realm.num'.
@@ -170,7 +154,7 @@ class TokenId:
             str: The token ID string in 'shard.realm.num' format.
         """
         return format_to_string(self.shard, self.realm, self.num)
-    
+
     def __repr__(self) -> str:
         """
         Returns a detailed representation of the TokenId suitable for debugging.

@@ -23,11 +23,11 @@ setup() {
   TEMP_DIR=$(mktemp -d)
   export PATH="$TEMP_DIR/mocks:$PATH"
   mkdir -p "$TEMP_DIR/mocks"
-  
+
   # Create mock gh command directory
   export GH_MOCK_DIR="$TEMP_DIR/gh_mock_data"
   mkdir -p "$GH_MOCK_DIR"
-  
+
   echo "Test environment created at: $TEMP_DIR"
 }
 
@@ -41,9 +41,9 @@ print_result() {
   local test_name="$1"
   local result="$2"
   local message="${3:-}"
-  
+
   TESTS_RUN=$((TESTS_RUN + 1))
-  
+
   if [[ "$result" == "PASS" ]]; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
     echo -e "${GREEN}✓ PASS${NC}: $test_name"
@@ -93,7 +93,7 @@ if [[ "$1" == "api" ]]; then
       fi
     done
   fi
-  
+
   # Return mock data based on endpoint
   if [[ -f "$GH_MOCK_DIR/${endpoint//\//_}.json" ]]; then
     if [[ -n "$jq_filter" ]]; then
@@ -108,11 +108,11 @@ if [[ "$1" == "api" ]]; then
       echo "[]"
     fi
   fi
-  
+
 elif [[ "$1" == "pr" && "$2" == "view" ]]; then
   # Handle pr view command
   pr_num="$3"
-  
+
   # Check if asking for state
   if [[ "$*" == *"--json state"* ]]; then
     if [[ "$*" == *"--jq"* ]]; then
@@ -185,21 +185,21 @@ elif [[ "$1" == "pr" && "$2" == "view" ]]; then
       fi
     fi
   fi
-  
+
 elif [[ "$1" == "pr" && "$2" == "comment" ]]; then
   # Mock PR comment - just succeed
   echo "Comment added to PR"
-  
+
 elif [[ "$1" == "pr" && "$2" == "close" ]]; then
   # Mock PR close - record that it was called
   pr_num="$3"
   echo "CLOSED_PR_$pr_num" >> "$GH_MOCK_DIR/actions.log"
   echo "PR closed"
-  
+
 elif [[ "$1" == "issue" && "$2" == "comment" ]]; then
   # Mock issue comment
   echo "Comment added to issue"
-  
+
 elif [[ "$1" == "issue" && "$2" == "edit" ]]; then
   # Mock issue edit - record unassignment
   if [[ "$*" == *"--remove-assignee"* ]]; then
@@ -224,18 +224,18 @@ elif [[ "$1" == "issue" && "$2" == "edit" ]]; then
         fi
         break
       fi
-    done  
+    done
   fi
   echo "Issue edited"
-  
+
 elif [[ "$1" == "auth" && "$2" == "status" ]]; then
   # Mock auth check - always succeed
   exit 0
 fi
 MOCK_END
-  
+
   chmod +x "$TEMP_DIR/mocks/gh"
-  
+
   if ! command -v jq >/dev/null 2>&1; then
     echo "WARNING: jq not found, some tests may fail"
   fi
@@ -310,13 +310,13 @@ EOF
 # Setup mock data for a PR with discussion label
 setup_pr_with_discussion_label() {
   local pr_num="$1"
-  
+
   echo '{"state":"OPEN"}' > "$GH_MOCK_DIR/pr_${pr_num}_state.json"
-  
+
   cat > "$GH_MOCK_DIR/pr_${pr_num}_labels.json" << 'EOF'
 {"labels":[{"name":"discussion"},{"name":"enhancement"}]}
 EOF
-  
+
   # Mock stale commits (21+ days old)
   local old_date
   old_date=$(date -u -v-25d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "25 days ago" +"%Y-%m-%dT%H:%M:%SZ")
@@ -328,12 +328,12 @@ EOF
 # Setup mock data for a stale PR without discussion label
 setup_stale_pr_without_discussion() {
   local pr_num="$1"
-  
+
   echo '{"state":"OPEN"}' > "$GH_MOCK_DIR/pr_${pr_num}_state.json"
-  
+
   # PR has no discussion label
   echo '{"labels":[{"name":"bug"}]}' > "$GH_MOCK_DIR/pr_${pr_num}_labels.json"
-  
+
   # Mock stale commits
   local old_date
   old_date=$(date -u -v-25d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "25 days ago" +"%Y-%m-%dT%H:%M:%SZ")
@@ -345,12 +345,12 @@ EOF
 # Setup mock data for an active PR
 setup_active_pr() {
   local pr_num="$1"
-  
+
   echo '{"state":"OPEN"}' > "$GH_MOCK_DIR/pr_${pr_num}_state.json"
-  
+
   # PR has no discussion label
   echo '{"labels":[{"name":"feature"}]}' > "$GH_MOCK_DIR/pr_${pr_num}_labels.json"
-  
+
   # Mock recent commits
   local recent_date
   recent_date=$(date -u -v-5d +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || date -u -d "5 days ago" +"%Y-%m-%dT%H:%M:%SZ")
@@ -362,10 +362,10 @@ EOF
 # Setup mock data for a closed PR
 setup_closed_pr() {
   local pr_num="$1"
-  
+
   # PR is closed
   echo '{"state":"CLOSED"}' > "$GH_MOCK_DIR/pr_${pr_num}_state.json"
-  
+
   # Labels don't matter for closed PR
   echo '{"labels":[]}' > "$GH_MOCK_DIR/pr_${pr_num}_labels.json"
 }
@@ -411,17 +411,17 @@ test_stale_pr_without_discussion_closed() {
   echo ""
   echo "Test 2: Stale PR without 'discussion' label should be closed"
   echo "=============================================================="
-  
+
   local issue_num="2000"
   local pr_num="200"
   local assignee="alice"
 
   setup_issue_with_linked_pr "$issue_num" "$pr_num" "$assignee"
   setup_stale_pr_without_discussion "$pr_num"
-  
+
   local HAS_DISCUSSION_LABEL
   HAS_DISCUSSION_LABEL=$(gh pr view "$pr_num" --repo "$TEST_REPO" --json labels --jq '.labels[].name' 2>/dev/null | grep -i '^discussion$' || echo "")
-  
+
   if [[ -z "$HAS_DISCUSSION_LABEL" ]]; then
     print_result "PR without discussion label detected" "PASS"
   else
@@ -453,21 +453,21 @@ test_jq_filter_correctness() {
   echo ""
   echo "Test 3: Mock correctly executes jq filters"
   echo "=================================================================="
-  
+
   setup_pr_with_discussion_label "300"
   local result
   result=$(gh pr view "300" --repo "$TEST_REPO" --json labels --jq '.labels[].name' 2>/dev/null || echo "")
-  
+
   if echo "$result" | grep -q "discussion"; then
     print_result "Mock executes .labels[].name filter" "PASS"
   else
     print_result "Mock executes .labels[].name filter" "FAIL" "Expected 'discussion' in output, got '$result'"
   fi
-  
+
   # Test with no discussion label using same filter
   setup_stale_pr_without_discussion "301"
   result=$(gh pr view "301" --repo "$TEST_REPO" --json labels --jq '.labels[].name' 2>/dev/null || echo "")
-  
+
   if ! echo "$result" | grep -qi "^discussion$"; then
     print_result "Mock handles .labels[].name without discussion" "PASS"
   else
@@ -480,13 +480,13 @@ test_closed_pr_skipped() {
   echo ""
   echo "Test 4: Closed PRs should be skipped"
   echo "======================================"
-  
+
   setup_closed_pr "400"
-  
+
   local pr_num="400"
   local pr_state
   pr_state=$(gh pr view "$pr_num" --repo "$TEST_REPO" --json state --jq '.state' 2>/dev/null || echo "")
-  
+
   if [[ "$pr_state" != "OPEN" ]]; then
     print_result "Closed PR correctly identified" "PASS"
   else
@@ -499,16 +499,16 @@ test_active_pr_not_closed() {
   echo ""
   echo "Test 5: Active PR (recent commits) should not be closed"
   echo "========================================================="
-  
+
   setup_active_pr "500"
-  
+
   local pr_num="500"
   local COMMITS_JSON
   COMMITS_JSON=$(gh api "repos/$TEST_REPO/pulls/$pr_num/commits" --paginate 2>/dev/null || echo "[]")
-  
+
   if echo "$COMMITS_JSON" | jq -e 'length > 0' >/dev/null 2>&1; then
     print_result "Active PR has commit data" "PASS"
-    
+
     local last_commit_date
     last_commit_date=$(echo "$COMMITS_JSON" | jq -r 'last | .commit.committer.date // empty')
     if [[ -n "$last_commit_date" ]]; then
@@ -526,13 +526,13 @@ test_log_output() {
   echo ""
   echo "Test 6: Mock handles varying jq filter expressions"
   echo "==================================================="
-  
+
   setup_pr_with_discussion_label "600"
-  
+
   local pr_num="600"
   local output
   output=$(gh pr view "$pr_num" --repo "$TEST_REPO" --json labels --jq '[.labels[] | select(.name == "discussion") | .name]' 2>/dev/null || echo "[]")
-  
+
   if echo "$output" | grep -q "discussion"; then
     print_result "Mock executes complex jq with select and map" "PASS"
   else
@@ -545,17 +545,17 @@ test_multiple_labels_with_discussion() {
   echo ""
   echo "Test 7: PR with multiple labels including 'discussion'"
   echo "========================================================"
-  
+
   # Create PR with multiple labels including discussion
   echo '{"state":"OPEN"}' > "$GH_MOCK_DIR/pr_700_state.json"
   cat > "$GH_MOCK_DIR/pr_700_labels.json" << 'EOF'
 {"labels":[{"name":"bug"},{"name":"discussion"},{"name":"CICD"}]}
 EOF
-  
+
   local pr_num="700"
   local label_count
   label_count=$(gh pr view "$pr_num" --repo "$TEST_REPO" --json labels --jq '.labels | length' 2>/dev/null || echo "0")
-  
+
   if [[ "$label_count" == "3" ]]; then
     print_result "Mock executes .labels | length filter" "PASS"
   else
@@ -568,7 +568,7 @@ test_case_insensitivity() {
   echo ""
   echo "Test 8: Label matching is case-insensitive"
   echo "==========================================="
-  
+
   local issue_num="8000"
   local pr_num="800"
   local assignee="bob"
@@ -606,14 +606,14 @@ main() {
   echo "  Bot Inactivity Unassign - Test Suite"
   echo "=============================================="
   echo ""
-  
+
   setup
   trap cleanup EXIT
-  
+
   create_gh_mock
-  
+
   rm -f "$GH_MOCK_DIR/actions.log"
-  
+
   test_pr_with_discussion_label_not_closed
   test_stale_pr_without_discussion_closed
   test_jq_filter_correctness
@@ -622,7 +622,7 @@ main() {
   test_log_output
   test_multiple_labels_with_discussion
   test_case_insensitivity
-  
+
   echo ""
   echo "=============================================="
   echo "  Test Summary"

@@ -1,9 +1,12 @@
 """
-hiero_sdk_python.tokens.token_freeze_status.py
+hiero_sdk_python.tokens.token_freeze_status.py.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TokenFreezeStatus shows whether or not an account can use a token in transactions.
 """
+
+from __future__ import annotations
+
 from enum import Enum
 from typing import Any
 
@@ -11,14 +14,16 @@ from hiero_sdk_python.hapi.services.basic_types_pb2 import (
     TokenFreezeStatus as proto_TokenFreezeStatus,
 )
 
+
 class TokenFreezeStatus(Enum):
-    """Enum representing a token’s freeze status: not applicable, frozen, or unfrozen."""
+    """Enum representing a token's freeze status: not applicable, frozen, or unfrozen."""
+
     FREEZE_NOT_APPLICABLE = 0
     FROZEN = 1
     UNFROZEN = 2
 
     @staticmethod
-    def _from_proto(proto_obj: proto_TokenFreezeStatus) -> "TokenFreezeStatus":
+    def _from_proto(proto_obj: proto_TokenFreezeStatus) -> TokenFreezeStatus:
         """Converts a protobuf TokenFreezeStatus to a TokenFreezeStatus enum."""
         if proto_obj == proto_TokenFreezeStatus.FreezeNotApplicable:
             return TokenFreezeStatus.FREEZE_NOT_APPLICABLE
