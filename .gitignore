@@ -38,3 +38,6 @@ src/hiero_sdk_python/hapi
 uv.lock
 pdm.lock
 pubkey.asc
+
+# Ruff cache
+.ruff_cache
