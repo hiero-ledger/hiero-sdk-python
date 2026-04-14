@@ -8,6 +8,7 @@ from tests.fuzz.support.classes import (
 )
 from tests.fuzz.support.registry import FUZZ_STRATEGIES, get_strategy
 
+
 __all__ = [
     "AccountIdAliasCase",
     "ContractValueCase",

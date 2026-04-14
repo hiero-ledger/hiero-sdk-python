@@ -16,6 +16,7 @@ Usage:
 uv run examples/tokens/token_create_transaction_token_metadata.py
 python examples/tokens/token_create_transaction_token_metadata.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -34,6 +35,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def generate_metadata_key():
     """Generate a new metadata key for the token."""
@@ -79,10 +81,7 @@ def try_update_metadata_without_key(client, operator_key, token_id):
     updated_metadata = b"updated metadata (without metadata_key)"
     try:
         update_transaction = (
-            TokenUpdateTransaction()
-            .set_token_id(token_id)
-            .set_metadata(updated_metadata)
-            .freeze_with(client)
+            TokenUpdateTransaction().set_token_id(token_id).set_metadata(updated_metadata).freeze_with(client)
         )
         update_transaction.sign(operator_key)
         receipt = update_transaction.execute(client)
@@ -129,9 +128,7 @@ def create_token_with_metadata_key(client, metadata_key, operator_id, operator_k
         sys.exit(1)
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     token_id = receipt.token_id
@@ -140,7 +137,7 @@ def create_token_with_metadata_key(client, metadata_key, operator_id, operator_k
     return token_id, metadata_key
 
 
-def update_metadata_with_key(client, token_id, metadata_key, operator_key):
+def update_metadata_with_key(client, token_id, metadata_key):
     """Update token metadata with metadata_key."""
     print(f"\nUpdating token {token_id} metadata WITH metadata_key...")
     updated_metadata = b"Updated metadata (with key)"
@@ -155,9 +152,7 @@ def update_metadata_with_key(client, token_id, metadata_key, operator_key):
         )
         receipt = update_transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Token update failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Token update failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
     except Exception as e:
         print(f"Error while freezing update transaction: {e}")
@@ -190,9 +185,7 @@ def demonstrate_metadata_length_validation(client, operator_key, operator_id):
         if receipt.status == ResponseCode.SUCCESS:
             print("❌ Unexpected success for this operation!")
         else:
-            print(
-                "Error: Expected ValueError for metadata > 100 bytes, but none was raised."
-            )
+            print("Error: Expected ValueError for metadata > 100 bytes, but none was raised.")
 
         sys.exit(1)
     except ValueError as exc:
@@ -216,10 +209,8 @@ def create_token_with_metadata():
     token_a = create_token_without_metadata_key(client, operator_key, operator_id)
     try_update_metadata_without_key(client, operator_key, token_a)
 
-    token_b, metadata_key = create_token_with_metadata_key(
-        client, metadata_key, operator_id, operator_key
-    )
-    update_metadata_with_key(client, token_b, metadata_key, operator_key)
+    token_b, metadata_key = create_token_with_metadata_key(client, metadata_key, operator_id, operator_key)
+    update_metadata_with_key(client, token_b, metadata_key)
 
     demonstrate_metadata_length_validation(client, operator_key, operator_id)
 

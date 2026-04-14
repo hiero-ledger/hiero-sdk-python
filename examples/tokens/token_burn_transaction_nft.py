@@ -5,6 +5,7 @@ Example demonstrating token burn transaction nft.
 uv run examples/tokens/token_burn_transaction_nft.py
 python examples/tokens/token_burn_transaction_nft.py
 """
+
 import sys
 
 from hiero_sdk_python import Client
@@ -55,12 +56,7 @@ def create_nft(client, operator_id, operator_key):
 
 def mint_nfts(client, nft_token_id, metadata_list):
     """Mint a non-fungible token."""
-    receipt = (
-        TokenMintTransaction()
-        .set_token_id(nft_token_id)
-        .set_metadata(metadata_list)
-        .execute(client)
-    )
+    receipt = TokenMintTransaction().set_token_id(nft_token_id).set_metadata(metadata_list).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT minting failed with status: {ResponseCode(receipt.status).name}")
@@ -105,20 +101,13 @@ def token_burn_nft():
     get_token_info(client, token_id)
 
     # Burn first 2 NFTs from the minted collection (serials 1 and 2)
-    receipt = (
-        TokenBurnTransaction()
-        .set_token_id(token_id)
-        .set_serials(serial_numbers[0:2])
-        .execute(client)
-    )
+    receipt = TokenBurnTransaction().set_token_id(token_id).set_serials(serial_numbers[0:2]).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT burn failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
-    print(
-        f"Successfully burned NFTs with serial numbers {serial_numbers[0:2]} from {token_id}"
-    )
+    print(f"Successfully burned NFTs with serial numbers {serial_numbers[0:2]} from {token_id}")
 
     # Get and print token balances after burn to show the final state
     print("\nToken balances after burn:")

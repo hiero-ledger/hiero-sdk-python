@@ -5,6 +5,7 @@ Example demonstrating topic info query.
 uv run examples/query/topic_info_query.py
 python examples/query/topic_info_query.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -19,9 +20,7 @@ def create_topic(client, operator_key):
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
-            TopicCreateTransaction(
-                memo="Python SDK created topic", admin_key=operator_key.public_key()
-            )
+            TopicCreateTransaction(memo="Python SDK created topic", admin_key=operator_key.public_key())
             .freeze_with(client)
             .sign(operator_key)
         )

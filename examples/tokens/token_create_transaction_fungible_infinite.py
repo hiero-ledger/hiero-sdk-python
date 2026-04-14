@@ -16,6 +16,7 @@ Usage:
 uv run examples/tokens/token_create_transaction_fungible_infinite.py
 python examples/tokens/token_create_transaction_fungible_infinite.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -32,6 +33,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def generate_keys():
     """Generate new admin and supply keys."""
@@ -71,9 +73,7 @@ def execute_transaction(transaction, client, operator_key, admin_key, supply_key
     try:
         receipt = transaction.execute(client)
         if receipt and receipt.token_id:
-            print(
-                f"Success! Infinite fungible token created with ID: {receipt.token_id}"
-            )
+            print(f"Success! Infinite fungible token created with ID: {receipt.token_id}")
         else:
             print("Token creation failed: Token ID not returned in receipt.")
             sys.exit(1)

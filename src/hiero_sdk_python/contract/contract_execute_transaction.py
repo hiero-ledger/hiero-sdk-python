@@ -1,8 +1,6 @@
-"""
-ContractExecuteTransaction class.
-"""
+"""ContractExecuteTransaction class."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.contract.contract_function_parameters import (
@@ -29,62 +27,56 @@ class ContractExecuteTransaction(Transaction):
 
     def __init__(
         self,
-        contract_id: Optional[ContractId] = None,
-        gas: Optional[int] = None,
-        amount: Optional[int | Hbar] = None,
-        function_parameters: Optional[bytes] = None,
+        contract_id: ContractId | None = None,
+        gas: int | None = None,
+        amount: int | Hbar | None = None,
+        function_parameters: bytes | None = None,
     ):
         """
         Initializes a new ContractExecuteTransaction instance.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract to execute.
-            gas (Optional[int]): The gas to use for the contract execution.
-            amount (Optional[int | Hbar]): The amount of hbar to send with the call.
+            contract_id (ContractId, optional): The ID of the contract to execute.
+            gas (int, optional): The gas to use for the contract execution.
+            amount (int | Hbar, optional): The amount of hbar to send with the call.
                 You may pass an integer (tinybars) or an Hbar object.
                 The value is always stored internally as an integer (tinybars).
-            function_parameters (Optional[bytes]): The parameters to pass to the contract function.
+            function_parameters (bytes, optional): The parameters to pass to the contract function.
         """
         super().__init__()
-        self.contract_id: Optional[ContractId] = contract_id
-        self.gas: Optional[int] = gas
-        self.amount: Optional[int] = (
-            amount.to_tinybars() if isinstance(amount, Hbar) else amount
-        )
-        self.function_parameters: Optional[bytes] = function_parameters
+        self.contract_id: ContractId | None = contract_id
+        self.gas: int | None = gas
+        self.amount: int | None = amount.to_tinybars() if isinstance(amount, Hbar) else amount
+        self.function_parameters: bytes | None = function_parameters
 
-    def set_contract_id(
-        self, contract_id: Optional[ContractId]
-    ) -> "ContractExecuteTransaction":
+    def set_contract_id(self, contract_id: ContractId | None) -> ContractExecuteTransaction:
         """
         Sets the contract ID for the transaction.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract to execute.
+            contract_id (ContractId | None): The ID of the contract to execute.
         """
         self._require_not_frozen()
         self.contract_id = contract_id
         return self
 
-    def set_gas(self, gas: Optional[int]) -> "ContractExecuteTransaction":
+    def set_gas(self, gas: int | None) -> ContractExecuteTransaction:
         """
         Sets the gas for the transaction.
 
         Args:
-            gas (Optional[int]): The gas to use for the contract execution.
+            gas (int | None): The gas to use for the contract execution.
         """
         self._require_not_frozen()
         self.gas = gas
         return self
 
-    def set_payable_amount(
-        self, amount: Optional[int | Hbar]
-    ) -> "ContractExecuteTransaction":
+    def set_payable_amount(self, amount: int | Hbar | None) -> ContractExecuteTransaction:
         """
         Sets the amount of HBAR to send with the call.
 
         Args:
-            amount (Optional[int | Hbar]): The amount of HBAR to send with the call.
+            amount (int | Hbar | None): The amount of HBAR to send with the call.
                 You may pass an integer (tinybars) or an Hbar object.
                 The value is always stored internally as an integer (tinybars).
         """
@@ -93,13 +85,13 @@ class ContractExecuteTransaction(Transaction):
         return self
 
     def set_function_parameters(
-        self, function_parameters: Optional[ContractFunctionParameters | bytes]
-    ) -> "ContractExecuteTransaction":
+        self, function_parameters: ContractFunctionParameters | bytes | None
+    ) -> ContractExecuteTransaction:
         """
         Sets the parameters to pass to the contract function.
 
         Args:
-            function_parameters (Optional[ContractFunctionParameters | bytes]): The parameters to
+            function_parameters (ContractFunctionParameters | bytes | None): The parameters to
             pass to the contract function.
         """
         self._require_not_frozen()
@@ -109,15 +101,13 @@ class ContractExecuteTransaction(Transaction):
             self.function_parameters = function_parameters
         return self
 
-    def set_function(
-        self, name: str, params: Optional[ContractFunctionParameters] = None
-    ) -> "ContractExecuteTransaction":
+    def set_function(self, name: str, params: ContractFunctionParameters | None = None) -> ContractExecuteTransaction:
         """
         Sets the function to call and the parameters to pass to it.
 
         Args:
             name (str): The name of the function to call.
-            params (Optional[ContractFunctionParameters]): The parameters to pass to the function.
+            params (ContractFunctionParameters | None): The parameters to pass to the function.
         """
         self._require_not_frozen()
         if params is None:

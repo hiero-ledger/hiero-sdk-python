@@ -1,7 +1,11 @@
+from __future__ import annotations
+
 import re
 
 import pytest
+
 from hiero_sdk_python.crypto.evm_address import EvmAddress
+
 
 pytestmark = pytest.mark.unit
 
@@ -64,7 +68,7 @@ def test_equality():
 
 
 def test_to_proto_key():
-    "Test to_proto_key raises error when call."
+    """Test to_proto_key raises error when call."""
     raw = bytes(range(20))
     address = EvmAddress.from_bytes(raw)
 

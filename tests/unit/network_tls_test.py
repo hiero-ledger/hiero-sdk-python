@@ -1,10 +1,14 @@
 """Unit tests for TLS configuration in Network and Client."""
 
+from __future__ import annotations
+
 import pytest
+
+from src.hiero_sdk_python.account.account_id import AccountId
 from src.hiero_sdk_python.client.client import Client
 from src.hiero_sdk_python.client.network import Network
-from src.hiero_sdk_python.account.account_id import AccountId
 from src.hiero_sdk_python.node import _Node
+
 
 pytestmark = pytest.mark.unit
 
@@ -13,24 +17,19 @@ def test_network_tls_enabled_by_default_for_hosted_networks():
     """Test that TLS is enabled by default for hosted networks."""
     for network_name in ("mainnet", "testnet", "previewnet"):
         network = Network(network_name)
-        assert (
-            network.is_transport_security() is True
-        ), f"TLS should be enabled for {network_name}"
+        assert network.is_transport_security() is True, f"TLS should be enabled for {network_name}"
 
 
 def test_network_tls_disabled_by_default_for_local_networks():
     """Test that TLS is disabled by default for local networks."""
     for network_name in ("solo", "localhost", "local"):
         network = Network(network_name)
-        assert (
-            network.is_transport_security() is False
-        ), f"TLS should be disabled for {network_name}"
+        assert network.is_transport_security() is False, f"TLS should be disabled for {network_name}"
 
 
 def test_network_tls_disabled_by_default_for_custom_networks():
     """Test that TLS is disabled by default for custom networks."""
     # Provide nodes for custom network since it has no defaults
-    from src.hiero_sdk_python.node import _Node
 
     nodes = [_Node(AccountId(0, 0, 3), "127.0.0.1:50211", None)]
     network = Network("custom-network", nodes=nodes)
@@ -41,9 +40,7 @@ def test_network_verification_enabled_by_default():
     """Test that certificate verification is enabled by default for all networks."""
     for network_name in ("mainnet", "testnet", "previewnet", "solo", "localhost"):
         network = Network(network_name)
-        assert (
-            network.is_verify_certificates() is True
-        ), f"Verification should be enabled for {network_name}"
+        assert network.is_verify_certificates() is True, f"Verification should be enabled for {network_name}"
 
 
 def test_network_set_transport_security_enable():
@@ -191,12 +188,9 @@ def test_network_get_mirror_rest_url_localhost():
 def test_network_get_mirror_rest_url_custom_port():
     """Test REST URL generation with custom port for network without MIRROR_NODE_URLS entry."""
     # Use a custom network that doesn't have MIRROR_NODE_URLS entry
-    from src.hiero_sdk_python.node import _Node
 
     nodes = [_Node(AccountId(0, 0, 3), "127.0.0.1:50211", None)]
-    network = Network(
-        "custom-network", nodes=nodes, mirror_address="custom.mirror.com:8443"
-    )
+    network = Network("custom-network", nodes=nodes, mirror_address="custom.mirror.com:8443")
     url = network.get_mirror_rest_url()
     # Should use custom mirror_address and include port
     assert url.startswith("https://custom.mirror.com:8443/api/v1")

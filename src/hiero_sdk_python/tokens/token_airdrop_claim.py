@@ -7,20 +7,22 @@ Validations enforced:
 - No duplicate PendingAirdropId entries
 """
 
-from typing import Optional, List, Any
+from __future__ import annotations
 
-from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
-from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import ( # pylint: disable=no-name-in-module
-    TokenClaimAirdropTransactionBody,
-)
-from hiero_sdk_python.hapi.services import transaction_pb2
+from typing import Any
+
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import transaction_pb2
+from hiero_sdk_python.hapi.services.token_claim_airdrop_pb2 import (  # pylint: disable=no-name-in-module
+    TokenClaimAirdropTransactionBody,
+)
+from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 class TokenClaimAirdropTransaction(Transaction):
-    """Claim 1–10 unique pending airdrops via TokenClaimAirdropTransactionBody.
+    """Claim 1-10 unique pending airdrops via TokenClaimAirdropTransactionBody.
     TokenClaimAirdropTransaction is only required if the receiver account has required signing to claim airdrops.
     This transaction MUST be signed by the receiver for each PendingAirdropId to claim.
     """
@@ -28,19 +30,16 @@ class TokenClaimAirdropTransaction(Transaction):
     MAX_IDS: int = 10
     MIN_IDS: int = 1
 
-    def __init__(
-            self,
-            pending_airdrop_ids: Optional[List[PendingAirdropId]] = None
-    ) -> None:
+    def __init__(self, pending_airdrop_ids: list[PendingAirdropId] | None = None) -> None:
         """Initialize the TokenClaimAirdropTransaction.
 
         Args:
             pending_airdrop_ids: Optional list of pending airdrop IDs.
         """
         super().__init__()
-        self._pending_airdrop_ids: List[PendingAirdropId] = list(pending_airdrop_ids or [])
+        self._pending_airdrop_ids: list[PendingAirdropId] = list(pending_airdrop_ids or [])
 
-    def _validate_all(self, ids: List[PendingAirdropId]) -> None:
+    def _validate_all(self, ids: list[PendingAirdropId]) -> None:
         """Validate a candidate list of pending airdrop IDs.
 
         Ensures the list contains no more than ``MAX_IDS`` entries and has no
@@ -76,10 +75,7 @@ class TokenClaimAirdropTransaction(Transaction):
             raise ValueError(f"You must claim at least {self.MIN_IDS} airdrop (got {n}).")
         self._validate_all(self._pending_airdrop_ids)
 
-    def add_pending_airdrop_id(
-            self,
-            pending_airdrop_id: PendingAirdropId
-        ) -> "TokenClaimAirdropTransaction":
+    def add_pending_airdrop_id(self, pending_airdrop_id: PendingAirdropId) -> TokenClaimAirdropTransaction:
         """Append a single PendingAirdropId.
 
         Args:
@@ -90,10 +86,7 @@ class TokenClaimAirdropTransaction(Transaction):
         """
         return self.add_pending_airdrop_ids([pending_airdrop_id])
 
-    def add_pending_airdrop_ids(
-            self,
-            pending_airdrop_ids: List[PendingAirdropId]
-        ) -> "TokenClaimAirdropTransaction":
+    def add_pending_airdrop_ids(self, pending_airdrop_ids: list[PendingAirdropId]) -> TokenClaimAirdropTransaction:
         """Add many pending airdrop IDs.
 
         Args:
@@ -111,7 +104,7 @@ class TokenClaimAirdropTransaction(Transaction):
         self._pending_airdrop_ids = candidate
         return self
 
-    def _pending_airdrop_ids_to_proto(self) -> List[Any]:
+    def _pending_airdrop_ids_to_proto(self) -> list[Any]:
         """Convert the current list of PendingAirdropId to protobuf messages.
 
         Returns:
@@ -123,10 +116,7 @@ class TokenClaimAirdropTransaction(Transaction):
         ]
 
     @classmethod
-    def _from_proto(
-        cls,
-        proto: TokenClaimAirdropTransactionBody
-    ) -> "TokenClaimAirdropTransaction":
+    def _from_proto(cls, proto: TokenClaimAirdropTransactionBody) -> TokenClaimAirdropTransaction:
         """Construct a TokenClaimAirdropTransaction from a TokenClaimAirdropTransactionBody.
 
         Args:
@@ -147,11 +137,11 @@ class TokenClaimAirdropTransaction(Transaction):
 
         return inst
 
-    def build_transaction_body(self) -> transaction_pb2.TransactionBody: # pylint: disable=no-member
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:  # pylint: disable=no-member
         """Build the TransactionBody for this claim.
 
         Returns:
-            transaction_body_pb2.TransactionBody: 
+            transaction_body_pb2.TransactionBody:
                 A TransactionBody with TokenClaimAirdrop populated.
 
         Raises:
@@ -162,7 +152,7 @@ class TokenClaimAirdropTransaction(Transaction):
         pending_airdrop_claim_body = TokenClaimAirdropTransactionBody(
             pending_airdrops=self._pending_airdrop_ids_to_proto()
         )
-        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body() # pylint: disable=no-member
+        transaction_body: transaction_pb2.TransactionBody = self.build_base_transaction_body()  # pylint: disable=no-member
         transaction_body.tokenClaimAirdrop.CopyFrom(pending_airdrop_claim_body)
         return transaction_body
 
@@ -176,35 +166,22 @@ class TokenClaimAirdropTransaction(Transaction):
         Returns:
             _Method: Wraps the gRPC method for TokenClaimAirdrop.
         """
-        return _Method(
-            transaction_func=channel.token.claimAirdrop,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.token.claimAirdrop, query_func=None)
 
-    def get_pending_airdrop_ids(self) -> List[PendingAirdropId]:
-        """Returns a copy of the list of pending airdrop IDs currently stored inside TokenClaimAirdropTransaction object"""
+    def get_pending_airdrop_ids(self) -> list[PendingAirdropId]:
+        """Returns a copy of the list of pending airdrop IDs currently stored inside TokenClaimAirdropTransaction object."""
         return list(self._pending_airdrop_ids)
 
     def __repr__(self) -> str:
         """Developer-friendly representation with class name and pending IDs."""
-        return (
-            f"{self.__class__.__name__}("
-            f"pending_airdrop_ids={self._pending_airdrop_ids!r})"
-        )
+        return f"{self.__class__.__name__}(pending_airdrop_ids={self._pending_airdrop_ids!r})"
 
     def __str__(self) -> str:
-        """Human-readable summary showing each pending airdrop on its own line"""
+        """Human-readable summary showing each pending airdrop on its own line."""
         if not self._pending_airdrop_ids:
             return "No pending airdrops in this transaction."
 
-        lines = [
-            f"   → {aid}"
-            for aid in self._pending_airdrop_ids
-        ]
+        lines = [f"   → {aid}" for aid in self._pending_airdrop_ids]
 
         ids_block = "\n".join(lines)
-        summary = (
-            f"Pending Airdrops to claim:\n"
-            f"{ids_block}\n"
-        )
-        return summary
+        return f"Pending Airdrops to claim:\n{ids_block}\n"

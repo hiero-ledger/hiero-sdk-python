@@ -1,10 +1,10 @@
-"""
-Base class for all network queries.
-"""
+"""Base class for all network queries."""
 
-from decimal import Decimal
+from __future__ import annotations
+
 import time
-from typing import Any, Optional, Union
+from decimal import Decimal
+from typing import Any
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -18,8 +18,8 @@ from hiero_sdk_python.hapi.services import (
     duration_pb2,
     query_header_pb2,
     query_pb2,
+    transaction_contents_pb2,
     transaction_pb2,
-    transaction_contents_pb2
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
@@ -50,14 +50,13 @@ class Query(_Executable):
         Sets timestamp, node account IDs, operator, query payment settings,
         and other properties needed for Hedera queries.
         """
-
         super().__init__()
 
         self.timestamp: int = int(time.time())
-        self.operator: Optional[Operator] = None
+        self.operator: Operator | None = None
         self.node_index: int = 0
-        self.payment_amount: Optional[Hbar] = None
-        self.max_query_payment: Optional[Hbar] = None
+        self.payment_amount: Hbar | None = None
+        self.max_query_payment: Hbar | None = None
 
     def _get_query_response(self, response: Any) -> query_pb2.Query:
         """
@@ -77,7 +76,7 @@ class Query(_Executable):
         """
         raise NotImplementedError("_get_query_response must be implemented by subclasses.")
 
-    def set_query_payment(self, payment_amount: Hbar) -> "Query":
+    def set_query_payment(self, payment_amount: Hbar) -> Query:
         """
         Sets the payment amount for this query.
 
@@ -92,8 +91,8 @@ class Query(_Executable):
         """
         self.payment_amount = payment_amount
         return self
-    
-    def set_max_query_payment(self, max_query_payment: Union[int, float, Decimal, Hbar]) -> "Query":
+
+    def set_max_query_payment(self, max_query_payment: int | float | Decimal | Hbar) -> Query:
         """
         Sets the maximum Hbar amount that this query is allowed to cost.
 
@@ -101,25 +100,20 @@ class Query(_Executable):
         from the network and compare it against this value. If the cost exceeds
         the specified maximum, execution will fail early with an error instead
         of submitting the query.
-        
+
         Args:
-            max_query_payment (Union[int, float, Decimal, Hbar]):
+            max_query_payment (int | float | Decimal | Hbar):
                 The maximum amount of Hbar that any single query is allowed to cost.
-        
+
         Returns:
             Query: The current query instance for method chaining.
         """
         if isinstance(max_query_payment, bool) or not isinstance(max_query_payment, (int, float, Decimal, Hbar)):
             raise TypeError(
-                "max_query_payment must be int, float, Decimal, or Hbar, "
-                f"got {type(max_query_payment).__name__}"
+                f"max_query_payment must be int, float, Decimal, or Hbar, got {type(max_query_payment).__name__}"
             )
-        
-        value = (
-            max_query_payment 
-            if isinstance(max_query_payment, Hbar)
-            else Hbar(max_query_payment)
-        )
+
+        value = max_query_payment if isinstance(max_query_payment, Hbar) else Hbar(max_query_payment)
 
         if value < Hbar(0):
             raise ValueError("max_query_payment must be non-negative")
@@ -146,20 +140,17 @@ class Query(_Executable):
         # get the cost from the network and set it as the payment amount
         if self.payment_amount is None and self._is_payment_required():
             self.payment_amount = self.get_cost(client)
-            
+
             # if max_query_payment not set fall back to the client-level default max query payment
             max_payment = (
-                self.max_query_payment 
-                if self.max_query_payment is not None 
-                else client.default_max_query_payment
+                self.max_query_payment if self.max_query_payment is not None else client.default_max_query_payment
             )
-            
+
             if self.payment_amount > max_payment:
                 raise ValueError(
                     f"Query cost ℏ{self.payment_amount.to_hbars()} HBAR "
                     f"exceeds max set query payment: ℏ{max_payment.to_hbars()} HBAR"
                 )
-            
 
     def _make_request_header(self) -> query_header_pb2.QueryHeader:
         """
@@ -188,11 +179,7 @@ class Query(_Executable):
             header.responseType = query_header_pb2.ResponseType.COST_ANSWER
             return header
 
-        if (
-            self.operator is not None
-            and self.node_account_id is not None
-            and self.payment_amount is not None
-        ):
+        if self.operator is not None and self.node_account_id is not None and self.payment_amount is not None:
             payment_tx = self._build_query_payment_transaction(
                 payer_account_id=self.operator.account_id,
                 payer_private_key=self.operator.private_key,
@@ -259,28 +246,18 @@ class Query(_Executable):
 
         # Create signature pair
         if payer_private_key.is_ed25519():
-            sig_pair = basic_types_pb2.SignaturePair(
-                pubKeyPrefix=public_key_bytes,
-                ed25519=signature
-                )
+            sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ed25519=signature)
         else:
-            sig_pair = basic_types_pb2.SignaturePair(
-                pubKeyPrefix=public_key_bytes,
-                ECDSA_secp256k1=signature
-            )
+            sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ECDSA_secp256k1=signature)
 
         # Create signature map
         signature_map = basic_types_pb2.SignatureMap(sigPair=[sig_pair])
 
         # Create signed transaction
-        signed_transaction = transaction_contents_pb2.SignedTransaction(
-            bodyBytes=body_bytes, sigMap=signature_map
-        )
+        signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes, sigMap=signature_map)
 
         # Return final transaction
-        return transaction_pb2.Transaction(
-            signedTransactionBytes=signed_transaction.SerializeToString()
-        )
+        return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
 
     def get_cost(self, client: Client) -> Hbar:
         """
@@ -356,9 +333,7 @@ class Query(_Executable):
         """
         raise NotImplementedError("_make_request must be implemented by subclasses.")
 
-    def _map_response(
-        self, response: Any, node_id: int, proto_request: query_pb2.Query
-    ) -> query_pb2.Query:
+    def _map_response(self, response: Any, node_id: int, proto_request: query_pb2.Query) -> query_pb2.Query:  # noqa: ARG002
         """
         Maps the network response to the appropriate response object.
 
@@ -400,9 +375,7 @@ class Query(_Executable):
             return _ExecutionState.FINISHED
         return _ExecutionState.ERROR
 
-    def _map_status_error(
-        self, response: Any
-    ) -> Union[PrecheckError, ReceiptStatusError]:
+    def _map_status_error(self, response: Any) -> PrecheckError | ReceiptStatusError:
         """
         Maps a response status code to an appropriate error object.
 
@@ -423,4 +396,3 @@ class Query(_Executable):
             bool: True if payment is required, False otherwise
         """
         return True
-        

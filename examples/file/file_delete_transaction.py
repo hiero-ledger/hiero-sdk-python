@@ -8,6 +8,7 @@ uv run examples/file_delete_transaction.py
 python examples/file_delete_transaction.py
 
 """
+
 import os
 import sys
 
@@ -19,6 +20,7 @@ from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
+
 
 load_dotenv()
 

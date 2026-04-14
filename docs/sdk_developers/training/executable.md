@@ -116,12 +116,12 @@ Key Steps:
 
   The response is checked via `_should_retry()` which returns one of four `Execution States`:
 
-    | State          | Action                                  |                                        
-    | :--------------| :---------------------------------------| 
-    | **RETRY**      | `Wait (backoff), then loop again`       | 
-    | **FINISHED**   | `Success! Return the response`          | 
+    | State          | Action                                  |
+    | :--------------| :---------------------------------------|
+    | **RETRY**      | `Wait (backoff), then loop again`       |
+    | **FINISHED**   | `Success! Return the response`          |
     | **ERROR**      | `Permanent failure, raise exception`    |
-    | **EXPIRED**    | `Request expired, raise exception`      | 
+    | **EXPIRED**    | `Request expired, raise exception`      |
 
 
 
@@ -354,4 +354,3 @@ This lets you quickly identify whether a failure is transient (network), permane
  * [Token Association Example](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/examples/tokens/token_associate_transaction.py)
  * [Token Freeze Example](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/examples/tokens/token_freeze_transaction.py)
  * [Token Account Info Query Example](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/examples/query/account_info_query.py)
-

@@ -77,7 +77,7 @@ async function isNewContributor(github, owner, repo, login) {
 
   try {
     console.log(`Checking for merged PRs by ${login} in ${targetOwner}/${targetRepo}`);
-    
+
     const iterator = github.paginate.iterator(github.rest.pulls.list, {
       owner: targetOwner,
       repo: targetRepo,
@@ -94,7 +94,7 @@ async function isNewContributor(github, owner, repo, login) {
         return false;
       }
     }
-    
+
     console.log(`No merged PRs found for ${login}. Considered a new starter.`);
     return true;
   } catch (error) {

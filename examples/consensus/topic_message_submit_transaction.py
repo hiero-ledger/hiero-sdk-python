@@ -5,6 +5,7 @@ Example demonstrating topic message submit transaction.
 uv run examples/consensus/topic_message_submit_transaction.py
 python examples/consensus/topic_message_submit_transaction.py
 """
+
 import os
 import sys
 
@@ -19,6 +20,7 @@ from hiero_sdk_python import (
     TopicCreateTransaction,
     TopicMessageSubmitTransaction,
 )
+
 
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
@@ -47,9 +49,7 @@ def create_topic(client, operator_key):
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
-            TopicCreateTransaction(
-                memo="Python SDK created topic", admin_key=operator_key.public_key()
-            )
+            TopicCreateTransaction(memo="Python SDK created topic", admin_key=operator_key.public_key())
             .freeze_with(client)
             .sign(operator_key)
         )
@@ -67,9 +67,7 @@ def submit_topic_message_transaction(client, topic_id, message, operator_key):
     """Submit a message to the specified topic."""
     print("\nSTEP 2: Submitting message...")
     transaction = (
-        TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
-        .freeze_with(client)
-        .sign(operator_key)
+        TopicMessageSubmitTransaction(topic_id=topic_id, message=message).freeze_with(client).sign(operator_key)
     )
 
     try:

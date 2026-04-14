@@ -1,17 +1,19 @@
+from __future__ import annotations
+
 import math
-from typing import List, Literal, Optional, Union, overload
+from typing import Literal, overload
+
+from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
-from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, timestamp_pb2
-from hiero_sdk_python.hapi.services import transaction_pb2
+from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, timestamp_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -19,43 +21,44 @@ from hiero_sdk_python.transaction.transaction_response import TransactionRespons
 
 class TopicMessageSubmitTransaction(Transaction):
     """
-        Represents a transaction that submits a message to a Hedera Consensus Service topic.
+    Represents a transaction that submits a message to a Hedera Consensus Service topic.
 
-        Allows setting the target topic ID and message, building the transaction body,
-        and executing the submission through a network channel.
+    Allows setting the target topic ID and message, building the transaction body,
+    and executing the submission through a network channel.
     """
 
     def __init__(
         self,
-        topic_id: Optional[TopicId] = None,
-        message: Optional[str] = None,
-        chunk_size: Optional[int] = None,
-        max_chunks: Optional[int] = None
+        topic_id: TopicId | None = None,
+        message: str | None = None,
+        chunk_size: int | None = None,
+        max_chunks: int | None = None,
     ) -> None:
         """
         Initializes a new TopicMessageSubmitTransaction instance.
+
         Args:
-            topic_id (Optional[TopicId]): The ID of the topic.
-            message (Optional[str]): The message to submit.
-            chunk_size (Optional[int]): The maximum chunk size in bytes, Default: 1024.
-            max_chunks (Optional[int]): The maximum number of chunks allowed, Default: 20.
+            topic_id (TopicId, optional): The ID of the topic.
+            message (str, optional): The message to submit.
+            chunk_size (int, optional): The maximum chunk size in bytes, Default: 1024.
+            max_chunks (int, optional): The maximum number of chunks allowed, Default: 20.
         """
         super().__init__()
-        self.topic_id: Optional[TopicId] = topic_id
-        self.message: Optional[str] = message
+        self.topic_id: TopicId | None = topic_id
+        self.message: str | None = message
         self.chunk_size: int = chunk_size or 1024
         self.max_chunks: int = max_chunks or 20
 
         self._current_index = 0
         self._total_chunks = self.get_required_chunks()
-        self._initial_transaction_id: Optional[TransactionId] = None
-        self._transaction_ids: List[TransactionId] = []
-        self._signing_keys: List["PrivateKey"] = []
+        self._initial_transaction_id: TransactionId | None = None
+        self._transaction_ids: list[TransactionId] = []
+        self._signing_keys: list[PrivateKey] = []
 
     def get_required_chunks(self) -> int:
         """
         Returns the number of chunks required for the current message.
-        
+
         Returns:
             int: Number of chunks required.
         """
@@ -65,9 +68,7 @@ class TopicMessageSubmitTransaction(Transaction):
         content = self.message.encode("utf-8")
         return math.ceil(len(content) / self.chunk_size)
 
-    def set_topic_id(
-        self, topic_id: TopicId
-    ) -> "TopicMessageSubmitTransaction":
+    def set_topic_id(self, topic_id: TopicId) -> TopicMessageSubmitTransaction:
         """
         Sets the topic ID for the message submission.
 
@@ -81,7 +82,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self.topic_id = topic_id
         return self
 
-    def set_message(self, message: str) -> "TopicMessageSubmitTransaction":
+    def set_message(self, message: str) -> TopicMessageSubmitTransaction:
         """
         Sets the message to submit to the topic.
 
@@ -96,10 +97,10 @@ class TopicMessageSubmitTransaction(Transaction):
         self._total_chunks = self.get_required_chunks()
         return self
 
-    def set_chunk_size(self, chunk_size: int) -> "TopicMessageSubmitTransaction":
+    def set_chunk_size(self, chunk_size: int) -> TopicMessageSubmitTransaction:
         """
         Set maximum chunk size in bytes.
-        
+
         Args:
             chunk_size (int):  The size of each chunk in bytes.
 
@@ -114,7 +115,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self._total_chunks = self.get_required_chunks()
         return self
 
-    def set_max_chunks(self, max_chunks: int) -> "TopicMessageSubmitTransaction":
+    def set_max_chunks(self, max_chunks: int) -> TopicMessageSubmitTransaction:
         """
         Set maximum allowed chunks.
 
@@ -131,14 +132,12 @@ class TopicMessageSubmitTransaction(Transaction):
         self.max_chunks = max_chunks
         return self
 
-    def set_custom_fee_limits(
-        self, custom_fee_limits: list["CustomFeeLimit"]
-    ) -> "TopicMessageSubmitTransaction":
+    def set_custom_fee_limits(self, custom_fee_limits: list[CustomFeeLimit]) -> TopicMessageSubmitTransaction:
         """
         Sets the maximum custom fees that the user is willing to pay for the message.
 
         Args:
-            custom_fee_limits (List[CustomFeeLimit]): The list of custom fee limits to set.
+            custom_fee_limits (list[CustomFeeLimit]): The list of custom fee limits to set.
 
         Returns:
             TopicMessageSubmitTransaction: This transaction instance (for chaining).
@@ -147,9 +146,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self.custom_fee_limits = custom_fee_limits
         return self
 
-    def add_custom_fee_limit(
-        self, custom_fee_limit: "CustomFeeLimit"
-    ) -> "TopicMessageSubmitTransaction":
+    def add_custom_fee_limit(self, custom_fee_limit: CustomFeeLimit) -> TopicMessageSubmitTransaction:
         """
         Adds a maximum custom fee that the user is willing to pay for the message.
 
@@ -181,10 +178,10 @@ class TopicMessageSubmitTransaction(Transaction):
     def _build_proto_body(self) -> consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody:
         """
         Returns the protobuf body for the topic message submit transaction.
-        
+
         Returns:
             ConsensusSubmitMessageTransactionBody: The protobuf body for this transaction.
-            
+
         Raises:
             ValueError: If required fields (topic_id, message) are missing.
         """
@@ -199,19 +196,19 @@ class TopicMessageSubmitTransaction(Transaction):
         end_index = min(start_index + self.chunk_size, len(content))
         chunk_content = content[start_index:end_index]
 
-
         body = consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
-            topicID=self.topic_id._to_proto(),
-            message=chunk_content
+            topicID=self.topic_id._to_proto(), message=chunk_content
         )
 
         # Multi-chunk metadata
         if self._total_chunks > 1:
-            body.chunkInfo.CopyFrom(consensus_submit_message_pb2.ConsensusMessageChunkInfo(
-                initialTransactionID=self._initial_transaction_id._to_proto(),
-                total=self._total_chunks,
-                number=self._current_index + 1
-            ))
+            body.chunkInfo.CopyFrom(
+                consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+                    initialTransactionID=self._initial_transaction_id._to_proto(),
+                    total=self._total_chunks,
+                    number=self._current_index + 1,
+                )
+            )
 
         return body
 
@@ -220,7 +217,7 @@ class TopicMessageSubmitTransaction(Transaction):
         Builds and returns the protobuf transaction body for message submission.
 
         Returns:
-            TransactionBody: The protobuf transaction body containing 
+            TransactionBody: The protobuf transaction body containing
                 the message submission details.
         """
         consensus_submit_message_body = self._build_proto_body()
@@ -250,12 +247,9 @@ class TopicMessageSubmitTransaction(Transaction):
         Returns:
             _Method: The method object with bound transaction execution.
         """
-        return _Method(
-            transaction_func=channel.topic.submitMessage,
-            query_func=None
-        )
+        return _Method(transaction_func=channel.topic.submitMessage, query_func=None)
 
-    def freeze_with(self, client: "Client") -> "TopicMessageSubmitTransaction":
+    def freeze_with(self, client: Client) -> TopicMessageSubmitTransaction:
         if self._transaction_body_bytes:
             return self
 
@@ -273,91 +267,85 @@ class TopicMessageSubmitTransaction(Transaction):
                     chunk_transaction_id = self.transaction_id
                 else:
                     chunk_valid_start = timestamp_pb2.Timestamp(
-                        seconds=base_timestamp.seconds,
-                        nanos=base_timestamp.nanos + i
+                        seconds=base_timestamp.seconds, nanos=base_timestamp.nanos + i
                     )
                     chunk_transaction_id = TransactionId(
-                        account_id=self.transaction_id.account_id,
-                        valid_start=chunk_valid_start
+                        account_id=self.transaction_id.account_id, valid_start=chunk_valid_start
                     )
 
                 self._transaction_ids.append(chunk_transaction_id)
 
         return super().freeze_with(client)
-    
+
     @overload
     def execute(
         self,
-        client: "Client",
+        client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
-        validate_status: bool = False
-    ) -> "TransactionReceipt":
-        ...
+        validate_status: bool = False,
+    ) -> TransactionReceipt: ...
 
     @overload
     def execute(
         self,
-        client: "Client",
+        client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
-        validate_status: bool = False
-    ) -> "TransactionResponse":
-        ...
+        validate_status: bool = False,
+    ) -> TransactionResponse: ...
 
     def execute(
         self,
-        client: "Client",
+        client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: bool = True,
-        validate_status: bool = False
+        validate_status: bool = False,
     ) -> TransactionReceipt | TransactionResponse:
         """
         Executes the topic message submit transaction.
-        
+
         For multi-chunk transactions, this method will execute all chunks sequentially and return first response.
-        
+
         Args:
             client: The client to execute the transaction with.
             timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
             wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
             validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
-            
+
         Returns:
             TransactionReceipt: If wait_for_receipt is True (default)
             TransactionResponse: If wait_for_receipt is False
         """
         # Return the first response as the JS SDK does
         return self.execute_all(client, timeout, wait_for_receipt, validate_status)[0]
-    
-    @overload
-    def execute_all(
-        self,
-        client: "Client",
-        timeout: int | float | None = None,
-        wait_for_receipt: Literal[True] = True,
-        validate_status: bool = False
-    ) -> List["TransactionReceipt"]:
-        ...
 
     @overload
     def execute_all(
         self,
-        client: "Client",
+        client: Client,
         timeout: int | float | None = None,
-        wait_for_receipt: Literal[False] = False,
-        validate_status: bool = False
-    ) -> List["TransactionResponse"]:
-        ...
-    
+        wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False,
+    ) -> list[TransactionReceipt]: ...
+
+    @overload
     def execute_all(
         self,
-        client: "Client",
+        client: Client,
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False,
+    ) -> list[TransactionResponse]: ...
+
+    def execute_all(
+        self,
+        client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: bool = True,
-        validate_status: bool = False
-    ) -> List["TransactionReceipt"] | List["TransactionResponse"]:
+        validate_status: bool = False,
+    ) -> list[TransactionReceipt] | list[TransactionResponse]:
         """
         Executes the topic message submit transaction.
 
@@ -369,7 +357,7 @@ class TopicMessageSubmitTransaction(Transaction):
             wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
                 If False, the method returns a TransactionResponse immediately after submission.
             validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
-            
+
         Returns:
             List[TransactionReceipt]: If wait_for_receipt is True (default)
             List[TransactionResponse]: If wait_for_receipt is False
@@ -399,16 +387,15 @@ class TopicMessageSubmitTransaction(Transaction):
             # Execute the chunk
             response = super().execute(client, timeout, wait_for_receipt, validate_status)
             responses.append(response)
-        
-        return responses
-        
 
-    def sign(self, private_key: "PrivateKey"):
+        return responses
+
+    def sign(self, private_key: PrivateKey):
         """
         Signs the transaction using the provided private key.
-            
+
         For multi-chunk transactions, this stores the signing key for later use.
-        
+
         Args:
             private_key (PrivateKey): The private key to sign the transaction with.
         """

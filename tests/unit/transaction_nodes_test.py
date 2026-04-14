@@ -1,6 +1,7 @@
-import pytest
-from hiero_sdk_python.transaction.transaction import Transaction
+from __future__ import annotations
+
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 class DummyTransaction(Transaction):
@@ -8,6 +9,7 @@ class DummyTransaction(Transaction):
     Minimal subclass of Transaction for testing.
     Transaction is abstract (requires build methods), so we stub them out.
     """
+
     def __init__(self):
         super().__init__()
 

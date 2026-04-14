@@ -17,5 +17,3 @@ git checkout -b my-new-branch-name
 ```
 
 Commit all your changes on this new branch, then publish your branch and submit a pull request.
-
-

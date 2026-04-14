@@ -1,5 +1,5 @@
 """
-transaction_receipt.py
+transaction_receipt.py.
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Defines the TransactionReceipt class, which represents the outcome of a Hedera transaction.
@@ -11,15 +11,20 @@ It wraps the underlying protobuf object and exposes key properties.
 Classes:
     - TransactionReceipt: Parses and exposes fields from a transaction receipt protobuf.
 """
-from typing import Optional, cast
-from hiero_sdk_python.file.file_id import FileId
+
+from __future__ import annotations
+
+from typing import cast
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hapi.services import response_code_pb2, transaction_receipt_pb2
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.hapi.services import transaction_receipt_pb2, response_code_pb2
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.consensus.topic_id import TopicId
+
 
 class TransactionReceipt:
     """
@@ -37,9 +42,9 @@ class TransactionReceipt:
     def __init__(
         self,
         receipt_proto: transaction_receipt_pb2.TransactionReceipt,
-        transaction_id: Optional[TransactionId] = None,
-        children: Optional[list["TransactionReceipt"]] = None,
-        duplicates: Optional[list["TransactionReceipt"]] = None,
+        transaction_id: TransactionId | None = None,
+        children: list[TransactionReceipt] | None = None,
+        duplicates: list[TransactionReceipt] | None = None,
     ) -> None:
         """
         Initializes the TransactionReceipt with the provided protobuf receipt.
@@ -48,54 +53,45 @@ class TransactionReceipt:
             receipt_proto (transaction_receipt_pb2.TransactionReceiptProto, optional): The protobuf transaction receipt.
             transaction_id (TransactionId, optional): The transaction ID associated with this receipt.
         """
-        self._transaction_id: Optional[TransactionId] = transaction_id
-        self.status: Optional[response_code_pb2.ResponseCodeEnum] = receipt_proto.status
+        self._transaction_id: TransactionId | None = transaction_id
+        self.status: response_code_pb2.ResponseCodeEnum | None = receipt_proto.status
         self._receipt_proto: transaction_receipt_pb2.TransactionReceipt = receipt_proto
-        self._children: list["TransactionReceipt"] = children or []
-        self._duplicates: list["TransactionReceipt"] = duplicates or []
+        self._children: list[TransactionReceipt] = children or []
+        self._duplicates: list[TransactionReceipt] = duplicates or []
 
     @property
-    def token_id(self) -> Optional[TokenId]:
+    def token_id(self) -> TokenId | None:
         """
         Retrieves the TokenId associated with the transaction receipt, if available.
 
         Returns:
             TokenId or None: The TokenId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("tokenID")
-            and self._receipt_proto.tokenID.tokenNum != 0
-        ):
+        if self._receipt_proto.HasField("tokenID") and self._receipt_proto.tokenID.tokenNum != 0:
             return TokenId._from_proto(self._receipt_proto.tokenID)
         return None
 
     @property
-    def topic_id(self) -> Optional[TopicId]:
+    def topic_id(self) -> TopicId | None:
         """
         Retrieves the TopicId associated with the transaction receipt, if available.
 
         Returns:
             TopicId or None: The TopicId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("topicID")
-            and self._receipt_proto.topicID.topicNum != 0
-        ):
+        if self._receipt_proto.HasField("topicID") and self._receipt_proto.topicID.topicNum != 0:
             return TopicId._from_proto(self._receipt_proto.topicID)
         return None
 
     @property
-    def account_id(self) -> Optional[AccountId]:
+    def account_id(self) -> AccountId | None:
         """
         Retrieves the AccountId associated with the transaction receipt, if available.
 
         Returns:
             AccountId or None: The AccountId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("accountID")
-            and self._receipt_proto.accountID.accountNum != 0
-        ):
+        if self._receipt_proto.HasField("accountID") and self._receipt_proto.accountID.accountNum != 0:
             return AccountId._from_proto(self._receipt_proto.accountID)
         return None
 
@@ -110,19 +106,14 @@ class TransactionReceipt:
         return cast(list[int], self._receipt_proto.serialNumbers)
 
     @property
-    def file_id(self) -> Optional[FileId]:
-        """
-        Returns the file ID associated with this receipt.
-        """
-        if (
-            self._receipt_proto.HasField("fileID")
-            and self._receipt_proto.fileID.fileNum != 0
-        ):
+    def file_id(self) -> FileId | None:
+        """Returns the file ID associated with this receipt."""
+        if self._receipt_proto.HasField("fileID") and self._receipt_proto.fileID.fileNum != 0:
             return FileId._from_proto(self._receipt_proto.fileID)
         return None
 
     @property
-    def transaction_id(self) -> Optional[TransactionId]:
+    def transaction_id(self) -> TransactionId | None:
         """
         Returns the transaction ID associated with this receipt.
 
@@ -139,10 +130,7 @@ class TransactionReceipt:
         Returns:
             ContractId or None: The ContractId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("contractID")
-            and self._receipt_proto.contractID.contractNum != 0
-        ):
+        if self._receipt_proto.HasField("contractID") and self._receipt_proto.contractID.contractNum != 0:
             return ContractId._from_proto(self._receipt_proto.contractID)
 
         return None
@@ -155,10 +143,7 @@ class TransactionReceipt:
         Returns:
             ScheduleId or None: The ScheduleId if present; otherwise, None.
         """
-        if (
-            self._receipt_proto.HasField("scheduleID")
-            and self._receipt_proto.scheduleID.scheduleNum != 0
-        ):
+        if self._receipt_proto.HasField("scheduleID") and self._receipt_proto.scheduleID.scheduleNum != 0:
             return ScheduleId._from_proto(self._receipt_proto.scheduleID)
 
         return None
@@ -197,20 +182,20 @@ class TransactionReceipt:
         return self._receipt_proto.topicSequenceNumber
 
     @property
-    def topic_running_hash(self) -> Optional[bytes]:
+    def topic_running_hash(self) -> bytes | None:
         """
         Returns the topic running hash associated with this receipt.
 
         Returns:
             int: The running hash of the topic if present, otherwise None.
         """
-        if self._receipt_proto.HasField('topicRunningHash'):
+        if self._receipt_proto.HasField("topicRunningHash"):
             return self._receipt_proto.topicRunningHash
 
         return None
 
     @property
-    def children(self) -> list["TransactionReceipt"]:
+    def children(self) -> list[TransactionReceipt]:
         """
         Returns the child transaction receipts associated with this receipt.
 
@@ -219,7 +204,7 @@ class TransactionReceipt:
         """
         return self._children
 
-    def _set_children(self, children: list["TransactionReceipt"]) -> None:
+    def _set_children(self, children: list[TransactionReceipt]) -> None:
         """
         Internal setter for child receipts (used by receipt queries).
 
@@ -229,7 +214,7 @@ class TransactionReceipt:
         self._children = children
 
     @property
-    def duplicates(self) -> list["TransactionReceipt"]:
+    def duplicates(self) -> list[TransactionReceipt]:
         """
         Returns the duplicate transaction receipts associated with this receipt.
 
@@ -237,8 +222,8 @@ class TransactionReceipt:
             list[TransactionReceipt]: Duplicate receipts (empty if not requested or none exist).
         """
         return self._duplicates
-    
-    def _set_duplicates(self, duplicates: list["TransactionReceipt"]) -> None:
+
+    def _set_duplicates(self, duplicates: list[TransactionReceipt]) -> None:
         """
         Internal setter for duplicate receipts (used by receipt queries).
 
@@ -257,12 +242,16 @@ class TransactionReceipt:
         return self._receipt_proto
 
     @classmethod
-    def _from_proto(cls, proto: transaction_receipt_pb2.TransactionReceipt, transaction_id: TransactionId) -> "TransactionReceipt":
+    def _from_proto(
+        cls, proto: transaction_receipt_pb2.TransactionReceipt, transaction_id: TransactionId
+    ) -> TransactionReceipt:
         """
         Creates a TransactionReceipt instance from a protobuf TransactionReceipt object.
+
         Args:
             proto (transaction_receipt_pb2.TransactionReceipt): The protobuf TransactionReceipt object.
             transaction_id (TransactionId): The transaction ID associated with this receipt.
+
         Returns:
             TransactionReceipt: A new instance of TransactionReceipt populated with data from the protobuf object.
         """

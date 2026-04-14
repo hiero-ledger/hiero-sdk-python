@@ -5,6 +5,7 @@ Example demonstrating token update transaction key.
 uv run examples/tokens/token_update_transaction_key.py
 python examples/tokens/token_update_transaction_key.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -25,6 +26,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def create_fungible_token(client, operator_id, admin_key, wipe_key):
     """Create a fungible token."""
@@ -47,9 +49,7 @@ def create_fungible_token(client, operator_id, admin_key, wipe_key):
 
     # Check if token creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     # Get token ID from receipt
@@ -62,7 +62,6 @@ def create_fungible_token(client, operator_id, admin_key, wipe_key):
 def get_token_info(client, token_id):
     """Get information about a fungible token."""
     return TokenInfoQuery().set_token_id(token_id).execute(client)
-
 
 
 def update_wipe_key_full_validation(client, token_id, old_wipe_key):

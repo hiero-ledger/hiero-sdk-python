@@ -7,7 +7,7 @@ Recommended Tools
 - [ ] Visual Studio Code
     - [ ] Pylance
 
-However, what may work best for you might be different. 
+However, what may work best for you might be different.
 
 ### GitHub Desktop
 GitHub Desktop is a free, user-friendly application that provides a visual interface for Git and GitHub. Instead of running Git commands in a terminal, GitHub Desktop lets you perform common tasks through an intuitive UI.
@@ -44,6 +44,3 @@ from hiero_sdk_python.account.token_id import TokenId
 This is incorrect because token_id.py does not live in /account! Instead, it lives in /tokens
 
 Read our [Pylance Installation Guide](../../pylance.md)
-
-
-

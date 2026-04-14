@@ -1,8 +1,6 @@
-"""
-ScheduleDeleteTransaction class.
-"""
+"""ScheduleDeleteTransaction class."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -27,25 +25,23 @@ class ScheduleDeleteTransaction(Transaction):
     to build and execute a schedule delete transaction.
     """
 
-    def __init__(self, schedule_id: Optional[ScheduleId] = None):
+    def __init__(self, schedule_id: ScheduleId | None = None):
         """
         Initializes a new ScheduleDeleteTransaction instance with the specified parameters.
 
         Args:
-            schedule_id (Optional[ScheduleId]): The ID of the schedule to delete.
+            schedule_id (ScheduleId, optional): The ID of the schedule to delete.
         """
         super().__init__()
-        self.schedule_id: Optional[ScheduleId] = schedule_id
+        self.schedule_id: ScheduleId | None = schedule_id
         self._default_transaction_fee = Hbar(5).to_tinybars()
 
-    def set_schedule_id(
-        self, schedule_id: Optional[ScheduleId]
-    ) -> "ScheduleDeleteTransaction":
+    def set_schedule_id(self, schedule_id: ScheduleId | None) -> ScheduleDeleteTransaction:
         """
         Sets the ID of the schedule to delete.
 
         Args:
-            schedule_id (Optional[ScheduleId]): The ID of the schedule to delete.
+            schedule_id (ScheduleId | None): The ID of the schedule to delete.
 
         Returns:
             ScheduleDeleteTransaction: This transaction instance.
@@ -106,6 +102,4 @@ class ScheduleDeleteTransaction(Transaction):
         Returns:
             _Method: An object containing the transaction function to delete a schedule.
         """
-        return _Method(
-            transaction_func=channel.schedule.deleteSchedule, query_func=None
-        )
+        return _Method(transaction_func=channel.schedule.deleteSchedule, query_func=None)

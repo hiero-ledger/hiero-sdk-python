@@ -1,9 +1,10 @@
-"""
-TokenNftAllowance class for handling NFT token allowances.
-"""
+"""TokenNftAllowance class for handling NFT token allowances."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, List, Optional
+from typing import Any
 
 from google.protobuf.wrappers_pb2 import BoolValue
 
@@ -27,23 +28,23 @@ class TokenNftAllowance:
     tokens flag, and optional delegating spender.
 
     Attributes:
-        token_id (Optional[TokenId]): The ID of the NFT token.
-        owner_account_id (Optional[AccountId]): The account that owns the NFTs.
-        spender_account_id (Optional[AccountId]): The account permitted to transfer the NFTs.
-        serial_numbers (List[int]): List of specific NFT serial numbers allowed for transfer.
-        approved_for_all (Optional[bool]): Whether the spender can transfer all NFTs of this type.
-        delegating_spender (Optional[AccountId]): Account that can delegate NFT transfers.
+        token_id (TokenId, optional): The ID of the NFT token.
+        owner_account_id (AccountId, optional): The account that owns the NFTs.
+        spender_account_id (AccountId, optional): The account permitted to transfer the NFTs.
+        serial_numbers (list[int], optional): List of specific NFT serial numbers allowed for transfer.
+        approved_for_all (bool, optional): Whether the spender can transfer all NFTs of this type.
+        delegating_spender (AccountId, optional): Account that can delegate NFT transfers.
     """
 
-    token_id: Optional[TokenId] = None
-    owner_account_id: Optional[AccountId] = None
-    spender_account_id: Optional[AccountId] = None
-    serial_numbers: List[int] = field(default_factory=list)
-    approved_for_all: Optional[bool] = None
-    delegating_spender: Optional[AccountId] = None
+    token_id: TokenId | None = None
+    owner_account_id: AccountId | None = None
+    spender_account_id: AccountId | None = None
+    serial_numbers: list[int] = field(default_factory=list)
+    approved_for_all: bool | None = None
+    delegating_spender: AccountId | None = None
 
     @classmethod
-    def _from_proto(cls, proto: NftAllowanceProto) -> "TokenNftAllowance":
+    def _from_proto(cls, proto: NftAllowanceProto) -> TokenNftAllowance:
         """
         Creates a TokenNftAllowance instance from its protobuf representation.
 
@@ -64,16 +65,12 @@ class TokenNftAllowance:
             owner_account_id=(cls._from_proto_field(proto, "owner", AccountId._from_proto)),
             spender_account_id=(cls._from_proto_field(proto, "spender", AccountId._from_proto)),
             serial_numbers=list(proto.serial_numbers),
-            approved_for_all=(
-                proto.approved_for_all.value if proto.HasField("approved_for_all") else False
-            ),
-            delegating_spender=(
-                cls._from_proto_field(proto, "delegating_spender", AccountId._from_proto)
-            ),
+            approved_for_all=(proto.approved_for_all.value if proto.HasField("approved_for_all") else False),
+            delegating_spender=(cls._from_proto_field(proto, "delegating_spender", AccountId._from_proto)),
         )
 
     @classmethod
-    def _from_wipe_proto(cls, proto: NftRemoveAllowanceProto) -> "TokenNftAllowance":
+    def _from_wipe_proto(cls, proto: NftRemoveAllowanceProto) -> TokenNftAllowance:
         """
         Creates a TokenNftAllowance instance from an NftRemoveAllowance protobuf.
 
@@ -153,9 +150,7 @@ class TokenNftAllowance:
         spender_str = str(self.spender_account_id) if self.spender_account_id else "None"
         token_str = str(self.token_id) if self.token_id else "None"
         serials_str = str(self.serial_numbers) if self.serial_numbers else "[]"
-        delegating_str = (
-            f", delegating_spender={self.delegating_spender}" if self.delegating_spender else ""
-        )
+        delegating_str = f", delegating_spender={self.delegating_spender}" if self.delegating_spender else ""
 
         return (
             f"TokenNftAllowance("

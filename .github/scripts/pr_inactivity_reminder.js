@@ -82,7 +82,7 @@ If you're no longer working on this, please comment \`/unassign\` on the linked 
 Reach out on discord or join our office hours if you need assistance.
 
 - ${discordLink}
-- ${office_hours_calendar} 
+- ${office_hours_calendar}
 
 From the Python SDK Team`;
 

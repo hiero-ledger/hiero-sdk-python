@@ -2,6 +2,8 @@
 Integration tests for FileContentsQuery.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.exceptions import PrecheckError
@@ -9,7 +11,7 @@ from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hbar import Hbar
-from tests.integration.utils import env
+
 
 FILE_CONTENT = b"Hello, World"
 
@@ -89,9 +91,7 @@ def test_integration_file_contents_query_insufficient_payment(env):
     file_contents = FileContentsQuery().set_file_id(file_id)
     file_contents.set_query_payment(Hbar.from_tinybars(1))  # Set very low query payment
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"):
         file_contents.execute(env.client)
 
 
@@ -101,7 +101,5 @@ def test_integration_file_contents_query_fails_with_invalid_file_id(env):
     # Create a file ID that doesn't exist on the network
     file_id = FileId(0, 0, 999999999)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INVALID_FILE_ID"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_FILE_ID"):
         FileContentsQuery(file_id).execute(env.client)

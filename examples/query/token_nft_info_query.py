@@ -5,6 +5,7 @@ Example demonstrating token nft info query.
 uv run examples/query/token_nft_info_query.py
 python examples/query/token_nft_info_query.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -65,12 +66,7 @@ def create_nft(client, operator_id, operator_key):
 
 def mint_nft(client, nft_token_id):
     """Mint a non-fungible token."""
-    receipt = (
-        TokenMintTransaction()
-        .set_token_id(nft_token_id)
-        .set_metadata(b"My NFT Metadata 1")
-        .execute(client)
-    )
+    receipt = TokenMintTransaction().set_token_id(nft_token_id).set_metadata(b"My NFT Metadata 1").execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"NFT minting failed with status: {ResponseCode(receipt.status).name}")

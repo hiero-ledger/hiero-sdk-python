@@ -473,7 +473,7 @@ Let's walk through creating both unit and integration tests for a hypothetical n
 
 #### 1. Create Unit Test
 
-**File:** 
+**File:**
 You may look at an already-created unit test file for better clarity:
 [token_pause_transaction_test.py](../../tests/unit/token_pause_transaction_test.py)
 
@@ -509,10 +509,10 @@ def test_example():
     # Arrange - Set up test data and preconditions
     account_id = AccountId(0, 0, 1001)
     initial_balance = Hbar(10)
-    
+
     # Act - Perform the action being tested
     result = calculate_new_balance(account_id, initial_balance)
-    
+
     # Assert - Verify the outcome
     assert result.to_tinybars() == 1_000_000_000
 ```
@@ -586,10 +586,10 @@ def test_transaction_execution_calls_network():
     """Test that transaction execution calls the network correctly."""
     mock_client = Mock()
     mock_client.execute.return_value = {"status": "SUCCESS"}
-    
+
     transaction = SomeTransaction()
     result = transaction.execute(mock_client)
-    
+
     mock_client.execute.assert_called_once()
     assert result["status"] == "SUCCESS"
 ```
@@ -693,9 +693,9 @@ def _create_and_associate_token(env, account):
     """Helper to create token and associate it with account."""
     token_receipt = TokenCreateTransaction().execute(env.client)
     token_id = token_receipt.token_id
-    
+
     TokenAssociateTransaction().set_account_id(account.id).add_token_id(token_id).execute(env.client)
-    
+
     return token_id
 
 @pytest.mark.integration
@@ -1018,9 +1018,9 @@ def test_transaction_handles_network_error():
     """Test that transaction properly handles network errors."""
     mock_client = Mock()
     mock_client.execute.side_effect = Exception("Network timeout")
-    
+
     transaction = SomeTransaction()
-    
+
     with pytest.raises(Exception, match="Network timeout"):
         transaction.execute(mock_client)
 
@@ -1032,10 +1032,10 @@ def test_transaction_retries_on_failure():
         {"status": ResponseCode.BUSY},
         {"status": ResponseCode.SUCCESS}
     ]
-    
+
     transaction = SomeTransaction()
     result = transaction.execute_with_retry(mock_client, max_retries=2)
-    
+
     assert result["status"] == ResponseCode.SUCCESS
     assert mock_client.execute.call_count == 2
 ```
@@ -1052,10 +1052,10 @@ import asyncio
 async def test_async_transaction():
     """Test asynchronous transaction execution."""
     client = await create_async_client()
-    
+
     transaction = AsyncTransaction()
     result = await transaction.execute(client)
-    
+
     assert result.status == ResponseCode.SUCCESS
 ```
 
@@ -1072,7 +1072,7 @@ def test_hbar_conversion_property(amount):
     hbar = Hbar(amount)
     tinybars = hbar.to_tinybars()
     hbar2 = Hbar.from_tinybars(tinybars)
-    
+
     assert hbar.to_tinybars() == hbar2.to_tinybars()
 ```
 
@@ -1085,7 +1085,7 @@ def test_transaction_serialization_snapshot(snapshot):
     """Test that transaction serialization hasn't changed."""
     transaction = create_test_transaction()
     serialized = transaction.to_proto()
-    
+
     # Compare against saved snapshot
     snapshot.assert_match(serialized)
 ```
@@ -1100,10 +1100,10 @@ import time
 def test_transaction_performance():
     """Test that transaction creation is fast."""
     start = time.time()
-    
+
     for _ in range(1000):
         transaction = AccountCreateTransaction()
-    
+
     duration = time.time() - start
     assert duration < 1.0, f"Transaction creation took {duration}s, expected < 1s"
 ```

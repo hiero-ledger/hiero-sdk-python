@@ -6,8 +6,10 @@ contract function calls. It supports all standard Solidity return types and uses
 decoding. Results can be accessed through type-specific getter methods.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Any, List, Optional
+from typing import Any
 
 import eth_abi
 from google.protobuf.wrappers_pb2 import BytesValue, Int64Value
@@ -27,20 +29,20 @@ class ContractFunctionResult:
     Hedera smart contract function calls, using the eth-abi library to handle the decoding logic.
     """
 
-    contract_id: Optional[ContractId] = None
-    contract_call_result: Optional[bytes] = None
-    error_message: Optional[str] = None
-    bloom: Optional[bytes] = None
-    gas_used: Optional[int] = None
-    log_info: List[ContractLogInfo] = field(default_factory=list)
-    evm_address: Optional[ContractId] = None
-    gas_available: Optional[int] = None
-    amount: Optional[int] = None
-    function_parameters: Optional[bytes] = None
-    contract_nonces: List[ContractNonceInfo] = field(default_factory=list)
-    signer_nonce: Optional[int] = None
+    contract_id: ContractId | None = None
+    contract_call_result: bytes | None = None
+    error_message: str | None = None
+    bloom: bytes | None = None
+    gas_used: int | None = None
+    log_info: list[ContractLogInfo] = field(default_factory=list)
+    evm_address: ContractId | None = None
+    gas_available: int | None = None
+    amount: int | None = None
+    function_parameters: bytes | None = None
+    contract_nonces: list[ContractNonceInfo] = field(default_factory=list)
+    signer_nonce: int | None = None
 
-    def get_result(self, output_types: List[str]) -> List[Any]:
+    def get_result(self, output_types: list[str]) -> list[Any]:
         """
         Decode the result bytes according to the provided Solidity output types.
 
@@ -450,9 +452,7 @@ class ContractFunctionResult:
         return self.get_bytes(index).decode("utf-8")
 
     @classmethod
-    def _from_proto(
-        cls, proto: contract_types_pb2.ContractFunctionResult
-    ) -> "ContractFunctionResult":
+    def _from_proto(cls, proto: contract_types_pb2.ContractFunctionResult) -> ContractFunctionResult:
         """
         Deserializes a ContractFunctionResult from a protobuf message.
 
@@ -468,24 +468,14 @@ class ContractFunctionResult:
         if proto is None:
             raise ValueError("Contract function result proto is None")
 
-        logs = []
-        for log_info in proto.logInfo:
-            logs.append(ContractLogInfo._from_proto(log_info))
+        logs = [ContractLogInfo._from_proto(log_info) for log_info in proto.logInfo]
 
-        evm_address = (
-            ContractId(evm_address=proto.evm_address.value)
-            if len(proto.evm_address.value) > 0
-            else None
-        )
+        evm_address = ContractId(evm_address=proto.evm_address.value) if len(proto.evm_address.value) > 0 else None
 
-        contract_nonces = []
-        for contract_nonce in proto.contract_nonces:
-            contract_nonces.append(ContractNonceInfo._from_proto(contract_nonce))
+        contract_nonces = [ContractNonceInfo._from_proto(contract_nonce) for contract_nonce in proto.contract_nonces]
 
         return cls(
-            contract_id=(
-                ContractId._from_proto(proto.contractID) if proto.contractID else None
-            ),
+            contract_id=(ContractId._from_proto(proto.contractID) if proto.contractID else None),
             contract_call_result=proto.contractCallResult,
             error_message=proto.errorMessage,
             bloom=proto.bloom,
@@ -513,17 +503,10 @@ class ContractFunctionResult:
             bloom=self.bloom,
             gasUsed=self.gas_used,
             logInfo=[log_info._to_proto() for log_info in self.log_info or []],
-            evm_address=(
-                BytesValue(value=self.evm_address.evm_address)
-                if self.evm_address
-                else None
-            ),
+            evm_address=(BytesValue(value=self.evm_address.evm_address) if self.evm_address else None),
             gas=self.gas_available,
             amount=self.amount,
             functionParameters=self.function_parameters,
             signer_nonce=Int64Value(value=self.signer_nonce),
-            contract_nonces=[
-                contract_nonce._to_proto()
-                for contract_nonce in self.contract_nonces or []
-            ],
+            contract_nonces=[contract_nonce._to_proto() for contract_nonce in self.contract_nonces or []],
         )

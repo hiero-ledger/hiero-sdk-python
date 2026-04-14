@@ -5,6 +5,7 @@ Example: Update Custom Fees for an NFT.
 uv run examples/tokens/token_fee_schedule_update_transaction_nft.py
 python examples/tokens/token_fee_schedule_update_transaction_nft.py
 """
+
 import sys
 
 from hiero_sdk_python import Client
@@ -28,6 +29,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def create_nft(client, operator_id, supply_key, fee_schedule_key):
     """Create an NFT with supply and fee schedule keys."""
@@ -76,11 +78,7 @@ def update_custom_royalty_fee(client, token_id, fee_schedule_key, collector_acco
         )
     ]
     print(f" Defined {len(new_fees)} new custom fees.\n")
-    tx = (
-        TokenFeeScheduleUpdateTransaction()
-        .set_token_id(token_id)
-        .set_custom_fees(new_fees)
-    )
+    tx = TokenFeeScheduleUpdateTransaction().set_token_id(token_id).set_custom_fees(new_fees)
 
     tx.freeze_with(client).sign(fee_schedule_key)
 
@@ -116,9 +114,7 @@ def query_token_info(client, token_id):
             print(f"Found {len(custom_fees)} custom fee(s):")
             for i, fee in enumerate(custom_fees, 1):
                 print(f"  Fee #{i}: {type(fee).__name__}")
-                print(
-                    f"    Collector: {getattr(fee, 'fee_collector_account_id', 'N/A')}"
-                )
+                print(f"    Collector: {getattr(fee, 'fee_collector_account_id', 'N/A')}")
                 if isinstance(fee, CustomRoyaltyFee):
                     print(f"    Royalty: {fee.numerator}/{fee.denominator}")
                 else:
@@ -132,7 +128,7 @@ def query_token_info(client, token_id):
 
 
 def main():
-    
+
     client = setup_client()
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key

@@ -2,6 +2,8 @@
 Integration tests for ScheduleCreateTransaction.
 """
 
+from __future__ import annotations
+
 import datetime
 
 import pytest
@@ -20,7 +22,7 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils import create_fungible_token, env
+from tests.integration.utils import create_fungible_token
 
 
 @pytest.mark.integration
@@ -48,15 +50,13 @@ def test_integration_schedule_create_transaction_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
 
-    schedule_info = (
-        ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).execute(env.client)
-    )
+    schedule_info = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).execute(env.client)
     assert schedule_info is not None
     assert schedule_info.schedule_id == receipt.schedule_id
     assert schedule_info.creator_account_id == env.operator_id
@@ -67,9 +67,7 @@ def test_integration_schedule_create_transaction_can_execute(env):
     assert schedule_info.scheduled_transaction_id == receipt.scheduled_transaction_id
     assert schedule_info.scheduled_transaction_body == schedule_create_tx.schedulable_body
     assert len(schedule_info.signers) == 1
-    assert (
-        schedule_info.signers[0].to_bytes_raw() == account.key.public_key().to_bytes_raw()
-    )
+    assert schedule_info.signers[0].to_bytes_raw() == account.key.public_key().to_bytes_raw()
 
 
 @pytest.mark.integration
@@ -96,15 +94,13 @@ def test_integration_schedule_create_transaction_can_execute_without_waiting(env
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
 
-    schedule_info = (
-        ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).execute(env.client)
-    )
+    schedule_info = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).execute(env.client)
     assert schedule_info is not None
     assert schedule_info.schedule_id == receipt.schedule_id
     assert schedule_info.creator_account_id == env.operator_id
@@ -135,9 +131,9 @@ def test_integration_schedule_create_transaction_with_transfer_transaction(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
 
@@ -148,22 +144,13 @@ def test_integration_schedule_create_transaction_with_transfer_transaction(env):
 @pytest.mark.integration
 def test_integration_schedule_create_transaction_with_consensus_submit(env):
     """Test that ScheduleCreateTransaction can schedule a ConsensusSubmitMessage transaction."""
-    topic_receipt = (
-        TopicCreateTransaction().set_memo("test topic for schedule").execute(env.client)
-    )
+    topic_receipt = TopicCreateTransaction().set_memo("test topic for schedule").execute(env.client)
     assert topic_receipt.status == ResponseCode.SUCCESS
     topic_id = topic_receipt.topic_id
 
-    scheduled_tx = (
-        TopicMessageSubmitTransaction()
-        .set_topic_id(topic_id)
-        .set_message("scheduled message")
-        .schedule()
-    )
+    scheduled_tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("scheduled message").schedule()
 
-    receipt = (
-        scheduled_tx.freeze_with(env.client).sign(env.operator_key).execute(env.client)
-    )
+    receipt = scheduled_tx.freeze_with(env.client).sign(env.operator_key).execute(env.client)
     assert receipt.status == ResponseCode.SUCCESS
     assert receipt.schedule_id is not None
     assert receipt.scheduled_transaction_id is not None
@@ -180,16 +167,9 @@ def test_integration_schedule_create_transaction_with_token_burn(env):
     amount_to_burn = 500
 
     # Create a fungible token
-    token_id = create_fungible_token(
-        env, opts=[lambda tx: tx.set_initial_supply(initial_supply)]
-    )
+    token_id = create_fungible_token(env, opts=[lambda tx: tx.set_initial_supply(initial_supply)])
 
-    scheduled_tx = (
-        TokenBurnTransaction()
-        .set_token_id(token_id)
-        .set_amount(amount_to_burn)
-        .schedule()
-    )
+    scheduled_tx = TokenBurnTransaction().set_token_id(token_id).set_amount(amount_to_burn).schedule()
 
     receipt = scheduled_tx.execute(env.client)
     assert receipt.status == ResponseCode.SUCCESS
@@ -208,16 +188,9 @@ def test_integration_schedule_create_transaction_with_token_mint(env):
     amount_to_mint = 250
 
     # Create a fungible token
-    token_id = create_fungible_token(
-        env, opts=[lambda tx: tx.set_initial_supply(initial_supply)]
-    )
+    token_id = create_fungible_token(env, opts=[lambda tx: tx.set_initial_supply(initial_supply)])
 
-    scheduled_tx = (
-        TokenMintTransaction()
-        .set_token_id(token_id)
-        .set_amount(amount_to_mint)
-        .schedule()
-    )
+    scheduled_tx = TokenMintTransaction().set_token_id(token_id).set_amount(amount_to_mint).schedule()
 
     receipt = scheduled_tx.execute(env.client)
     assert receipt.status == ResponseCode.SUCCESS
@@ -244,9 +217,7 @@ def test_integration_schedule_create_transaction_invalid_expiry(env):
     scheduled_tx = transfer_tx.schedule()
 
     # Set expiration time far in the future
-    future_expiration = Timestamp.from_date(
-        datetime.datetime.now() + datetime.timedelta(days=366)
-    )
+    future_expiration = Timestamp.from_date(datetime.datetime.now() + datetime.timedelta(days=366))
 
     receipt = scheduled_tx.set_expiration_time(future_expiration).execute(env.client)
     assert receipt.status == ResponseCode.SCHEDULE_EXPIRATION_TIME_TOO_FAR_IN_FUTURE, (
@@ -271,15 +242,10 @@ def test_integration_schedule_create_transaction_invalid_expiry_in_the_past(env)
     scheduled_tx = transfer_tx.schedule()
 
     # Set expiration time in the past
-    past_time = Timestamp.from_date(
-        datetime.datetime.now() - datetime.timedelta(days=366)
-    )
+    past_time = Timestamp.from_date(datetime.datetime.now() - datetime.timedelta(days=366))
 
     receipt = scheduled_tx.set_expiration_time(past_time).execute(env.client)
-    assert (
-        receipt.status
-        == ResponseCode.SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME
-    ), (
+    assert receipt.status == ResponseCode.SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME, (
         f"Schedule create should have failed with status "
         f"SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME, "
         f"but got {ResponseCode(receipt.status).name}"

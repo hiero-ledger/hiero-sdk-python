@@ -1,9 +1,13 @@
 """TCK Server implementation using Flask."""
 
+from __future__ import annotations
+
+import logging
 import os
 from dataclasses import dataclass, field
-import logging
+
 from flask import Flask, jsonify, request
+
 from tck.errors import JsonRpcError
 from tck.handlers import safe_dispatch
 from tck.protocol import (
@@ -18,18 +22,14 @@ class ServerConfig:
     """Configuration for the TCK server."""
 
     host: str = field(default_factory=lambda: os.getenv("TCK_HOST", "localhost"))
-    port: int = field(
-        default_factory=lambda: _parse_port(os.getenv("TCK_PORT", "8544"))
-    )
+    port: int = field(default_factory=lambda: _parse_port(os.getenv("TCK_PORT", "8544")))
 
 
 def _parse_port(port_str: str) -> int:
     try:
         port = int(port_str)
     except ValueError as exc:
-        raise ValueError(
-            f"TCK_PORT must be a valid integer, got: '{port_str}'"
-        ) from exc
+        raise ValueError(f"TCK_PORT must be a valid integer, got: '{port_str}'") from exc
     if not (1 <= port <= 65535):
         raise ValueError(f"TCK_PORT must be between 1 and 65535, got: {port}")
     return port
@@ -43,11 +43,9 @@ logger = logging.getLogger(__name__)
 def json_rpc_endpoint():
     """JSON-RPC 2.0 endpoint to handle requests."""
     if request.mimetype != "application/json":
-        error = JsonRpcError.parse_error(
-            message="Parse error: Content-Type must be application/json"
-        )
+        error = JsonRpcError.parse_error(message="Parse error: Content-Type must be application/json")
         return jsonify(build_json_rpc_error_response(error, None))
-    
+
     try:
         request_json = request.get_json(force=True)
     except Exception:
@@ -70,7 +68,7 @@ def json_rpc_endpoint():
     # If the response is already an error response, return it directly
     if isinstance(response, dict) and "jsonrpc" in response and "error" in response:
         return jsonify(response)
-    
+
     return jsonify(build_json_rpc_success_response(response, request_id))
 
 

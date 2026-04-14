@@ -1,16 +1,12 @@
-"""
-ScheduleId class.
-"""
+"""ScheduleId class."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from hiero_sdk_python.hapi.services.basic_types_pb2 import ScheduleID as ProtoScheduleID
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.utils.entity_id_helper import (
-    parse_from_string,
-    validate_checksum,
-    format_to_string_with_checksum
-)
+from hiero_sdk_python.hapi.services.basic_types_pb2 import ScheduleID as ProtoScheduleID
+from hiero_sdk_python.utils.entity_id_helper import format_to_string_with_checksum, parse_from_string, validate_checksum
 
 
 @dataclass(frozen=True)
@@ -33,7 +29,7 @@ class ScheduleId:
     checksum: str | None = field(default=None, init=False)
 
     @classmethod
-    def from_string(cls, id_str: str) -> "ScheduleId":
+    def from_string(cls, id_str: str) -> ScheduleId:
         """
         Creates a ScheduleId instance from a string representation.
 
@@ -63,9 +59,7 @@ class ScheduleId:
 
             return schedule_id
         except Exception as e:
-            raise ValueError(
-                f"Invalid schedule ID string '{id_str}'. Expected format 'shard.realm.schedule'."
-            ) from e
+            raise ValueError(f"Invalid schedule ID string '{id_str}'. Expected format 'shard.realm.schedule'.") from e
 
     def __str__(self) -> str:
         """
@@ -103,11 +97,7 @@ class ScheduleId:
         """
         if not isinstance(other, ScheduleId):
             return NotImplemented
-        return (
-            self.shard == other.shard
-            and self.realm == other.realm
-            and self.schedule == other.schedule
-        )
+        return self.shard == other.shard and self.realm == other.realm and self.schedule == other.schedule
 
     def _to_proto(self) -> ProtoScheduleID:
         """
@@ -127,7 +117,7 @@ class ScheduleId:
         )
 
     @classmethod
-    def _from_proto(cls, proto: ProtoScheduleID) -> "ScheduleId":
+    def _from_proto(cls, proto: ProtoScheduleID) -> ScheduleId:
         """
         Creates a ScheduleId instance from a protobuf ScheduleID object.
 
@@ -141,12 +131,10 @@ class ScheduleId:
         Returns:
             ScheduleId: A new ScheduleId instance with the values from the protobuf object.
         """
-        return cls(
-            shard=proto.shardNum, realm=proto.realmNum, schedule=proto.scheduleNum
-        )
+        return cls(shard=proto.shardNum, realm=proto.realmNum, schedule=proto.scheduleNum)
 
     def validate_checksum(self, client: Client) -> None:
-        """Validate the checksum for the scheduleId"""
+        """Validate the checksum for the scheduleId."""
         validate_checksum(
             self.shard,
             self.realm,
@@ -157,12 +145,7 @@ class ScheduleId:
 
     def to_string_with_checksum(self, client: Client) -> str:
         """
-        Returns the string representation of the ScheduleId with checksum 
+        Returns the string representation of the ScheduleId with checksum
         in 'shard.realm.schedule-checksum' format.
         """
-        return format_to_string_with_checksum(
-            self.shard,
-            self.realm,
-            self.schedule,
-            client
-        )
+        return format_to_string_with_checksum(self.shard, self.realm, self.schedule, client)

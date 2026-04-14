@@ -1,9 +1,12 @@
-import secrets
+from __future__ import annotations
 
+import secrets
 import time
-from typing import Any, Optional
-from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
+from typing import Any
+
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
+
 
 class TransactionId:
     """
@@ -18,10 +21,10 @@ class TransactionId:
     """
 
     def __init__(
-        self, 
-        account_id: Optional[AccountId] = None, 
-        valid_start: Optional[timestamp_pb2.Timestamp] = None,
-        scheduled: bool = False
+        self,
+        account_id: AccountId | None = None,
+        valid_start: timestamp_pb2.Timestamp | None = None,
+        scheduled: bool = False,
     ) -> None:
         """
         Initializes a TransactionId with the given account ID and valid start timestamp.
@@ -30,12 +33,12 @@ class TransactionId:
             account_id (AccountId, optional): The account ID initiating the transaction.
             valid_start (timestamp_pb2.Timestamp, optional): The valid start time of the transaction.
         """
-        self.account_id: Optional[AccountId] = account_id
-        self.valid_start: Optional[timestamp_pb2.Timestamp] = valid_start
+        self.account_id: AccountId | None = account_id
+        self.valid_start: timestamp_pb2.Timestamp | None = valid_start
         self.scheduled = scheduled
 
     @classmethod
-    def generate(cls, account_id: AccountId) -> "TransactionId":
+    def generate(cls, account_id: AccountId) -> TransactionId:
         """
         Generates a new TransactionId using the current time as the valid start,
         subtracting a random number of seconds to adjust for potential network delays.
@@ -54,7 +57,7 @@ class TransactionId:
         return cls(account_id, valid_start, scheduled=False)
 
     @classmethod
-    def from_string(cls, transaction_id_str: str) -> "TransactionId":
+    def from_string(cls, transaction_id_str: str) -> TransactionId:
         """
         Parses a TransactionId from a string in the format 'account_id@seconds.nanos[?scheduled]'.
 
@@ -73,7 +76,7 @@ class TransactionId:
             ValueError: If the input string is not in the correct format or contains invalid suffixes.
         """
         original_string = transaction_id_str
-        
+
         try:
             scheduled = False
             if "?" in transaction_id_str:
@@ -85,18 +88,18 @@ class TransactionId:
             if "@" not in transaction_id_str:
                 raise ValueError(f"Invalid TransactionId string format: {original_string}")
 
-            account_id_str: Optional[str] = None
-            timestamp_str: Optional[str] = None
-            
-            account_id_str, timestamp_str = transaction_id_str.split('@')
+            account_id_str: str | None = None
+            timestamp_str: str | None = None
+
+            account_id_str, timestamp_str = transaction_id_str.split("@")
             account_id = AccountId.from_string(account_id_str)
-            
+
             if "." not in timestamp_str:
-                 raise ValueError(f"Invalid TransactionId string format: {original_string}")
-                 
-            seconds_str, nanos_str = timestamp_str.split('.')
+                raise ValueError(f"Invalid TransactionId string format: {original_string}")
+
+            seconds_str, nanos_str = timestamp_str.split(".")
             valid_start = timestamp_pb2.Timestamp(seconds=int(seconds_str), nanos=int(nanos_str))
-            
+
             return cls(account_id, valid_start, scheduled=scheduled)
         except Exception as e:
             if isinstance(e, ValueError) and "suffix" in str(e):
@@ -129,7 +132,7 @@ class TransactionId:
         return transaction_id_proto
 
     @classmethod
-    def _from_proto(cls, transaction_id_proto: basic_types_pb2.TransactionID) -> "TransactionId":
+    def _from_proto(cls, transaction_id_proto: basic_types_pb2.TransactionID) -> TransactionId:
         """
         Creates a TransactionId instance from a protobuf TransactionID object.
 
@@ -155,11 +158,11 @@ class TransactionId:
             bool: True if equal, False otherwise.
         """
         return (
-            isinstance(other, TransactionId) and
-            self.account_id == other.account_id and
-            self.valid_start.seconds == other.valid_start.seconds and
-            self.valid_start.nanos == other.valid_start.nanos and
-            self.scheduled == other.scheduled
+            isinstance(other, TransactionId)
+            and self.account_id == other.account_id
+            and self.valid_start.seconds == other.valid_start.seconds
+            and self.valid_start.nanos == other.valid_start.nanos
+            and self.scheduled == other.scheduled
         )
 
     def __hash__(self) -> int:

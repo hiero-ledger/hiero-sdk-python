@@ -37,9 +37,7 @@ def create_topic(client, operator_key):
     print("\nSTEP 1: Creating a Topic...")
     try:
         topic_tx = (
-            TopicCreateTransaction(
-                memo="Python SDK created topic", admin_key=operator_key.public_key()
-            )
+            TopicCreateTransaction(memo="Python SDK created topic", admin_key=operator_key.public_key())
             .freeze_with(client)
             .sign(operator_key)
         )
@@ -60,9 +58,7 @@ def topic_delete_transaction(client, operator_key, topic_id):
     Separated so it can be called independently in tests or other scripts.
     """
     print("\nSTEP 2: Deleting Topic...")
-    transaction = (
-        TopicDeleteTransaction(topic_id=topic_id).freeze_with(client).sign(operator_key)
-    )
+    transaction = TopicDeleteTransaction(topic_id=topic_id).freeze_with(client).sign(operator_key)
 
     try:
         receipt = transaction.execute(client)

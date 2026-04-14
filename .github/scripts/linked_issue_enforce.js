@@ -58,7 +58,7 @@ async function getLinkedIssues(github, pr, owner, repo) {
   }
 }
 
-// Validation 
+// Validation
 async function validatePR(github, pr, owner, repo) {
   const issues = await getLinkedIssues(github, pr, owner, repo);
 

@@ -2,6 +2,8 @@
 Test cases for the ScheduleCreateTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -14,6 +16,7 @@ from hiero_sdk_python.schedule.schedule_create_transaction import (
 )
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+
 
 pytestmark = pytest.mark.unit
 
@@ -83,16 +86,11 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, schedule
 
     # Verify all fields are correctly set
     schedule_create = transaction_body.scheduleCreate
-    assert (
-        schedule_create.payerAccountID == schedule_params["payer_account_id"]._to_proto()
-    )
+    assert schedule_create.payerAccountID == schedule_params["payer_account_id"]._to_proto()
     assert schedule_create.adminKey == schedule_params["admin_key"]._to_proto()
     assert schedule_create.scheduledTransactionBody == schedule_params["schedulable_body"]
     assert schedule_create.memo == schedule_params["schedule_memo"]
-    assert (
-        schedule_create.expiration_time
-        == schedule_params["expiration_time"]._to_protobuf()
-    )
+    assert schedule_create.expiration_time == schedule_params["expiration_time"]._to_protobuf()
     assert schedule_create.wait_for_expiry == schedule_params["wait_for_expiry"]
 
 
@@ -205,9 +203,7 @@ def test_set_methods_require_not_frozen(mock_client, schedule_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(schedule_tx, method_name)(value)
 
 

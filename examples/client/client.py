@@ -11,11 +11,13 @@ Usage:
     uv run examples/client/client.py
     python examples/client/client.py
 """
+
 import os
 
 from dotenv import load_dotenv
 
 from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+
 
 load_dotenv()
 

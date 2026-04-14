@@ -5,6 +5,7 @@ Example demonstrating topic message submit chunked transaction.
 uv run examples/consensus/topic_message_submit_chunked.py
 python examples/consensus/topic_message_submit_chunked.py
 """
+
 import os
 import sys
 
@@ -20,6 +21,7 @@ from hiero_sdk_python import (
     TopicInfoQuery,
     TopicMessageSubmitTransaction,
 )
+
 
 BIG_CONTENT = """
 
@@ -77,11 +79,7 @@ def create_topic(client):
     """Create a new topic."""
     print("\nCreating a Topic...")
     try:
-        topic_receipt = (
-            TopicCreateTransaction(memo="Python SDK created topic")
-            .freeze_with(client)
-            .execute(client)
-        )
+        topic_receipt = TopicCreateTransaction(memo="Python SDK created topic").freeze_with(client).execute(client)
         topic_id = topic_receipt.topic_id
 
         print(f"Topic created: {topic_id}")
@@ -105,18 +103,14 @@ def submit_topic_message_transaction(client, topic_id):
         )
 
         if message_receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"Failed to submit message status: {ResponseCode(message_receipt.status).name}"
-            )
+            print(f"Failed to submit message status: {ResponseCode(message_receipt.status).name}")
             sys.exit(1)
 
         print(
             f"Message submitted (status={ResponseCode(message_receipt.status)}, txId={message_receipt.transaction_id})"
         )
         print("Message size:", len(BIG_CONTENT), "bytes")
-        print(
-            f"Message Content: {(BIG_CONTENT[:140] + '...') if len(BIG_CONTENT) > 140 else BIG_CONTENT}"
-        )
+        print(f"Message Content: {(BIG_CONTENT[:140] + '...') if len(BIG_CONTENT) > 140 else BIG_CONTENT}")
 
     except Exception as e:
         print(f"Error: Message submission failed: {str(e)}")

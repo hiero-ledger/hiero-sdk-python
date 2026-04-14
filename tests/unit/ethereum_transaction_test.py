@@ -2,6 +2,8 @@
 Unit tests for the EthereumTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -17,6 +19,7 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -53,9 +56,7 @@ def test_constructor_default_values():
     assert ethereum_tx.max_gas_allowed is None
 
 
-def test_build_transaction_body_with_valid_parameters(
-    mock_account_ids, ethereum_params
-):
+def test_build_transaction_body_with_valid_parameters(mock_account_ids, ethereum_params):
     """Test building an ethereum transaction body with valid parameters."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
 
@@ -71,18 +72,9 @@ def test_build_transaction_body_with_valid_parameters(
 
     transaction_body = ethereum_tx.build_transaction_body()
 
-    assert (
-        transaction_body.ethereumTransaction.ethereum_data
-        == ethereum_params["ethereum_data"]
-    )
-    assert (
-        transaction_body.ethereumTransaction.call_data
-        == ethereum_params["call_data"]._to_proto()
-    )
-    assert (
-        transaction_body.ethereumTransaction.max_gas_allowance
-        == ethereum_params["max_gas_allowed"]
-    )
+    assert transaction_body.ethereumTransaction.ethereum_data == ethereum_params["ethereum_data"]
+    assert transaction_body.ethereumTransaction.call_data == ethereum_params["call_data"]._to_proto()
+    assert transaction_body.ethereumTransaction.max_gas_allowance == ethereum_params["max_gas_allowed"]
 
 
 def test_build_transaction_body_with_minimal_parameters(mock_account_ids):
@@ -145,9 +137,7 @@ def test_set_methods_require_not_frozen(mock_client, ethereum_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(ethereum_tx, method_name)(value)
 
 
@@ -227,9 +217,7 @@ def test_ethereum_transaction_can_execute():
     # Create a response for the receipt query
     receipt_query_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=mock_receipt_proto,
         )
     )
@@ -240,14 +228,8 @@ def test_ethereum_transaction_can_execute():
 
     with mock_hedera_servers(response_sequences) as client:
         ethereum_data = b"test ethereum transaction data"
-        transaction = (
-            EthereumTransaction()
-            .set_ethereum_data(ethereum_data)
-            .set_max_gas_allowed(1000000)
-        )
+        transaction = EthereumTransaction().set_ethereum_data(ethereum_data).set_max_gas_allowed(1000000)
 
         receipt = transaction.execute(client)
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), "Transaction should have succeeded"
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"

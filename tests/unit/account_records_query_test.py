@@ -2,6 +2,8 @@
 Unit tests for the AccountRecordsQuery class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import Mock
 
 import pytest
@@ -23,6 +25,7 @@ from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampP
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
 
+
 pytestmark = pytest.mark.unit
 
 
@@ -41,9 +44,7 @@ def test_execute_fails_with_missing_account_id(mock_client):
     """Test request creation with missing Account ID."""
     query = AccountRecordsQuery()
 
-    with pytest.raises(
-        ValueError, match="Account ID must be set before making the request."
-    ):
+    with pytest.raises(ValueError, match="Account ID must be set before making the request."):
         query.execute(mock_client)
 
 
