@@ -109,3 +109,17 @@ indent-style = "space"
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.lychee]
+exclude = [
+    "github.com/owner/repo",
+    "github.com/YOUR_",
+    "testnet.mirrornode.hedera.com/api/v1/transactions/0.0.123",
+    "localhost",
+    "github.com/user-attachments/assets/",
+]
+
+[tool.lychee.request]
+timeout = 20
+retry_wait_time = 2
+max_retries = 3
