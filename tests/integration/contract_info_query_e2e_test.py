@@ -2,6 +2,8 @@
 Integration tests for ContractInfoQuery.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from examples.contract.contracts import CONTRACT_DEPLOY_GAS, STATEFUL_CONTRACT_BYTECODE
@@ -18,7 +20,6 @@ from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env
 
 
 @pytest.mark.integration
@@ -31,15 +32,15 @@ def test_integration_contract_info_query_can_execute(env):
         .set_file_memo("file create with constructor params")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
     # Convert the message string to bytes32 format for the contract constructor.
-    message = "Initial message from constructor".encode("utf-8")
+    message = b"Initial message from constructor"
 
     params = ContractFunctionParameters().add_bytes32(message)
     auto_renew_period = Duration(seconds=5184000)  # 60 days in seconds
@@ -57,9 +58,9 @@ def test_integration_contract_info_query_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -67,17 +68,11 @@ def test_integration_contract_info_query_can_execute(env):
     info = ContractInfoQuery().set_contract_id(contract_id).execute(env.client)
 
     assert str(info.contract_id) == str(contract_id), "Contract ID mismatch"
-    assert (
-        info.admin_key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw()
-    ), "Admin key mismatch"
-    assert (
-        info.contract_memo == "contract create with constructor params"
-    ), "Contract memo mismatch"
+    assert info.admin_key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw(), "Admin key mismatch"
+    assert info.contract_memo == "contract create with constructor params", "Contract memo mismatch"
     assert info.balance == 1000, "Contract balance should be 1000"
     assert info.is_deleted is False, "Contract should not be deleted"
-    assert (
-        info.max_automatic_token_associations == 10
-    ), "Max automatic token associations should be 10"
+    assert info.max_automatic_token_associations == 10, "Max automatic token associations should be 10"
     assert not info.token_relationships, "Token relationships should be empty"
     assert info.auto_renew_account_id == env.operator_id, "Auto renew account ID mismatch"
     assert info.auto_renew_period == auto_renew_period, "Auto renew period mismatch"
@@ -99,15 +94,15 @@ def test_integration_contract_info_query_get_cost(env):
         .set_file_memo("file create with constructor params")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
     # Convert the message string to bytes32 format for the contract constructor.
-    message = "Initial message from constructor".encode("utf-8")
+    message = b"Initial message from constructor"
 
     params = ContractFunctionParameters().add_bytes32(message)
 
@@ -121,9 +116,9 @@ def test_integration_contract_info_query_get_cost(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -147,15 +142,15 @@ def test_integration_contract_info_query_insufficient_payment(env):
         .set_file_memo("file create with constructor params")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
     # Convert the message string to bytes32 format for the contract constructor.
-    message = "Initial message from constructor".encode("utf-8")
+    message = b"Initial message from constructor"
 
     params = ContractFunctionParameters().add_bytes32(message)
 
@@ -169,18 +164,16 @@ def test_integration_contract_info_query_insufficient_payment(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
     contract_info = ContractInfoQuery().set_contract_id(contract_id)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"):
         contract_info.set_query_payment(Hbar.from_tinybars(1)).execute(env.client)
 
 
@@ -190,9 +183,7 @@ def test_integration_contract_info_query_fails_with_invalid_contract_id(env):
     # Create a contract ID that doesn't exist on the network
     contract_id = ContractId(0, 0, 999999999)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INVALID_CONTRACT_ID"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_CONTRACT_ID"):
         ContractInfoQuery(contract_id).execute(env.client)
 
 
@@ -206,15 +197,15 @@ def test_integration_contract_info_query_can_execute_without_admin_key(env):
         .set_file_memo("file create with constructor params")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
     # Convert the message string to bytes32 format for the contract constructor.
-    message = "Initial message from constructor".encode("utf-8")
+    message = b"Initial message from constructor"
 
     params = ContractFunctionParameters().add_bytes32(message)
 
@@ -227,9 +218,9 @@ def test_integration_contract_info_query_can_execute_without_admin_key(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -238,6 +229,4 @@ def test_integration_contract_info_query_can_execute_without_admin_key(env):
 
     assert str(info.contract_id) == str(contract_id), "Contract ID mismatch"
     assert isinstance(info.admin_key, ContractId), "Admin key should be a ContractId"
-    assert str(info.admin_key) == str(
-        contract_id
-    ), "Admin key should be the contract ID"
+    assert str(info.admin_key) == str(contract_id), "Admin key should be the contract ID"

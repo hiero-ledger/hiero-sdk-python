@@ -43,6 +43,3 @@ pip install -e ".[eth]"
 ```
 
 You'll need your environment variables and uv set up as outlined in /README.md [README](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md)
-
-
-

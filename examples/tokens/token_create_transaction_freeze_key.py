@@ -11,6 +11,7 @@ Demonstrates how the Hedera freeze key works by walking through:
    and verifying how transfers behave while frozen
 3. (Bonus) Showing that tokens created with freezeDefault=True start accounts frozen
 """
+
 import sys
 from dataclasses import dataclass
 
@@ -27,6 +28,7 @@ from hiero_sdk_python import (
     TokenUnfreezeTransaction,
     TransferTransaction,
 )
+
 
 TRANSFER_AMOUNT = 10  # Small token transfer for demonstrations
 
@@ -52,9 +54,7 @@ def generate_freeze_key() -> PrivateKey:
     return freeze_key
 
 
-def create_token_without_freeze_key(
-    client: Client, operator_id: AccountId, operator_key: PrivateKey
-):
+def create_token_without_freeze_key(client: Client, operator_id: AccountId, operator_key: PrivateKey):
     """Create a fungible token that does not include a freeze key."""
     print("\nSTEP 1️⃣  Creating token WITHOUT a freeze key...")
     receipt = (
@@ -77,9 +77,7 @@ def create_token_without_freeze_key(
     return token_id
 
 
-def demonstrate_missing_freeze_key(
-    client: Client, token_id, operator_id: AccountId, operator_key: PrivateKey
-):
+def demonstrate_missing_freeze_key(client: Client, token_id, operator_id: AccountId, operator_key: PrivateKey):
     """Attempt freeze/unfreeze operations when no freeze key exists."""
     print("\nSTEP 2️⃣  Demonstrating that freeze operations fail without a freeze key...")
     try:
@@ -183,9 +181,7 @@ def create_demo_account(client: Client, operator_key: PrivateKey) -> DemoAccount
 
 def associate_token(client: Client, token_id, account: DemoAccount, signer: PrivateKey):
     """Associate a token with a given account."""
-    print(
-        f"\nSTEP 5️⃣  Associating token {token_id} with account {account.account_id}..."
-    )
+    print(f"\nSTEP 5️⃣  Associating token {token_id} with account {account.account_id}...")
     receipt = (
         TokenAssociateTransaction()
         .set_account_id(account.account_id)
@@ -236,9 +232,7 @@ def attempt_transfer(
         return False
 
 
-def freeze_account(
-    client: Client, token_id, account_id: AccountId, freeze_key: PrivateKey
-):
+def freeze_account(client: Client, token_id, account_id: AccountId, freeze_key: PrivateKey):
     """Freeze an account for the given token."""
     print(f"\n🧊 Freezing account {account_id} for token {token_id}...")
     receipt = (
@@ -256,9 +250,7 @@ def freeze_account(
     print("✅ Account frozen.")
 
 
-def unfreeze_account(
-    client: Client, token_id, account_id: AccountId, freeze_key: PrivateKey
-):
+def unfreeze_account(client: Client, token_id, account_id: AccountId, freeze_key: PrivateKey):
     """Unfreeze an account for the given token."""
     print(f"\n🔥 Unfreezing account {account_id} for token {token_id}...")
     receipt = (
@@ -294,9 +286,7 @@ def demonstrate_freeze_default_flow(
         symbol="FDF",
     )
     default_frozen_account = create_demo_account(client, operator_key)
-    associate_token(
-        client, token_id, default_frozen_account, default_frozen_account.private_key
-    )
+    associate_token(client, token_id, default_frozen_account, default_frozen_account.private_key)
 
     success_before_unfreeze = attempt_transfer(
         client,
@@ -307,13 +297,9 @@ def demonstrate_freeze_default_flow(
         note="freezeDefault=True (should FAIL)",
     )
     if success_before_unfreeze:
-        print(
-            "⚠️ Unexpected success: account should start frozen when freezeDefault=True."
-        )
+        print("⚠️ Unexpected success: account should start frozen when freezeDefault=True.")
     else:
-        print(
-            "✅ Transfer blocked as expected because the account was frozen by default."
-        )
+        print("✅ Transfer blocked as expected because the account was frozen by default.")
 
     unfreeze_account(client, token_id, default_frozen_account.account_id, freeze_key)
     attempt_transfer(
@@ -335,16 +321,12 @@ def main():
     operator_key = client.operator_private_key
 
     # Token without a freeze key
-    token_without_key = create_token_without_freeze_key(
-        client, operator_id, operator_key
-    )
+    token_without_key = create_token_without_freeze_key(client, operator_id, operator_key)
     demonstrate_missing_freeze_key(client, token_without_key, operator_id, operator_key)
 
     # Token with a freeze key
     freeze_key = generate_freeze_key()
-    token_with_freeze = create_token_with_freeze_key(
-        client, operator_id, operator_key, freeze_key
-    )
+    token_with_freeze = create_token_with_freeze_key(client, operator_id, operator_key, freeze_key)
 
     demo_account = create_demo_account(client, operator_key)
     associate_token(client, token_with_freeze, demo_account, demo_account.private_key)
@@ -385,9 +367,7 @@ def main():
     # Bonus behavior
     demonstrate_freeze_default_flow(client, operator_id, operator_key, freeze_key)
 
-    print(
-        "\n🎉 Freeze key demonstration completed! Review the log above for each step."
-    )
+    print("\n🎉 Freeze key demonstration completed! Review the log above for each step.")
 
 
 if __name__ == "__main__":

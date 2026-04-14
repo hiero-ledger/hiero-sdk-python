@@ -1,11 +1,10 @@
 # pylint: disable=too-many-positional-arguments
 # pylint: disable=too-many-arguments
-"""
-Query to call a contract on the network.
-"""
+"""Query to call a contract on the network."""
+
+from __future__ import annotations
 
 import traceback
-from typing import Optional, Union
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -33,69 +32,67 @@ class ContractCallQuery(Query):
 
     def __init__(
         self,
-        contract_id: Optional[ContractId] = None,
-        gas: Optional[int] = None,
-        max_result_size: Optional[int] = None,
-        function_parameters: Optional[bytes] = None,
-        sender: Optional[AccountId] = None,
+        contract_id: ContractId | None = None,
+        gas: int | None = None,
+        max_result_size: int | None = None,
+        function_parameters: bytes | None = None,
+        sender: AccountId | None = None,
     ) -> None:
         """
         Initializes a new ContractCallQuery instance with an optional contract_id.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract to call.
-            gas (Optional[int]): The gas to use for the contract call.
-            max_result_size (Optional[int]): The maximum size of the result to return.
-            function_parameters (Optional[bytes]): The parameters to pass to the contract function.
-            sender (Optional[AccountId]): The account to use for the contract call.
+            contract_id (ContractId, optional): The ID of the contract to call.
+            gas (int, optional): The gas to use for the contract call.
+            max_result_size (int, optional): The maximum size of the result to return.
+            function_parameters (bytes, optional): The parameters to pass to the contract function.
+            sender (AccountId, optional): The account to use for the contract call.
         """
         super().__init__()
-        self.contract_id: Optional[ContractId] = contract_id
-        self.gas: Optional[int] = gas
-        self.max_result_size: Optional[int] = max_result_size
-        self.function_parameters: Optional[bytes] = function_parameters
-        self.sender: Optional[AccountId] = sender
+        self.contract_id: ContractId | None = contract_id
+        self.gas: int | None = gas
+        self.max_result_size: int | None = max_result_size
+        self.function_parameters: bytes | None = function_parameters
+        self.sender: AccountId | None = sender
 
-    def set_contract_id(self, contract_id: Optional[ContractId]) -> "ContractCallQuery":
+    def set_contract_id(self, contract_id: ContractId | None) -> ContractCallQuery:
         """
         Sets the ID of the contract to call.
 
         Args:
-            contract_id (Optional[ContractId]): The ID of the contract to call.
+            contract_id (ContractId | None): The ID of the contract to call.
         """
         self.contract_id = contract_id
         return self
 
-    def set_gas(self, gas: Optional[int]) -> "ContractCallQuery":
+    def set_gas(self, gas: int | None) -> ContractCallQuery:
         """
         Sets the gas to use for the contract call.
 
         Args:
-            gas (Optional[int]): The gas to use for the contract call.
+            gas (int | None): The gas to use for the contract call.
         """
         self.gas = gas
         return self
 
-    def set_max_result_size(
-        self, max_result_size: Optional[int]
-    ) -> "ContractCallQuery":
+    def set_max_result_size(self, max_result_size: int | None) -> ContractCallQuery:
         """
         Sets the maximum size of the result to return.
 
         Args:
-            max_result_size (Optional[int]): The maximum size of the result to return.
+            max_result_size (int | None): The maximum size of the result to return.
         """
         self.max_result_size = max_result_size
         return self
 
     def set_function_parameters(
-        self, function_parameters: Optional[ContractFunctionParameters | bytes]
-    ) -> "ContractCallQuery":
+        self, function_parameters: ContractFunctionParameters | bytes | None
+    ) -> ContractCallQuery:
         """
         Sets the parameters to pass to the contract function.
 
         Args:
-            function_parameters (Optional[ContractFunctionParameters | bytes]): The parameters to
+            function_parameters (ContractFunctionParameters | bytes): The parameters to
             pass to the contract function.
         """
         if isinstance(function_parameters, ContractFunctionParameters):
@@ -104,15 +101,13 @@ class ContractCallQuery(Query):
             self.function_parameters = function_parameters
         return self
 
-    def set_function(
-        self, name: str, params: Optional[ContractFunctionParameters] = None
-    ) -> "ContractCallQuery":
+    def set_function(self, name: str, params: ContractFunctionParameters | None = None) -> ContractCallQuery:
         """
         Sets the contract function to call and the parameters to pass to it.
 
         Args:
             name (str): The name of the contract function to call.
-            params (Optional[ContractFunctionParameters]): The parameters to pass to the function.
+            params (ContractFunctionParameters | None): The parameters to pass to the function.
                 If not provided, the function is called with no parameters.
         """
         if params is None:
@@ -123,12 +118,12 @@ class ContractCallQuery(Query):
         self.function_parameters = params.to_bytes()
         return self
 
-    def set_sender(self, sender: Optional[AccountId]) -> "ContractCallQuery":
+    def set_sender(self, sender: AccountId | None) -> ContractCallQuery:
         """
         Sets the account to use for the contract call.
 
         Args:
-            sender (Optional[AccountId]): The account to use for the contract call.
+            sender (AccountId): The account to use for the contract call.
         """
         self.sender = sender
         return self
@@ -187,7 +182,7 @@ class ContractCallQuery(Query):
             query_func=channel.smart_contract.contractCallLocalMethod,
         )
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> ContractFunctionResult:
+    def execute(self, client: Client, timeout: int | float | None = None) -> ContractFunctionResult:
         """
         Executes the contract call query.
 
@@ -199,7 +194,7 @@ class ContractCallQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
 
         Returns:
             ContractFunctionResult: The result of the contract call
@@ -212,13 +207,9 @@ class ContractCallQuery(Query):
         self._before_execute(client)
         response = self._execute(client, timeout)
 
-        return ContractFunctionResult._from_proto(
-            response.contractCallLocal.functionResult
-        )
+        return ContractFunctionResult._from_proto(response.contractCallLocal.functionResult)
 
-    def _get_query_response(
-        self, response: response_pb2.Response
-    ) -> contract_call_local_pb2.ContractCallLocalResponse:
+    def _get_query_response(self, response: response_pb2.Response) -> contract_call_local_pb2.ContractCallLocalResponse:
         """
         Extracts the contract call response from the full response.
 

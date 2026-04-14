@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import pytest
-from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenParams, TokenKeys
-from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.tokens.supply_type import SupplyType
-from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-from hiero_sdk_python.tokens.token_id import TokenId
+
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_type import TokenType
 from tests.integration.utils import IntegrationTestEnv
+
 
 @pytest.mark.integration
 def test_token_create_with_custom_fee_e2e():
@@ -32,9 +36,7 @@ def test_token_create_with_custom_fee_e2e():
         keys = TokenKeys(admin_key=env.operator_key, supply_key=env.operator_key)
 
         transaction = (
-            TokenCreateTransaction(token_params=token_params, keys=keys)
-            .freeze_with(env.client)
-            .sign(env.operator_key)
+            TokenCreateTransaction(token_params=token_params, keys=keys).freeze_with(env.client).sign(env.operator_key)
         )
 
         receipt = transaction.execute(env.client)

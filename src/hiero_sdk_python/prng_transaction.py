@@ -1,8 +1,6 @@
-"""
-PrngTransaction class.
-"""
+"""PrngTransaction class."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -16,7 +14,7 @@ class PrngTransaction(Transaction):
 
     This transaction can be used to request a pseudo-random number.
     You can specify the range of the pseudo-random number.
-    
+
     If no range is specified, the transaction will return
     a 48 byte unsigned pseudo-random number.
 
@@ -24,22 +22,22 @@ class PrngTransaction(Transaction):
     to build and execute a prng transaction.
     """
 
-    def __init__(self, range: Optional[int] = None):
+    def __init__(self, range: int | None = None):
         """
         Initializes a new PrngTransaction instance.
 
         Args:
-            range (Optional[int]): The range of the pseudo-random number.
+            range (int | None): The range of the pseudo-random number.
         """
         super().__init__()
-        self.range: Optional[int] = range
+        self.range: int | None = range
 
-    def set_range(self, range: Optional[int]) -> "PrngTransaction":
+    def set_range(self, range: int | None) -> PrngTransaction:
         """
         Sets the range for the transaction.
 
         Args:
-            range (Optional[int]): The range of the pseudo-random number.
+            range (int | None): The range of the pseudo-random number.
         """
         self._require_not_frozen()
         self.range = range
@@ -51,13 +49,13 @@ class PrngTransaction(Transaction):
 
         Returns:
             UtilPrngTransactionBody: The protobuf body for the prng transaction.
-        
+
         Raises:
             ValueError: If the range is negative.
         """
         if self.range is not None and self.range < 0:
             raise ValueError("Range can't be negative.")
-            
+
         return UtilPrngTransactionBody(range=self.range)
 
     def build_transaction_body(self):
@@ -67,7 +65,7 @@ class PrngTransaction(Transaction):
         Returns:
             TransactionBody: The protobuf transaction body containing the
                 prng details.
-        
+
         Raises:
             ValueError: If the range is negative.
         """

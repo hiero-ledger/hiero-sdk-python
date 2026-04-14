@@ -7,6 +7,7 @@ uv run examples/crypto/public_key_der.py
 python examples/crypto/public_key_der.py
 
 """
+
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed25519, utils
@@ -71,9 +72,7 @@ def example_verify_der_signature() -> None:
 
     # Sign and verify, specifying hash algorithm for ECDSA
     data = b"Hello DER"
-    signature = private_key.sign(
-        keccak256(data), ec.ECDSA(utils.Prehashed(hashes.SHA256()))
-    )
+    signature = private_key.sign(keccak256(data), ec.ECDSA(utils.Prehashed(hashes.SHA256())))
     try:
         pubk_obj.verify(signature, data)
         print("DER: ECDSA signature verified!")

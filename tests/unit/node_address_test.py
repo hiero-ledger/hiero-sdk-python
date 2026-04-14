@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import binascii
+
 import pytest
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.hapi.services.basic_types_pb2 import (
     NodeAddress as NodeAddressProto,
 )
+
 
 pytestmark = pytest.mark.unit
 
@@ -14,11 +19,7 @@ def test_init():
     """Test initialization of _NodeAddress."""
     # Create test data
     account_id = AccountId(0, 0, 123)
-    addresses = [
-        Endpoint(
-            address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com"
-        )
-    ]
+    addresses = [Endpoint(address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com")]
     cert_hash = b"sample-cert-hash"
 
     # Initialize _NodeAddress
@@ -46,9 +47,7 @@ def test_string_representation():
     account_id = AccountId(0, 0, 123)
 
     # Create
-    endpoint = Endpoint(
-        address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com"
-    )
+    endpoint = Endpoint(address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com")
 
     # Create NodeAddress
     node_address = NodeAddress(
@@ -65,9 +64,7 @@ def test_string_representation():
 
     # Check if expected fields are in the result
     assert "NodeAccountId: 0.0.123" in result
-    assert (
-        "CertHash: 73616d706c652d636572742d68617368" in result
-    )  # hex representation of sample-cert-hash
+    assert "CertHash: 73616d706c652d636572742d68617368" in result  # hex representation of sample-cert-hash
     assert "NodeId: 1234" in result
     assert "PubKey: sample-public-key" in result
 
@@ -76,15 +73,9 @@ def test_to_proto():
     """Test conversion of NodeAddress to protobuf with endpoints."""
     account_id = AccountId(0, 0, 123)
     endpoints = [
-        Endpoint(
-            address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example1.com"
-        ),
-        Endpoint(
-            address=bytes("192.168.1.2", "utf-8"), port=8081, domain_name="example2.com"
-        ),
-        Endpoint(
-            address=bytes("192.168.1.3", "utf-8"), port=8082, domain_name="example3.com"
-        ),
+        Endpoint(address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example1.com"),
+        Endpoint(address=bytes("192.168.1.2", "utf-8"), port=8081, domain_name="example2.com"),
+        Endpoint(address=bytes("192.168.1.3", "utf-8"), port=8082, domain_name="example3.com"),
     ]
     node_address = NodeAddress(
         public_key="sample-public-key",
@@ -126,9 +117,7 @@ def test_from_dict():
         "node_id": 1234,
         "node_cert_hash": binascii.hexlify(b"sample-cert-hash").decode("utf-8"),
         "description": "Sample Node",
-        "service_endpoints": [
-            {"ip_address_v4": "192.168.1.1", "port": 8080, "domain_name": "example.com"}
-        ],
+        "service_endpoints": [{"ip_address_v4": "192.168.1.1", "port": 8080, "domain_name": "example.com"}],
     }
 
     # Create NodeAddress from dict
@@ -164,9 +153,7 @@ def test_from_dict_with_0x_prefix():
 def test_from_proto():
     """Test creation of NodeAddress from protobuf with endpoint."""
     account_id_proto = AccountId(0, 0, 123)._to_proto()
-    endpoint_proto = Endpoint(
-        address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com"
-    )._to_proto()
+    endpoint_proto = Endpoint(address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com")._to_proto()
 
     # Create NodeAddressProto
     node_address_proto = NodeAddressProto(
@@ -194,9 +181,7 @@ def test_from_proto():
 def test_round_trip():
     """Ensure NodeAddress → Proto → NodeAddress round trip works."""
     account_id = AccountId(0, 0, 123)
-    endpoint = Endpoint(
-        address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com"
-    )
+    endpoint = Endpoint(address=bytes("192.168.1.1", "utf-8"), port=8080, domain_name="example.com")
 
     # Create NodeAddress
     node_address = NodeAddress(

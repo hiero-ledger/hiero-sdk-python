@@ -5,6 +5,7 @@ Example demonstrating token info query nft.
 uv run examples/query/token_info_query_nft.py
 python examples/token_info_query_nft.py
 """
+
 import sys
 
 from hiero_sdk_python import (

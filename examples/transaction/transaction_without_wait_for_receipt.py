@@ -8,12 +8,7 @@ python examples/transaction/transaction_without_wait_for_receipt.py
 
 import sys
 
-from hiero_sdk_python import (
-  Client,
-  AccountCreateTransaction,
-  PrivateKey,
-  ResponseCode
-)
+from hiero_sdk_python import AccountCreateTransaction, Client, PrivateKey, ResponseCode
 
 
 def build_transaction():
@@ -38,7 +33,7 @@ def print_transaction_receipt(receipt):
     """Print the transaction receipt."""
     if receipt.status != ResponseCode.SUCCESS:
         raise RuntimeError(f"Receipt Query failed with status: {ResponseCode(receipt.status).name}")
-    
+
     print(f"Transaction Receipt Status: {ResponseCode(receipt.status).name}")
     print(f"Transaction Account ID: {receipt.account_id}")
 
@@ -57,7 +52,7 @@ def main():
         print("Executing transaction...")
         # Execute the transaction without waiting for receipt immediately
         response = tx.execute(client, wait_for_receipt=False)
-        
+
         print("Transaction executed successfully!")
         print(f"Transaction submitted with ID: {response.transaction_id}")
 
@@ -65,8 +60,7 @@ def main():
         print("\n1. Getting Transaction Receipt using Transaction Response...")
         receipt = response.get_receipt(client)
         print_transaction_receipt(receipt)
-        
-        
+
         print("\n2. Getting Transaction Record using Transaction Response...")
         record = response.get_record(client)
         print_transaction_record(record)

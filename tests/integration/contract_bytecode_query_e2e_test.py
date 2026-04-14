@@ -2,6 +2,8 @@
 Integration tests for ContractBytecodeQuery.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from examples.contract.contracts import (
@@ -17,7 +19,6 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env
 
 
 @pytest.mark.integration
@@ -33,9 +34,9 @@ def test_integration_contract_bytecode_query_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -60,9 +61,9 @@ def test_integration_contract_bytecode_query_get_cost(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -89,18 +90,16 @@ def test_integration_contract_bytecode_query_insufficient_payment(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
     contract_bytecode = ContractBytecodeQuery().set_contract_id(contract_id)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"):
         contract_bytecode.set_query_payment(Hbar.from_tinybars(1)).execute(env.client)
 
 
@@ -110,7 +109,5 @@ def test_integration_contract_bytecode_query_fails_with_invalid_contract_id(env)
     # Create a contract ID that doesn't exist on the network
     contract_id = ContractId(0, 0, 999999999)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INVALID_CONTRACT_ID"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_CONTRACT_ID"):
         ContractBytecodeQuery(contract_id).execute(env.client)

@@ -23,10 +23,7 @@ Usage:
 
 import sys
 
-
-
 from hiero_sdk_python import Client
-
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
@@ -41,7 +38,6 @@ from hiero_sdk_python.response_code import ResponseCode
 # Import the bytecode for a basic smart contract (SimpleContract.sol) that can be deployed
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import SIMPLE_CONTRACT_BYTECODE
-
 
 
 def setup_client() -> Client:
@@ -66,9 +62,7 @@ def create_contract_file(client):
 
     # Check if file creation was successful
     if file_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
-        )
+        print(f"File creation failed with status: {ResponseCode(file_receipt.status).name}")
         sys.exit(1)
 
     return file_receipt.file_id
@@ -88,9 +82,7 @@ def create_contract(client, file_id, initial_balance):
 
     # Check if contract creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Contract creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Contract created with ID: {receipt.contract_id}")
@@ -130,9 +122,7 @@ def contract_delete():
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Contract deletion failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Contract deletion failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print("\nSuccessfully deleted contract and transferred hbars to transfer contract")
@@ -143,9 +133,7 @@ def contract_delete():
 
     # Check if the transfer contract has the hbars
     transfer_info = ContractInfoQuery(transfer_contract_id).execute(client)
-    print(
-        f"Check transfer contract balance: {Hbar.from_tinybars(transfer_info.balance)}"
-    )
+    print(f"Check transfer contract balance: {Hbar.from_tinybars(transfer_info.balance)}")
 
     # Delete the transfer contract and transfer the hbars to the operator account
     receipt = (
@@ -156,14 +144,10 @@ def contract_delete():
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Transfer contract deletion failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Transfer contract deletion failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
-    print(
-        "\nSuccessfully deleted transfer contract and transferred hbars to operator account"
-    )
+    print("\nSuccessfully deleted transfer contract and transferred hbars to operator account")
 
     # Check if the transfer contract is deleted
     transfer_info = ContractInfoQuery(transfer_contract_id).execute(client)

@@ -1,14 +1,19 @@
-from hiero_sdk_python.client.client import Client
-import pytest
+from __future__ import annotations
+
 import warnings
 from unittest import mock
+
+import pytest
+
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.tokens.token_id import TokenId
+
 
 pytestmark = pytest.mark.unit
 
@@ -122,9 +127,7 @@ def test_custom_fractional_fee():
     )
 
     proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomFractionalFee._from_proto(
-        proto
-    )  # Changed from CustomFee._from_protobuf
+    new_fee = CustomFractionalFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
 
     assert isinstance(new_fee, CustomFractionalFee)
     assert new_fee.numerator == 1
@@ -150,9 +153,7 @@ def test_custom_royalty_fee():
     )
 
     proto = fee._to_proto()  # Changed from _to_protobuf
-    new_fee = CustomRoyaltyFee._from_proto(
-        proto
-    )  # Changed from CustomFee._from_protobuf
+    new_fee = CustomRoyaltyFee._from_proto(proto)  # Changed from CustomFee._from_protobuf
 
     assert isinstance(new_fee, CustomRoyaltyFee)
     assert new_fee.numerator == 5
@@ -212,9 +213,7 @@ def test_custom_royalty_fee():
         ),
     ],
 )
-def test_custom_royalty_fee_str(
-    custom_royalty_fee: CustomRoyaltyFee, expected_str: str
-):
+def test_custom_royalty_fee_str(custom_royalty_fee: CustomRoyaltyFee, expected_str: str):
     """Test the string representation of CustomRoyaltyFee."""
     fee_str = str(custom_royalty_fee)
     assert fee_str == expected_str
@@ -271,7 +270,7 @@ def test_custom_fee_validate_checksums():
 
 def test_custom_fee_from_proto_unrecognized():
     class FakeProto:
-        def WhichOneof(self, name):
+        def WhichOneof(self, _name):
             return "unknown_fee"
 
     with pytest.raises(ValueError):

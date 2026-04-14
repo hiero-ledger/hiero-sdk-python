@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import pytest
 
+from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 pytestmark = pytest.mark.unit
 
@@ -10,9 +13,7 @@ pytestmark = pytest.mark.unit
 def test_nft_id():
     # return true
     nftid_constructor_tokenid = TokenId(shard=0, realm=1, num=2)
-    nftid_constructor_test = NftId(
-        token_id=nftid_constructor_tokenid, serial_number=1234
-    )
+    nftid_constructor_test = NftId(token_id=nftid_constructor_tokenid, serial_number=1234)
 
     assert str(nftid_constructor_test) == "0.1.2/1234"
 
@@ -33,23 +34,19 @@ def test_nft_id():
 
     # return false
     with pytest.raises(TypeError):
-        nftid_failed_constructor_tokenid1 = TokenId(shard=0, realm=1, num="A")
+        TokenId(shard=0, realm=1, num="A")
     with pytest.raises(TypeError):
-        nftid_failed_constructor_tokenid = TokenId(shard=0, realm="b", num=1)
+        TokenId(shard=0, realm="b", num=1)
     with pytest.raises(TypeError):
-        nftid_failed_constructor_tokenid = TokenId(shard="c", realm=1, num=1)
+        TokenId(shard="c", realm=1, num=1)
     with pytest.raises(TypeError):
-        nftid_failed_constructor = NftId(token_id=None, serial_number=1234)
+        NftId(token_id=None, serial_number=1234)
     with pytest.raises(TypeError):
-        nftid_failed_constructor = NftId(token_id=1234, serial_number=1234)
+        NftId(token_id=1234, serial_number=1234)
     with pytest.raises(TypeError):
-        nftid_failed_constructor = NftId(
-            token_id=TokenId(shard=0, realm=1, num=0), serial_number="asdfasdfasdf"
-        )
+        NftId(token_id=TokenId(shard=0, realm=1, num=0), serial_number="asdfasdfasdf")
     with pytest.raises(ValueError):
-        nftid_failed_constructor = NftId(
-            token_id=TokenId(shard=0, realm=1, num=0), serial_number=-1234
-        )
+        NftId(token_id=TokenId(shard=0, realm=1, num=0), serial_number=-1234)
 
     # don't need to test protobuf cause its final and type checked
     with pytest.raises(ValueError):
@@ -94,22 +91,16 @@ def test_nft_id_repr():
     nft_id = NftId(token_id, 5)
     result = repr(nft_id)
     assert isinstance(result, str), "repr should return a string"
-    assert (
-        result == "NftId(token_id=0.0.123, serial_number=5)"
-    ), f"Unexpected repr: {result}"
+    assert result == "NftId(token_id=0.0.123, serial_number=5)", f"Unexpected repr: {result}"
 
 
 def test_nft_id_repr_zero_serial():
     token_id = TokenId(0, 0, 1)
     nft_id = NftId(token_id, 0)
-    assert (
-        repr(nft_id) == "NftId(token_id=0.0.1, serial_number=0)"
-    ), "repr should handle serial_number=0"
+    assert repr(nft_id) == "NftId(token_id=0.0.1, serial_number=0)", "repr should handle serial_number=0"
 
 
 def test_nft_id_repr_large_values():
     token_id = TokenId(1, 2, 999999)
     nft_id = NftId(token_id, 2147483647)
-    assert (
-        repr(nft_id) == "NftId(token_id=1.2.999999, serial_number=2147483647)"
-    ), "repr should handle large values"
+    assert repr(nft_id) == "NftId(token_id=1.2.999999, serial_number=2147483647)", "repr should handle large values"

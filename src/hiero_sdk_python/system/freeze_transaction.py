@@ -1,8 +1,6 @@
-"""
-FreezeTransaction class for freezing the network.
-"""
+"""FreezeTransaction class for freezing the network."""
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
@@ -30,32 +28,32 @@ class FreezeTransaction(Transaction):
 
     def __init__(
         self,
-        start_time: Optional[Timestamp] = None,
-        file_id: Optional[FileId] = None,
-        file_hash: Optional[bytes] = None,
-        freeze_type: Optional[FreezeType] = None,
+        start_time: Timestamp | None = None,
+        file_id: FileId | None = None,
+        file_hash: bytes | None = None,
+        freeze_type: FreezeType | None = None,
     ):
         """
         Initializes a new FreezeTransaction instance with the specified parameters.
 
         Args:
-            start_time (Optional[Timestamp]): The start time for the freeze.
-            file_id (Optional[FileId]): The file ID containing the upgrade data.
-            file_hash (Optional[bytes]): Hash of the file for verification.
-            freeze_type (Optional[FreezeType]): The type of freeze to perform.
+            start_time (Timestamp, optional): The start time for the freeze.
+            file_id (FileId, optional): The file ID containing the upgrade data.
+            file_hash (bytes, optional): Hash of the file for verification.
+            freeze_type (FreezeType, optional): The type of freeze to perform.
         """
         super().__init__()
-        self.start_time: Optional[Timestamp] = start_time
-        self.file_id: Optional[FileId] = file_id
-        self.file_hash: Optional[bytes] = file_hash
-        self.freeze_type: Optional[FreezeType] = freeze_type
+        self.start_time: Timestamp | None = start_time
+        self.file_id: FileId | None = file_id
+        self.file_hash: bytes | None = file_hash
+        self.freeze_type: FreezeType | None = freeze_type
 
-    def set_start_time(self, start_time: Optional[Timestamp]) -> "FreezeTransaction":
+    def set_start_time(self, start_time: Timestamp | None) -> FreezeTransaction:
         """
         Sets the start time for this freeze transaction.
 
         Args:
-            start_time (Optional[Timestamp]): The start time for the freeze.
+            start_time (Timestamp | None): The start time for the freeze.
 
         Returns:
             FreezeTransaction: This transaction instance.
@@ -64,12 +62,12 @@ class FreezeTransaction(Transaction):
         self.start_time = start_time
         return self
 
-    def set_file_id(self, file_id: Optional[FileId]) -> "FreezeTransaction":
+    def set_file_id(self, file_id: FileId | None) -> FreezeTransaction:
         """
         Sets the file ID for this freeze transaction.
 
         Args:
-            file_id (Optional[FileId]): The file ID containing the upgrade data.
+            file_id (FileId | None): The file ID containing the upgrade data.
 
         Returns:
             FreezeTransaction: This transaction instance.
@@ -78,12 +76,12 @@ class FreezeTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def set_file_hash(self, file_hash: Optional[bytes]) -> "FreezeTransaction":
+    def set_file_hash(self, file_hash: bytes | None) -> FreezeTransaction:
         """
         Sets the file hash for this freeze transaction.
 
         Args:
-            file_hash (Optional[bytes]): Hash of the file for verification.
+            file_hash (bytes | None): Hash of the file for verification.
 
         Returns:
             FreezeTransaction: This transaction instance.
@@ -92,12 +90,12 @@ class FreezeTransaction(Transaction):
         self.file_hash = file_hash
         return self
 
-    def set_freeze_type(self, freeze_type: Optional[FreezeType]) -> "FreezeTransaction":
+    def set_freeze_type(self, freeze_type: FreezeType | None) -> FreezeTransaction:
         """
         Sets the freeze type for this freeze transaction.
 
         Args:
-            freeze_type (Optional[FreezeType]): The type of freeze to perform.
+            freeze_type (FreezeType | None): The type of freeze to perform.
 
         Returns:
             FreezeTransaction: This transaction instance.

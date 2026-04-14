@@ -5,20 +5,23 @@ Provides utilities for creating, parsing from strings, converting to protobuf
 format, and validating checksums associated with a contract.
 """
 
+from __future__ import annotations
+
 import re
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
-    parse_from_string,
-    validate_checksum,
     format_to_string_with_checksum,
-    to_solidity_address,
+    parse_from_string,
     perform_query_to_mirror_node,
+    to_solidity_address,
+    validate_checksum,
 )
+
 
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
@@ -48,11 +51,11 @@ class ContractId(Key):
     shard: int = 0
     realm: int = 0
     contract: int = 0
-    evm_address: Optional[bytes] = None
+    evm_address: bytes | None = None
     checksum: str | None = field(default=None, init=False)
 
     @classmethod
-    def _from_proto(cls, contract_id_proto: basic_types_pb2.ContractID) -> "ContractId":
+    def _from_proto(cls, contract_id_proto: basic_types_pb2.ContractID) -> ContractId:
         """
         Creates a ContractId instance from a protobuf ContractID object.
 
@@ -91,7 +94,7 @@ class ContractId(Key):
             contractNum=self.contract,
             evm_address=self.evm_address,
         )
-    
+
     def to_proto_key(self) -> basic_types_pb2.Key:
         """
         Convert the ContractId instance to a protobuf Key object.
@@ -102,7 +105,7 @@ class ContractId(Key):
         return basic_types_pb2.Key(contractID=self._to_proto())
 
     @classmethod
-    def from_string(cls, contract_id_str: str) -> "ContractId":
+    def from_string(cls, contract_id_str: str) -> ContractId:
         """
         Parses a string to create a ContractId instance.
 
@@ -122,9 +125,7 @@ class ContractId(Key):
                 or in an invalid format.
         """
         if contract_id_str is None or not isinstance(contract_id_str, str):
-            raise TypeError(
-                f"contract_id_str must be of type str, got {type(contract_id_str).__name__}"
-            )
+            raise TypeError(f"contract_id_str must be of type str, got {type(contract_id_str).__name__}")
 
         evm_address_match = EVM_ADDRESS_REGEX.match(contract_id_str)
 
@@ -136,24 +137,20 @@ class ContractId(Key):
                 evm_address=bytes.fromhex(evm_address),
             )
 
-        else:
-            try:
-                shard, realm, contract, checksum = parse_from_string(contract_id_str)
+        try:
+            shard, realm, contract, checksum = parse_from_string(contract_id_str)
 
-                contract_id: ContractId = cls(
-                    shard=int(shard), realm=int(realm), contract=int(contract)
-                )
-                object.__setattr__(contract_id, "checksum", checksum)
-                return contract_id
+            contract_id: ContractId = cls(shard=int(shard), realm=int(realm), contract=int(contract))
+            object.__setattr__(contract_id, "checksum", checksum)
+            return contract_id
 
-            except Exception as e:
-                raise ValueError(
-                    f"Invalid contract ID string '{contract_id_str}'. "
-                    f"Expected format 'shard.realm.contract'."
-                ) from e
+        except Exception as e:
+            raise ValueError(
+                f"Invalid contract ID string '{contract_id_str}'. Expected format 'shard.realm.contract'."
+            ) from e
 
     @classmethod
-    def from_evm_address(cls, shard: int, realm: int, evm_address: str) -> "ContractId":
+    def from_evm_address(cls, shard: int, realm: int, evm_address: str) -> ContractId:
         """
         Create a ContractId from an EVM address string.
 
@@ -170,9 +167,7 @@ class ContractId(Key):
             ValueError: If shard or realm are negative, or the EVM address is invalid.
         """
         if not isinstance(evm_address, str):
-            raise TypeError(
-                f"evm_address must be of type str, got {type(evm_address).__name__}"
-            )
+            raise TypeError(f"evm_address must be of type str, got {type(evm_address).__name__}")
 
         for name, value in (("shard", shard), ("realm", realm)):
             if isinstance(value, bool) or not isinstance(value, int):
@@ -188,7 +183,7 @@ class ContractId(Key):
             raise ValueError(f"Invalid EVM address: {evm_address}") from e
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> "ContractId":
+    def from_bytes(cls, data: bytes) -> ContractId:
         """
         Deserialize an ContractId from protobuf-encoded bytes.
 
@@ -212,7 +207,7 @@ class ContractId(Key):
 
         return cls._from_proto(proto)
 
-    def to_bytes(self) -> "bytes":
+    def to_bytes(self) -> bytes:
         """
         Serialize this ContractId to protobuf bytes.
 
@@ -221,7 +216,7 @@ class ContractId(Key):
         """
         return self._to_proto().SerializeToString()
 
-    def populate_contract_num(self, client: "Client") -> "ContractId":
+    def populate_contract_num(self, client: Client) -> ContractId:
         """
         Resolve and populate the numeric contract ID using the Mirror Node.
 
@@ -250,8 +245,7 @@ class ContractId(Key):
 
         except RuntimeError as e:
             raise RuntimeError(
-                "Failed to populate contract num from mirror node for evm_address "
-                f"{self.evm_address.hex()}"
+                f"Failed to populate contract num from mirror node for evm_address {self.evm_address.hex()}"
             ) from e
 
         try:
@@ -309,7 +303,7 @@ class ContractId(Key):
 
         return to_solidity_address(self.shard, self.realm, self.contract)
 
-    def validate_checksum(self, client: "Client") -> None:
+    def validate_checksum(self, client: Client) -> None:
         """
         Validates the checksum (if present) against a client's network.
 
@@ -332,7 +326,7 @@ class ContractId(Key):
             client,
         )
 
-    def to_string_with_checksum(self, client: "Client") -> str:
+    def to_string_with_checksum(self, client: Client) -> str:
         """
         Generates a string representation with a network-specific checksum.
 
@@ -350,11 +344,6 @@ class ContractId(Key):
                 as checksums cannot be applied to EVM addresses.
         """
         if self.evm_address is not None:
-            raise ValueError(
-                "to_string_with_checksum cannot be applied to ContractId with evm_address"
-            )
+            raise ValueError("to_string_with_checksum cannot be applied to ContractId with evm_address")
 
-        return format_to_string_with_checksum(
-            self.shard, self.realm, self.contract, client
-        )
-
+        return format_to_string_with_checksum(self.shard, self.realm, self.contract, client)

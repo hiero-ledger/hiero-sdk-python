@@ -19,6 +19,7 @@ Required environment variables:
 Usage:
 uv run examples/tokens/token_create_transaction_wipe_key.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -44,19 +45,14 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
+
 def create_recipient_account(client):
     """Helper: Create a new account to hold tokens(wiped ones)."""
     private_key = PrivateKey.generate_ed25519()
-    tx = (
-        AccountCreateTransaction()
-        .set_key_without_alias(private_key.public_key())
-        .set_initial_balance(Hbar(2))
-    )
+    tx = AccountCreateTransaction().set_key_without_alias(private_key.public_key()).set_initial_balance(Hbar(2))
     receipt = tx.execute(client)
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"✅ Account created: {receipt.account_id}")
@@ -75,9 +71,7 @@ def associate_and_transfer(client, token_id, recipient_id, recipient_key, amount
     receipt_associate = associate_tx.execute(client)
 
     if receipt_associate.status != ResponseCode.SUCCESS:
-        print(
-            f"❌ Token association failed with status: {ResponseCode(receipt_associate.status).name}"
-        )
+        print(f"❌ Token association failed with status: {ResponseCode(receipt_associate.status).name}")
         sys.exit(1)
     print(f"  --> Associated token {token_id} to account {recipient_id}.")
 
@@ -90,9 +84,7 @@ def associate_and_transfer(client, token_id, recipient_id, recipient_key, amount
     receipt_transfer = transfer_tx.execute(client)
 
     if receipt_transfer.status != ResponseCode.SUCCESS:
-        print(
-            f"❌ Token transfer failed with status: {ResponseCode(receipt_transfer.status).name}"
-        )
+        print(f"❌ Token transfer failed with status: {ResponseCode(receipt_transfer.status).name}")
         sys.exit(1)
     print(f"  --> Transferred {amount} tokens to account {recipient_id}.")
 
@@ -117,9 +109,7 @@ def create_token_no_wipe_key(client, operator_id, operator_key):
     try:
         receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
         print(f"✅ Token created: {receipt.token_id}")
@@ -150,9 +140,7 @@ def demonstrate_wipe_fail(client, token_id, target_account_id):
                 f"✅ Wipe failed as expected! Token has no wipe key with status: {ResponseCode(receipt.status).name}."
             )
         else:
-            print(
-                f"❌ Wipe unexpectedly succeeded or failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Wipe unexpectedly succeeded or failed with status: {ResponseCode(receipt.status).name}")
 
     except Exception as e:
         print(f"✅ Wipe failed as expected with error: {e}")
@@ -179,9 +167,7 @@ def create_token_with_wipe_key(client, operator_id, operator_key):
     try:
         receipt = transaction.execute(client)
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
         print(f"✅ Token created: {receipt.token_id}")
@@ -256,10 +242,7 @@ def demonstrate_nft_wipe_scenario(client, operator_id, operator_key, user_id, us
     # 2. Mint an NFT (Serial #1)
     print("Minting NFT Serial #1...")
     mint_tx = (
-        TokenMintTransaction()
-        .set_token_id(nft_token_id)
-        .set_metadata([b"Metadata for NFT 1"])
-        .freeze_with(client)
+        TokenMintTransaction().set_token_id(nft_token_id).set_metadata([b"Metadata for NFT 1"]).freeze_with(client)
     )
     mint_tx.sign(supply_key)
     mint_receipt = mint_tx.execute(client)
@@ -310,9 +293,7 @@ def demonstrate_nft_wipe_scenario(client, operator_id, operator_key, user_id, us
     wipe_receipt = wipe_tx.execute(client)
 
     if wipe_receipt.status == ResponseCode.SUCCESS:
-        print(
-            "✅ NFT Wipe Successful! The NFT has been effectively burned from the user's account."
-        )
+        print("✅ NFT Wipe Successful! The NFT has been effectively burned from the user's account.")
     else:
         print(f"❌ NFT Wipe Failed: {ResponseCode(wipe_receipt.status).name}")
 
@@ -342,9 +323,7 @@ def main():
     demonstrate_wipe_fail(client, token_id_no_key, user_id)
 
     # --- Scenario 2: With Wipe Key (Fungible) ---
-    token_id_with_key, wipe_key = create_token_with_wipe_key(
-        client, operator_id, operator_key
-    )
+    token_id_with_key, wipe_key = create_token_with_wipe_key(client, operator_id, operator_key)
     associate_and_transfer(client, token_id_with_key, user_id, user_key, 50)
 
     if demonstrate_wipe_success(client, token_id_with_key, user_id, wipe_key):

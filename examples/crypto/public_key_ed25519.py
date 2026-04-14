@@ -6,6 +6,7 @@ Example file: Working with an Ed25519 PublicKey using the PublicKey class.
 uv run examples/crypto/public_key_ed25519.py
 python examples/crypto/public_key_ed25519.py
 """
+
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric import ed25519
 
@@ -20,9 +21,7 @@ def example_load_ed25519_from_raw() -> None:
     """
     # Ed25519 public key bytes are always 32 bytes.
     # Most random 32 bytes will be a valid key, so here is a random example:
-    raw_pub = bytes.fromhex(
-        "8baa5f735dbf40f275283bed504cb752b1ce58a7118476d28f528ecd265c5f58"
-    )
+    raw_pub = bytes.fromhex("8baa5f735dbf40f275283bed504cb752b1ce58a7118476d28f528ecd265c5f58")
 
     # 1) Construct via from_bytes_ed25519
     pubk_obj = PublicKey.from_bytes_ed25519(raw_pub)  # or from_bytes

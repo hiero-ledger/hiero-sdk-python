@@ -1,9 +1,8 @@
-"""
-Query to get information about a file on the network.
-"""
+"""Query to get information about a file on the network."""
+
+from __future__ import annotations
 
 import traceback
-from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -24,7 +23,7 @@ class FileInfoQuery(Query):
 
     """
 
-    def __init__(self, file_id: Optional[FileId] = None) -> None:
+    def __init__(self, file_id: FileId | None = None) -> None:
         """
         Initializes a new FileInfoQuery instance with an optional file_id.
 
@@ -32,9 +31,9 @@ class FileInfoQuery(Query):
             file_id (Optional[FileId], optional): The ID of the file to query.
         """
         super().__init__()
-        self.file_id: Optional[FileId] = file_id
+        self.file_id: FileId | None = file_id
 
-    def set_file_id(self, file_id: Optional[FileId]) -> "FileInfoQuery":
+    def set_file_id(self, file_id: FileId | None) -> FileInfoQuery:
         """
         Sets the ID of the file to query.
 
@@ -95,7 +94,7 @@ class FileInfoQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.file.getFileInfo)
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> FileInfo:
+    def execute(self, client: Client, timeout: int | float | None = None) -> FileInfo:
         """
         Executes the file info query.
 
@@ -107,7 +106,7 @@ class FileInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
 
         Returns:
             FileInfo: The file info from the network
@@ -122,9 +121,7 @@ class FileInfoQuery(Query):
 
         return FileInfo._from_proto(response.fileGetInfo.fileInfo)
 
-    def _get_query_response(
-        self, response: response_pb2.Response
-    ) -> FileGetInfoResponse.FileInfo:
+    def _get_query_response(self, response: response_pb2.Response) -> FileGetInfoResponse.FileInfo:
         """
         Extracts the file info response from the full response.
 

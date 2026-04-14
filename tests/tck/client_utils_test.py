@@ -1,9 +1,16 @@
 """Unit tests for the client manager module."""
+
+from __future__ import annotations
+
 from unittest.mock import MagicMock
+
 import pytest
-from tck.util.client_utils import store_client, get_client, remove_client, _CLIENTS
+
+from tck.util.client_utils import _CLIENTS, get_client, remove_client, store_client
+
 
 pytestmark = pytest.mark.unit
+
 
 @pytest.fixture(autouse=True)
 def clear_clients():
@@ -15,7 +22,7 @@ def clear_clients():
 
 class TestClientManager:
     """Test client storage, retrieval, and cleanup."""
-    
+
     def test_store_and_retrieve_client(self):
         """Test that a client can be stored and retrieved by session ID."""
         mock_client = MagicMock()
@@ -38,18 +45,18 @@ class TestClientManager:
         client1 = MagicMock()
         client2 = MagicMock()
         client3 = MagicMock()
-        
+
         store_client("session1", client1)
         store_client("session2", client2)
         store_client("session3", client3)
-        
+
         if get_client("session1") is not client1:
             raise AssertionError("Expected client1 to be returned for session1")
         if get_client("session2") is not client2:
             raise AssertionError("Expected client2 to be returned for session2")
         if get_client("session3") is not client3:
             raise AssertionError("Expected client3 to be returned for session3")
-    
+
     def test_overwrite_existing_client(self):
         """Test that storing a client with an existing session ID overwrites it."""
         old_client = MagicMock()
@@ -67,7 +74,6 @@ class TestClientManager:
 
         # Verify that close() was called on the old client
         old_client.close.assert_called_once()
-
 
     def test_remove_client_calls_close(self):
         """Test that remove_client calls close() on the client."""

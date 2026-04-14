@@ -66,7 +66,7 @@ has_recent_working_command() {
     return 1 # False
   fi
 
-  # The 'since' parameter is an optimization, but the API may still return comments 
+  # The 'since' parameter is an optimization, but the API may still return comments
   # updated since the cutoff, not just created. We still need to check the create time.
   for created_at in $working_comments; do
     local comment_ts

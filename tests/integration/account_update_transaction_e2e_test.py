@@ -2,6 +2,8 @@
 Integration tests for the AccountUpdateTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -32,9 +34,9 @@ def test_integration_account_update_transaction_can_execute(env):
         .set_receiver_signature_required(False)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
@@ -57,23 +59,17 @@ def test_integration_account_update_transaction_can_execute(env):
         .sign(new_private_key)  # Sign with new key
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account update failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account update failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Query account info to verify updates
     info = AccountInfoQuery(account_id).execute(env.client)
     assert str(info.account_id) == str(account_id), "Account ID should match"
-    assert (
-        info.key.to_bytes_raw() == new_public_key.to_bytes_raw()
-    ), "Public key should be updated"
+    assert info.key.to_bytes_raw() == new_public_key.to_bytes_raw(), "Public key should be updated"
     assert info.account_memo == new_memo, "Account memo should be updated"
-    assert (
-        info.receiver_signature_required is True
-    ), "Receiver signature requirement should be updated"
-    assert (
-        info.auto_renew_period == new_auto_renew_period
-    ), "Auto renew period should be updated"
+    assert info.receiver_signature_required is True, "Receiver signature requirement should be updated"
+    assert info.auto_renew_period == new_auto_renew_period, "Auto renew period should be updated"
 
 
 @pytest.mark.integration
@@ -86,9 +82,9 @@ def test_integration_account_update_transaction_set_key_with_threshold_keylist(e
         .set_initial_balance(Hbar(2))
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
@@ -96,9 +92,7 @@ def test_integration_account_update_transaction_set_key_with_threshold_keylist(e
     # Build a 2-of-2 threshold KeyList and rotate the account key to it.
     key_1_private = PrivateKey.generate_ed25519()
     key_2_private = PrivateKey.generate_ed25519()
-    threshold_key = KeyList(
-        [key_1_private.public_key(), key_2_private.public_key()], threshold=2
-    )
+    threshold_key = KeyList([key_1_private.public_key(), key_2_private.public_key()], threshold=2)
 
     receipt = (
         AccountUpdateTransaction()
@@ -109,9 +103,9 @@ def test_integration_account_update_transaction_set_key_with_threshold_keylist(e
         .sign(key_2_private)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account key rotation to KeyList failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account key rotation to KeyList failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Verify a follow-up update can be authorized with both threshold keys.
     new_memo = "Updated using threshold KeyList"
@@ -124,9 +118,9 @@ def test_integration_account_update_transaction_set_key_with_threshold_keylist(e
         .sign(key_2_private)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account update signed by threshold keys failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account update signed by threshold keys failed with status: {ResponseCode(receipt.status).name}"
+    )
 
 
 @pytest.mark.integration
@@ -135,14 +129,9 @@ def test_integration_account_update_transaction_fails_with_invalid_account_id(en
     # Create an account ID that doesn't exist on the network
     invalid_account_id = AccountId(0, 0, 999999999)
 
-    receipt = (
-        AccountUpdateTransaction()
-        .set_account_id(invalid_account_id)
-        .execute(env.client)
-    )
+    receipt = AccountUpdateTransaction().set_account_id(invalid_account_id).execute(env.client)
     assert receipt.status == ResponseCode.INVALID_ACCOUNT_ID, (
-        f"Account update should have failed with status INVALID_ACCOUNT_ID, "
-        f"but got {ResponseCode(receipt.status).name}"
+        f"Account update should have failed with status INVALID_ACCOUNT_ID, but got {ResponseCode(receipt.status).name}"
     )
 
 
@@ -159,9 +148,9 @@ def test_integration_account_update_transaction_fails_with_invalid_signature(env
         .set_initial_balance(Hbar(1))
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
@@ -169,16 +158,10 @@ def test_integration_account_update_transaction_fails_with_invalid_signature(env
     base_info = AccountInfoQuery(account_id).execute(env.client)
 
     # Try to update without signing with the account's key
-    receipt = (
-        AccountUpdateTransaction()
-        .set_account_id(account_id)
-        .set_account_memo("New memo")
-        .execute(env.client)
-    )
+    receipt = AccountUpdateTransaction().set_account_id(account_id).set_account_memo("New memo").execute(env.client)
 
     assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
-        f"Account update should have failed with status INVALID_SIGNATURE, "
-        f"but got {ResponseCode(receipt.status).name}"
+        f"Account update should have failed with status INVALID_SIGNATURE, but got {ResponseCode(receipt.status).name}"
     )
 
     # Verify nothing changed on-chain
@@ -199,36 +182,27 @@ def test_integration_account_update_transaction_partial_update(env):
         .set_receiver_signature_required(False)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
 
     # Update only the memo, leaving other fields unchanged
     new_memo = "Only memo updated"
-    receipt = (
-        AccountUpdateTransaction()
-        .set_account_id(account_id)
-        .set_account_memo(new_memo)
-        .execute(env.client)
+    receipt = AccountUpdateTransaction().set_account_id(account_id).set_account_memo(new_memo).execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account update failed with status: {ResponseCode(receipt.status).name}"
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account update failed with status: {ResponseCode(receipt.status).name}"
 
     # Query account info to verify only memo was updated
     info = AccountInfoQuery(account_id).execute(env.client)
 
     assert str(info.account_id) == str(account_id), "Account ID should match"
-    assert (
-        info.key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw()
-    ), "Public key should remain unchanged"
+    assert info.key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw(), "Public key should remain unchanged"
     assert info.account_memo == new_memo, "Account memo should be updated"
-    assert (
-        info.receiver_signature_required is False
-    ), "Receiver signature requirement should remain unchanged"
+    assert info.receiver_signature_required is False, "Receiver signature requirement should remain unchanged"
 
 
 @pytest.mark.integration
@@ -241,9 +215,9 @@ def test_integration_account_update_transaction_invalid_auto_renew_period(env):
         .set_initial_balance(Hbar(1))
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
@@ -254,10 +228,7 @@ def test_integration_account_update_transaction_invalid_auto_renew_period(env):
 
     # Try to update with invalid auto renew period
     receipt = (
-        AccountUpdateTransaction()
-        .set_account_id(account_id)
-        .set_auto_renew_period(invalid_period)
-        .execute(env.client)
+        AccountUpdateTransaction().set_account_id(account_id).set_auto_renew_period(invalid_period).execute(env.client)
     )
 
     assert receipt.status == ResponseCode.AUTORENEW_DURATION_NOT_IN_RANGE, (
@@ -268,6 +239,25 @@ def test_integration_account_update_transaction_invalid_auto_renew_period(env):
     # Ensure expiration time was not modified
     info_after = AccountInfoQuery(account_id).execute(env.client)
     assert info_after.expiration_time == original_info.expiration_time
+
+
+def _apply_tiny_max_fee_if_supported(tx, client) -> bool:
+    # Try tx-level setters
+    for attr in ("set_max_transaction_fee", "set_max_fee", "set_transaction_fee"):
+        if hasattr(tx, attr):
+            getattr(tx, attr)(Hbar.from_tinybars(1))
+            return True
+    # Try client-level default
+    for attr in (
+        "set_default_max_transaction_fee",
+        "set_max_transaction_fee",
+        "set_default_max_fee",
+        "setMaxTransactionFee",
+    ):
+        if hasattr(client, attr):
+            getattr(client, attr)(Hbar.from_tinybars(1))
+            return True
+    return False
 
 
 @pytest.mark.integration
@@ -319,18 +309,18 @@ def test_integration_account_update_transaction_with_only_account_id(env):
         .set_initial_balance(Hbar(1))
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
 
     receipt = AccountUpdateTransaction().set_account_id(account_id).execute(env.client)
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account update failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account update failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Ensure no fields were unintentionally modified
     info = AccountInfoQuery(account_id).execute(env.client)
@@ -350,9 +340,9 @@ def test_integration_account_update_transaction_with_max_automatic_token_associa
         .set_initial_balance(Hbar(2))
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     account_id = receipt.account_id
     assert account_id is not None, "Account ID should not be None"
@@ -365,15 +355,15 @@ def test_integration_account_update_transaction_with_max_automatic_token_associa
         .set_max_automatic_token_associations(new_max_associations)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account update failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account update failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Query account info to verify the update persisted
     info = AccountInfoQuery(account_id).execute(env.client)
-    assert (
-        info.max_automatic_token_associations == new_max_associations
-    ), "Max automatic token associations should be updated"
+    assert info.max_automatic_token_associations == new_max_associations, (
+        "Max automatic token associations should be updated"
+    )
 
 
 @pytest.mark.integration
@@ -407,9 +397,9 @@ def test_integration_account_update_transaction_with_staking_fields(env):
         .set_decline_staking_reward(True)
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Account update with staking fields failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Account update with staking fields failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     # Verify staking info reflects the updated values
     info = AccountInfoQuery(account_id).execute(env.client)
@@ -439,12 +429,7 @@ def test_integration_account_update_transaction_with_staked_node_id(env):
 
     # Update with staked_node_id (using node 0 as a test value)
     # Note: In a real scenario, you'd use a valid node ID
-    receipt = (
-        AccountUpdateTransaction()
-        .set_account_id(account_id)
-        .set_staked_node_id(0)
-        .execute(env.client)
-    )
+    receipt = AccountUpdateTransaction().set_account_id(account_id).set_staked_node_id(0).execute(env.client)
     # This might succeed or fail depending on network state, but should not crash
     assert receipt.status in [
         ResponseCode.SUCCESS,

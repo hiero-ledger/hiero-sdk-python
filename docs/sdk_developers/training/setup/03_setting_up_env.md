@@ -23,5 +23,3 @@ NETWORK=testnet
 ```
 
 We have added `.env` to `.gitignore` to help ensure its never committed.
-
-

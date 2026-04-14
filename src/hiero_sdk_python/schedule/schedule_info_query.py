@@ -1,9 +1,8 @@
-"""
-Query to get information about a schedule on the network.
-"""
+"""Query to get information about a schedule on the network."""
+
+from __future__ import annotations
 
 import traceback
-from typing import Optional, Union
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -23,22 +22,22 @@ class ScheduleInfoQuery(Query):
     about a schedule on the network, including the schedule's properties and settings.
     """
 
-    def __init__(self, schedule_id: Optional[ScheduleId] = None) -> None:
+    def __init__(self, schedule_id: ScheduleId | None = None) -> None:
         """
         Initializes a new ScheduleInfoQuery instance with an optional schedule_id.
 
         Args:
-            schedule_id (Optional[ScheduleId]): The ID of the schedule to query.
+            schedule_id (ScheduleId, optional): The ID of the schedule to query.
         """
         super().__init__()
-        self.schedule_id: Optional[ScheduleId] = schedule_id
+        self.schedule_id: ScheduleId | None = schedule_id
 
-    def set_schedule_id(self, schedule_id: Optional[ScheduleId]) -> "ScheduleInfoQuery":
+    def set_schedule_id(self, schedule_id: ScheduleId | None) -> ScheduleInfoQuery:
         """
         Sets the ID of the schedule to query.
 
         Args:
-            schedule_id (Optional[ScheduleId]): The ID of the schedule.
+            schedule_id (ScheduleId | None): The ID of the schedule.
         """
         self.schedule_id = schedule_id
         return self
@@ -91,7 +90,7 @@ class ScheduleInfoQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.schedule.getScheduleInfo)
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> ScheduleInfo:
+    def execute(self, client: Client, timeout: int | float | None = None) -> ScheduleInfo:
         """
         Executes the schedule info query.
 
@@ -103,7 +102,7 @@ class ScheduleInfoQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
 
         Returns:
             ScheduleInfo: The schedule info from the network
@@ -118,9 +117,7 @@ class ScheduleInfoQuery(Query):
 
         return ScheduleInfo._from_proto(response.scheduleGetInfo.scheduleInfo)
 
-    def _get_query_response(
-        self, response: response_pb2.Response
-    ) -> ScheduleGetInfoResponse:
+    def _get_query_response(self, response: response_pb2.Response) -> ScheduleGetInfoResponse:
         """
         Extracts the schedule info response from the full response.
 

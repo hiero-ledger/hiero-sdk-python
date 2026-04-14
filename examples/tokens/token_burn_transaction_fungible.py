@@ -5,6 +5,7 @@ Example demonstrating token burn transaction fungible.
 uv run examples/tokens/token_burn_transaction_fungible.py
 python examples/tokens/token_burn_transaction_fungible.py
 """
+
 import sys
 
 from hiero_sdk_python import Client
@@ -41,9 +42,7 @@ def create_fungible_token(client, operator_id, operator_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     token_id = receipt.token_id
@@ -83,12 +82,7 @@ def token_burn_fungible():
     burn_amount = 40
 
     # Burn 40 tokens out of 100
-    receipt = (
-        TokenBurnTransaction()
-        .set_token_id(token_id)
-        .set_amount(burn_amount)
-        .execute(client)
-    )
+    receipt = TokenBurnTransaction().set_token_id(token_id).set_amount(burn_amount).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"Token burn failed with status: {ResponseCode(receipt.status).name}")

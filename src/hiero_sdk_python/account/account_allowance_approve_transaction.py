@@ -1,8 +1,6 @@
-"""
-AccountAllowanceApproveTransaction class for approving account allowances.
-"""
+"""AccountAllowanceApproveTransaction class for approving account allowances."""
 
-from typing import List, Optional
+from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -21,6 +19,7 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_allowance import TokenNftAllowance
 from hiero_sdk_python.transaction.transaction import Transaction
 
+
 DEFAULT_TRANSACTION_FEE = Hbar(1).to_tinybars()
 
 
@@ -37,35 +36,29 @@ class AccountAllowanceApproveTransaction(Transaction):
     to be the owner for that particular allowance. Setting the amount to zero in HbarAllowance
     or TokenAllowance will remove the respective allowance for the spender.
 
-    NOTE:
+    Note:
     - If account 0.0.X pays for this transaction and owner is not specified in the allowance,
       then at consensus each spender account will have new allowances to spend HBAR or tokens from 0.0.X.
     """
 
     def __init__(
         self,
-        hbar_allowances: Optional[List[HbarAllowance]] = None,
-        token_allowances: Optional[List[TokenAllowance]] = None,
-        nft_allowances: Optional[List[TokenNftAllowance]] = None,
+        hbar_allowances: list[HbarAllowance] | None = None,
+        token_allowances: list[TokenAllowance] | None = None,
+        nft_allowances: list[TokenNftAllowance] | None = None,
     ) -> None:
         """
         Initializes a new AccountAllowanceApproveTransaction instance.
 
         Args:
-            hbar_allowances (Optional[List[HbarAllowance]]): Initial HBAR allowances.
-            token_allowances (Optional[List[TokenAllowance]]): Initial token allowances.
-            nft_allowances (Optional[List[TokenNftAllowance]]): Initial NFT allowances.
+            hbar_allowances (list[HbarAllowance], optional): Initial HBAR allowances.
+            token_allowances (list[TokenAllowance], optional): Initial token allowances.
+            nft_allowances (list[TokenNftAllowance], optional): Initial NFT allowances.
         """
         super().__init__()
-        self.hbar_allowances: List[HbarAllowance] = (
-            list(hbar_allowances) if hbar_allowances is not None else []
-        )
-        self.token_allowances: List[TokenAllowance] = (
-            list(token_allowances) if token_allowances is not None else []
-        )
-        self.nft_allowances: List[TokenNftAllowance] = (
-            list(nft_allowances) if nft_allowances is not None else []
-        )
+        self.hbar_allowances: list[HbarAllowance] = list(hbar_allowances) if hbar_allowances is not None else []
+        self.token_allowances: list[TokenAllowance] = list(token_allowances) if token_allowances is not None else []
+        self.nft_allowances: list[TokenNftAllowance] = list(nft_allowances) if nft_allowances is not None else []
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
 
     def approve_hbar_allowance(
@@ -73,7 +66,7 @@ class AccountAllowanceApproveTransaction(Transaction):
         owner_account_id: AccountId,
         spender_account_id: AccountId,
         amount: Hbar,
-    ) -> "AccountAllowanceApproveTransaction":
+    ) -> AccountAllowanceApproveTransaction:
         """
         Approves allowance of HBAR transfers for a spender.
 
@@ -101,7 +94,7 @@ class AccountAllowanceApproveTransaction(Transaction):
         owner_account_id: AccountId,
         spender_account_id: AccountId,
         amount: int,
-    ) -> "AccountAllowanceApproveTransaction":
+    ) -> AccountAllowanceApproveTransaction:
         """
         Approves allowance of fungible token transfers for a spender.
 
@@ -131,7 +124,7 @@ class AccountAllowanceApproveTransaction(Transaction):
         owner_account_id: AccountId,
         spender_account_id: AccountId,
         delegating_spender: AccountId,
-    ) -> "AccountAllowanceApproveTransaction":
+    ) -> AccountAllowanceApproveTransaction:
         """
         Internal method to approve allowance of non-fungible token transfers for a spender.
 
@@ -148,10 +141,7 @@ class AccountAllowanceApproveTransaction(Transaction):
 
         # Check if there's already an allowance for this token and spender
         for allowance in self.nft_allowances:
-            if (
-                allowance.token_id == nft_id.token_id
-                and allowance.spender_account_id == spender_account_id
-            ):
+            if allowance.token_id == nft_id.token_id and allowance.spender_account_id == spender_account_id:
                 # Add the serial number if it's not already present
                 if nft_id.serial_number not in allowance.serial_numbers:
                     allowance.serial_numbers.append(nft_id.serial_number)
@@ -175,7 +165,7 @@ class AccountAllowanceApproveTransaction(Transaction):
         nft_id: NftId,
         owner_account_id: AccountId,
         spender_account_id: AccountId,
-    ) -> "AccountAllowanceApproveTransaction":
+    ) -> AccountAllowanceApproveTransaction:
         """
         Approves allowance of non-fungible token transfers for a spender.
 
@@ -195,7 +185,7 @@ class AccountAllowanceApproveTransaction(Transaction):
         owner_account_id: AccountId,
         spender_account_id: AccountId,
         delegating_spender: AccountId,
-    ) -> "AccountAllowanceApproveTransaction":
+    ) -> AccountAllowanceApproveTransaction:
         """
         Approves allowance of non-fungible token transfers for a spender.
 
@@ -208,16 +198,14 @@ class AccountAllowanceApproveTransaction(Transaction):
         Returns:
             AccountAllowanceApproveTransaction: This transaction instance.
         """
-        return self._approve_token_nft_approval(
-            nft_id, owner_account_id, spender_account_id, delegating_spender
-        )
+        return self._approve_token_nft_approval(nft_id, owner_account_id, spender_account_id, delegating_spender)
 
     def _approve_token_nft_allowance_all_serials(
         self,
         token_id: TokenId,
         owner_account_id: AccountId,
         spender_account_id: AccountId,
-    ) -> "AccountAllowanceApproveTransaction":
+    ) -> AccountAllowanceApproveTransaction:
         """
         Internal method to approve allowance of non-fungible token transfers for a spender.
 
@@ -233,10 +221,7 @@ class AccountAllowanceApproveTransaction(Transaction):
 
         # Check if there's already an allowance for this token and spender
         for allowance in self.nft_allowances:
-            if (
-                allowance.token_id == token_id
-                and allowance.spender_account_id == spender_account_id
-            ):
+            if allowance.token_id == token_id and allowance.spender_account_id == spender_account_id:
                 allowance.serial_numbers = []
                 allowance.approved_for_all = True
                 return self
@@ -258,7 +243,7 @@ class AccountAllowanceApproveTransaction(Transaction):
         token_id: TokenId,
         owner_account_id: AccountId,
         spender_account_id: AccountId,
-    ) -> "AccountAllowanceApproveTransaction":
+    ) -> AccountAllowanceApproveTransaction:
         """
         Approves allowance of non-fungible token transfers for a spender.
         Spender has access to all of the owner's NFT units of type tokenId (currently
@@ -272,16 +257,14 @@ class AccountAllowanceApproveTransaction(Transaction):
         Returns:
             AccountAllowanceApproveTransaction: This transaction instance.
         """
-        return self._approve_token_nft_allowance_all_serials(
-            token_id, owner_account_id, spender_account_id
-        )
+        return self._approve_token_nft_allowance_all_serials(token_id, owner_account_id, spender_account_id)
 
     def delete_token_nft_allowance_all_serials(
         self,
         token_id: TokenId,
         owner_account_id: AccountId,
         spender_account_id: AccountId,
-    ) -> "AccountAllowanceApproveTransaction":
+    ) -> AccountAllowanceApproveTransaction:
         """
         Revokes an allowance that permits a spender to transfer all of the owner's
         non-fungible tokens (NFTs) of a specific type (tokenId).
@@ -299,10 +282,7 @@ class AccountAllowanceApproveTransaction(Transaction):
         self._require_not_frozen()
 
         for allowance in self.nft_allowances:
-            if (
-                allowance.token_id == token_id
-                and allowance.spender_account_id == spender_account_id
-            ):
+            if allowance.token_id == token_id and allowance.spender_account_id == spender_account_id:
                 allowance.serial_numbers = []
                 allowance.approved_for_all = True
                 return self
@@ -322,7 +302,7 @@ class AccountAllowanceApproveTransaction(Transaction):
         self,
         token_id: TokenId,
         spender_account_id: AccountId,
-    ) -> "AccountAllowanceApproveTransaction":
+    ) -> AccountAllowanceApproveTransaction:
         """
         Approve allowance of non-fungible token transfers for a spender.
         Spender has access to all of the owner's NFT units of type tokenId (currently
@@ -348,13 +328,11 @@ class AccountAllowanceApproveTransaction(Transaction):
         Returns:
             CryptoApproveAllowanceTransactionBody: The protobuf body for this transaction.
         """
-        body = CryptoApproveAllowanceTransactionBody(
+        return CryptoApproveAllowanceTransactionBody(
             cryptoAllowances=[allowance._to_proto() for allowance in self.hbar_allowances],
             tokenAllowances=[allowance._to_proto() for allowance in self.token_allowances],
             nftAllowances=[allowance._to_proto() for allowance in self.nft_allowances],
         )
-
-        return body
 
     def build_transaction_body(self):
         """

@@ -3,7 +3,7 @@ Defines HbarTransfer for representing and converting HBAR transfer details
 (account, amount, approval) to and from protobuf messages.
 """
 
-from typing import Optional
+from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
@@ -19,8 +19,8 @@ class HbarTransfer:
 
     def __init__(
         self,
-        account_id: Optional[AccountId] = None,
-        amount: Optional[int] = None,
+        account_id: AccountId | None = None,
+        amount: int | None = None,
         is_approved: bool = False,
     ) -> None:
         """
@@ -31,8 +31,8 @@ class HbarTransfer:
             amount (int): The amount of HBAR to transfer (in tinybars).
             is_approved (bool, optional): Whether the transfer is approved. Defaults to False.
         """
-        self.account_id: Optional[AccountId] = account_id
-        self.amount: Optional[int] = amount
+        self.account_id: AccountId | None = account_id
+        self.amount: int | None = amount
         self.is_approved: bool = is_approved
 
     def _to_proto(self) -> basic_types_pb2.AccountAmount:
@@ -49,7 +49,7 @@ class HbarTransfer:
         )
 
     @classmethod
-    def _from_proto(cls, proto: basic_types_pb2.AccountAmount) -> "HbarTransfer":
+    def _from_proto(cls, proto: basic_types_pb2.AccountAmount) -> HbarTransfer:
         """
         Creates a HbarTransfer from a protobuf representation.
 
@@ -75,13 +75,7 @@ class HbarTransfer:
         Returns:
             str: A string representation of this HBAR transfer.
         """
-        return (
-            "HbarTransfer("
-            f"account_id={self.account_id}, "
-            f"amount={self.amount}, "
-            f"is_approved={self.is_approved}"
-            ")"
-        )
+        return f"HbarTransfer(account_id={self.account_id}, amount={self.amount}, is_approved={self.is_approved})"
 
     def __repr__(self) -> str:
         """

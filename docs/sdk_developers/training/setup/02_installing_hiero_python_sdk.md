@@ -29,4 +29,3 @@ Run:
 ```bash
 uv run python generate_proto.py
 ```
-

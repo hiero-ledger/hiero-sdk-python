@@ -6,6 +6,7 @@ Example demonstrating account records query on the network.
 uv run examples/account/account_records_query.py
 python examples/account/account_records_query.py
 """
+
 import os
 import sys
 
@@ -22,6 +23,7 @@ from hiero_sdk_python import (
 )
 from hiero_sdk_python.account.account_records_query import AccountRecordsQuery
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
+
 
 load_dotenv()
 
@@ -57,9 +59,7 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id

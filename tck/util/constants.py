@@ -1,1 +1,4 @@
-DEFAULT_GRPC_TIMEOUT=30
+from __future__ import annotations
+
+
+DEFAULT_GRPC_TIMEOUT = 30

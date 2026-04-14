@@ -9,6 +9,7 @@ uv run examples/crypto/private_key_ed25519.py
 python examples/crypto/private_key_ed25519.py
 
 """
+
 from cryptography.exceptions import InvalidSignature
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -110,10 +111,7 @@ def example_load_ed25519_der() -> None:
     print("=== Ed25519: Load from DER ===")
     # This DER encodes a small example Ed25519 key whose raw seed might be all 0x01.
     # 46 bytes in total; for demonstration only.
-    der_hex = (
-        "302e020100300506032b657004220420"
-        "0101010101010101010101010101010101010101010101010101010101010101"
-    )
+    der_hex = "302e020100300506032b6570042204200101010101010101010101010101010101010101010101010101010101010101"
 
     # Create private and public key
     privkey = PrivateKey.from_string_der(der_hex)

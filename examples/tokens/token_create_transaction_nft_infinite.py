@@ -6,6 +6,7 @@ Usage:
 uv run examples/tokens/token_create_transaction_nft_infinite.py
 python examples/tokens/token_create_transaction_nft_infinite.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -23,9 +24,12 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
+
 """
 2. Generate Keys On-the-Fly.
 """
+
+
 def keys_on_fly():
     print("\nGenerating new admin and supply keys for the NFT...")
     admin_key = PrivateKey.generate_ed25519()
@@ -37,6 +41,8 @@ def keys_on_fly():
 """
 3. Build and Execute Transaction.
 """
+
+
 def transaction(client, operator_id, operator_key, admin_key, supply_key):
     try:
         print("\nBuilding transaction to create an infinite NFT...")
@@ -64,9 +70,7 @@ def transaction(client, operator_id, operator_key, admin_key, supply_key):
         receipt = transaction.execute(client)
 
         if receipt and receipt.token_id:
-            print(
-                f"Success! Infinite non-fungible token created with ID: {receipt.token_id}"
-            )
+            print(f"Success! Infinite non-fungible token created with ID: {receipt.token_id}")
             return receipt.token_id
         print("Token creation failed: Token ID not returned in receipt.")
         sys.exit(1)
@@ -79,6 +83,8 @@ def transaction(client, operator_id, operator_key, admin_key, supply_key):
 """
 Creates an infinite NFT by generating admin and supply keys on the fly.
 """
+
+
 def create_token_nft_infinite():
     client = setup_client()
     operator_id = client.operator_account_id

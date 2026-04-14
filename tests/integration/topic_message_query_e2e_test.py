@@ -1,9 +1,12 @@
 """
 Integration tests for the TopicMessageSubmitTransaction class.
 """
-from datetime import datetime, timedelta, timezone
+
+from __future__ import annotations
+
 import time
-from typing import List
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
@@ -13,7 +16,7 @@ from hiero_sdk_python.consensus.topic_message_submit_transaction import (
 )
 from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env
+
 
 BIG_CONTENT = """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur aliquam augue sem, ut mattis dui laoreet a. Curabitur consequat est euismod, scelerisque metus et, tristique dui. Nulla commodo mauris ut faucibus ultricies. Quisque venenatis nisl nec augue tempus, at efficitur elit eleifend. Duis pharetra felis metus, sed dapibus urna vehicula id. Duis non venenatis turpis, sit amet ornare orci. Donec non interdum quam. Sed finibus nunc et risus finibus, non sagittis lorem cursus. Proin pellentesque tempor aliquam. Sed congue nisl in enim bibendum, condimentum vehicula nisi feugiat.
@@ -41,16 +44,12 @@ In consequat, nisi iaculis laoreet elementum, massa mauris varius nisi, et porta
 Etiam ut sodales ex. Nulla luctus, magna eu scelerisque sagittis, nibh quam consectetur neque, non rutrum dolor metus nec ex. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Sed egestas augue elit, sollicitudin accumsan massa lobortis ac. Curabitur placerat, dolor a aliquam maximus, velit ipsum laoreet ligula, id ullamcorper lacus nibh eget nisl. Donec eget lacus venenatis enim consequat auctor vel in.
 """
 
+
 def create_topic(client):
     """Helper transaction for creating a topic."""
-    receipt = (
-        TopicCreateTransaction()
-        .execute(client)
-    )
+    receipt = TopicCreateTransaction().execute(client)
 
-    assert receipt.status == ResponseCode.SUCCESS, (
-        f"Topic creation failed: {ResponseCode(receipt.status).name}"
-    )
+    assert receipt.status == ResponseCode.SUCCESS, f"Topic creation failed: {ResponseCode(receipt.status).name}"
     return receipt.topic_id
 
 
@@ -61,41 +60,29 @@ def test_topic_message_query_receives_messages(env):
 
     time.sleep(3)
 
-    messages: List[str] = []
+    messages: list[str] = []
 
     def get_message(m: TopicMessage):
-        messages.append(m.contents.decode('utf-8'))
-        
+        messages.append(m.contents.decode("utf-8"))
+
     def on_error_handler(e):
         raise RuntimeError(f"Subscription error: {e}")
 
-    query = TopicMessageQuery(
-        topic_id=topic_id,
-        start_time=datetime.now(timezone.utc),
-        limit=0
-    )
+    query = TopicMessageQuery(topic_id=topic_id, start_time=datetime.now(timezone.utc), limit=0)
 
-    handle = query.subscribe(
-        env.client,
-        on_message=get_message,
-        on_error=on_error_handler
-    )
-    
+    handle = query.subscribe(env.client, on_message=get_message, on_error=on_error_handler)
+
     time.sleep(3)
 
     message_receipt = (
-        TopicMessageSubmitTransaction(
-            topic_id=topic_id,
-            message="Hello, Python SDK!"
-        )
+        TopicMessageSubmitTransaction(topic_id=topic_id, message="Hello, Python SDK!")
         .freeze_with(env.client)
         .execute(env.client)
     )
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
-
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
     start = datetime.now()
 
@@ -112,18 +99,14 @@ def test_topic_message_query_receives_messages(env):
 def test_topic_message_query_limit(env):
     """Test topic message query stops after receiving limit messages."""
     topic_id = create_topic(env.client)
-    messages: List[str] = []
+    messages: list[str] = []
 
     def on_message(m: TopicMessage):
         messages.append(m.contents.decode("utf-8"))
 
     time.sleep(3)
 
-    query = TopicMessageQuery(
-        topic_id=topic_id,
-        start_time=datetime.now(timezone.utc),
-        limit=2
-    )
+    query = TopicMessageQuery(topic_id=topic_id, start_time=datetime.now(timezone.utc), limit=2)
 
     handle = query.subscribe(env.client, on_message=on_message)
 
@@ -136,7 +119,7 @@ def test_topic_message_query_limit(env):
                 .freeze_with(env.client)
                 .execute(env.client)
             )
-        
+
         start = datetime.now()
 
         while len(messages) != 2:
@@ -155,51 +138,37 @@ def test_topic_message_query_limit(env):
 def test_topic_message_query_large_message_chunking(env):
     """Test that topic message query receives chunked message."""
     topic_id = create_topic(env.client)
-    messages: List[str] = []
+    messages: list[str] = []
     time.sleep(3)
 
     def get_message(m: TopicMessage):
-        messages.append(m.contents.decode('utf-8'))
-        
+        messages.append(m.contents.decode("utf-8"))
+
     def on_error_handler(e):
         raise RuntimeError(f"Subscription error: {e}")
 
-    query = TopicMessageQuery(
-        topic_id=topic_id,
-        start_time=datetime.now(timezone.utc),
-        limit=0,
-        chunking_enabled=True
-    )
+    query = TopicMessageQuery(topic_id=topic_id, start_time=datetime.now(timezone.utc), limit=0, chunking_enabled=True)
 
-    handle = query.subscribe(
-        env.client,
-        on_message=get_message,
-        on_error=on_error_handler
-    )
+    handle = query.subscribe(env.client, on_message=get_message, on_error=on_error_handler)
 
     time.sleep(3)
 
     message_receipt = (
-        TopicMessageSubmitTransaction(
-            topic_id=topic_id,
-            message=BIG_CONTENT
-        )
+        TopicMessageSubmitTransaction(topic_id=topic_id, message=BIG_CONTENT)
         .freeze_with(env.client)
         .execute(env.client)
     )
 
-    assert (
-        message_receipt.status == ResponseCode.SUCCESS
-    ), f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    assert message_receipt.status == ResponseCode.SUCCESS, (
+        f"Message submission failed with status: {ResponseCode(message_receipt.status).name}"
+    )
 
-
-        
     start = datetime.now()
 
     while len(messages) == 0:
         if datetime.now() - start > timedelta(seconds=180):
             raise TimeoutError("TopicMessage was not received in time")
         time.sleep(5)
-    
+
     assert messages[0] == BIG_CONTENT
     handle.cancel()

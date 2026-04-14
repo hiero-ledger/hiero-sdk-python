@@ -8,13 +8,14 @@ run:
 uv run examples/errors/receipt_status_error.py
 python examples/errors/receipt_status_error.py
 """
+
 from hiero_sdk_python import Client, ResponseCode, TokenAssociateTransaction, TokenId
 from hiero_sdk_python.exceptions import ReceiptStatusError
 
 
 def main() -> None:
     client = Client.from_env()
-    
+
     operator_id = client.operator_account_id
     operator_key = client.operator_private_key
 
@@ -45,9 +46,7 @@ def main() -> None:
         print("\nCaught ReceiptStatusError!")
         print(f"Status: {e.status.name} ({e.status})")
         print(f"Transaction ID: {e.transaction_id}")
-        print(
-            "This error means the transaction reached consensus but failed logic execution."
-        )
+        print("This error means the transaction reached consensus but failed logic execution.")
 
     # Catch all for unexpected errors
     except Exception as e:

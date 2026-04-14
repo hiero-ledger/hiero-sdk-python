@@ -2,6 +2,8 @@
 Integration test for ContractExecuteTransaction.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from examples.contract.contracts.contract_utils import (
@@ -22,7 +24,6 @@ from hiero_sdk_python.contract.contract_info_query import ContractInfoQuery
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env
 
 
 @pytest.mark.integration
@@ -35,9 +36,9 @@ def test_integration_contract_execute_transaction_can_execute_function(env):
         .set_file_memo("test contract bytecode file")
         .execute(env.client)
     )
-    assert (
-        file_receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    assert file_receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    )
 
     file_id = file_receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -52,14 +53,14 @@ def test_integration_contract_execute_transaction_can_execute_function(env):
         .set_contract_memo("test contract deployment")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
-    new_message = b"Updated message from execute".ljust(32, b"\x00") # pad the message to 32 bytes
+    new_message = b"Updated message from execute".ljust(32, b"\x00")  # pad the message to 32 bytes
     execute_params = ContractFunctionParameters().add_bytes32(new_message)
     execute_receipt = (
         ContractExecuteTransaction()
@@ -68,16 +69,12 @@ def test_integration_contract_execute_transaction_can_execute_function(env):
         .set_function("setMessage", execute_params)
         .execute(env.client)
     )
-    assert (
-        execute_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract execute failed with status: {ResponseCode(execute_receipt.status).name}"
+    assert execute_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract execute failed with status: {ResponseCode(execute_receipt.status).name}"
+    )
 
     result = (
-        ContractCallQuery()
-        .set_contract_id(contract_id)
-        .set_gas(1000000)
-        .set_function("getMessage")
-        .execute(env.client)
+        ContractCallQuery().set_contract_id(contract_id).set_gas(1000000).set_function("getMessage").execute(env.client)
     )
     assert result is not None, "Contract call result should not be None"
     assert result.get_bytes32(0) == new_message
@@ -93,9 +90,9 @@ def test_integration_contract_execute_fails_with_no_gas(env):
         .set_file_memo("test contract bytecode file")
         .execute(env.client)
     )
-    assert (
-        file_receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    assert file_receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    )
 
     file_id = file_receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -111,24 +108,18 @@ def test_integration_contract_execute_fails_with_no_gas(env):
         .set_contract_memo("test contract deployment")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
     new_message = b"Updated message from execute"
     execute_params = ContractFunctionParameters().add_bytes32(new_message)
-    transaction = (
-        ContractExecuteTransaction()
-        .set_contract_id(contract_id)
-        .set_function("setMessage", execute_params)
-    )
+    transaction = ContractExecuteTransaction().set_contract_id(contract_id).set_function("setMessage", execute_params)
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INSUFFICIENT_GAS"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_GAS"):
         transaction.execute(env.client)
 
 
@@ -142,9 +133,9 @@ def test_integration_contract_execute_fails_with_invalid_function(env):
         .set_file_memo("test contract bytecode file")
         .execute(env.client)
     )
-    assert (
-        file_receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    assert file_receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    )
 
     file_id = file_receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -160,9 +151,9 @@ def test_integration_contract_execute_fails_with_invalid_function(env):
         .set_contract_memo("test contract deployment")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -193,9 +184,9 @@ def test_integration_contract_execute_fails_with_missing_parameters(env):
         .set_file_memo("test contract bytecode file")
         .execute(env.client)
     )
-    assert (
-        file_receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    assert file_receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    )
     file_id = file_receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
@@ -210,9 +201,9 @@ def test_integration_contract_execute_fails_with_missing_parameters(env):
         .set_contract_memo("test contract deployment")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -241,9 +232,9 @@ def test_integration_contract_execute_with_amount(env):
         .set_file_memo("test contract bytecode file")
         .execute(env.client)
     )
-    assert (
-        file_receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    assert file_receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    )
 
     file_id = file_receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -259,9 +250,9 @@ def test_integration_contract_execute_with_amount(env):
         .set_contract_memo("test contract deployment")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -274,9 +265,9 @@ def test_integration_contract_execute_with_amount(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     info = ContractInfoQuery().set_contract_id(contract_id).execute(env.client)
     assert info.contract_id == contract_id, "Contract ID should match"
@@ -296,9 +287,9 @@ def test_integration_contract_execute_fails_on_nonpayable_with_payment(env):
         .set_file_memo("test contract bytecode file")
         .execute(env.client)
     )
-    assert (
-        file_receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    assert file_receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    )
 
     file_id = file_receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -314,9 +305,9 @@ def test_integration_contract_execute_fails_on_nonpayable_with_payment(env):
         .set_contract_memo("test contract deployment")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -346,9 +337,9 @@ def test_integration_contract_execute_payable_function_with_payment(env):
         .set_contents(STATEFUL_CONTRACT_BYTECODE)
         .execute(env.client)
     )
-    assert (
-        file_receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    assert file_receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
+    )
 
     file_id = file_receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -363,9 +354,9 @@ def test_integration_contract_execute_payable_function_with_payment(env):
         .set_bytecode_file_id(file_id)
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
@@ -379,20 +370,16 @@ def test_integration_contract_execute_payable_function_with_payment(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract execute failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract execute failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     info = ContractInfoQuery().set_contract_id(contract_id).execute(env.client)
     assert info.contract_id == contract_id, "Contract ID should match"
     assert info.balance == 100, "Balance should match"
 
     receipt = (
-        ContractCallQuery()
-        .set_contract_id(contract_id)
-        .set_gas(1000000)
-        .set_function("getMessage")
-        .execute(env.client)
+        ContractCallQuery().set_contract_id(contract_id).set_gas(1000000).set_function("getMessage").execute(env.client)
     )
     assert receipt is not None, "Contract call result should not be None"
     assert receipt.get_bytes32(0).strip(b"\x00") == b"test", "Message should match"

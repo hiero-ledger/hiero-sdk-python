@@ -5,6 +5,7 @@ Example demonstrating topic create transaction.
 uv run examples/consensus/topic_create_transaction.py
 python examples/consensus/topic_create_transaction.py
 """
+
 from hiero_sdk_python import Client, PrivateKey, ResponseCode, TopicCreateTransaction
 
 
@@ -19,12 +20,11 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client, client.operator_private_key
 
+
 def create_topic(client: Client, operator_key: PrivateKey):
     """Builds, signs, and executes a new topic creation transaction."""
     transaction = (
-        TopicCreateTransaction(
-            memo="Python SDK created topic", admin_key=operator_key.public_key()
-        )
+        TopicCreateTransaction(memo="Python SDK created topic", admin_key=operator_key.public_key())
         .freeze_with(client)
         .sign(operator_key)
     )
@@ -39,12 +39,14 @@ def create_topic(client: Client, operator_key: PrivateKey):
         print(f"Success! Topic created with ID: {receipt.topic_id}")
     except Exception as e:
         print(f"Topic creation failed: {str(e)}")
-        raise SystemExit(1)
+        raise SystemExit(1) from e
+
 
 def main():
     """Main workflow to set up the client and create a new topic."""
     client, operator_key = setup_client()
     create_topic(client, operator_key)
+
 
 if __name__ == "__main__":
     main()

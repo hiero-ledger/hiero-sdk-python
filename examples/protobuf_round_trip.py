@@ -12,6 +12,7 @@ Hedera protobuf messages without connecting to the network. It shows:
 
 This example accompanies the ProtoBuff Training documentation.
 """
+
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     crypto_get_info_pb2,
