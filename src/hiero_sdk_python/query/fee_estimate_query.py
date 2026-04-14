@@ -1,7 +1,7 @@
 """Query module for retrieving fee estimates.
 
 Defines the FeeEstimateQuery used to request fee estimation data
-from the network or fee service.
+from the network or fee service. 
 """
 
 from typing import Optional

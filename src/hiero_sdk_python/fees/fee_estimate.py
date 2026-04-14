@@ -1,4 +1,4 @@
-"""Fee estimation models for calculating base and extra fees.
+"""Fee estimation models for calculating base and extra fees. 
 
 This module defines the FeeEstimate dataclass, which aggregates
 a base fee with optional extra fee components.

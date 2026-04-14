@@ -1,4 +1,4 @@
-"""Response model for fee estimation results.
+"""Response model for fee estimation results. 
 
 Contains the calculated fees across different categories along with
 the estimation mode and optional notes.
