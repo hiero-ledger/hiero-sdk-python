@@ -1,23 +1,37 @@
 """Query module for retrieving fee estimates.
 
 Defines the FeeEstimateQuery used to request fee estimation data
-from the network or fee service. 
+from the network or fee service.
 """
 
-from typing import Optional
-import requests
 import time
+from typing import Optional, TYPE_CHECKING
+import requests
 from hiero_sdk_python.fees.fee_estimate_mode import FeeEstimateMode
 from hiero_sdk_python.fees.fee_estimate_response import FeeEstimateResponse
 from hiero_sdk_python.fees.fee_estimate import FeeEstimate
 from hiero_sdk_python.fees.network_fee import NetworkFee
 
-from typing import TYPE_CHECKING
-
 if TYPE_CHECKING:
     from hiero_sdk_python.transaction.transaction import Transaction
 
 class FeeEstimateQuery:
+    """
+    Builds and executes a request to retrieve fee estimates for a transaction.
+
+    This class is responsible for preparing a transaction, selecting a fee
+    estimation mode, and querying the network (via the configured mirror
+    network endpoint) to obtain estimated node, service, and network fees.
+
+    It handles transaction freezing, serialization, retry logic with
+    backoff, and response parsing into a structured `FeeEstimateResponse`.
+
+    Attributes:
+        _mode: The fee estimation mode used for the query (e.g., STATE or INTRINSIC).
+        _transaction: The transaction being evaluated for fee estimation.
+        _max_attempts: Maximum number of retry attempts for network requests.
+        _max_backoff: Maximum backoff delay (in seconds) between retries.
+    """
 
     def __init__(self):
         self._mode: Optional[FeeEstimateMode] = None
@@ -26,107 +40,156 @@ class FeeEstimateQuery:
         self._max_backoff = 0
 
     def set_mode(self, mode: FeeEstimateMode) -> "FeeEstimateQuery":
-        self._mode = mode 
+        """Set the fee estimation mode for the query.
+        Args:
+            mode: The fee estimation mode to use (e.g., STATE or INTRINSIC).
+
+        Returns:
+            The current FeeEstimateQuery instance for method chaining.
+        """
+        self._mode = mode
         return self
 
     def get_mode(self) -> Optional[FeeEstimateMode]:
+        """Get the currently set fee estimation mode.
+
+        Returns:
+            The fee estimation mode if set, otherwise None.
+        """
         return self._mode
 
     def set_transaction(self, transaction: "Transaction") -> "FeeEstimateQuery":
+        """Attach a transaction to this fee estimation query.
 
-        #if hasattr(transaction, "freeze") and not transaction.is_frozen:
-            #transaction.freeze()
+        The provided transaction will be used to calculate estimated fees.
 
-        #if hasattr(transaction, "freeze") and not getattr(transaction, "is_frozen", False):
-            #transaction.freeze()
+        Args:
+            transaction: The transaction to evaluate.
+
+        Returns:
+            The current FeeEstimateQuery instance for method chaining.
+        """
+
+        # if hasattr(transaction, "freeze") and not transaction.is_frozen:
+        # transaction.freeze()
+
+        # if hasattr(transaction, "freeze") and not getattr(transaction, "is_frozen", False):
+        # transaction.freeze()
 
         self._transaction = transaction
         return self
 
     def get_transaction(self) -> Optional["Transaction"]:
+        """Get the transaction associated with this query.
+
+        Returns:
+            The transaction if set, otherwise None.
+        """
+
         return self._transaction
 
     def _backoff(self, attempt: int):
-        delay = min(0.5 * (2 ** attempt), self._max_backoff)
+        """Sleep using exponential backoff."""
+
+        delay = min(0.5 * (2**attempt), self._max_backoff)
         time.sleep(delay)
-    
-    def _ensure_frozen(self, tx, client):
+
+    def _ensure_frozen(self, transaction, client):
+        """Ensure transaction is frozen before execution."""
+
+        # pylint: disable=protected-access
         try:
-            tx._require_frozen()
-        except Exception:
+            transaction._require_frozen()
+        except (AttributeError, ValueError, RuntimeError):
             # fallback: fully prepare transaction before serialization
-            if hasattr(tx, "freeze_with"):
-                tx.freeze_with(client)
+            if hasattr(transaction, "freeze_with"):
+                transaction.freeze_with(client)
             else:
-                tx.freeze()
+                transaction.freeze()
 
     def set_max_attempts(self, attempts: int) -> "FeeEstimateQuery":
+        """Set maximum retry attempts."""
+
         self._max_attempts = attempts
         return self
 
     def get_max_attempts(self) -> int:
+        """Get maximum retry attempts."""
+
         return self._max_attempts
 
     def set_max_backoff(self, backoff: int) -> "FeeEstimateQuery":
+        """Set maximum backoff duration."""
+
         self._max_backoff = backoff
         return self
 
     def get_max_backoff(self) -> int:
+        """Get maximum backoff duration."""
+
         return self._max_backoff
-    
-    def execute(self, client) -> FeeEstimateResponse:
-        if self._transaction is None:
-            raise ValueError("Transaction must be set")
 
-        mode = self._mode or FeeEstimateMode.STATE
-        url = f"{client.mirror_network}/api/v1/network/fees?mode={mode.value}"
+    def _serialize_transaction(self, transaction, client) -> bytes:
+        """Serialize transaction safely for fee estimation."""
 
-        tx = self._transaction
+        if not getattr(transaction, "_transaction_body_bytes", None):
+            transaction.freeze_with(client)
 
-        if not tx._transaction_body_bytes:
-            tx.freeze_with(client)
-        
         try:
-            tx_bytes = tx.to_bytes()
-        except Exception:
+            return transaction.to_bytes()
+        except (AttributeError, ValueError, RuntimeError):
             try:
-                tx_bytes = tx.build_transaction_body().SerializeToString()
-            except Exception:
-                tx_bytes = b""  # fallback for incomplete tx
+                return transaction.build_transaction_body().SerializeToString()
+            except (AttributeError, ValueError, RuntimeError):
+                return b""
 
-        node_total = 0
-        service_total = 0
-        network_multiplier = None
-        notes = []
-        
-        max_retries = 2
-        
+    def _post_with_retry(self, url: str, data: bytes, max_retries: int = 2):
+        """POST request with retry logic for transient failures."""
+
         for attempt in range(max_retries):
             try:
                 response = requests.post(
                     url,
-                    data=tx_bytes,
+                    data=data,
                     headers={"Content-Type": "application/protobuf"},
                     timeout=10,
                 )
 
                 if response.status_code == 400:
                     raise ValueError("Invalid argument")
-                    
-                break  # success → exit loop
 
-            except Exception as e:
-                message = str(e)
+                return response
 
+            except requests.exceptions.RequestException as exc:
                 if attempt == max_retries - 1:
-                    raise  # out of retries
+                    raise
 
-                if "UNAVAILABLE" in message or "DEADLINE_EXCEEDED" in message:
-                    continue  # retry
-                else:
-                    raise  # non-retryable error
+                msg = str(exc)
+                if "UNAVAILABLE" in msg or "DEADLINE_EXCEEDED" in msg:
+                    continue
 
-        network_multiplier = network_multiplier or 0
+                raise
+
+    def execute(self, client) -> FeeEstimateResponse:
+        """Execute fee estimation query against the network."""
+
+        if self._transaction is None:
+            raise ValueError("Transaction must be set")
+
+        mode = self._mode or FeeEstimateMode.STATE
+        url = f"{client.mirror_network}/api/v1/network/fees?mode={mode.value}"
+
+        transaction_bytes = self._serialize_transaction(self._transaction, client)
+
+        response = self._post_with_retry(url, transaction_bytes)
+
+        data = response.json()
+
+        node_total = data.get("node", {}).get("subtotal", 0)
+        service_total = data.get("service", {}).get("subtotal", 0)
+        network_multiplier = data.get("network", {}).get("multiplier", 0)
+        notes = data.get("notes", [])
+
         network_total = node_total * network_multiplier
         total = node_total + service_total + network_total
 
@@ -136,27 +199,21 @@ class FeeEstimateQuery:
             service_fee=FeeEstimate(base=service_total, extras=[]),
             network_fee=NetworkFee(
                 multiplier=network_multiplier,
-                subtotal=network_total
+                subtotal=network_total,
             ),
             notes=notes,
-            total=total
+            total=total,
         )
 
     def _parse_response(self, data):
+        """Parse raw fee response into structured FeeEstimateResponse."""
 
-        node_fee = FeeEstimate(
-            base=data["node"]["subtotal"],
-            extras=[]
-        )
+        node_fee = FeeEstimate(base=data["node"]["subtotal"], extras=[])
 
-        service_fee = FeeEstimate(
-            base=data["service"]["subtotal"],
-            extras=[]
-        )
+        service_fee = FeeEstimate(base=data["service"]["subtotal"], extras=[])
 
         network_fee = NetworkFee(
-            multiplier=data["network"]["multiplier"],
-            subtotal=0  # computed later
+            multiplier=data["network"]["multiplier"], subtotal=0  # computed later
         )
 
         return FeeEstimateResponse(

@@ -1,4 +1,4 @@
-"""Fee estimation models for calculating base and extra fees. 
+"""Fee estimation models for calculating base and extra fees.
 
 This module defines the FeeEstimate dataclass, which aggregates
 a base fee with optional extra fee components.
@@ -6,7 +6,7 @@ a base fee with optional extra fee components.
 
 from dataclasses import dataclass, field
 
-from .fee_extra import FeeExtra
+from hiero_sdk_python.fees.fee_extra import FeeExtra
 
 
 @dataclass(frozen=True)
