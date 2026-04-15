@@ -4,7 +4,9 @@ contract function calls. It supports all standard Solidity parameter types and u
 encoding. Parameters can be encoded into a bytes format suitable for smart contract function calls.
 """
 
-from typing import Any, List, Optional, Union
+from __future__ import annotations
+
+from typing import Any
 
 import eth_abi
 from eth_utils import function_signature_to_4byte_selector
@@ -18,7 +20,7 @@ class ContractFunctionParameters:
     smart contract function calls, using the eth-abi library to handle the encoding logic.
     """
 
-    def __init__(self, function_name: Optional[str] = None):
+    def __init__(self, function_name: str | None = None):
         """
         Initialize a new ContractFunctionParameters instance.
 
@@ -26,10 +28,10 @@ class ContractFunctionParameters:
             function_name: Optional function name to use for the function selector
         """
         self.function_name = function_name
-        self._types: List[str] = []
-        self._values: List[Any] = []
+        self._types: list[str] = []
+        self._values: list[Any] = []
 
-    def _add_param(self, type_name: str, value: Any) -> "ContractFunctionParameters":
+    def _add_param(self, type_name: str, value: Any) -> ContractFunctionParameters:
         """
         Internal helper to add a parameter.
 
@@ -45,7 +47,7 @@ class ContractFunctionParameters:
         return self
 
     # Basic types - explicitly define method signatures for IDE support
-    def add_bool(self, value: bool) -> "ContractFunctionParameters":
+    def add_bool(self, value: bool) -> ContractFunctionParameters:
         """
         Add a boolean parameter.
 
@@ -57,7 +59,7 @@ class ContractFunctionParameters:
         """
         return self._add_param("bool", value)
 
-    def add_address(self, value: Union[str, bytes]) -> "ContractFunctionParameters":
+    def add_address(self, value: str | bytes) -> ContractFunctionParameters:
         """
         Add an address parameter.
 
@@ -69,7 +71,7 @@ class ContractFunctionParameters:
         """
         return self._add_param("address", value)
 
-    def add_string(self, value: str) -> "ContractFunctionParameters":
+    def add_string(self, value: str) -> ContractFunctionParameters:
         """
         Add a string parameter.
 
@@ -81,7 +83,7 @@ class ContractFunctionParameters:
         """
         return self._add_param("string", value)
 
-    def add_bytes(self, value: bytes) -> "ContractFunctionParameters":
+    def add_bytes(self, value: bytes) -> ContractFunctionParameters:
         """
         Add a bytes parameter.
 
@@ -93,7 +95,7 @@ class ContractFunctionParameters:
         """
         return self._add_param("bytes", value)
 
-    def add_bytes32(self, value: bytes) -> "ContractFunctionParameters":
+    def add_bytes32(self, value: bytes) -> ContractFunctionParameters:
         """
         Add a bytes32 parameter.
 
@@ -106,7 +108,7 @@ class ContractFunctionParameters:
         return self._add_param("bytes32", value)
 
     # Array type methods for basic types
-    def add_bool_array(self, value: List[bool]) -> "ContractFunctionParameters":
+    def add_bool_array(self, value: list[bool]) -> ContractFunctionParameters:
         """
         Add a boolean array parameter.
 
@@ -118,9 +120,7 @@ class ContractFunctionParameters:
         """
         return self._add_param("bool[]", value)
 
-    def add_address_array(
-        self, value: List[Union[str, bytes]]
-    ) -> "ContractFunctionParameters":
+    def add_address_array(self, value: list[str | bytes]) -> ContractFunctionParameters:
         """
         Add an address array parameter.
 
@@ -132,7 +132,7 @@ class ContractFunctionParameters:
         """
         return self._add_param("address[]", value)
 
-    def add_string_array(self, value: List[str]) -> "ContractFunctionParameters":
+    def add_string_array(self, value: list[str]) -> ContractFunctionParameters:
         """
         Add a string array parameter.
 
@@ -144,7 +144,7 @@ class ContractFunctionParameters:
         """
         return self._add_param("string[]", value)
 
-    def add_bytes_array(self, value: List[bytes]) -> "ContractFunctionParameters":
+    def add_bytes_array(self, value: list[bytes]) -> ContractFunctionParameters:
         """
         Add a bytes array parameter.
 
@@ -156,7 +156,7 @@ class ContractFunctionParameters:
         """
         return self._add_param("bytes[]", value)
 
-    def add_bytes32_array(self, value: List[bytes]) -> "ContractFunctionParameters":
+    def add_bytes32_array(self, value: list[bytes]) -> ContractFunctionParameters:
         """
         Add a bytes32 array parameter.
 
@@ -216,7 +216,7 @@ class ContractFunctionParameters:
         """Allow conversion to bytes using bytes() function."""
         return self.to_bytes()
 
-    def clear(self) -> "ContractFunctionParameters":
+    def clear(self) -> ContractFunctionParameters:
         """
         Clear all parameters.
 
@@ -241,9 +241,7 @@ def _create_method(class_type, method_name, type_name, doc, is_array=False):
         is_array: Whether this is an array type method
     """
 
-    def method(
-        self: Any, value: List[int] if is_array else int
-    ) -> "ContractFunctionParameters":
+    def method(self: Any, value: list[int] if is_array else int) -> ContractFunctionParameters:
         """
         Dynamically created method to add an integer parameter or array of integers.
         Takes either a single integer value or a list of integers depending on is_array flag.
@@ -284,9 +282,7 @@ def _generate_int_type_methods(size: int):
     Returns:
         This instance for method chaining
     """
-    _create_method(
-        ContractFunctionParameters, f"add_uint{size}", f"uint{size}", uint_doc
-    )
+    _create_method(ContractFunctionParameters, f"add_uint{size}", f"uint{size}", uint_doc)
 
 
 def _generate_int_array_methods(size: int):

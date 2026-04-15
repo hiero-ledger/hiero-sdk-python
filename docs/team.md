@@ -11,23 +11,18 @@ GitHub IDs and names are provided as listed on GitHub.
 **Triage members** have read but not write access. Their responsibilities include: mentoring new starters, providing a preliminary review of pull requests, creating and labeling issues, and actively contributing code for the benefit of the Python SDK.
 
 
-| Name                | GitHub ID          |
-|---------------------|--------------------|
-| Emiliyan Kadiyski   | @emiliyank         |
-| MontyPokemon        | @MonaaEid          |
-| Accepaluni | @aceppaluni        |
-| AntonioCeppellini  | @AntonioCeppellini |
-| Sophie Bulloch        | @exploreriii       |
-| notsogod           | @Adityarya11       |
-| Priyanshu          | @tech0priyanshu    |
-| Akshat              | @Akshat8510        |
-| Nadine Loepfe      | @nadineloepfe      |
-| Mounil2005         | @Mounil2005        |
-| parvninama         | @parvninama        |
-| drtoxic69          | @drtoxic69         |
-| prajeeta15         | @prajeeta15        |
-| undefinedIsMyLife  | @undefinedIsMyLife |
-| cheese-cakee       | @cheese-cakee      |
+| Name | GitHub ID |
+| :--- | :--- |
+| Emiliyan Kadiyski | @emiliyank |
+| drtoxic69 | @drtoxic69 |
+| prajeeta | @prajeeta |
+| parvninama | @parvninama |
+| Sophie Bulloch | @exploreriii |
+| Priyanshu | @tech0priyanshu |
+| Nadine Loepfe | @nadineloepfe |
+| undefinedIsMyLife | @undefinedIsMyLife |
+| Mounil2005 | @Mounil2005 |
+| cheese-cakee | @cheese-cakee |
 
 [View Triage Team on GitHub](https://github.com/orgs/hiero-ledger/teams/hiero-sdk-python-triage)
 
@@ -35,16 +30,15 @@ GitHub IDs and names are provided as listed on GitHub.
 
 **Committer members** have write access. Their responsibilities include: creating and laddering issues to incrementally train developers, reviewing pull requests to ensure they meet project standards, and actively contributing code for the benefit of the Python SDK.
 
-| Name            | GitHub ID       |
-|-----------------|-----------------|
-| Hendrik Ebbers  | @hendrikebbers  |
-| Manish Dait     | @manishdait     |
-| Dosi Kolev      | @Dosik13        |
-| Nadine Loepfe   | @nadineloepfe   |
-| Adityarya11     | @Adityarya11    |
-| MonaaEid        | @MonaaEid       |
-| aceppaluni      | @aceppaluni     |
-| AntonioCeppellini |@AntonioCeppellini  |
+| Name | GitHub ID |
+| :--- | :--- |
+| MonaaEid | @MonaaEid |
+| Dosi Kolev | @Dosik13 |
+| aceppaluni | @aceppaluni |
+| AntonioCeppellini | @AntonioCeppellini |
+| Adityarya11 | @Adityarya11 |
+| Akshat | @Akshat8510 |
+| Nadine Loepfe | @nadineloepfe |
 
 [View Committer Team on GitHub](https://github.com/orgs/hiero-ledger/teams/hiero-sdk-python-committers)
 
@@ -52,12 +46,11 @@ GitHub IDs and names are provided as listed on GitHub.
 
 **Maintainer members** have special write access. Their responsibilities include: provide technical leadership for the SDK, provide leadership on the overall health and direction of the project to ensure it satisfies various scaling and stakeholder needs. They also ensure a welcoming and nourishing environment for all developers and community members, laddering issues, reviewing pull requests and actively contributing code for the benefit of the Python SDK.
 
-| Name          | GitHub ID      |
-|---------------|----------------|
-| Richard Bair  | @rbair23       |
-| Sophie Bulloch  | @exploreriii   |
-| Nadine Loepfe| @nadineloepfe  |
-| manishdait | @manishdait      |
+| Name | GitHub ID |
+| :--- | :--- |
+| Manish Dait | @manishdait |
+| Sophie Bulloch | @exploreriii |
+| Nadine Loepfe | @nadineloepfe |
 
 [View Maintainer Team on GitHub](https://github.com/orgs/hiero-ledger/teams/hiero-sdk-python-maintainers)
 

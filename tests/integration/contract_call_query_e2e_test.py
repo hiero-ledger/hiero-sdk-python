@@ -2,6 +2,8 @@
 Integration tests for ContractCallQuery.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from examples.contract.contracts.contract_utils import (
@@ -21,7 +23,6 @@ from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
-from tests.integration.utils import env
 
 
 @pytest.mark.integration
@@ -35,9 +36,9 @@ def test_integration_contract_call_query_can_execute_with_constructor(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -56,19 +57,14 @@ def test_integration_contract_call_query_can_execute_with_constructor(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
-    query = (
-        ContractCallQuery()
-        .set_contract_id(contract_id)
-        .set_gas(10000000)
-        .set_function("getMessage")
-    )
+    query = ContractCallQuery().set_contract_id(contract_id).set_gas(10000000).set_function("getMessage")
 
     cost = query.get_cost(env.client)
     query.set_max_query_payment(cost)
@@ -90,9 +86,9 @@ def test_integration_contract_call_query_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
@@ -106,19 +102,14 @@ def test_integration_contract_call_query_can_execute(env):
         .execute(env.client)
     )
 
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
-    query = (
-        ContractCallQuery()
-        .set_contract_id(contract_id)
-        .set_gas(10000000)
-        .set_function("greet")
-    )
+    query = ContractCallQuery().set_contract_id(contract_id).set_gas(10000000).set_function("greet")
 
     cost = query.get_cost(env.client)
     query.set_max_query_payment(cost)
@@ -139,9 +130,9 @@ def test_integration_contract_call_query_get_cost(env):
         .set_file_memo("test contract bytecode file")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
@@ -154,19 +145,14 @@ def test_integration_contract_call_query_get_cost(env):
         .set_contract_memo("test contract deployment")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
     # Prepare the contract call query
-    contract_call_query = (
-        ContractCallQuery()
-        .set_contract_id(contract_id)
-        .set_gas(10000000)
-        .set_function("greet")
-    )
+    contract_call_query = ContractCallQuery().set_contract_id(contract_id).set_gas(10000000).set_function("greet")
 
     # Get the cost for the query
     cost = contract_call_query.get_cost(env.client)
@@ -189,9 +175,9 @@ def test_integration_contract_call_query_insufficient_payment(env):
         .set_file_memo("test contract bytecode file")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
@@ -204,26 +190,17 @@ def test_integration_contract_call_query_insufficient_payment(env):
         .set_contract_memo("test contract deployment")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
     # Prepare the contract call query with insufficient payment
-    contract_call_query = (
-        ContractCallQuery()
-        .set_contract_id(contract_id)
-        .set_gas(10000000)
-        .set_function("greet")
-    )
-    contract_call_query.set_query_payment(
-        Hbar.from_tinybars(1)
-    )  # Intentionally insufficient
+    contract_call_query = ContractCallQuery().set_contract_id(contract_id).set_gas(10000000).set_function("greet")
+    contract_call_query.set_query_payment(Hbar.from_tinybars(1))  # Intentionally insufficient
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"):
         contract_call_query.execute(env.client)
 
 
@@ -233,15 +210,10 @@ def test_integration_contract_call_query_fails_with_invalid_contract_id(env):
     invalid_contract_id = ContractId(0, 0, 999999999)
 
     contract_call_query = (
-        ContractCallQuery()
-        .set_contract_id(invalid_contract_id)
-        .set_gas(10000000)
-        .set_function("greet")
+        ContractCallQuery().set_contract_id(invalid_contract_id).set_gas(10000000).set_function("greet")
     )
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INVALID_CONTRACT_ID"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_CONTRACT_ID"):
         contract_call_query.execute(env.client)
 
 
@@ -256,9 +228,9 @@ def test_integration_contract_call_query_fails_with_no_gas(env):
         .set_file_memo("test contract for no gas")
         .execute(env.client)
     )
-    assert (
-        receipt.status == ResponseCode.SUCCESS
-    ), f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
     file_id = receipt.file_id
     assert file_id is not None, "File ID should not be None"
 
@@ -270,19 +242,15 @@ def test_integration_contract_call_query_fails_with_no_gas(env):
         .set_contract_memo("test contract deployment for no gas")
         .execute(env.client)
     )
-    assert (
-        contract_receipt.status == ResponseCode.SUCCESS
-    ), f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
 
     contract_id = contract_receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
 
     # Attempt to call the contract with no gas set
-    contract_call_query = (
-        ContractCallQuery().set_contract_id(contract_id).set_function("greet")
-    )
+    contract_call_query = ContractCallQuery().set_contract_id(contract_id).set_function("greet")
 
-    with pytest.raises(
-        PrecheckError, match="failed precheck with status: INSUFFICIENT_GAS"
-    ):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_GAS"):
         contract_call_query.execute(env.client)

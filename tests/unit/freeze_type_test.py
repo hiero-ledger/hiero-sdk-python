@@ -2,6 +2,8 @@
 Test cases for the FreezeType enum class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,6 +12,7 @@ from hiero_sdk_python.hapi.services.freeze_type_pb2 import (
     FreezeType as proto_FreezeType,
 )
 from hiero_sdk_python.system.freeze_type import FreezeType
+
 
 pytestmark = pytest.mark.unit
 
@@ -43,7 +46,7 @@ def test_from_proto_all_types():
 def test_from_proto_invalid_value():
     """Test _from_proto method with invalid proto value returns UNKNOWN_FREEZE_TYPE."""
     mock_proto = MagicMock()
-    mock_proto.__eq__ = lambda self, other: False
+    mock_proto.__eq__ = lambda _self, _other: False
 
     result = FreezeType._from_proto(mock_proto)
     assert result == FreezeType.UNKNOWN_FREEZE_TYPE

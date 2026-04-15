@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 from tck.param.base import BaseParams
@@ -13,7 +15,7 @@ class SetupParams(BaseParams):
     mirrorNetworkIp: str | None = None
 
     @classmethod
-    def parse_json_params(cls, params: dict) -> "SetupParams":
+    def parse_json_params(cls, params: dict) -> SetupParams:
         return cls(
             operatorAccountId=params.get("operatorAccountId"),
             operatorPrivateKey=params.get("operatorPrivateKey"),

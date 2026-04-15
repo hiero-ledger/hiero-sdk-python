@@ -36,7 +36,7 @@ body:
       description: |
         Clearly articulate the problem and its impact. The solution may be unclear or require significant research.
       value: |
-        <!-- Describe the issue here -->      
+        <!-- Describe the issue here -->
     validations:
       required: true
 
@@ -52,7 +52,7 @@ body:
         - Clarify what is unknown or uncertain about the implementation
         - Highlight any key risks or complexities
       value: |
-        <!-- Describe the implementation notes -->      
+        <!-- Describe the implementation notes -->
     validations:
       required: true
 
@@ -112,8 +112,8 @@ body:
         Advanced PRs must be **"safe, maintainable, architecturally sound, and production-ready."**
 
         1. **Architectural Fit:** The solution must fit naturally into the existing SDK abstractions.
-        2. **Security & Correctness:** Evaluate all logic for injection risks, state corruption, or thread-safety issues. 
-        3. **Maintainability:** Code must be short and clear enough for any other maintainer to debug without your assistance. 
+        2. **Security & Correctness:** Evaluate all logic for injection risks, state corruption, or thread-safety issues.
+        3. **Maintainability:** Code must be short and clear enough for any other maintainer to debug without your assistance.
         4. **Backward Compatibility:** Public API signatures must be preserved. If a breaking change is required, it must be explicitly managed through a deprecation cycle.
         5. **Comprehensive Testing:** Must include unit and integration tests covering all new logic paths, edge cases, and failure modes. AI generated tests based on AI generated code is grounds for immediate rejection.
 

@@ -6,6 +6,7 @@ Run with:
 python examples/tokens/custom_fractional_fee.py
 uv run examples/tokens/custom_fractional_fee.py
 """
+
 import sys
 
 from hiero_sdk_python.account.account_id import AccountId

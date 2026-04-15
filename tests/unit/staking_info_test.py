@@ -1,7 +1,10 @@
 """Tests for the StakingInfo class."""
 
-import pytest
+from __future__ import annotations
+
 from dataclasses import FrozenInstanceError
+
+import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.basic_types_pb2 import (
@@ -10,6 +13,7 @@ from hiero_sdk_python.hapi.services.basic_types_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.timestamp import Timestamp
+
 
 pytestmark = pytest.mark.unit
 
@@ -183,9 +187,7 @@ def test_proto_round_trip_with_account(staking_info_with_account):
     assert restored.stake_period_start == staking_info_with_account.stake_period_start
     assert restored.pending_reward == staking_info_with_account.pending_reward
     assert restored.staked_to_me == staking_info_with_account.staked_to_me
-    assert str(restored.staked_account_id) == str(
-        staking_info_with_account.staked_account_id
-    )
+    assert str(restored.staked_account_id) == str(staking_info_with_account.staked_account_id)
     assert restored.staked_node_id is None
 
 
@@ -210,9 +212,7 @@ def test_from_bytes_deserializes(staking_info_with_account):
     assert restored.stake_period_start == staking_info_with_account.stake_period_start
     assert restored.pending_reward == staking_info_with_account.pending_reward
     assert restored.staked_to_me == staking_info_with_account.staked_to_me
-    assert str(restored.staked_account_id) == str(
-        staking_info_with_account.staked_account_id
-    )
+    assert str(restored.staked_account_id) == str(staking_info_with_account.staked_account_id)
     assert restored.staked_node_id is None
 
 

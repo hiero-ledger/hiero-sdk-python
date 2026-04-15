@@ -2,6 +2,8 @@
 Unit tests for the ContractUpdateTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -16,6 +18,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hbar import Hbar
+
 
 pytestmark = pytest.mark.unit
 
@@ -66,9 +69,7 @@ def test_constructor_with_parameters(update_params):
         contract_memo=update_params["memo"],
         admin_key=update_params["admin_key"],
         auto_renew_period=update_params["auto_renew_period"],
-        max_automatic_token_associations=update_params[
-            "max_automatic_token_associations"
-        ],
+        max_automatic_token_associations=update_params["max_automatic_token_associations"],
         auto_renew_account_id=update_params["auto_renew_account_id"],
         staked_node_id=update_params["staked_node_id"],
         decline_reward=update_params["decline_reward"],
@@ -79,10 +80,7 @@ def test_constructor_with_parameters(update_params):
     assert tx.contract_memo == update_params["memo"]
     assert tx.admin_key == update_params["admin_key"]
     assert tx.auto_renew_period == update_params["auto_renew_period"]
-    assert (
-        tx.max_automatic_token_associations
-        == update_params["max_automatic_token_associations"]
-    )
+    assert tx.max_automatic_token_associations == update_params["max_automatic_token_associations"]
     assert tx.auto_renew_account_id == update_params["auto_renew_account_id"]
     assert tx.staked_node_id == update_params["staked_node_id"]
     assert tx.decline_reward == update_params["decline_reward"]
@@ -181,9 +179,7 @@ def test_method_chaining(update_params):
         .set_contract_memo(update_params["memo"])
         .set_admin_key(update_params["admin_key"])
         .set_auto_renew_period(update_params["auto_renew_period"])
-        .set_max_automatic_token_associations(
-            update_params["max_automatic_token_associations"]
-        )
+        .set_max_automatic_token_associations(update_params["max_automatic_token_associations"])
         .set_auto_renew_account_id(update_params["auto_renew_account_id"])
         .set_staked_node_id(update_params["staked_node_id"])
         .set_decline_reward(update_params["decline_reward"])
@@ -193,10 +189,7 @@ def test_method_chaining(update_params):
     assert tx.contract_memo == update_params["memo"]
     assert tx.admin_key == update_params["admin_key"]
     assert tx.auto_renew_period == update_params["auto_renew_period"]
-    assert (
-        tx.max_automatic_token_associations
-        == update_params["max_automatic_token_associations"]
-    )
+    assert tx.max_automatic_token_associations == update_params["max_automatic_token_associations"]
     assert tx.auto_renew_account_id == update_params["auto_renew_account_id"]
     assert tx.staked_node_id == update_params["staked_node_id"]
     assert tx.decline_reward == update_params["decline_reward"]
@@ -217,16 +210,9 @@ def test_build_transaction_body_success(contract_id, mock_account_ids, transacti
 
     transaction_body = tx.build_transaction_body()
 
-    assert (
-        transaction_body.contractUpdateInstance.contractID.contractNum
-        == contract_id.contract
-    )
-    assert (
-        transaction_body.contractUpdateInstance.contractID.shardNum == contract_id.shard
-    )
-    assert (
-        transaction_body.contractUpdateInstance.contractID.realmNum == contract_id.realm
-    )
+    assert transaction_body.contractUpdateInstance.contractID.contractNum == contract_id.contract
+    assert transaction_body.contractUpdateInstance.contractID.shardNum == contract_id.shard
+    assert transaction_body.contractUpdateInstance.contractID.realmNum == contract_id.realm
 
 
 def test_build_transaction_body_missing_contract_id():
@@ -238,9 +224,7 @@ def test_build_transaction_body_missing_contract_id():
         tx.build_transaction_body()
 
 
-def test_build_transaction_body_with_all_parameters(
-    update_params, mock_account_ids, transaction_id
-):
+def test_build_transaction_body_with_all_parameters(update_params, mock_account_ids, transaction_id):
     """Test building transaction body with all parameters set."""
     _, _, node_account_id, _, _ = mock_account_ids
 
@@ -250,9 +234,7 @@ def test_build_transaction_body_with_all_parameters(
         contract_memo=update_params["memo"],
         admin_key=update_params["admin_key"],
         auto_renew_period=update_params["auto_renew_period"],
-        max_automatic_token_associations=update_params[
-            "max_automatic_token_associations"
-        ],
+        max_automatic_token_associations=update_params["max_automatic_token_associations"],
         auto_renew_account_id=update_params["auto_renew_account_id"],
         staked_node_id=update_params["staked_node_id"],
         decline_reward=update_params["decline_reward"],
@@ -264,26 +246,15 @@ def test_build_transaction_body_with_all_parameters(
     transaction_body = tx.build_transaction_body()
 
     # Verify contract ID is set
-    assert (
-        transaction_body.contractUpdateInstance.contractID.contractNum
-        == update_params["contract_id"].contract
-    )
-    assert (
-        transaction_body.contractUpdateInstance.contractID.shardNum
-        == update_params["contract_id"].shard
-    )
-    assert (
-        transaction_body.contractUpdateInstance.contractID.realmNum
-        == update_params["contract_id"].realm
-    )
+    assert transaction_body.contractUpdateInstance.contractID.contractNum == update_params["contract_id"].contract
+    assert transaction_body.contractUpdateInstance.contractID.shardNum == update_params["contract_id"].shard
+    assert transaction_body.contractUpdateInstance.contractID.realmNum == update_params["contract_id"].realm
 
     # Verify other fields are present (the actual protobuf structure may vary)
     assert transaction_body.contractUpdateInstance.HasField("contractID")
 
 
-def test_build_scheduled_body_with_all_parameters(
-    update_params, mock_account_ids, transaction_id
-):
+def test_build_scheduled_body_with_all_parameters(update_params, mock_account_ids, transaction_id):
     """Test building schedulable transaction body with all parameters set."""
     _, _, node_account_id, _, _ = mock_account_ids
 
@@ -293,9 +264,7 @@ def test_build_scheduled_body_with_all_parameters(
         contract_memo=update_params["memo"],
         admin_key=update_params["admin_key"],
         auto_renew_period=update_params["auto_renew_period"],
-        max_automatic_token_associations=update_params[
-            "max_automatic_token_associations"
-        ],
+        max_automatic_token_associations=update_params["max_automatic_token_associations"],
         auto_renew_account_id=update_params["auto_renew_account_id"],
         staked_node_id=update_params["staked_node_id"],
         decline_reward=update_params["decline_reward"],
@@ -313,18 +282,9 @@ def test_build_scheduled_body_with_all_parameters(
     assert schedulable_body.HasField("contractUpdateInstance")
 
     # Verify contract ID is set
-    assert (
-        schedulable_body.contractUpdateInstance.contractID.contractNum
-        == update_params["contract_id"].contract
-    )
-    assert (
-        schedulable_body.contractUpdateInstance.contractID.shardNum
-        == update_params["contract_id"].shard
-    )
-    assert (
-        schedulable_body.contractUpdateInstance.contractID.realmNum
-        == update_params["contract_id"].realm
-    )
+    assert schedulable_body.contractUpdateInstance.contractID.contractNum == update_params["contract_id"].contract
+    assert schedulable_body.contractUpdateInstance.contractID.shardNum == update_params["contract_id"].shard
+    assert schedulable_body.contractUpdateInstance.contractID.realmNum == update_params["contract_id"].realm
 
 
 ########### Transaction Execution Tests ###########
@@ -349,11 +309,7 @@ def test_transaction_immutability_concept(contract_id):
 
 def test_memo_only_update(contract_id):
     """Test updating only the memo field."""
-    tx = (
-        ContractUpdateTransaction()
-        .set_contract_id(contract_id)
-        .set_contract_memo("New memo only")
-    )
+    tx = ContractUpdateTransaction().set_contract_id(contract_id).set_contract_memo("New memo only")
 
     assert tx.contract_id == contract_id
     assert tx.contract_memo == "New memo only"
@@ -363,11 +319,7 @@ def test_memo_only_update(contract_id):
 def test_admin_key_only_update(contract_id):
     """Test updating only the admin key field."""
     new_admin_key = PrivateKey.generate().public_key()
-    tx = (
-        ContractUpdateTransaction()
-        .set_contract_id(contract_id)
-        .set_admin_key(new_admin_key)
-    )
+    tx = ContractUpdateTransaction().set_contract_id(contract_id).set_admin_key(new_admin_key)
 
     assert tx.contract_id == contract_id
     assert tx.admin_key.to_string() == new_admin_key.to_string()
@@ -407,22 +359,14 @@ def test_empty_memo(contract_id):
 def test_very_long_memo(contract_id):
     """Test setting a very long memo."""
     long_memo = "x" * 1000  # 1000 character memo
-    tx = (
-        ContractUpdateTransaction()
-        .set_contract_id(contract_id)
-        .set_contract_memo(long_memo)
-    )
+    tx = ContractUpdateTransaction().set_contract_id(contract_id).set_contract_memo(long_memo)
 
     assert tx.contract_memo == long_memo
 
 
 def test_zero_max_automatic_token_associations(contract_id):
     """Test setting max automatic token associations to zero."""
-    tx = (
-        ContractUpdateTransaction()
-        .set_contract_id(contract_id)
-        .set_max_automatic_token_associations(0)
-    )
+    tx = ContractUpdateTransaction().set_contract_id(contract_id).set_max_automatic_token_associations(0)
 
     assert tx.max_automatic_token_associations == 0
 
@@ -436,10 +380,6 @@ def test_negative_staked_node_id(contract_id):
 
 def test_decline_reward_false(contract_id):
     """Test setting decline reward to False."""
-    tx = (
-        ContractUpdateTransaction()
-        .set_contract_id(contract_id)
-        .set_decline_reward(False)
-    )
+    tx = ContractUpdateTransaction().set_contract_id(contract_id).set_decline_reward(False)
 
     assert tx.decline_reward is False

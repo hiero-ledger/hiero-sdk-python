@@ -5,6 +5,7 @@ Example demonstrating payment query.
 uv run examples/query/payment_query.py
 python examples/query/payment_query.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -51,9 +52,7 @@ def create_fungible_token(client, operator_id, operator_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     token_id = receipt.token_id
@@ -90,11 +89,7 @@ def demonstrate_zero_cost_balance_query(client, account_id):
     # Case 2: Payment set - should return the set payment amount
     print("\nWhen custom payment is set:")
     custom_payment = Hbar(2)
-    query_with_payment = (
-        CryptoGetAccountBalanceQuery()
-        .set_account_id(account_id)
-        .set_query_payment(custom_payment)
-    )
+    query_with_payment = CryptoGetAccountBalanceQuery().set_account_id(account_id).set_query_payment(custom_payment)
 
     cost_with_payment = query_with_payment.get_cost(client)
     print(f"Cost: {cost_with_payment} Hbar")
@@ -136,9 +131,7 @@ def demonstrate_payment_required_queries(client, token_id):
     # Case 2: Payment set - should return the set payment amount
     print("\nWhen custom payment is set:")
     custom_payment = Hbar(2)
-    query_with_payment = (
-        TokenInfoQuery().set_token_id(token_id).set_query_payment(custom_payment)
-    )
+    query_with_payment = TokenInfoQuery().set_token_id(token_id).set_query_payment(custom_payment)
 
     cost_with_payment = query_with_payment.get_cost(client)
     print(f"Cost: {cost_with_payment} Hbar")

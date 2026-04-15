@@ -18,6 +18,7 @@ Usage:
     # Run from the project root directory
     python -m examples.contract.ethereum_transaction
 """
+
 import os
 import sys
 
@@ -41,6 +42,7 @@ from hiero_sdk_python.transaction.transfer_transaction import TransferTransactio
 # Import the bytecode for a stateful smart contract (StatefulContract.sol) that can be deployed
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import STATEFUL_CONTRACT_BYTECODE
+
 
 load_dotenv()
 
@@ -75,13 +77,9 @@ def create_alias_account(client):
     alias_private_key = PrivateKey.generate_ecdsa()
 
     # Create an alias account ID for this key
-    alias_account_id = AccountId(
-        shard=0, realm=0, num=0, alias_key=alias_private_key.public_key()
-    )
+    alias_account_id = AccountId(shard=0, realm=0, num=0, alias_key=alias_private_key.public_key())
 
-    print(
-        f"\nCreating alias account with public key: {alias_private_key.public_key().to_string()}"
-    )
+    print(f"\nCreating alias account with public key: {alias_private_key.public_key().to_string()}")
 
     # Transfer HBAR to create a shallow account for the ECDSA key
     receipt = (
@@ -111,9 +109,7 @@ def create_contract_file(client):
 
     # Check if file creation was successful
     if file_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
-        )
+        print(f"File creation failed with status: {ResponseCode(file_receipt.status).name}")
         sys.exit(1)
 
     return file_receipt.file_id
@@ -135,9 +131,7 @@ def create_contract(client, file_id):
 
     # Check if contract creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Contract creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Contract created with ID: {receipt.contract_id}")
@@ -148,12 +142,7 @@ def create_contract(client, file_id):
 def get_contract_message(client, contract_id):
     """Get the message from the contract."""
     # Query the contract function to verify that the message was set
-    query = (
-        ContractCallQuery()
-        .set_contract_id(contract_id)
-        .set_gas(2000000)
-        .set_function("getMessage")
-    )
+    query = ContractCallQuery().set_contract_id(contract_id).set_gas(2000000).set_function("getMessage")
 
     cost = query.get_cost(client)
     query.set_max_query_payment(cost)
@@ -179,14 +168,10 @@ def create_ethereum_transaction_data(contract_id, new_message, alias_private_key
         bytes: The signed Ethereum transaction data
     """
     # Prepare function call data using ContractFunctionParameters
-    call_data_bytes = (
-        ContractFunctionParameters("setMessage").add_bytes32(new_message).to_bytes()
-    )
+    call_data_bytes = ContractFunctionParameters("setMessage").add_bytes32(new_message).to_bytes()
 
     # Ethereum transaction fields - hardcoded for example simplicity
-    chain_id_bytes = bytes.fromhex(
-        os.getenv("CHAIN_ID", "0128")
-    )  # Chain ID 296 (Testnet)
+    chain_id_bytes = bytes.fromhex(os.getenv("CHAIN_ID", "0128"))  # Chain ID 296 (Testnet)
     max_priority_gas_bytes = bytes.fromhex("00")  # Zero for simplicity
     nonce_bytes = bytes.fromhex("00")  # Zero nonce
     max_gas_bytes = bytes.fromhex("d1385c7bf0")  # Max fee per gas
@@ -258,17 +243,13 @@ def execute_ethereum_transaction():
     print(f"\nPreparing Ethereum transaction to set message: '{new_message_string}'")
 
     # Create Ethereum transaction data
-    transaction_data = create_ethereum_transaction_data(
-        contract_id, new_message, alias_private_key
-    )
+    transaction_data = create_ethereum_transaction_data(contract_id, new_message, alias_private_key)
 
     # Execute the Ethereum transaction
     receipt = EthereumTransaction().set_ethereum_data(transaction_data).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print("Successfully executed Ethereum transaction")
@@ -281,9 +262,7 @@ def execute_ethereum_transaction():
     if updated_message == new_message_string:
         print("\nSuccess! Message was updated via Ethereum transaction.")
     else:
-        print(
-            f"\nMessage update failed. Expected: '{new_message_string}', got: '{updated_message}'"
-        )
+        print(f"\nMessage update failed. Expected: '{new_message_string}', got: '{updated_message}'")
 
 
 if __name__ == "__main__":

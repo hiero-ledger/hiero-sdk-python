@@ -1,9 +1,10 @@
-"""
-TokenAllowance class for handling fungible token allowances.
-"""
+"""TokenAllowance class for handling fungible token allowances."""
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.crypto_approve_allowance_pb2 import (
@@ -21,19 +22,19 @@ class TokenAllowance:
     owner account, spender account, and amount.
 
     Attributes:
-        token_id (Optional[TokenId]): The ID of the fungible token.
-        owner_account_id (Optional[AccountId]): The account that owns the tokens.
-        spender_account_id (Optional[AccountId]): The account permitted to transfer the tokens.
-        amount (int): The amount of tokens allowed for transfer.
+        token_id (TokenId, optional): The ID of the fungible token.
+        owner_account_id (AccountId, optional): The account that owns the tokens.
+        spender_account_id (AccountId, optional): The account permitted to transfer the tokens.
+        amount (int, optional): The amount of tokens allowed for transfer.
     """
 
-    token_id: Optional[TokenId] = None
-    owner_account_id: Optional[AccountId] = None
-    spender_account_id: Optional[AccountId] = None
+    token_id: TokenId | None = None
+    owner_account_id: AccountId | None = None
+    spender_account_id: AccountId | None = None
     amount: int = 0
 
     @classmethod
-    def _from_proto(cls, proto: TokenAllowanceProto) -> "TokenAllowance":
+    def _from_proto(cls, proto: TokenAllowanceProto) -> TokenAllowance:
         """
         Creates a TokenAllowance instance from its protobuf representation.
 

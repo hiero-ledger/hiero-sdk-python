@@ -1,30 +1,30 @@
-from typing import Optional, Any, Union
+from __future__ import annotations
+
+from typing import Any
+
+from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
+from hiero_sdk_python.executable import _ExecutionState, _Method
 from hiero_sdk_python.hapi.services import (
     query_header_pb2,
-    transaction_get_record_pb2,
     query_pb2,
+    transaction_get_record_pb2,
     transaction_record_pb2,
 )
-from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_record import TransactionRecord
-from hiero_sdk_python.executable import _ExecutionState
 
 
 class TransactionRecordQuery(Query):
-    """
-    Represents a query for a transaction record on the Hedera network.
-    """
+    """Represents a query for a transaction record on the Hedera network."""
 
     def __init__(
         self,
-        transaction_id: Optional[TransactionId] = None,
+        transaction_id: TransactionId | None = None,
         include_children: bool = False,
         include_duplicates: bool = False,
     ) -> None:
@@ -43,22 +43,16 @@ class TransactionRecordQuery(Query):
             )
 
         if transaction_id is not None and not isinstance(transaction_id, TransactionId):
-            raise TypeError(
-                f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
-            )
+            raise TypeError(f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}")
 
         if not isinstance(include_children, bool):
-            raise TypeError(
-                f"include_children must be a bool (True or False), got {type(include_children).__name__}"
-            )
+            raise TypeError(f"include_children must be a bool (True or False), got {type(include_children).__name__}")
 
-        self.transaction_id: Optional[TransactionId] = transaction_id
+        self.transaction_id: TransactionId | None = transaction_id
         self.include_children: bool = bool(include_children)
         self.include_duplicates: bool = bool(include_duplicates)
 
-    def set_include_duplicates(
-        self, include_duplicates: bool
-    ) -> "TransactionRecordQuery":
+    def set_include_duplicates(self, include_duplicates: bool) -> TransactionRecordQuery:
         """
         Sets whether to include duplicate transaction records in the query results.
 
@@ -69,16 +63,14 @@ class TransactionRecordQuery(Query):
             TransactionRecordQuery: The current instance for method chaining.
         """
         if not isinstance(include_duplicates, bool):
-            raise TypeError(
-                f"include_duplicates must be a boolean, got {type(include_duplicates).__name__}"
-            )
+            raise TypeError(f"include_duplicates must be a boolean, got {type(include_duplicates).__name__}")
         self.include_duplicates = include_duplicates
         return self
 
     def set_transaction_id(
         self,
-        transaction_id: Optional[TransactionId],
-    ) -> "TransactionRecordQuery":
+        transaction_id: TransactionId | None,
+    ) -> TransactionRecordQuery:
         """
         Sets the ID of the transaction whose record is to be queried.
 
@@ -90,16 +82,13 @@ class TransactionRecordQuery(Query):
         Returns:
             TransactionRecordQuery: This query instance for chaining.
         """
-
         if transaction_id is not None and not isinstance(transaction_id, TransactionId):
-            raise TypeError(
-                f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}"
-            )
+            raise TypeError(f"transaction_id must be TransactionId or None, got {type(transaction_id).__name__}")
 
         self.transaction_id = transaction_id
         return self
 
-    def set_include_children(self, include_children: bool) -> "TransactionRecordQuery":
+    def set_include_children(self, include_children: bool) -> TransactionRecordQuery:
         """
         Sets include_children for which to retrieve the child transaction records.
 
@@ -110,9 +99,7 @@ class TransactionRecordQuery(Query):
             TransactionRecordQuery: The current instance for method chaining.
         """
         if not isinstance(include_children, bool):
-            raise TypeError(
-                f"include_children must be a boolean, got {type(include_children).__name__}"
-            )
+            raise TypeError(f"include_children must be a boolean, got {type(include_children).__name__}")
 
         self.include_children = include_children
         return self
@@ -169,9 +156,7 @@ class TransactionRecordQuery(Query):
         records: list[TransactionRecord] = []
         for proto_record in proto_records:
             # We pass the same transaction_id as the main record
-            record = TransactionRecord._from_proto(
-                proto_record, transaction_id=self.transaction_id
-            )
+            record = TransactionRecord._from_proto(proto_record, transaction_id=self.transaction_id)
             records.append(record)
         return records
 
@@ -188,9 +173,7 @@ class TransactionRecordQuery(Query):
         Returns:
             _Method: The method wrapper containing the query function
         """
-        return _Method(
-            transaction_func=None, query_func=channel.crypto.getTxRecordByTxID
-        )
+        return _Method(transaction_func=None, query_func=channel.crypto.getTxRecordByTxID)
 
     def _should_retry(self, response: Any) -> _ExecutionState:
         """
@@ -217,15 +200,9 @@ class TransactionRecordQuery(Query):
         }
 
         if status == ResponseCode.OK:
-            if (
-                response.transactionGetRecord.header.responseType
-                == query_header_pb2.ResponseType.COST_ANSWER
-            ):
+            if response.transactionGetRecord.header.responseType == query_header_pb2.ResponseType.COST_ANSWER:
                 return _ExecutionState.FINISHED
-        elif (
-            status in retryable_statuses
-            or status == ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED
-        ):
+        elif status in retryable_statuses or status == ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED:
             return _ExecutionState.RETRY
         else:
             return _ExecutionState.ERROR
@@ -234,14 +211,11 @@ class TransactionRecordQuery(Query):
 
         if status in retryable_statuses or status == ResponseCode.OK:
             return _ExecutionState.RETRY
-        elif status == ResponseCode.SUCCESS:
+        if status == ResponseCode.SUCCESS:
             return _ExecutionState.FINISHED
-        else:
-            return _ExecutionState.ERROR
+        return _ExecutionState.ERROR
 
-    def _map_status_error(
-        self, response: Any
-    ) -> Union[PrecheckError, ReceiptStatusError]:
+    def _map_status_error(self, response: Any) -> PrecheckError | ReceiptStatusError:
         """
         Maps a response status code to an appropriate error object.
 
@@ -276,7 +250,7 @@ class TransactionRecordQuery(Query):
             TransactionReceipt._from_proto(receipt, self.transaction_id),
         )
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None):
+    def execute(self, client: Client, timeout: int | float | None = None):
         """
         Executes the transaction record query.
 
@@ -287,7 +261,7 @@ class TransactionRecordQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
 
         Returns:
             TransactionRecord: The transaction record from the network
@@ -302,16 +276,12 @@ class TransactionRecordQuery(Query):
         primary_proto = response.transactionGetRecord.transactionRecord
         children = []
         if self.include_duplicates:
-            duplicates = self._map_record_list(
-                response.transactionGetRecord.duplicateTransactionRecords
-            )
+            duplicates = self._map_record_list(response.transactionGetRecord.duplicateTransactionRecords)
         else:
             duplicates = []
 
         if self.include_children:
-            children = self._map_record_list(
-                response.transactionGetRecord.child_transaction_records
-            )
+            children = self._map_record_list(response.transactionGetRecord.child_transaction_records)
 
         return TransactionRecord._from_proto(
             primary_proto,

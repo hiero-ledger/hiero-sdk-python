@@ -4,13 +4,15 @@ Log level module for the Hiero SDK.
 This module defines the log levels used throughout the SDK.
 """
 
+from __future__ import annotations
+
 import os
 from enum import IntEnum
 
+
 class LogLevel(IntEnum):
-    """
-    Enumeration of log levels
-    """
+    """Enumeration of log levels."""
+
     TRACE = 5
     DEBUG = 10
     INFO = 20
@@ -19,24 +21,24 @@ class LogLevel(IntEnum):
     CRITICAL = 50
     DISABLED = 60
 
-    #Old warn method will be depreciated
+    # Old warn method will be depreciated
     WARN = WARNING
 
     def to_python_level(self) -> int:
-        """Convert to Python's logging level
-        
+        """Convert to Python's logging level.
+
         Returns:
             int: The Python logging level
         """
         return self.value
 
     @classmethod
-    def from_string(cls, level_str: str) -> "LogLevel":
-        """Convert a string to a LogLevel
-        
+    def from_string(cls, level_str: str) -> LogLevel:
+        """Convert a string to a LogLevel.
+
         Args:
             level_str: The string to convert
-        
+
         Returns:
             LogLevel: The LogLevel enum value
         """
@@ -45,16 +47,16 @@ class LogLevel(IntEnum):
 
         try:
             return cls[level_str.upper()]
-        except KeyError:
-            raise ValueError(f"Invalid log level: {level_str}")
-        
+        except KeyError as e:
+            raise ValueError(f"Invalid log level: {level_str}") from e
+
     @classmethod
-    def from_env(cls) -> "LogLevel":
+    def from_env(cls) -> LogLevel:
         """
-        Get log level from environment variable
-        
+        Get log level from environment variable.
+
         Returns:
             LogLevel: The LogLevel enum value
         """
-        level_str = os.getenv('LOG_LEVEL')
+        level_str = os.getenv("LOG_LEVEL")
         return cls.from_string(level_str)

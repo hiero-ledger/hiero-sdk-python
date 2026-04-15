@@ -1,9 +1,8 @@
-"""
-ScheduleCreateTransaction class.
-"""
+"""ScheduleCreateTransaction class."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -26,24 +25,24 @@ class ScheduleCreateParams:
     Represents schedule attributes that can be set on creation.
 
     Attributes:
-        payer_account_id (Optional[AccountId]): The account ID of the payer
+        payer_account_id (AccountId, optional): The account ID of the payer
             for the scheduled transaction.
-        admin_key (Optional[PublicKey]): The key that can delete or sign the schedule.
-        schedulable_body (Optional[SchedulableTransactionBody]): The body of the transaction
+        admin_key (PublicKey, optional): The key that can delete or sign the schedule.
+        schedulable_body (SchedulableTransactionBody, optional): The body of the transaction
             to be scheduled.
-        schedule_memo (Optional[str]): A memo to include with the schedule.
-        expiration_time (Optional[Timestamp]): The time at which the schedule should expire.
-        wait_for_expiry (Optional[bool]): If True, the transaction will execute only at expiration time,
+        schedule_memo (str, optional): A memo to include with the schedule.
+        expiration_time (Timestamp, optional): The time at which the schedule should expire.
+        wait_for_expiry (bool, optional): If True, the transaction will execute only at expiration time,
             even if all required signatures are collected before then. If False or unset,
             the transaction will execute as soon as all required signatures are received.
     """
 
-    payer_account_id: Optional[AccountId] = None
-    admin_key: Optional[PublicKey] = None
-    schedulable_body: Optional[SchedulableTransactionBody] = None
-    schedule_memo: Optional[str] = None
-    expiration_time: Optional[Timestamp] = None
-    wait_for_expiry: Optional[bool] = None
+    payer_account_id: AccountId | None = None
+    admin_key: PublicKey | None = None
+    schedulable_body: SchedulableTransactionBody | None = None
+    schedule_memo: str | None = None
+    expiration_time: Timestamp | None = None
+    wait_for_expiry: bool | None = None
 
 
 class ScheduleCreateTransaction(Transaction):
@@ -59,35 +58,31 @@ class ScheduleCreateTransaction(Transaction):
 
     def __init__(
         self,
-        schedule_params: Optional[ScheduleCreateParams] = None,
+        schedule_params: ScheduleCreateParams | None = None,
     ):
         """
         Initializes a new ScheduleCreateTransaction instance with the specified parameters.
 
         Args:
-            schedule_params (Optional[ScheduleCreateParams]):
+            schedule_params (ScheduleCreateParams, optional):
                 The parameters for the schedule create transaction.
         """
         super().__init__()
         schedule_params = schedule_params or ScheduleCreateParams()
-        self.payer_account_id: Optional[AccountId] = schedule_params.payer_account_id
-        self.admin_key: Optional[PublicKey] = schedule_params.admin_key
-        self.schedulable_body: Optional[SchedulableTransactionBody] = (
-            schedule_params.schedulable_body
-        )
-        self.schedule_memo: Optional[str] = schedule_params.schedule_memo
-        self.expiration_time: Optional[Timestamp] = schedule_params.expiration_time
-        self.wait_for_expiry: Optional[bool] = schedule_params.wait_for_expiry
+        self.payer_account_id: AccountId | None = schedule_params.payer_account_id
+        self.admin_key: PublicKey | None = schedule_params.admin_key
+        self.schedulable_body: SchedulableTransactionBody | None = schedule_params.schedulable_body
+        self.schedule_memo: str | None = schedule_params.schedule_memo
+        self.expiration_time: Timestamp | None = schedule_params.expiration_time
+        self.wait_for_expiry: bool | None = schedule_params.wait_for_expiry
         self._default_transaction_fee = Hbar(5).to_tinybars()
 
-    def _set_schedulable_body(
-        self, schedulable_body: Optional[SchedulableTransactionBody]
-    ) -> "ScheduleCreateTransaction":
+    def _set_schedulable_body(self, schedulable_body: SchedulableTransactionBody | None) -> ScheduleCreateTransaction:
         """
         Sets the schedulable body for this schedule create transaction.
 
         Args:
-            schedulable_body (Optional[SchedulableTransactionBody]):
+            schedulable_body (SchedulableTransactionBody | None):
                 The body of the schedulable transaction.
 
         Returns:
@@ -97,9 +92,7 @@ class ScheduleCreateTransaction(Transaction):
         self.schedulable_body = schedulable_body
         return self
 
-    def set_scheduled_transaction(
-        self, transaction: "Transaction"
-    ) -> "ScheduleCreateTransaction":
+    def set_scheduled_transaction(self, transaction: Transaction) -> ScheduleCreateTransaction:
         """
         Sets the scheduled transaction for this schedule create transaction.
 
@@ -115,14 +108,12 @@ class ScheduleCreateTransaction(Transaction):
 
         return self
 
-    def set_schedule_memo(
-        self, schedule_memo: Optional[str]
-    ) -> "ScheduleCreateTransaction":
+    def set_schedule_memo(self, schedule_memo: str | None) -> ScheduleCreateTransaction:
         """
         Sets the schedule memo for this schedule create transaction.
 
         Args:
-            schedule_memo (Optional[str]): The schedule memo for the schedule.
+            schedule_memo (str | None): The schedule memo for the schedule.
 
         Returns:
             ScheduleCreateTransaction: This transaction instance.
@@ -131,14 +122,12 @@ class ScheduleCreateTransaction(Transaction):
         self.schedule_memo = schedule_memo
         return self
 
-    def set_payer_account_id(
-        self, payer_account_id: Optional[AccountId]
-    ) -> "ScheduleCreateTransaction":
+    def set_payer_account_id(self, payer_account_id: AccountId | None) -> ScheduleCreateTransaction:
         """
         Sets the payer account ID for this schedule create transaction.
 
         Args:
-            payer_account_id (Optional[AccountId]): The payer account ID for the schedule.
+            payer_account_id (AccountId | None): The payer account ID for the schedule.
 
         Returns:
             ScheduleCreateTransaction: This transaction instance.
@@ -147,14 +136,12 @@ class ScheduleCreateTransaction(Transaction):
         self.payer_account_id = payer_account_id
         return self
 
-    def set_expiration_time(
-        self, expiration_time: Optional[Timestamp]
-    ) -> "ScheduleCreateTransaction":
+    def set_expiration_time(self, expiration_time: Timestamp | None) -> ScheduleCreateTransaction:
         """
         Sets the expiration time for this schedule create transaction.
 
         Args:
-            expiration_time (Optional[Timestamp]): The expiration time for the schedule.
+            expiration_time (Timestamp | None): The expiration time for the schedule.
 
         Returns:
             ScheduleCreateTransaction: This transaction instance.
@@ -163,14 +150,12 @@ class ScheduleCreateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def set_wait_for_expiry(
-        self, wait_for_expiry: Optional[bool]
-    ) -> "ScheduleCreateTransaction":
+    def set_wait_for_expiry(self, wait_for_expiry: bool | None) -> ScheduleCreateTransaction:
         """
         Sets the wait for expiry for this schedule create transaction.
 
         Args:
-            wait_for_expiry (Optional[bool]): Whether to wait for the schedule to expire.
+            wait_for_expiry (bool | None): Whether to wait for the schedule to expire.
 
         Returns:
             ScheduleCreateTransaction: This transaction instance.
@@ -179,14 +164,12 @@ class ScheduleCreateTransaction(Transaction):
         self.wait_for_expiry = wait_for_expiry
         return self
 
-    def set_admin_key(
-        self, admin_key: Optional[PublicKey]
-    ) -> "ScheduleCreateTransaction":
+    def set_admin_key(self, admin_key: PublicKey | None) -> ScheduleCreateTransaction:
         """
         Sets the admin key for this schedule create transaction.
 
         Args:
-            admin_key (Optional[PublicKey]): The admin key for the schedule.
+            admin_key (PublicKey | None): The admin key for the schedule.
 
         Returns:
             ScheduleCreateTransaction: This transaction instance.
@@ -207,12 +190,8 @@ class ScheduleCreateTransaction(Transaction):
             memo=self.schedule_memo,
             adminKey=self.admin_key._to_proto() if self.admin_key else None,
             scheduledTransactionBody=self.schedulable_body,
-            expiration_time=(
-                self.expiration_time._to_protobuf() if self.expiration_time else None
-            ),
-            payerAccountID=(
-                self.payer_account_id._to_proto() if self.payer_account_id else None
-            ),
+            expiration_time=(self.expiration_time._to_protobuf() if self.expiration_time else None),
+            payerAccountID=(self.payer_account_id._to_proto() if self.payer_account_id else None),
         )
 
     def build_transaction_body(self):

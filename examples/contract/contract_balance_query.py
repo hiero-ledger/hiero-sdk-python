@@ -13,6 +13,7 @@ Run with:
   uv run -m examples.contract.contract_balance_query
   python -m examples.contract.contract_balance_query
 """
+
 import sys
 
 from dotenv import load_dotenv
@@ -28,6 +29,7 @@ from hiero_sdk_python.response_code import ResponseCode
 
 from .contracts import SIMPLE_CONTRACT_BYTECODE
 
+
 load_dotenv()
 
 
@@ -39,7 +41,7 @@ def setup_client() -> Client:
     except Exception as e:
         print(f"❌ Failed: {e}")
         sys.exit(1)
-    
+
     return client
 
 

@@ -20,6 +20,7 @@ Usage:
 uv run examples/tokens/token_create_transaction_fungible_finite.py
 python examples/tokens/token_create_transaction_fungible_finite.py
 """
+
 import os
 import sys
 
@@ -42,14 +43,12 @@ def parse_optional_key(key_str):
         return None
 
 
-
-
-
 def setup_client():
     client = Client.from_env()
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def load_optional_keys():
     """Load optional keys (admin, supply, freeze, pause)."""
@@ -100,9 +99,7 @@ def execute_transaction(transaction, client, operator_key, admin_key):
         if receipt and receipt.token_id:
             print(f"Finite fungible token created with ID: {receipt.token_id}")
         else:
-            print(
-                "Finite fungible token creation failed: Token ID not returned in receipt."
-            )
+            print("Finite fungible token creation failed: Token ID not returned in receipt.")
             sys.exit(1)
     except Exception as e:
         print(f"Token creation failed: {str(e)}")

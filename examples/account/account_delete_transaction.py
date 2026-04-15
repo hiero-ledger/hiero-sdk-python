@@ -8,6 +8,7 @@ uv run examples/account/account_delete_transaction.py
 python examples/account/account_delete_transaction.py
 
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -36,9 +37,7 @@ def create_account(client):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     account_id = receipt.account_id

@@ -21,15 +21,15 @@ Read about conventional commit messages here: [Conventional Commits](https://www
 
 This is correct:
 ```bash
-git commit -S -s -m "chore: changelog entry to TokenCreateTransaction"
+git commit -S -s -m "chore: example for to TokenCreateTransaction"
 ```
 
 This is incorrect:
 ```bash
-git commit -S -s -m "feat: changelog entry to TokenCreateTransaction"
+git commit -S -s -m "feat: example for entry to TokenCreateTransaction"
 ```
 
 This is incorrect:
 ```bash
-git commit -S -s -m "changelog entry to TokenCreateTransaction"
+git commit -S -s -m "example for entry to TokenCreateTransaction"
 ```

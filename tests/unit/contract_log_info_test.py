@@ -2,11 +2,14 @@
 Test the ContractLogInfo class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
 from hiero_sdk_python.hapi.services import basic_types_pb2, contract_types_pb2
+
 
 pytestmark = pytest.mark.unit
 
@@ -28,9 +31,7 @@ def test_custom_initialization():
     topics = [bytes.fromhex("abcd"), bytes.fromhex("ef01")]
     data = bytes.fromhex("5678")
 
-    log_info = ContractLogInfo(
-        contract_id=contract_id, bloom=bloom, topics=topics, data=data
-    )
+    log_info = ContractLogInfo(contract_id=contract_id, bloom=bloom, topics=topics, data=data)
 
     assert log_info.contract_id == contract_id
     assert log_info.bloom == bloom
@@ -45,9 +46,7 @@ def test_str_representation():
     topics = [bytes.fromhex("abcd"), bytes.fromhex("ef01")]
     data = bytes.fromhex("5678")
 
-    log_info = ContractLogInfo(
-        contract_id=contract_id, bloom=bloom, topics=topics, data=data
-    )
+    log_info = ContractLogInfo(contract_id=contract_id, bloom=bloom, topics=topics, data=data)
 
     string_repr = str(log_info)
     assert "ContractLogInfo" in string_repr
@@ -64,9 +63,7 @@ def test_to_proto():
     topics = [bytes.fromhex("abcd"), bytes.fromhex("ef01")]
     data = bytes.fromhex("5678")
 
-    log_info = ContractLogInfo(
-        contract_id=contract_id, bloom=bloom, topics=topics, data=data
-    )
+    log_info = ContractLogInfo(contract_id=contract_id, bloom=bloom, topics=topics, data=data)
 
     proto = log_info._to_proto()
 
@@ -79,9 +76,7 @@ def test_to_proto():
 
 def test_from_proto():
     """Test creating ContractLogInfo from protobuf format."""
-    contract_id_proto = basic_types_pb2.ContractID(
-        shardNum=1, realmNum=2, contractNum=3
-    )
+    contract_id_proto = basic_types_pb2.ContractID(shardNum=1, realmNum=2, contractNum=3)
 
     proto = contract_types_pb2.ContractLoginfo(
         contractID=contract_id_proto,
@@ -111,9 +106,7 @@ def test_roundtrip_proto_conversion():
     topics = [bytes.fromhex("ccdd"), bytes.fromhex("eeff")]
     data = bytes.fromhex("1122")
 
-    original = ContractLogInfo(
-        contract_id=contract_id, bloom=bloom, topics=topics, data=data
-    )
+    original = ContractLogInfo(contract_id=contract_id, bloom=bloom, topics=topics, data=data)
 
     proto = original._to_proto()
     reconstructed = ContractLogInfo._from_proto(proto)

@@ -1,12 +1,15 @@
 """
-hiero_sdk_python.tokens.supply_type.py
+hiero_sdk_python.tokens.supply_type.py.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Defines SupplyType, an enumeration of possible token supply behaviors
 for Non-Fungible Tokens (NFTs).
 """
 
+from __future__ import annotations
+
 from enum import Enum
+
 
 class SupplyType(Enum):
     """
@@ -15,5 +18,6 @@ class SupplyType(Enum):
       - INFINITE: Tokens can be minted without limit.
       - FINITE:  Tokens have a fixed maximum supply.
     """
+
     INFINITE = 0
-    FINITE   = 1
+    FINITE = 1

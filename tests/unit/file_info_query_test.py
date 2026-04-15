@@ -1,20 +1,23 @@
-import pytest
+from __future__ import annotations
+
 from unittest.mock import Mock
 
+import pytest
+
 from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
-from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.hapi.services import (
-    response_pb2,
-    response_header_pb2,
     file_get_info_pb2,
+    response_header_pb2,
+    response_pb2,
 )
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
+from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
-
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -34,9 +37,7 @@ def test_execute_fails_with_missing_file_id(mock_client):
     """Test request creation with missing File ID."""
     query = FileInfoQuery()
 
-    with pytest.raises(
-        ValueError, match="File ID must be set before making the request."
-    ):
+    with pytest.raises(ValueError, match="File ID must be set before making the request."):
         query.execute(mock_client)
 
 

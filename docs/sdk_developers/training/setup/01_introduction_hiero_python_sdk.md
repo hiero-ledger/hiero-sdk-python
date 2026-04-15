@@ -1,6 +1,6 @@
 ## What is the Hiero Python SDK?
 
-The Hiero Python SDK enables developers to use Python to interact with the Hedera Blockchain/DLT Network. 
+The Hiero Python SDK enables developers to use Python to interact with the Hedera Blockchain/DLT Network.
 
 For example, the Hiero Python SDK lets you:
 - Create a token on the Hedera network
@@ -25,4 +25,3 @@ create_tx = (
 token_id = create_tx.token_id
 print(f"🎉 Created a new token on the Hedera network with ID: {token_id}")
 ```
-

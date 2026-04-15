@@ -1,20 +1,23 @@
-import grpc
+from __future__ import annotations
+
 import threading
 from concurrent import futures
 from contextlib import contextmanager
-from hiero_sdk_python.client.network import Network
-from hiero_sdk_python.client.client import Client
+
+import grpc
+
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.client.network import Network, _Node
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.client.network import _Node
 from hiero_sdk_python.hapi.services import (
-    crypto_service_pb2_grpc,
-    token_service_pb2_grpc,
     consensus_service_pb2_grpc,
-    schedule_service_pb2_grpc,
-    network_service_pb2_grpc,
+    crypto_service_pb2_grpc,
     file_service_pb2_grpc,
+    network_service_pb2_grpc,
+    schedule_service_pb2_grpc,
     smart_contract_service_pb2_grpc,
+    token_service_pb2_grpc,
     util_service_pb2_grpc,
 )
 from hiero_sdk_python.logger.log_level import LogLevel
@@ -33,8 +36,8 @@ class MockServer:
         self.responses = responses
         self._lock = threading.Lock()
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-       
-        self.port = self.server.add_insecure_port('[::]:0')
+
+        self.port = self.server.add_insecure_port("[::]:0")
         self.address = f"localhost:{self.port}"
 
         self._register_services()
@@ -95,7 +98,7 @@ class MockServer:
             A mock servicer object
         """
         responses = self.responses
-        lock = self._lock;
+        lock = self._lock
 
         class MockServicer(servicer_class):
             def __getattribute__(self, name):
@@ -103,7 +106,7 @@ class MockServer:
                 if name in ("_next_response", "__class__"):
                     return super().__getattribute__(name)
 
-                def method_wrapper(request, context):
+                def method_wrapper(_, context):
                     with lock:
                         if not responses:
                             return None

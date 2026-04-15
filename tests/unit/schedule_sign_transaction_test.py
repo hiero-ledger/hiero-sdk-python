@@ -2,12 +2,15 @@
 Test cases for the ScheduleSignTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
 
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTransaction
+
 
 pytestmark = pytest.mark.unit
 

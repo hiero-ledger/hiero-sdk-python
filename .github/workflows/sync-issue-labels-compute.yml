@@ -66,8 +66,8 @@ jobs:
                 } else {
                   console.log(`Skipping #${num} because it is a Pull Request, not an Issue.`);
                 }
-              } catch (e) { 
-                console.log(`Error fetching labels for issue #${num}: ${e.message}`); 
+              } catch (e) {
+                console.log(`Error fetching labels for issue #${num}: ${e.message}`);
               }
             }
 
@@ -75,7 +75,7 @@ jobs:
             console.log(`Current PR labels: [${currentLabels.join(', ')}]`);
 
             const newLabels = Array.from(discoveredLabels).filter(label => !currentLabels.includes(label));
-            
+
             if (newLabels.length > 0) {
               console.log(`New labels to be added: [${newLabels.join(', ')}]`);
             } else {
@@ -96,10 +96,10 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
-      
+
       - name: Upload Artifact
         if: steps.check_file.outputs.exists == 'true'
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: pr-labels-data
           path: labels.json

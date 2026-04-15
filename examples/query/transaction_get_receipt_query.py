@@ -5,6 +5,7 @@ Example demonstrating transaction get receipt query.
 uv run examples/query/transaction_get_receipt_query.py
 python examples/query/transaction_get_receipt_query.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -57,9 +58,7 @@ def _print_receipt_children(queried_receipt):
     children = queried_receipt.children
 
     if not children:
-        print(
-            "No child receipts returned (this can be normal depending on transaction type)."
-        )
+        print("No child receipts returned (this can be normal depending on transaction type).")
         return
 
     print(f"Child receipts count: {len(children)}")
@@ -74,9 +73,7 @@ def _print_receipt_duplicates(queried_receipt):
     duplicates = queried_receipt.duplicates
 
     if not duplicates:
-        print(
-            "No duplicate receipts returned (this can be normal depending on transaction type)."
-        )
+        print("No duplicate receipts returned (this can be normal depending on transaction type).")
         return
 
     print(f"Duplicate receipts count: {len(duplicates)}")
@@ -112,9 +109,7 @@ def query_receipt():
     receipt = transaction.execute(client)
     transaction_id = transaction.transaction_id
     print(f"Transaction ID: {transaction_id}")
-    print(
-        f"✅ Success! Transfer transaction status: {ResponseCode(receipt.status).name}"
-    )
+    print(f"✅ Success! Transfer transaction status: {ResponseCode(receipt.status).name}")
 
     # Query Transaction Receipt
     print("\nSTEP 3: Querying transaction receipt (include child receipts)...")
@@ -125,9 +120,7 @@ def query_receipt():
         .set_include_duplicates(True)
     )
     queried_receipt = receipt_query.execute(client)
-    print(
-        f"✅ Success! Queried transaction status: {ResponseCode(queried_receipt.status).name}"
-    )
+    print(f"✅ Success! Queried transaction status: {ResponseCode(queried_receipt.status).name}")
 
     _print_receipt_children(queried_receipt)
     _print_receipt_duplicates(queried_receipt)

@@ -76,7 +76,7 @@ If these updates address the feedback, you can:
 - click **“Ready for review”** (recommended), or
 - use the \`/review\` command.
 
-Thanks for keeping things moving! 🙌  
+Thanks for keeping things moving! 🙌
 — Hiero SDK Automation Team
 `.trim();
 }
@@ -193,7 +193,7 @@ module.exports = async function ({ github, context }) {
         console.log("Skipping reminder to avoid potential duplicate.");
         return;
     }
-    
+
     if (alreadyCommented) {
         console.log("Reminder already exists — skipping.");
         return;

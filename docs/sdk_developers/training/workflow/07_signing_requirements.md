@@ -11,7 +11,7 @@ git commit -S -s -m "prefix: your commit message"
 ```
 For example:
 ```bash
-git commit -S -s -m "chore: changelog entry for TokenCreateTransaction"
+git commit -S -s -m "chore: example for TokenCreateTransaction"
 ```
 
 **WARNING**: using the default commit button on GitHub desktop or VS Studio will result in un-signed commits.

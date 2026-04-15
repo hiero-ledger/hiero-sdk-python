@@ -7,7 +7,7 @@
 
 A Python SDK for interacting with the Hedera Hashgraph platform.
 
->**Python compatibility:** 
+>**Python compatibility:**
 > The SDK supports Python ≥ 3.10 and is tested on Python 3.10–3.14. Newer Python versions may work but have not yet been validated.
 
 ## Quick Start
@@ -69,7 +69,6 @@ print(f"Balance: {balance.hbars} HBAR")
 - **[Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/setup_windows.md)** - Step-by-step guide for Windows users
 - **[Workflow Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/workflow.md)** - Day-to-day development workflow
 - **[Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)** - GPG and DCO commit signing (required)
-- **[Changelog Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/changelog-guide.md)** - How to write changelog entries
 - **[Rebasing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md)** - Keep your branch up-to-date
 - **[Merge Conflicts Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md)** - Resolve conflicts
 - **[Typing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/types.md)** - Python type hints

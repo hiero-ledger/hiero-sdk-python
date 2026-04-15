@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 def parse_session_id(params: dict) -> str:
     """Parse sessionId from the json rpc params."""
     session_id = params.get("sessionId")
@@ -16,9 +19,7 @@ def parse_common_transaction_params(params: dict):
     if common_params is None:
         return None
 
-    return CommonTransactionParams.parse_json_params(
-        params.get("commonTransactionParams")
-    )
+    return CommonTransactionParams.parse_json_params(params.get("commonTransactionParams"))
 
 
 def to_int(value) -> int | None:

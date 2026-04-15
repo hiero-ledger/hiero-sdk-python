@@ -1,5 +1,7 @@
+from __future__ import annotations
+
+from hiero_sdk_python import AccountId, Client, Network, PrivateKey
 from hiero_sdk_python.node import _Node
-from hiero_sdk_python import Client, AccountId, PrivateKey, Network
 from tck.handlers.registry import rpc_method
 from tck.param.base import BaseParams
 from tck.param.sdk import SetupParams
@@ -15,9 +17,7 @@ def setup_handler(params: SetupParams) -> SetupResponse:
     if params.nodeIp and params.nodeAccountId and params.mirrorNetworkIp:
         client = Client()
         client.network = Network(
-            nodes=[
-                _Node(AccountId.from_string(params.nodeAccountId), params.nodeIp, None)
-            ],
+            nodes=[_Node(AccountId.from_string(params.nodeAccountId), params.nodeIp, None)],
             mirror_address=params.mirrorNetworkIp,
         )
         client.set_operator(operator_account_id, operator_private_key)

@@ -1,9 +1,8 @@
-"""
-Query to get records about a specific account on the network.
-"""
+"""Query to get records about a specific account on the network."""
+
+from __future__ import annotations
 
 import traceback
-from typing import List, Optional, Union
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -25,22 +24,22 @@ class AccountRecordsQuery(Query):
     against the specified account within the last 25 hours.
     """
 
-    def __init__(self, account_id: Optional[AccountId] = None):
+    def __init__(self, account_id: AccountId | None = None):
         """
         Initializes a new AccountRecordsQuery instance with an optional account_id.
 
         Args:
-            account_id (Optional[AccountId]): The ID of the account to query.
+            account_id (AccountId, optional): The ID of the account to query.
         """
         super().__init__()
-        self.account_id: Optional[AccountId] = account_id
+        self.account_id: AccountId | None = account_id
 
-    def set_account_id(self, account_id: Optional[AccountId]) -> "AccountRecordsQuery":
+    def set_account_id(self, account_id: AccountId | None) -> AccountRecordsQuery:
         """
         Sets the ID of the account to query.
 
         Args:
-            account_id (Optional[AccountId]): The ID of the account.
+            account_id (AccountId | None): The ID of the account.
 
         Returns:
             AccountRecordsQuery: Returns self for method chaining.
@@ -96,7 +95,7 @@ class AccountRecordsQuery(Query):
         """
         return _Method(transaction_func=None, query_func=channel.crypto.getAccountRecords)
 
-    def execute(self, client: Client, timeout: Optional[Union[int, float]] = None) -> List[TransactionRecord]:
+    def execute(self, client: Client, timeout: int | float | None = None) -> list[TransactionRecord]:
         """
         Executes the account records query.
 
@@ -108,7 +107,7 @@ class AccountRecordsQuery(Query):
 
         Args:
             client (Client): The client instance to use for execution
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (int | float, optional): The total execution timeout (in seconds) for this execution.
 
         Returns:
             List[TransactionRecord]: The account records from the network
@@ -121,15 +120,9 @@ class AccountRecordsQuery(Query):
         self._before_execute(client)
         response = self._execute(client, timeout)
 
-        records = []
-        for record in response.cryptoGetAccountRecords.records:
-            records.append(TransactionRecord._from_proto(record))
+        return [TransactionRecord._from_proto(record) for record in response.cryptoGetAccountRecords.records]
 
-        return records
-
-    def _get_query_response(
-        self, response: response_pb2.Response
-    ) -> CryptoGetAccountRecordsResponse:
+    def _get_query_response(self, response: response_pb2.Response) -> CryptoGetAccountRecordsResponse:
         """
         Extracts the account records response from the full response.
 

@@ -1,6 +1,6 @@
 # Contribution Workflow
 
-This guide explains the recommended workflow for contributing to the **Hiero Python SDK**.  
+This guide explains the recommended workflow for contributing to the **Hiero Python SDK**.
 It covers tooling, repository setup, branching, commit standards, testing, and submitting pull requests.
 
 ---
@@ -11,8 +11,8 @@ For the best development experience and smoother support, we strongly recommend 
 
 ### Recommended Tools
 
-- [ ] GitHub Desktop  
-- [ ] Visual Studio Code  
+- [ ] GitHub Desktop
+- [ ] Visual Studio Code
     - Pylance (extension)
 
 > These tools are recommendations, not requirements. You are free to use alternatives that fit your workflow.
@@ -89,7 +89,7 @@ Click Create fork.
 Your new fork will appear at:
 `https://github.com/<your-username>/hiero-sdk-python`
 
-This is your copy of the repository. You can work on this safely without fear of impacting the original repository. 
+This is your copy of the repository. You can work on this safely without fear of impacting the original repository.
 
 
 3. Clone Your Fork Locally
@@ -192,7 +192,7 @@ Read about conventional commit messages here: [Conventional Commits](https://www
 
 For example:
 ```bash
-git commit -S -s -m "chore: changelog entry for TokenCreateTransaction"
+git commit -S -s -m "chore: docs for TokenCreateTransaction"
 ```
 
 Follow our [Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md) with step-by-step instructions.
@@ -247,11 +247,10 @@ Examples include:
 - Replacing deprecated functionality that cannot be maintained
 
 If a breaking change must occur:
-- Clearly communicate it in your commit messages and changelog.
-- Provide a detailed explanation in the changelog.
+- Clearly communicate it your pull request description.
 - When possible, implement or propose backwards compatibility solutions (deprecation warnings, transitional methods, alternative APIs, etc.).
 
-Example changelog entry:
+Example entry:
 
 `BREAKING CHANGE: transfer_tokens() now requires an AccountId object instead of a string.`
 
@@ -298,7 +297,7 @@ We have several security and quality checks.
 Please review and check they all pass.
 
 If they are failing and you require help, you can:
-- Contact us on [discord](../discord.md)
+- Contact us on [Discord](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md)
 - Attend [Python SDK Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338)
 - Attend [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meeting/92041330205?password=2f345bee-0c14-4dd5-9883-06fbc9c60581)
 - Ask for help on the pull request

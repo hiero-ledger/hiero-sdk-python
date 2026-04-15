@@ -8,6 +8,7 @@ run:
 uv run examples/errors/max_attempts_error.py
 python examples/errors/max_attempts_error.py
 """
+
 from hiero_sdk_python import (
     Client,
     TransactionGetReceiptQuery,
@@ -33,7 +34,6 @@ def main() -> None:
     # By forcing max_attempts=1, we prevent retries.
     # Note: Triggering a pure MaxAttemptsError usually requires a timeout or busy node.
     # This example demonstrates the structure of handling the error.
-    
 
     # Using a generated TransactionId
     tx_id = TransactionId.generate(operator_id)
@@ -47,10 +47,10 @@ def main() -> None:
         print(f"Node ID: {e.node_id}")
         print(f"Message: {e.message}")
         print("This error means the SDK gave up after reaching the maximum number of retry attempts.")
-        
+
     except Exception as e:
-        # Note: In a real network test with a made-up ID, we might get ReceiptStatusError 
-        # or PrecheckError (RECEIPT_NOT_FOUND). MaxAttemptsError typically happens 
+        # Note: In a real network test with a made-up ID, we might get ReceiptStatusError
+        # or PrecheckError (RECEIPT_NOT_FOUND). MaxAttemptsError typically happens
         # on network timeouts or BUSY responses.
         print(f"\nCaught unexpected error (expected for this specific simulation): {type(e).__name__}")
         print(f"Details: {e}")

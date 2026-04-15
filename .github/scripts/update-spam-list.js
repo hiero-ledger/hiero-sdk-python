@@ -1,6 +1,6 @@
 /**
  * GitHub Actions script to automatically update the spam list by querying PRs
- * 
+ *
  * This script:
  * - Identifies spam users from closed unmerged PRs with 'spam' label
  * - Identifies rehabilitated users from merged PRs with 'Good First Issue' label
@@ -16,7 +16,7 @@ const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'tr
 
 async function computeSpamListUpdates(spamUsers, rehabilitatedUsers) {
   let currentSpamList = [];
-  
+
   try {
     const content = await fs.readFile(SPAM_LIST_PATH, 'utf8');
     currentSpamList = content
@@ -29,15 +29,15 @@ async function computeSpamListUpdates(spamUsers, rehabilitatedUsers) {
     }
     // File doesn't exist yet, start with empty list
   }
-  
+
   const additions = [];
   const removals = [];
   const finalSpamList = new Set(currentSpamList);
-  
+
   // Process spam users
   for (const [username, spamDate] of spamUsers.entries()) {
     const rehabDate = rehabilitatedUsers.get(username);
-    
+
     if (!rehabDate || spamDate > rehabDate) {
       // User is spam (either never rehabilitated or spammed after rehabilitation)
       if (!finalSpamList.has(username)) {
@@ -46,11 +46,11 @@ async function computeSpamListUpdates(spamUsers, rehabilitatedUsers) {
       }
     }
   }
-  
+
   // Process rehabilitated users
   for (const [username, rehabDate] of rehabilitatedUsers.entries()) {
     const spamDate = spamUsers.get(username);
-    
+
     if (!spamDate || rehabDate > spamDate) {
       // User is rehabilitated (merged PR more recent than spam)
       if (finalSpamList.has(username)) {
@@ -59,11 +59,11 @@ async function computeSpamListUpdates(spamUsers, rehabilitatedUsers) {
       }
     }
   }
-  
+
   // Sort additions and removals alphabetically
   additions.sort((a, b) => a.localeCompare(b));
   removals.sort((a, b) => a.localeCompare(b));
-  
+
   return {
     additions,
     removals,
@@ -74,10 +74,10 @@ async function computeSpamListUpdates(spamUsers, rehabilitatedUsers) {
 
 function generateSummary(additions, removals) {
   const title = `Update spam list (${additions.length} additions, ${removals.length} removals)`;
-  
+
   let body = '## Automated Spam List Update\n\n';
   body += 'This issue details the updates to the spam list based on recent PR activity.\n\n';
-  
+
   if (additions.length > 0) {
     body += `### ➕ Additions (${additions.length})\n\n`;
     body += 'The following users were added to the spam list:\n\n';
@@ -86,7 +86,7 @@ function generateSummary(additions, removals) {
     }
     body += '\n';
   }
-  
+
   if (removals.length > 0) {
     body += `### ➖ Removals (${removals.length})\n\n`;
     body += 'The following users were removed from the spam list (rehabilitated):\n\n';
@@ -95,22 +95,22 @@ function generateSummary(additions, removals) {
     }
     body += '\n';
   }
-  
+
   if (additions.length === 0 && removals.length === 0) {
     body += '### ℹ️ No Changes\n\n';
     body += 'No updates were needed for the spam list.\n';
   }
-  
+
   return { title, body };
 }
 
 // Main function to orchestrate the spam list update
- 
+
 module.exports = async ({github, context, core}) => {
   const { owner, repo } = context.repo;
   try {
     console.log('Starting spam list update...');
-    
+
     if (dryRun) {
       console.log('⚠️  Running in DRY RUN mode - no files will be modified');
     }
@@ -166,7 +166,7 @@ module.exports = async ({github, context, core}) => {
     // Use pagination iterator with your existing pattern
     for (const { name, query, process } of searches) {
       console.log(`Fetching ${name}...`);
-      
+
       const iterator = github.paginate.iterator(
         github.rest.search.issuesAndPullRequests,
         {
@@ -191,13 +191,13 @@ module.exports = async ({github, context, core}) => {
       spamUsers,
       rehabilitatedUsers
     );
-    
+
     console.log(`Additions: ${additions.length}`);
     console.log(`Removals: ${removals.length}`);
-    
+
     const { title, body } = generateSummary(additions, removals);
     const hasChanges = additions.length > 0 || removals.length > 0;
-    
+
     if (hasChanges) {
       if (dryRun) {
         console.log('[DRY RUN] Would create issue with:');
@@ -228,7 +228,7 @@ module.exports = async ({github, context, core}) => {
     } else {
       console.log('No changes needed, skipping issue creation');
     }
-    
+
   } catch (error) {
     core.setFailed(`Failed to update spam list: ${error.message}`);
     throw error;

@@ -943,7 +943,7 @@ transaction.execute(client)
 #### Pythonic Syntax:
 ```
 transaction = TokenAirdropTransaction(
-    token_transfers=token_transfers, 
+    token_transfers=token_transfers,
     nft_transfers=nft_transfers
 ).freeze_with(client)
 
