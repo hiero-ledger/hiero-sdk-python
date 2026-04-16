@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import logging
+import re
 import threading
 import time
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from datetime import datetime
+
+import grpc
 
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
@@ -12,6 +17,19 @@ from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.utils.subscription_handle import SubscriptionHandle
+
+
+logger = logging.getLogger(__name__)
+
+RST_STREAM = re.compile(r"\brst[^0-9a-zA-Z]stream\b", re.IGNORECASE | re.DOTALL)
+
+
+@dataclass
+class SubscriptionState:
+    attempt: int = 0
+    count: int = 0
+    last_message: mirror_proto.ConsensusTopicResponse | None = None
+    pending_messages: dict[str, list[mirror_proto.ConsensusTopicResponse]] = field(default_factory=dict)
 
 
 class TopicMessageQuery:
@@ -31,23 +49,31 @@ class TopicMessageQuery:
         chunking_enabled: bool = False,
     ) -> None:
         """Initializes a TopicMessageQuery."""
-        self._topic_id: TopicId | None = self._parse_topic_id(topic_id) if topic_id else None
+        self._topic_id: basic_types_pb2.TopicID | None = self._parse_topic_id(topic_id) if topic_id else None
         self._start_time: timestamp_pb2.Timestamp | None = self._parse_timestamp(start_time) if start_time else None
         self._end_time: timestamp_pb2.Timestamp | None = self._parse_timestamp(end_time) if end_time else None
         self._limit: int | None = limit
         self._chunking_enabled: bool = chunking_enabled
-        self._completion_handler: Callable[[], None] | None = None
 
         self._max_attempts: int = 10
         self._max_backoff: float = 8.0
 
+        self._completion_handler: Callable[[], None] | None = self._on_complete
+        self._error_handler: Callable[[], None] | None = self._on_error
+
     def set_max_attempts(self, attempts: int) -> TopicMessageQuery:
         """Sets the maximum number of attempts to reconnect on failure."""
+        if attempts <= 0:
+            raise ValueError("max_attempts must be greater than 0")
+
         self._max_attempts = attempts
         return self
 
     def set_max_backoff(self, backoff: float) -> TopicMessageQuery:
         """Sets the maximum backoff time in seconds for reconnection attempts."""
+        if backoff < 0.5:
+            raise ValueError("max_backoff must be at least 500 ms")
+
         self._max_backoff = backoff
         return self
 
@@ -56,23 +82,10 @@ class TopicMessageQuery:
         self._completion_handler = handler
         return self
 
-    def _parse_topic_id(self, topic_id: str | TopicId) -> basic_types_pb2.TopicID:
-        """Parses a topic ID from a string or TopicId object into a protobuf TopicID."""
-        if isinstance(topic_id, str):
-            parts = topic_id.strip().split(".")
-            if len(parts) != 3:
-                raise ValueError(f"Invalid topic ID string: {topic_id}")
-            shard, realm, topic = map(int, parts)
-            return basic_types_pb2.TopicID(shardNum=shard, realmNum=realm, topicNum=topic)
-        if isinstance(topic_id, TopicId):
-            return topic_id._to_proto()
-        raise TypeError("Invalid topic_id format. Must be a string or TopicId.")
-
-    def _parse_timestamp(self, dt: datetime) -> timestamp_pb2.Timestamp:
-        """Converts a datetime object to a protobuf Timestamp."""
-        seconds = int(dt.timestamp())
-        nanos = int((dt.timestamp() - seconds) * 1e9)
-        return timestamp_pb2.Timestamp(seconds=seconds, nanos=nanos)
+    def set_error_handler(self, handler: Callable[[], None]) -> TopicMessageQuery:
+        """Sets a completion handler that is called when the subscription completes."""
+        self._error_handler = handler
+        return self
 
     def set_topic_id(self, topic_id: str | TopicId) -> TopicMessageQuery:
         """Sets the topic ID for the query."""
@@ -99,6 +112,41 @@ class TopicMessageQuery:
         self._chunking_enabled = enabled
         return self
 
+    def _on_complete(self) -> None:
+        logger.info(f"Subscription to topic {self._topic_id} complete")
+
+    def _on_error(self, err: Exception) -> None:
+        if isinstance(err, grpc.RpcError) and err.code() == grpc.StatusCode.CANCELLED:
+            logger.warning(f"Call is cancelled for topic {self._topic_id}")
+        else:
+            logger.error(f"Error attempting to subscribe to topic {self._topic_id}: {err}")
+
+    def _should_retry(self, err: Exception) -> bool:
+        if isinstance(err, grpc.RpcError):
+            return err.code() in (
+                grpc.StatusCode.NOT_FOUND,
+                grpc.StatusCode.UNAVAILABLE,
+                grpc.StatusCode.RESOURCE_EXHAUSTED,
+            ) or (err.code() == grpc.StatusCode.INTERNAL and bool(RST_STREAM.search(err.details())))
+
+        return True
+
+    def _parse_topic_id(self, topic_id: str | TopicId) -> basic_types_pb2.TopicID:
+        """Parses a topic ID from a string or TopicId object into a protobuf TopicID."""
+        if isinstance(topic_id, str):
+            topic_id = TopicId.from_string(topic_id)
+
+        if isinstance(topic_id, TopicId):
+            return topic_id._to_proto()
+
+        raise TypeError("Invalid topic_id format. Must be a string or TopicId.")
+
+    def _parse_timestamp(self, dt: datetime) -> timestamp_pb2.Timestamp:
+        """Converts a datetime object to a protobuf Timestamp."""
+        seconds = int(dt.timestamp())
+        nanos = int((dt.timestamp() - seconds) * 1e9)
+        return timestamp_pb2.Timestamp(seconds=seconds, nanos=nanos)
+
     def subscribe(
         self,
         client: Client,
@@ -111,49 +159,61 @@ class TopicMessageQuery:
         if not client.mirror_stub:
             raise ValueError("Client has no mirror_stub. Did you configure a mirror node address?")
 
-        request = mirror_proto.ConsensusTopicQuery(topicID=self._topic_id)
-        if self._start_time:
-            request.consensusStartTime.CopyFrom(self._start_time)
-        if self._end_time:
-            request.consensusEndTime.CopyFrom(self._end_time)
-        if self._limit is not None:
-            request.limit = self._limit
-
         subscription_handle = SubscriptionHandle()
-
-        pending_chunks: dict[str, list[mirror_proto.ConsensusTopicResponse]] = {}
+        state = SubscriptionState()
 
         def run_stream():
-            attempt = 0
-            while attempt < self._max_attempts and not subscription_handle.is_cancelled():
+            while state.attempt < self._max_attempts and not subscription_handle.is_cancelled():
+                request = mirror_proto.ConsensusTopicQuery(topicID=self._topic_id)
+
+                if self._end_time is not None:
+                    request.consensusEndTime.CopyFrom(self._end_time)
+
+                if state.last_message is not None:
+                    last_message_time = state.last_message.consensusTimestamp
+                    request.consensusStartTime.seconds = last_message_time.seconds
+                    request.consensusStartTime.nanos = last_message_time.nanos + 1
+
+                    if self._limit > 0:
+                        request.limit = max(0, self._limit - state.count)
+                else:
+                    if self._start_time is not None:
+                        request.consensusStartTime.CopyFrom(self._start_time)
+                    request.limit = self._limit
+
                 try:
                     message_stream = client.mirror_stub.subscribeTopic(request)
+                    subscription_handle._set_call(message_stream)
 
                     for response in message_stream:
                         if subscription_handle.is_cancelled():
                             return
+
+                        state.count += 1
+                        state.last_message = response
 
                         if (
                             not self._chunking_enabled
                             or not response.HasField("chunkInfo")
                             or response.chunkInfo.total <= 1
                         ):
-                            msg_obj = TopicMessage.of_single(response)
-                            on_message(msg_obj)
+                            message = TopicMessage.of_single(response)
+                            on_message(message)
                             continue
 
                         initial_tx_id = TransactionId._from_proto(response.chunkInfo.initialTransactionID)
 
-                        if initial_tx_id not in pending_chunks:
-                            pending_chunks[initial_tx_id] = []
+                        if initial_tx_id not in state.pending_messages:
+                            state.pending_messages[initial_tx_id] = []
 
-                        pending_chunks[initial_tx_id].append(response)
+                        chunks = state.pending_messages[initial_tx_id]
+                        chunks.append(response)
 
-                        if len(pending_chunks[initial_tx_id]) == response.chunkInfo.total:
-                            chunk_list = pending_chunks.pop(initial_tx_id)
+                        if len(chunks) == response.chunkInfo.total:
+                            del state.pending_messages[initial_tx_id]
 
-                            msg_obj = TopicMessage.of_many(chunk_list)
-                            on_message(msg_obj)
+                            message = TopicMessage.of_many(chunks)
+                            on_message(message)
 
                     if self._completion_handler:
                         self._completion_handler()
@@ -163,13 +223,17 @@ class TopicMessageQuery:
                     if subscription_handle.is_cancelled():
                         return
 
-                    attempt += 1
-                    if attempt >= self._max_attempts:
+                    if state.attempt >= self._max_attempts or not self._should_retry(e):
+                        if self._error_handler:
+                            self._error_handler(e)
                         if on_error:
                             on_error(e)
                         return
 
-                    delay = min(0.5 * (2 ** (attempt - 1)), self._max_backoff)
+                    delay = min(0.5 * (2 ** (state.attempt)), self._max_backoff)
+                    logger.warning(f"Error subscribing to topic attempt {state.attempt}. Retrying in {int(delay)}s...")
+
+                    state.attempt += 1
                     time.sleep(delay)
 
         thread = threading.Thread(target=run_stream, daemon=True)
