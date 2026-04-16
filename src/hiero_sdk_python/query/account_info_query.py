@@ -52,13 +52,9 @@ class AccountInfoQuery(Query):
             Query: The protobuf query message.
 
         Raises:
-            ValueError: If the account ID is not set.
             Exception: If any other error occurs during request construction.
         """
         try:
-            if not self.account_id:
-                raise ValueError("Account ID must be set before making the request.")
-
             query_header = self._make_request_header()
 
             crypto_info_query = crypto_get_info_pb2.CryptoGetInfoQuery()
