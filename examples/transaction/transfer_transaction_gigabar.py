@@ -35,20 +35,15 @@ GIGABARS_TO_TRANSFER = 0.00000001
 
 def setup_client() -> tuple[Client, AccountId, PrivateKey]:
     """Setup Client."""
-    try:
-        client = Client.from_env()
+    client = Client.from_env()
 
-        operator_id = client.operator_account_id
-        operator_key = client.operator_private_key
+    operator_id = client.operator_account_id
+    operator_key = client.operator_private_key
 
-        print(f"Network: {client.network.network}")
-        print(f"Client set up with operator id {client.operator_account_id}")
+    print(f"Network: {client.network.network}")
+    print(f"Client set up with operator id {client.operator_account_id}")
 
-        return client, operator_id, operator_key
-
-    except (TypeError, ValueError):
-        print("❌ Error: Creating client, Please check your .env file")
-        sys.exit(1)
+    return client, operator_id, operator_key
 
 
 def create_account(client, operator_key):

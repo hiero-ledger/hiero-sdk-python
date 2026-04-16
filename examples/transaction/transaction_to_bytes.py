@@ -37,15 +37,10 @@ OPERATOR_KEY = os.getenv("OPERATOR_KEY", "")
 
 def setup_client() -> Client:
     """Initialize the client using operator credentials from .env."""
-    try:
-        client = Client.from_env()
-        print(f"Network: {client.network.network}")
-        print(f"Connected as {client.operator_account_id}")
-        return client
-
-    except Exception as e:
-        print(f"❌ Error initializing client: {e}")
-        sys.exit(1)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
+    print(f"Connected as {client.operator_account_id}")
+    return client
 
 
 def create_and_freeze_transaction(client: Client, sender: AccountId, receiver: AccountId):

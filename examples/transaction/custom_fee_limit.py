@@ -28,19 +28,14 @@ from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 
 def setup_client() -> tuple[Client, AccountId]:
     """Initialize client and operator from .env file."""
-    try:
-        client = Client.from_env()
+    client = Client.from_env()
 
-        operator_id = client.operator_account_id
+    operator_id = client.operator_account_id
 
-        print(f"Network: {client.network.network}")
-        print(f"Operator set: {operator_id}")
+    print(f"Network: {client.network.network}")
+    print(f"Operator set: {operator_id}")
 
-        return client, operator_id
-
-    except Exception as e:
-        print(f"Failed to initialize client: {e}")
-        sys.exit(1)
+    return client, operator_id
 
 
 def create_revenue_generating_topic(client: Client, operator_id: AccountId):
