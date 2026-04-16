@@ -146,6 +146,10 @@ def _to_token_relationships_response(info: AccountInfo) -> dict[str, TokenRelati
 
 
 def _build_account_info_response(info: AccountInfo) -> GetAccountInfoResponse:
+    auto_renew_period_seconds = (
+        str(info.auto_renew_period.seconds) if info.auto_renew_period is not None else "0"
+    )
+
     return GetAccountInfoResponse(
         accountId=str(info.account_id) if info.account_id is not None else None,
         contractAccountId=info.contract_account_id or "",
@@ -160,9 +164,7 @@ def _build_account_info_response(info: AccountInfo) -> GetAccountInfoResponse:
         receiveRecordThreshold="0",
         isReceiverSignatureRequired=bool(info.receiver_signature_required),
         expirationTime=str(info.expiration_time) if info.expiration_time is not None else None,
-        autoRenewPeriod=str(info.auto_renew_period.seconds)
-        if info.auto_renew_period is not None
-        else "0",
+        autoRenewPeriod=auto_renew_period_seconds,
         tokenRelationships=_to_token_relationships_response(info),
         accountMemo=info.account_memo or "",
         ownedNfts=str(info.owned_nfts) if info.owned_nfts is not None else "0",
