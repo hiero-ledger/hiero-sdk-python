@@ -100,6 +100,33 @@ uv run ruff check . && uv run ruff format --check .
 }
 ```
 
+
+## 🛠️ Handling Linting Issues
+
+### Manual vs. Automatic Fixes
+
+Ruff is smart, but it won't change your code if it might break logic.
+
+- **Auto-Fixed:** Unused imports, unsorted imports (Isort-style), and basic whitespace.
+
+- **Manual Action Required:** Complex issues like unused function arguments (`ARG001`), overly complex logic (`C901`), or missing docstrings. You must refactor these yourself based on the terminal output.
+
+
+### Ignoring Rules (Suppressing Warnings)
+
+Sometimes, a linter rule conflicts with a specific technical requirement. You can tell Ruff to ignore a line using the `# noqa` comment followed by the error code.
+
+```python
+# Ignore a specific error on a line
+import unused_module  # noqa: F401
+
+# Ignore multiple errors on a line
+x = 1 # noqa: E701, F841
+```
+Each error has a code. You can look up the full details of any code in the [Ruff Documentation](https://docs.astral.sh/ruff/rules/).
+
+> **Global Ignore:** To disable linting for an entire file (e.g., an auto-generated file), add `# ruff: noqa` to the very top
+
 ## 📝 Example Output
 **When issues are found:**
 
