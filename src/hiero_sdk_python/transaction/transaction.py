@@ -220,34 +220,28 @@ class Transaction(_Executable):
 
         signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes, sigMap=sig_map)
 
+        return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
 
-        return transaction_pb2.Transaction(
-            signedTransactionBytes=signed_transaction.SerializeToString()
-        )
-    
-    def _resolve_transaction_id(self, client: "Client"):
+    def _resolve_transaction_id(self, client: Client):
         if self.transaction_id is not None:
             return
-        
+
         if client is not None:
             operator_account_id = client.operator_account_id
             if operator_account_id is not None:
                 self.transaction_id = client.generate_transaction_id()
             else:
-                raise ValueError(
-                    "Client must have an operator_account or transactionId must be set."
-                )
+                raise ValueError("Client must have an operator_account or transactionId must be set.")
         else:
             raise ValueError(
                 "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
             )
-        
-    def _resolve_node_ids(self, client: "Client"):
-        if self.node_account_id is None and len(self.node_account_ids) == 0:
-            if client is None:
-                raise ValueError(
-                    "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
-                )
+
+    def _resolve_node_ids(self, client: Client):
+        if self.node_account_id is None and len(self.node_account_ids) == 0 and client is None:
+            raise ValueError(
+                "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
+            )
 
     def freeze(self):
         """
@@ -269,7 +263,7 @@ class Transaction(_Executable):
         """
         return self.freeze_with(None)
 
-    def freeze_with(self, client: "Client"):
+    def freeze_with(self, client: Client):
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
 
@@ -285,13 +279,11 @@ class Transaction(_Executable):
         if self._transaction_body_bytes:
             return self
 
-        
         # Check transaction_id and node id to be set when using freeze()
         self._resolve_transaction_id(client)
 
-
         self._resolve_node_ids(client)
-        
+
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
@@ -901,13 +893,13 @@ class Transaction(_Executable):
         self.freeze_with(client)
         self.sign(client.operator_private_key)
         return self
-    
+
     @property
     def size(self) -> int:
         """Returns the total transaction size in bytes after protobuf encoding"""
         self._require_frozen()
         return self._make_request().ByteSize()
-    
+
     @property
     def body_size(self) -> int:
         """Returns just the transaction body size in bytes after encoding"""

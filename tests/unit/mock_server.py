@@ -181,12 +181,6 @@ def mock_hedera_servers(response_sequences):
 
         client = Client(network)
 
-        # Force non-tls channel
-        for node in client.network.nodes:
-            node._address._is_transport_security = lambda: False
-            node._set_verify_certificates(False)
-            node._close()
-
         client.logger.set_level(LogLevel.DISABLED)
         # Set the operator
         key = PrivateKey.generate()
