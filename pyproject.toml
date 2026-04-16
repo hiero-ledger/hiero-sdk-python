@@ -50,7 +50,6 @@ dev = [
     "pytest-cov>=7.0.0,<8",
     "hypothesis>=6.137.2",
     "pre-commit>=4.0.0",
-    "ruff>=0.14.10",
 ]
 
 lint = [
