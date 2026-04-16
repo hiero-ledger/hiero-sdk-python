@@ -39,4 +39,4 @@ jobs:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
               run: |
-                  bash .github/scripts/cron-community-calls.sh
+                  bash .github/scripts/cron-calls-community.sh

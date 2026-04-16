@@ -36,5 +36,5 @@ jobs:
 
         with:
           script: |
-            const updateSpamList = require('./.github/scripts/update-spam-list.js');
+            const updateSpamList = require('./.github/scripts/cron-admin-update-spam-list.js');
             await updateSpamList({ github, context, core });
