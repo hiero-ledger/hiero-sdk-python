@@ -4,16 +4,12 @@ import pytest
 from pytest import mark
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
-
-from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from tests.integration.utils import env, IntegrationTestEnv
+
 
 # Generate big contents for chunking tests - similar to JavaScript bigContents
 BIG_CONTENTS = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " * 250  # ~13,750 characters
@@ -289,7 +285,8 @@ def test_integration_file_append_transaction_method_chaining(env):
 
     append_receipt = append_tx.execute(env.client)
     assert append_receipt.status == ResponseCode.SUCCESS
-    assert append_receipt.status == ResponseCode.SUCCESS 
+    assert append_receipt.status == ResponseCode.SUCCESS
+
 
 @pytest.mark.integration
 def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
@@ -307,7 +304,7 @@ def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
     file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
     assert file_contents == b""
 
-    content = "A" * (4000) # content with (4000/1024) bytes ie approx 4 chunks
+    content = "A" * (4000)  # content with (4000/1024) bytes ie approx 4 chunks
 
     tx = (
         FileAppendTransaction()
@@ -315,14 +312,14 @@ def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
         .set_chunk_size(1024)
         .set_contents(content)
         .set_transaction_id(TransactionId.generate(env.client.operator_account_id))
-        .set_node_account_id(AccountId(0,0,3))
+        .set_node_account_id(AccountId(0, 0, 3))
         .freeze()
     )
 
     tx.sign(env.client.operator_private_key)
 
     receipt = tx.execute(env.client)
-    
+
     assert receipt.status == ResponseCode.SUCCESS
 
     file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)

@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
@@ -505,13 +504,10 @@ def test_topic_submit_execute_returns_failed_receipt_by_default(topic_id):
 
         assert receipt.status == ResponseCode.INVALID_SIGNATURE
 
+
 def test_topic_submit_message_raises_error_on_freeze(topic_id):
     """Test transaction raises error on freeze when the transaction_id and node_id not set"""
-    tx = (
-        TopicMessageSubmitTransaction()
-        .set_topic_id(topic_id)
-        .set_message("Hello Hiero")
-    )
+    tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("Hello Hiero")
 
     with pytest.raises(ValueError):
         tx.freeze()

@@ -4,7 +4,6 @@ import math
 from typing import Literal, overload
 
 from hiero_sdk_python.channels import _Channel
-from typing import List, Literal, Optional, overload
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -404,7 +403,7 @@ class TopicMessageSubmitTransaction(Transaction):
 
         super().sign(private_key)
         return self
-    
+
     @property
     def body_size_all_chunks(self) -> list[int]:
         """Returns an array of body sizes for transactions with multiple chunks."""
@@ -416,8 +415,7 @@ class TopicMessageSubmitTransaction(Transaction):
         for transaction_id in self._transaction_ids:
             self.transaction_id = transaction_id
             sizes.append(self.body_size)
-        
+
         self._current_index = original_index
         self.transaction_id = original_transaction_id
         return sizes
-       

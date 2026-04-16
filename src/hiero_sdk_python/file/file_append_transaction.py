@@ -16,7 +16,6 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING, Any, Literal, overload
 
-from typing import TYPE_CHECKING, Any, List, Literal, Optional, overload
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import file_append_pb2, timestamp_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -30,10 +29,8 @@ from hiero_sdk_python.transaction.transaction_id import TransactionId
 # Use TYPE_CHECKING to avoid circular import errors
 if TYPE_CHECKING:
     from hiero_sdk_python.channels import _Channel
-    from hiero_sdk_python.client import Client
+    from hiero_sdk_python.client.client import Client
     from hiero_sdk_python.crypto.private_key import PrivateKey
-
-    from hiero_sdk_python.channels import _Channel
     from hiero_sdk_python.executable import _Method
     from hiero_sdk_python.transaction.transaction import TransactionReceipt
     from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -289,35 +286,12 @@ class FileAppendTransaction(Transaction):
         if self._transaction_body_bytes:
             return self
 
-        if self.transaction_id is None:
-            if client is None:
-                raise ValueError(
-                    "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
-                )
-
-            self.transaction_id = client.generate_transaction_id()
-
-        
         self._resolve_transaction_id(client)
 
         # Generate transaction IDs for all chunks
         if not self._transaction_ids:
             base_timestamp = self.transaction_id.valid_start
 
-        for i in range(self.get_required_chunks()):
-            if i == 0:
-                # First chunk uses the original transaction ID
-                chunk_transaction_id = self.transaction_id
-            else:
-                # Subsequent chunks get incremented timestamps
-                # Add i nanoseconds to space out chunks
-                chunk_valid_start = timestamp_pb2.Timestamp(
-                    seconds=base_timestamp.seconds, nanos=base_timestamp.nanos + i
-                )
-                chunk_transaction_id = TransactionId(
-                    account_id=self.transaction_id.account_id, valid_start=chunk_valid_start
-                )
-            self._transaction_ids.append(chunk_transaction_id)
             for i in range(self.get_required_chunks()):
                 if i == 0:
                     # First chunk uses the original transaction ID
@@ -326,12 +300,10 @@ class FileAppendTransaction(Transaction):
                     # Subsequent chunks get incremented timestamps
                     # Add i nanoseconds to space out chunks
                     chunk_valid_start = timestamp_pb2.Timestamp(
-                        seconds=base_timestamp.seconds,
-                        nanos=base_timestamp.nanos + i
+                        seconds=base_timestamp.seconds, nanos=base_timestamp.nanos + i
                     )
                     chunk_transaction_id = TransactionId(
-                        account_id=self.transaction_id.account_id,
-                        valid_start=chunk_valid_start
+                        account_id=self.transaction_id.account_id, valid_start=chunk_valid_start
                     )
 
                 self._transaction_ids.append(chunk_transaction_id)
@@ -476,7 +448,6 @@ class FileAppendTransaction(Transaction):
         super().sign(private_key)
         return self
 
-    
     @property
     def body_size_all_chunks(self) -> list[int]:
         """Returns an array of body sizes for transactions with multiple chunks."""
@@ -488,8 +459,7 @@ class FileAppendTransaction(Transaction):
         for transaction_id in self._transaction_ids:
             self.transaction_id = transaction_id
             sizes.append(self.body_size)
-        
+
         self._current_chunk_index = original_index
         self.transaction_id = original_transaction_id
         return sizes
-    

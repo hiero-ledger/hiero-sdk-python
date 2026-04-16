@@ -4,7 +4,6 @@ import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import ReceiptStatusError
@@ -275,9 +274,7 @@ def test_tx_with_larger_content_should_have_larger_tx_body(transaction_id, accou
     assert tx1.body_size < tx2.body_size
 
 
-def test_tx_without_optional_fields_should_have_smaller_tx_body(
-    transaction_id, account_id
-):
+def test_tx_without_optional_fields_should_have_smaller_tx_body(transaction_id, account_id):
     """Test transaction with without optional fields should have smaller transaction body."""
     key = PrivateKey.generate()
     tx1 = (
@@ -343,7 +340,7 @@ def test_file_append_single_chunk_tx_return_list_of_len_one(file_id, account_id,
 def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, account_id, transaction_id):
     """Test topic message submit tx should return array of body sizes for multi-chunk transaction."""
     chunk_size = 1024
-    message= "a" * (chunk_size * 3)
+    message = "a" * (chunk_size * 3)
 
     tx = (
         TopicMessageSubmitTransaction()
@@ -377,9 +374,7 @@ def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, account
     assert len(sizes) == 1
 
 
-def test_tx_with_no_content_should_return_single_body_chunk(
-    file_id, account_id, transaction_id
-):
+def test_tx_with_no_content_should_return_single_body_chunk(file_id, account_id, transaction_id):
     """Test should return single body chunk for transaction with no content."""
     tx = (
         FileAppendTransaction()
