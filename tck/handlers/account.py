@@ -106,21 +106,13 @@ def _to_staking_info_response(info: AccountInfo) -> StakingInfoResponse:
     staking_info = info.staking_info
     return StakingInfoResponse(
         declineStakingReward=staking_info.decline_reward,
-        stakePeriodStart=str(staking_info.stake_period_start)
-        if staking_info.stake_period_start is not None
-        else None,
+        stakePeriodStart=str(staking_info.stake_period_start) if staking_info.stake_period_start is not None else None,
         pendingReward=str(staking_info.pending_reward.to_tinybars())
         if staking_info.pending_reward is not None
         else "0",
-        stakedToMe=str(staking_info.staked_to_me.to_tinybars())
-        if staking_info.staked_to_me is not None
-        else "0",
-        stakedAccountId=str(staking_info.staked_account_id)
-        if staking_info.staked_account_id is not None
-        else None,
-        stakedNodeId=str(staking_info.staked_node_id)
-        if staking_info.staked_node_id is not None
-        else None,
+        stakedToMe=str(staking_info.staked_to_me.to_tinybars()) if staking_info.staked_to_me is not None else "0",
+        stakedAccountId=str(staking_info.staked_account_id) if staking_info.staked_account_id is not None else None,
+        stakedNodeId=str(staking_info.staked_node_id) if staking_info.staked_node_id is not None else None,
     )
 
 
@@ -146,18 +138,14 @@ def _to_token_relationships_response(info: AccountInfo) -> dict[str, TokenRelati
 
 
 def _build_account_info_response(info: AccountInfo) -> GetAccountInfoResponse:
-    auto_renew_period_seconds = (
-        str(info.auto_renew_period.seconds) if info.auto_renew_period is not None else "0"
-    )
+    auto_renew_period_seconds = str(info.auto_renew_period.seconds) if info.auto_renew_period is not None else "0"
 
     return GetAccountInfoResponse(
         accountId=str(info.account_id) if info.account_id is not None else None,
         contractAccountId=info.contract_account_id or "",
         isDeleted=bool(info.is_deleted),
         proxyAccountId="",
-        proxyReceived=str(info.proxy_received.to_tinybars())
-        if info.proxy_received is not None
-        else "0",
+        proxyReceived=str(info.proxy_received.to_tinybars()) if info.proxy_received is not None else "0",
         key=_serialize_key(info.key),
         balance=str(info.balance.to_tinybars()) if info.balance is not None else "0",
         sendRecordThreshold="0",
