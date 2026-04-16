@@ -106,7 +106,7 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 | [Rebasing](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md) | Keeping branch updated |
 | [Merge Conflicts](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md) | Resolving conflicts |
 | [Types](docs/sdk_developers/types.md) | Python type hints |
-| [Linting](docs/sdk_developers/linting.md) | Code quality tools |
+| [Linting](docs/sdk_developers/ruff.md) | Code quality tools |
 
 ---
 
