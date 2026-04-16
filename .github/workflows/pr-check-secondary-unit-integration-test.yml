@@ -2,25 +2,6 @@ name: Secondary PR Check - Hiero Solo Integration & Unit Tests
 on:
   push:
     branches:
-      - "main"
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - "examples/**"
-      - "tck/**"
-      - "tests/fuzz/**"
-      - ".github/**"
-      - "!.github/workflows/pr-check-secondary-unit-integration-test.yml"
-  pull_request:
-    paths-ignore:
-      - "**/*.md"
-      - "docs/**"
-      - "examples/**"
-      - "tck/**"
-      - "tests/fuzz/**"
-      - ".github/**"
-      - "!.github/workflows/pr-check-secondary-unit-integration-test.yml"
-  workflow_dispatch: {}
 
 permissions:
   contents: read
