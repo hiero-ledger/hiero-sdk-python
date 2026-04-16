@@ -1,10 +1,10 @@
-# This workflow automatically closes pull requests without a linked issue after 3 days.
+# This workflow warns PRs that have had no activity for a specified amount of time(10 Days).
 
-name: Linked Issue Enforcer
+name: PR Inactivity Reminder Bot
 
 on:
   schedule:
-    - cron: "0 2 * * *" # Every day at 2:00 AM
+    - cron: "0 11 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -14,10 +14,11 @@ on:
 
 permissions:
   pull-requests: write
+  issues: write
   contents: read
 
 jobs:
-  pr-linked-issue-checker:
+  remind_inactive_prs:
     runs-on: hl-sdk-py-lin-md
     env:
       DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
@@ -28,15 +29,13 @@ jobs:
         with:
           egress-policy: audit
       - name: Checkout repository
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
-      - name: Enforce linked issues on PRs
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - name: Remind authors of inactive PRs
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: ${{ env.DRY_RUN }}
-          HOURS_BEFORE_CLOSE: "12"
-          REQUIRE_AUTHOR_ASSIGNED: "true"
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           script: |
-            const script = require('./.github/scripts/linked_issue_enforce.js');
-            await script({ github, context});
+            const script = require('./.github/scripts/cron-reminder-pr-inactive.js')
+            await script({ github, context });
