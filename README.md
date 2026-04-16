@@ -72,7 +72,7 @@ print(f"Balance: {balance.hbars} HBAR")
 - **[Rebasing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md)** - Keep your branch up-to-date
 - **[Merge Conflicts Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md)** - Resolve conflicts
 - **[Typing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/types.md)** - Python type hints
-- **[Linting Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/linting.md)** - Code quality tools
+- **[Linting Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/ruff.md)** - Code quality tools
 
 ### Hedera Network Resources
 
