@@ -72,11 +72,6 @@ jobs:
           name: dist
           path: dist
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
-        with:
-          skip-existing: true
-
       - name: Sign release distributions with Sigstore
         uses: sigstore/gh-action-sigstore-python@04cffa1d795717b140764e8b640de88853c92acc # v3.3.0
         with:
@@ -86,6 +81,11 @@ jobs:
           verify: true
           verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/publish.yml@refs/tags/${{ github.ref_name }}
           verify-oidc-issuer: https://token.actions.githubusercontent.com
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
+        with:
+          skip-existing: true
 
       - name: Upload signed assets to GitHub Release
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
