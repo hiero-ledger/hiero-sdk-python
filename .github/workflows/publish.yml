@@ -87,11 +87,17 @@ jobs:
           verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/publish.yml@refs/tags/${{ github.ref_name }}
           verify-oidc-issuer: https://token.actions.githubusercontent.com
 
+      - name: Prepare distributions for PyPI upload
+        run: |
+          mkdir -p publish-dist
+          cp dist/*.whl publish-dist/
+          cp dist/*.tar.gz publish-dist/
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
         with:
+          packages-dir: publish-dist
           skip-existing: true
-          attestations: dist/*.sigstore.json
 
       - name: Upload signed assets to GitHub Release
         uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
