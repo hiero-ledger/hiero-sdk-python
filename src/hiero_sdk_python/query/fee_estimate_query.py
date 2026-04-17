@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 import requests
 
@@ -55,11 +55,11 @@ class FeeEstimateQuery:
             Defaults to 0 (no delay).
         """
         self._mode: FeeEstimateMode | None = None
-        self._transaction: Optional[Transaction] = None
+        self._transaction: Transaction | None = None
         self._max_attempts = 10
         self._max_backoff = 0
 
-    def set_mode(self, mode: FeeEstimateMode) -> "FeeEstimateQuery":
+    def set_mode(self, mode: FeeEstimateMode) -> FeeEstimateQuery:
         """Set the fee estimation mode for the query.
 
         Args:
@@ -105,7 +105,6 @@ class FeeEstimateQuery:
         Returns:
             The transaction if set, otherwise None.
         """
-
         return self._transaction
 
     def _backoff(self, attempt: int):
@@ -115,7 +114,6 @@ class FeeEstimateQuery:
 
     def _ensure_frozen(self, transaction, client):
         """Ensure transaction is frozen before execution."""
-
         # pylint: disable=protected-access
         try:
             transaction._require_frozen()
