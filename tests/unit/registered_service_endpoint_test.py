@@ -6,6 +6,9 @@ from hiero_sdk_python.address_book.block_node_api import BlockNodeApi
 from hiero_sdk_python.address_book.block_node_service_endpoint import (
     BlockNodeServiceEndpoint,
 )
+from hiero_sdk_python.address_book.general_service_endpoint import (
+    GeneralServiceEndpoint,
+)
 from hiero_sdk_python.address_book.mirror_node_service_endpoint import (
     MirrorNodeServiceEndpoint,
 )
@@ -15,8 +18,22 @@ from hiero_sdk_python.address_book.registered_service_endpoint import (
 from hiero_sdk_python.address_book.rpc_relay_service_endpoint import (
     RpcRelayServiceEndpoint,
 )
+from hiero_sdk_python.hapi.services.registered_service_endpoint_pb2 import (
+    RegisteredServiceEndpoint as RegisteredServiceEndpointProto,
+)
 
 pytestmark = pytest.mark.unit
+
+
+def _supports_general_service_endpoint() -> bool:
+    """Return whether this protobuf build includes the general endpoint subtype."""
+    endpoint_type_oneof = RegisteredServiceEndpointProto.DESCRIPTOR.oneofs_by_name.get("endpoint_type")
+    if endpoint_type_oneof is None:
+        return False
+
+    return any(
+        field.message_type is not None and "General" in field.message_type.name for field in endpoint_type_oneof.fields
+    )
 
 
 def test_block_node_service_endpoint_roundtrip():
@@ -54,6 +71,25 @@ def test_rpc_relay_service_endpoint_roundtrip():
     roundtrip = RegisteredServiceEndpoint._from_proto(proto)
 
     assert isinstance(roundtrip, RpcRelayServiceEndpoint)
+    assert roundtrip == endpoint
+
+
+def test_general_service_endpoint_roundtrip():
+    """General service endpoints should round-trip when supported by protobuf."""
+    if not _supports_general_service_endpoint():
+        pytest.skip("General service endpoint is unavailable in this protobuf version.")
+
+    endpoint = GeneralServiceEndpoint(
+        domain_name="general.example.com",
+        port=443,
+        requires_tls=True,
+        description="General node service",
+    )
+
+    proto = endpoint._to_proto()
+    roundtrip = RegisteredServiceEndpoint._from_proto(proto)
+
+    assert isinstance(roundtrip, GeneralServiceEndpoint)
     assert roundtrip == endpoint
 
 

@@ -159,4 +159,17 @@ class RegisteredServiceEndpoint:
 
             return RpcRelayServiceEndpoint._from_proto(proto)
 
+        if endpoint_type is not None:
+            field_descriptor = proto.DESCRIPTOR.fields_by_name.get(endpoint_type)
+            if (
+                field_descriptor is not None
+                and field_descriptor.message_type is not None
+                and "General" in field_descriptor.message_type.name
+            ):
+                from hiero_sdk_python.address_book.general_service_endpoint import (
+                    GeneralServiceEndpoint,
+                )
+
+                return GeneralServiceEndpoint._from_proto(proto)
+
         raise ValueError("Registered service endpoint type is required.")
