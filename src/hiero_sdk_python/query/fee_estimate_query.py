@@ -130,18 +130,24 @@ class FeeEstimateQuery:
         return self._max_backoff
 
     def _serialize_transaction(self, transaction, client) -> bytes:
-        """Serialize transaction safely for fee estimation."""
-
-        if not getattr(transaction, "_transaction_body_bytes", None):
-            transaction.freeze_with(client)
+        try:
+            # best case: already frozen
+            return transaction.to_bytes()
+        except Exception: # pylint: disable=broad-exception-caught
+            pass
 
         try:
+            # attempt to freeze
+            transaction.freeze_with(client)
             return transaction.to_bytes()
-        except (AttributeError, ValueError, RuntimeError):
-            try:
-                return transaction.build_transaction_body().SerializeToString()
-            except (AttributeError, ValueError, RuntimeError):
-                return b""
+        except Exception: # pylint: disable=broad-exception-caught
+            pass
+
+        try:
+            # final fallback: build directly
+            return transaction.build_transaction_body().SerializeToString()
+        except Exception: # pylint: disable=broad-exception-caught
+            return b""
 
     def _post_with_retry(self, url: str, data: bytes, max_retries: int = 2):
         """POST request with retry logic for transient failures."""
@@ -160,12 +166,15 @@ class FeeEstimateQuery:
 
                 return response
 
-            except requests.exceptions.RequestException as exc:
+            except Exception as exc:  # ✅ catch EVERYTHING for retry logic
                 if attempt == max_retries - 1:
                     raise
 
                 msg = str(exc)
+
+                # retryable conditions
                 if "UNAVAILABLE" in msg or "DEADLINE_EXCEEDED" in msg:
+                    self._backoff(attempt)
                     continue
 
                 raise
