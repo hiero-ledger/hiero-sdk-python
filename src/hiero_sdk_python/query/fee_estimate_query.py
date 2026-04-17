@@ -4,16 +4,23 @@ Defines the FeeEstimateQuery used to request fee estimation data
 from the network or fee service.
 """
 
+from __future__ import annotations
+
+import logging
 import time
 from typing import Optional, TYPE_CHECKING
+
 import requests
+
+from hiero_sdk_python.fees.fee_estimate import FeeEstimate
 from hiero_sdk_python.fees.fee_estimate_mode import FeeEstimateMode
 from hiero_sdk_python.fees.fee_estimate_response import FeeEstimateResponse
-from hiero_sdk_python.fees.fee_estimate import FeeEstimate
 from hiero_sdk_python.fees.network_fee import NetworkFee
 
 if TYPE_CHECKING:
     from hiero_sdk_python.transaction.transaction import Transaction
+
+logger = logging.getLogger(__name__)
 
 class FeeEstimateQuery:
     """
@@ -34,13 +41,27 @@ class FeeEstimateQuery:
     """
 
     def __init__(self):
-        self._mode: Optional[FeeEstimateMode] = None
-        self._transaction: Optional["Transaction"] = None
+        """
+        Initializes a new FeeEstimateQuery instance.
+
+        Sets default configuration values for fee estimation, including the
+        default retry policy and optional transaction/mode settings.
+
+        Attributes:
+            _mode: The fee estimation mode to use (STATE or INTRINSIC). Defaults to None.
+            _transaction: The transaction being evaluated for fee estimation. Defaults to None.
+            _max_attempts: Maximum number of retry attempts for network requests. Defaults to 10.
+            _max_backoff: Maximum backoff delay (in seconds) between retries.
+            Defaults to 0 (no delay).
+        """
+        self._mode: FeeEstimateMode | None = None
+        self._transaction: Optional[Transaction] = None
         self._max_attempts = 10
         self._max_backoff = 0
 
     def set_mode(self, mode: FeeEstimateMode) -> "FeeEstimateQuery":
         """Set the fee estimation mode for the query.
+
         Args:
             mode: The fee estimation mode to use (e.g., STATE or INTRINSIC).
 
@@ -50,7 +71,7 @@ class FeeEstimateQuery:
         self._mode = mode
         return self
 
-    def get_mode(self) -> Optional[FeeEstimateMode]:
+    def get_mode(self) -> FeeEstimateMode | None:
         """Get the currently set fee estimation mode.
 
         Returns:
@@ -58,7 +79,7 @@ class FeeEstimateQuery:
         """
         return self._mode
 
-    def set_transaction(self, transaction: "Transaction") -> "FeeEstimateQuery":
+    def set_transaction(self, transaction: Transaction) -> FeeEstimateQuery:
         """Attach a transaction to this fee estimation query.
 
         The provided transaction will be used to calculate estimated fees.
@@ -69,7 +90,6 @@ class FeeEstimateQuery:
         Returns:
             The current FeeEstimateQuery instance for method chaining.
         """
-
         # if hasattr(transaction, "freeze") and not transaction.is_frozen:
         # transaction.freeze()
 
@@ -79,7 +99,7 @@ class FeeEstimateQuery:
         self._transaction = transaction
         return self
 
-    def get_transaction(self) -> Optional["Transaction"]:
+    def get_transaction(self) -> Transaction | None:
         """Get the transaction associated with this query.
 
         Returns:
@@ -90,7 +110,6 @@ class FeeEstimateQuery:
 
     def _backoff(self, attempt: int):
         """Sleep using exponential backoff."""
-
         delay = min(0.5 * (2**attempt), self._max_backoff)
         time.sleep(delay)
 
@@ -107,51 +126,45 @@ class FeeEstimateQuery:
             else:
                 transaction.freeze()
 
-    def set_max_attempts(self, attempts: int) -> "FeeEstimateQuery":
+    def set_max_attempts(self, attempts: int) -> FeeEstimateQuery:
         """Set maximum retry attempts."""
-
         self._max_attempts = attempts
         return self
 
     def get_max_attempts(self) -> int:
         """Get maximum retry attempts."""
-
         return self._max_attempts
 
-    def set_max_backoff(self, backoff: int) -> "FeeEstimateQuery":
+    def set_max_backoff(self, backoff: int) -> FeeEstimateQuery:
         """Set maximum backoff duration."""
-
         self._max_backoff = backoff
         return self
 
     def get_max_backoff(self) -> int:
         """Get maximum backoff duration."""
-
         return self._max_backoff
 
     def _serialize_transaction(self, transaction, client) -> bytes:
         try:
-            # best case: already frozen
             return transaction.to_bytes()
-        except Exception: # pylint: disable=broad-exception-caught
-            pass
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            logger.debug("to_bytes() failed, attempting freeze fallback: %s", exc)
 
         try:
-            # attempt to freeze
             transaction.freeze_with(client)
             return transaction.to_bytes()
-        except Exception: # pylint: disable=broad-exception-caught
-            pass
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            logger.debug("freeze_with() failed, using protobuf fallback: %s", exc)
 
         try:
-            # final fallback: build directly
-            return transaction.build_transaction_body().SerializeToString()
-        except Exception: # pylint: disable=broad-exception-caught
+            body = transaction.build_transaction_body()
+            return body.SerializeToString() if body else b""
+        except Exception as exc:  # pylint: disable=broad-exception-caught
+            logger.warning("All serialization methods failed: %s", exc)
             return b""
 
     def _post_with_retry(self, url: str, data: bytes, max_retries: int = 2):
         """POST request with retry logic for transient failures."""
-
         for attempt in range(max_retries):
             try:
                 response = requests.post(
@@ -166,22 +179,22 @@ class FeeEstimateQuery:
 
                 return response
 
-            except Exception as exc:  # ✅ catch EVERYTHING for retry logic
+            except Exception as exc:  # pylint: disable=broad-exception-caught
                 if attempt == max_retries - 1:
                     raise
 
                 msg = str(exc)
 
-                # retryable conditions
                 if "UNAVAILABLE" in msg or "DEADLINE_EXCEEDED" in msg:
                     self._backoff(attempt)
                     continue
 
                 raise
 
+        return None
+
     def execute(self, client) -> FeeEstimateResponse:
         """Execute fee estimation query against the network."""
-
         if self._transaction is None:
             raise ValueError("Transaction must be set")
 
@@ -216,7 +229,6 @@ class FeeEstimateQuery:
 
     def _parse_response(self, data):
         """Parse raw fee response into structured FeeEstimateResponse."""
-
         node_fee = FeeEstimate(base=data["node"]["subtotal"], extras=[])
 
         service_fee = FeeEstimate(base=data["service"]["subtotal"], extras=[])
