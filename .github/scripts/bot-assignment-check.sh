@@ -1,6 +1,13 @@
 #!/bin/bash
 set -Eeuo pipefail
 
+# Configuration for labels (overridable from workflow env)
+MENTOR_LABEL="${MENTOR_LABEL:-notes: mentor-duty}"
+if [ -z "${MENTOR_LABEL}" ]; then
+  echo "Error: Missing required environment variable (MENTOR_LABEL)." >&2
+  exit 1
+fi
+
 # Validate required env vars
 if [ -z "${ASSIGNEE:-}" ] || [ -z "${ISSUE_NUMBER:-}" ] || [ -z "${REPO:-}" ]; then
   echo "Error: Missing required environment variables (ASSIGNEE, ISSUE_NUMBER, REPO)."
@@ -36,20 +43,20 @@ issue_has_gfi() {
 }
 
 # Count open assignments for a user
-# For triage users (mentors), excludes issues with 'mentor-duty' label
+# For triage users (mentors), excludes issues with '${MENTOR_LABEL}' label
 # This allows mentors to be assigned to mentorship issues without consuming their assignment limit
 assignments_count() {
   local permission="${1:-none}"
 
   if [[ "$permission" == "triage" ]]; then
-    echo "Triage user detected — excluding mentor-duty issues from count." >&2
-    # For triage users, exclude issues with 'mentor-duty' label
+    echo "Triage user detected — excluding ${MENTOR_LABEL} issues from count." >&2
+    # For triage users, exclude issues with the configured mentor label
      gh api "repos/${REPO}/issues?per_page=100&page=1" \
        -f assignee="${ASSIGNEE}" \
        -f state=open \
-       --jq '.[]
+       --jq --arg mentor_label "$MENTOR_LABEL" '.[]
             | select(.pull_request == null)
-            | select(any(.labels[]; .name == "mentor-duty") | not)
+            | select(any(.labels[]; .name == $mentor_label) | not)
             | .number' | grep -c . || echo 0
   else
     # For non-triage users, count all open assignments
