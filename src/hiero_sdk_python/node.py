@@ -11,6 +11,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.managed_node_address import _ManagedNodeAddress
+from hiero_sdk_python.user_agent_interceptor import _apply_user_agent_interceptor
 
 
 # Timeout for fetching server certificates during TLS validation
@@ -147,6 +148,7 @@ class _Node:
         else:
             channel = grpc.insecure_channel(str(self._address))
 
+        channel = _apply_user_agent_interceptor(channel)
         self._channel = _Channel(channel)
 
         return self._channel
