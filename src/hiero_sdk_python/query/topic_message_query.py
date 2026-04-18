@@ -52,7 +52,7 @@ class TopicMessageQuery:
         self._topic_id: basic_types_pb2.TopicID | None = self._parse_topic_id(topic_id) if topic_id else None
         self._start_time: timestamp_pb2.Timestamp | None = self._parse_timestamp(start_time) if start_time else None
         self._end_time: timestamp_pb2.Timestamp | None = self._parse_timestamp(end_time) if end_time else None
-        self._limit: int | None = limit
+        self._limit: int = limit if limit is not None else 0
         self._chunking_enabled: bool = chunking_enabled
 
         self._max_attempts: int = 10
@@ -147,6 +147,59 @@ class TopicMessageQuery:
         nanos = int((dt.timestamp() - seconds) * 1e9)
         return timestamp_pb2.Timestamp(seconds=seconds, nanos=nanos)
 
+    def _build_query_request(self, state: SubscriptionState) -> mirror_proto.ConsensusTopicQuery:
+        """Build the request object based on current subscription state."""
+        request = mirror_proto.ConsensusTopicQuery(topicID=self._topic_id)
+
+        if self._end_time is not None:
+            request.consensusEndTime.CopyFrom(self._end_time)
+
+        if state.last_message is not None:
+            last_message_time = state.last_message.consensusTimestamp
+
+            seconds = last_message_time.seconds
+            nanos = last_message_time.nanos + 1
+
+            if nanos >= 1_000_000_000:
+                seconds += 1
+                nanos = 0
+
+            request.consensusStartTime.seconds = seconds
+            request.consensusStartTime.nanos = nanos
+
+            if self._limit > 0:
+                request.limit = max(0, self._limit - state.count)
+        else:
+            if self._start_time is not None:
+                request.consensusStartTime.CopyFrom(self._start_time)
+            request.limit = self._limit
+
+        return request
+
+    def _handle_response(self, response, state: SubscriptionState, on_message: Callable[[TopicMessage], None]) -> None:
+        """Handles single or chunked messages."""
+        state.count += 1
+        state.last_message = response
+
+        if not self._chunking_enabled or not response.HasField("chunkInfo") or response.chunkInfo.total <= 1:
+            message = TopicMessage.of_single(response)
+            on_message(message)
+            return
+
+        initial_tx_id = TransactionId._from_proto(response.chunkInfo.initialTransactionID)
+
+        if initial_tx_id not in state.pending_messages:
+            state.pending_messages[initial_tx_id] = []
+
+        chunks = state.pending_messages[initial_tx_id]
+        chunks.append(response)
+
+        if len(chunks) == response.chunkInfo.total:
+            del state.pending_messages[initial_tx_id]
+
+            message = TopicMessage.of_many(chunks)
+            on_message(message)
+
     def subscribe(
         self,
         client: Client,
@@ -164,22 +217,7 @@ class TopicMessageQuery:
 
         def run_stream():
             while state.attempt < self._max_attempts and not subscription_handle.is_cancelled():
-                request = mirror_proto.ConsensusTopicQuery(topicID=self._topic_id)
-
-                if self._end_time is not None:
-                    request.consensusEndTime.CopyFrom(self._end_time)
-
-                if state.last_message is not None:
-                    last_message_time = state.last_message.consensusTimestamp
-                    request.consensusStartTime.seconds = last_message_time.seconds
-                    request.consensusStartTime.nanos = last_message_time.nanos + 1
-
-                    if self._limit > 0:
-                        request.limit = max(0, self._limit - state.count)
-                else:
-                    if self._start_time is not None:
-                        request.consensusStartTime.CopyFrom(self._start_time)
-                    request.limit = self._limit
+                request = self._build_query_request(state)
 
                 try:
                     message_stream = client.mirror_stub.subscribeTopic(request)
@@ -189,31 +227,7 @@ class TopicMessageQuery:
                         if subscription_handle.is_cancelled():
                             return
 
-                        state.count += 1
-                        state.last_message = response
-
-                        if (
-                            not self._chunking_enabled
-                            or not response.HasField("chunkInfo")
-                            or response.chunkInfo.total <= 1
-                        ):
-                            message = TopicMessage.of_single(response)
-                            on_message(message)
-                            continue
-
-                        initial_tx_id = TransactionId._from_proto(response.chunkInfo.initialTransactionID)
-
-                        if initial_tx_id not in state.pending_messages:
-                            state.pending_messages[initial_tx_id] = []
-
-                        chunks = state.pending_messages[initial_tx_id]
-                        chunks.append(response)
-
-                        if len(chunks) == response.chunkInfo.total:
-                            del state.pending_messages[initial_tx_id]
-
-                            message = TopicMessage.of_many(chunks)
-                            on_message(message)
+                        self._handle_response(response, state, on_message)
 
                     if self._completion_handler:
                         self._completion_handler()
