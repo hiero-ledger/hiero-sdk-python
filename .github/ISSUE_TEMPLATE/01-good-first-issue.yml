@@ -128,6 +128,8 @@ body:
 
         - [ ] **Sync Main** pull any recent upstream changes: [Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-setup.md#7-sync-main)
 
+        - [ ] **Pre-commit Hooks:** Setup pre-commit hooks for linting and formatting: [Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/setup.md#pre-commit-tool-setup)
+
         You are set up! 🎉
 
   - type: textarea
@@ -184,6 +186,7 @@ body:
         - [ ] My commits are signed: `git commit -S -s -m "chore: description"` — [Signing guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)
         - [ ] I linked the issue in my PR description using `Fixes #issue_number` to automatically close it when merged
         - [ ] I have applied appropriate linting, code quality, and formatting tools used in this repo (if applicable).
+        - [ ] I have installed and run **pre-commit** hooks to ensure code quality and formatting.
 
         Issue Requirement:
         - [ ] The issue is solved: I've carefully read and implemented the issue requirements
