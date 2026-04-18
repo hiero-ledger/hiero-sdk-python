@@ -18,6 +18,7 @@ from hiero_sdk_python.hapi.mirror import (
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.logger.logger import Logger, LogLevel
+from hiero_sdk_python.node import _Node
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 from .network import Network
@@ -151,6 +152,22 @@ class Client:
             Client: A Client instance configured for previewnet.
         """
         return cls(Network("previewnet"))
+
+    @classmethod
+    def for_network(cls, network_map: dict[str, AccountId], network_name: str | None = "localhost") -> Client:
+        """
+        Create a Client with a custom set of nodes and an optional network label.
+
+        Args:
+            network_map (dict[str, AccountId]): A map where keys are "host:port" strings
+                and values are the node's AccountId.
+            network_name (str): A label for the network. Defaults to "localhost".
+
+        Returns:
+            Client: A Client instance configured with the custom network.
+        """
+        nodes = [_Node(account_id, address, None) for address, account_id in network_map.items()]
+        return cls(Network(network=network_name, nodes=nodes))
 
     def _init_mirror_stub(self) -> None:
         """

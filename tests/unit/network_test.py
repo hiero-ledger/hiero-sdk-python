@@ -449,3 +449,58 @@ def test_resolve_nodes_fallback_to_default(monkeypatch):
     assert all(isinstance(n, _Node) for n in resolved_nodes)
     assert len(resolved_nodes) == expected_count
     assert resolved_nodes[0]._account_id == network.DEFAULT_NODES[network_name][0][1]
+
+
+def test_network_default_is_local():
+    """Test that a new Network defaults to localhost and non-tls."""
+    network = Network()
+    assert network.network == "localhost"
+    assert network._transport_security is False
+
+
+@pytest.mark.parametrize("network", ["mainnet", "previewnet", "testnet"])
+def test_self_hosted_net_auto_converts_port_50211_to_50212(network):
+    """Test that self hosted port 50211 is upgraded to 50212 and TLS is enabled."""
+    node_50211 = _Node(AccountId(0, 0, 3), "34.94.106.61:50211", None)
+
+    network = Network(network=network, nodes=[node_50211])
+
+    assert ":50212" in str(network.nodes[0]._address)
+    assert network.nodes[0]._address._is_transport_security() is True
+    assert network._transport_security is True
+
+
+@pytest.mark.parametrize("network", ["mainnet", "previewnet", "testnet"])
+def test_self_hosted_network_respect_port_50212(network):
+    """Test that on self hosted network respect port 50212"""
+    node_50211 = _Node(AccountId(0, 0, 3), "127.0.0.1:50212", None)
+
+    network = Network(network=network, nodes=[node_50211])
+
+    assert ":50212" in str(network.nodes[0]._address)
+    assert network.nodes[0]._address._is_transport_security() is True
+    assert network._transport_security is True
+
+
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom", None])
+def test_non_hosted_network_respects_port_50211(network):
+    """Test that on non-hosted network, port 50211 stays 50211 and remains non-tls."""
+    node_50211 = _Node(AccountId(0, 0, 3), "127.0.0.1:50211", None)
+
+    network = Network(network=None, nodes=[node_50211])
+
+    assert ":50211" in str(network.nodes[0]._address)
+    assert network.nodes[0]._address._is_transport_security() is False
+    assert network._transport_security is False
+
+
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom", None])
+def test_non_hosted_network_respect_port_50212(network):
+    """Test that on non hosted network respect port 50212"""
+    node_50211 = _Node(AccountId(0, 0, 3), "127.0.0.1:50212", None)
+
+    network = Network(network=network, nodes=[node_50211])
+
+    assert ":50212" in str(network.nodes[0]._address)
+    assert network.nodes[0]._address._is_transport_security() is True
+    assert network._transport_security is False
