@@ -73,7 +73,7 @@ class Network:
 
     def __init__(
         self,
-        network: str = "testnet",
+        network: str | None = None,
         nodes: list[_Node] | None = None,
         mirror_address: str | None = None,
         ledger_id: bytes | None = None,
@@ -96,7 +96,7 @@ class Network:
             Certificate verification is enabled by default for all networks.
             Use Client.set_transport_security() and Client.set_verify_certificates() to customize.
         """
-        self.network: str = network or "testnet"
+        self.network: str = network or "localhost"
         self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(network, "localhost:5600")
 
         self.ledger_id = ledger_id or self.LEDGER_ID.get(network, bytes.fromhex("03"))
@@ -128,7 +128,8 @@ class Network:
 
         # Apply TLS configuration to all nodes
         for node in final_nodes:
-            node._apply_transport_security(self._transport_security)  # pylint: disable=protected-access
+            if self._transport_security:
+                node._apply_transport_security(self._transport_security)  # pylint: disable=protected-access
             node._set_verify_certificates(self._verify_certificates)  # pylint: disable=protected-access
             node._set_root_certificates(self._root_certificates)  # pylint: disable=protected-access
 

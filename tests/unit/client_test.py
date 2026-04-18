@@ -10,8 +10,10 @@ from unittest.mock import patch
 
 import pytest
 
-from hiero_sdk_python import AccountId, Client, PrivateKey
+from hiero_sdk_python import AccountId, Client
 from hiero_sdk_python.client import client as client_module
+from hiero_sdk_python.client.network import Network
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.node import _Node
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -527,3 +529,53 @@ def test_get_node_account_ids_raises_when_no_nodes():
         client.get_node_account_ids()
 
     client.close()
+
+
+def test_for_network_initializes_with_custom_map():
+    """Test for_network correctly maps strings to AccountIds and Nodes."""
+    network_map = {"127.0.0.1:50211": AccountId(0, 0, 3), "127.0.0.1:50212": AccountId(0, 0, 4)}
+
+    client = Client.for_network(network_map)
+
+    assert isinstance(client.network, Network)
+    assert len(client.network.nodes) == 2
+
+    node_accounts = [node._account_id.__str__() for node in client.network.nodes]
+    assert "0.0.3" in node_accounts
+    assert "0.0.4" in node_accounts
+
+
+@pytest.mark.parametrize("network", ["mainnet", "testnet", "previewnet"])
+def test_for_network_with_hosted_network_forces_tls(network):
+    """Test that if hosted-net the port 50211 is upgraded to 50212."""
+    network_map = {"34.94.106.61:50211": AccountId(0, 0, 3)}
+    client = Client.for_network(network_map, network_name=network)
+
+    node = client.network.nodes[0]
+    assert str(node._address) == "34.94.106.61:50212"
+    assert node._address._is_transport_security() is True
+    assert client.network.is_transport_security() is True
+
+
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom", None])
+def test_for_network_with_non_hosted_network_not_forces_tls(network):
+    """Test that if non hosted-net the port 50211 does not change."""
+    network_map = {"127.0.0.1:50211": AccountId(0, 0, 3)}
+    client = Client.for_network(network_map, network_name=network)
+
+    node = client.network.nodes[0]
+    assert str(node._address) == "127.0.0.1:50211"
+    assert node._address._is_transport_security() is False
+    assert client.network.is_transport_security() is False
+
+
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom", None])
+def test_for_network_with_non_hosted_network_not_downgrade_tls(network):
+    """Test that if non hosted-net the port 50212 does not change."""
+    network_map = {"127.0.0.1:50212": AccountId(0, 0, 3)}
+    client = Client.for_network(network_map, network_name=network)
+
+    node = client.network.nodes[0]
+    assert str(node._address) == "127.0.0.1:50212"
+    assert node._address._is_transport_security() is True
+    assert client.network.is_transport_security() is False  # Non hosted network.
