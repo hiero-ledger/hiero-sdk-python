@@ -25,6 +25,7 @@ jobs:
           ASSIGNEE: ${{ github.event.assignee.login }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           REPO: ${{ github.repository }}
+          MENTOR_LABEL: "notes: mentor-duty"
         run: |
           # Make script executable (just in case permissions were lost during checkout)
           chmod +x .github/scripts/bot-assignment-check.sh
