@@ -24,7 +24,7 @@ if [[ -z "$REPO" ]]; then
 fi
 
 echo "------------------------------------------------------------"
-echo " Unified Inactivity Bot"
+echo " Cron Reminder: Inactivity Unassign"
 echo " Repo:     $REPO"
 echo " Threshold $DAYS days"
 echo " DRY_RUN:  $DRY_RUN"
@@ -170,7 +170,7 @@ for ISSUE in $ISSUES; do
 
         if (( DRY_RUN == 0 )); then
           MESSAGE=$(cat <<EOF
-Hi @$USER, this is InactivityBot 👋
+Hi @$USER, this is CronInactivityBot 👋
 
 You were assigned to this issue **${ASSIGNED_AGE_DAYS} days** ago, and there is currently no open pull request linked to it.
 To keep the backlog available for active contributors, I'm unassigning you for now.
@@ -238,7 +238,7 @@ EOF
 
         if (( DRY_RUN == 0 )); then
           MESSAGE=$(cat <<EOF
-Hi @$USER, this is InactivityBot 👋
+Hi @$USER, this is CronInactivityBot 👋
 
 This pull request has had no new commits for **${PR_AGE_DAYS} days**, so I'm closing it and unassigning you from the linked issue to keep the backlog healthy.
 
@@ -270,6 +270,6 @@ EOF
 done
 
 echo "------------------------------------------------------------"
-echo " Unified Inactivity Bot Complete"
+echo " Cron Reminder: Inactivity Unassign Complete"
 echo " DRY_RUN: $DRY_RUN"
 echo "------------------------------------------------------------"

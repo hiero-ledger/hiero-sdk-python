@@ -373,12 +373,10 @@ The Network and Client are separate but interdependent:
 2. **Client provides WHO and HOW**: The Client specifies who you are (operator credentials) and manages the actual communication
 3. **Together they enable communication**: The combination allows your application to securely interact with the Hedera blockchain
 
-## -### Example: Complete Setup
-
--```python
-+### Example: Complete Setup
+### Example: Complete Setup
 
 ```python
+
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.account.account_id import AccountId
