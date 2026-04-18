@@ -59,7 +59,8 @@ class AccountInfoQuery(Query):
 
             crypto_info_query = crypto_get_info_pb2.CryptoGetInfoQuery()
             crypto_info_query.header.CopyFrom(query_header)
-            crypto_info_query.accountID.CopyFrom(self.account_id._to_proto())
+            if self.account_id is not None:
+                crypto_info_query.accountID.CopyFrom(self.account_id._to_proto())
 
             query = query_pb2.Query()
             query.cryptoGetInfo.CopyFrom(crypto_info_query)
