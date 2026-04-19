@@ -19,6 +19,7 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
+
 def generate_admin_key():
     """
 

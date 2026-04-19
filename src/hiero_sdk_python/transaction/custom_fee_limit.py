@@ -1,9 +1,8 @@
-"""
-This module contains the CustomFeeLimit class to store information about custom fee limits.
-"""
+"""This module contains the CustomFeeLimit class to store information about custom fee limits."""
+
+from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.custom_fees_pb2 import (
@@ -18,14 +17,14 @@ class CustomFeeLimit:
     Information about custom fee limits stored on the network.
 
     Attributes:
-        payer_id (Optional[AccountId]): The ID of the account that pays the custom fees
+        payer_id (AccountId, optional): The ID of the account that pays the custom fees
         custom_fees (list[CustomFixedFee]): The list of custom fixed fees associated with this limit
     """
 
-    payer_id: Optional[AccountId] = None
+    payer_id: AccountId | None = None
     custom_fees: list[CustomFixedFee] = field(default_factory=list)
 
-    def set_payer_id(self, payer_id: Optional[AccountId]) -> "CustomFeeLimit":
+    def set_payer_id(self, payer_id: AccountId | None) -> CustomFeeLimit:
         """
         Sets the payer account ID for this custom fee limit.
 
@@ -38,7 +37,7 @@ class CustomFeeLimit:
         self.payer_id = payer_id
         return self
 
-    def add_custom_fee(self, custom_fee: CustomFixedFee) -> "CustomFeeLimit":
+    def add_custom_fee(self, custom_fee: CustomFixedFee) -> CustomFeeLimit:
         """
         Adds a custom fixed fee to this custom fee limit.
 
@@ -51,7 +50,7 @@ class CustomFeeLimit:
         self.custom_fees.append(custom_fee)
         return self
 
-    def set_custom_fees(self, custom_fees: list[CustomFixedFee]) -> "CustomFeeLimit":
+    def set_custom_fees(self, custom_fees: list[CustomFixedFee]) -> CustomFeeLimit:
         """
         Sets the list of custom fixed fees for this custom fee limit.
 
@@ -64,7 +63,7 @@ class CustomFeeLimit:
         self.custom_fees = custom_fees
         return self
 
-    def _to_proto(self) -> "CustomFeeLimitProto":
+    def _to_proto(self) -> CustomFeeLimitProto:
         """
         Converts this CustomFeeLimit instance to its protobuf representation.
 
@@ -77,7 +76,7 @@ class CustomFeeLimit:
         )
 
     @classmethod
-    def _from_proto(cls, proto: "CustomFeeLimitProto") -> "CustomFeeLimit":
+    def _from_proto(cls, proto: CustomFeeLimitProto) -> CustomFeeLimit:
         """
         Creates a CustomFeeLimit instance from its protobuf representation.
 
@@ -94,15 +93,8 @@ class CustomFeeLimit:
             raise ValueError("Custom fee limit proto is None")
 
         return cls(
-            payer_id=(
-                AccountId._from_proto(proto.account_id)
-                if proto.HasField("account_id")
-                else None
-            ),
-            custom_fees=[
-                CustomFixedFee._from_fixed_fee_proto(custom_fee)
-                for custom_fee in proto.fees
-            ],
+            payer_id=(AccountId._from_proto(proto.account_id) if proto.HasField("account_id") else None),
+            custom_fees=[CustomFixedFee._from_fixed_fee_proto(custom_fee) for custom_fee in proto.fees],
         )
 
     def __repr__(self) -> str:
@@ -115,16 +107,7 @@ class CustomFeeLimit:
         return self.__str__()
 
     def __str__(self) -> str:
-        """
-        Pretty-print the CustomFeeLimit.
-        """
-        custom_fees_str = (
-            [str(fee) for fee in self.custom_fees] if self.custom_fees else []
-        )
+        """Pretty-print the CustomFeeLimit."""
+        custom_fees_str = [str(fee) for fee in self.custom_fees] if self.custom_fees else []
 
-        return (
-            "CustomFeeLimit(\n"
-            f"  payer_id={self.payer_id},\n"
-            f"  custom_fees={custom_fees_str}\n"
-            ")"
-        )
+        return f"CustomFeeLimit(\n  payer_id={self.payer_id},\n  custom_fees={custom_fees_str}\n)"

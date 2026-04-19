@@ -13,6 +13,7 @@ uv run examples/consensus/topic_message.py
 python examples/consensus/topic_message.py
 
 """
+
 from hiero_sdk_python.consensus.topic_message import TopicMessage
 
 
@@ -98,11 +99,7 @@ def mock_consensus_response(
 
     chunk_info = None
     if is_chunked:
-        tx_id = (
-            MockTransactionID(MockAccountID(0, 0, 10), 1736539100, 1)
-            if has_tx_id
-            else None
-        )
+        tx_id = MockTransactionID(MockAccountID(0, 0, 10), 1736539100, 1) if has_tx_id else None
         chunk_info = MockChunkInfo(seq, total_chunks, tx_id)
 
     return MockResponse(message, seq, timestamp, chunk_info)
@@ -129,15 +126,9 @@ def demonstrate_multi_chunk():
     print("\n--- 2. Multi-Chunk TopicMessage ---")
 
     responses = [
-        mock_consensus_response(
-            b"This is the first part, ", seq=1, is_chunked=True, total_chunks=3
-        ),
-        mock_consensus_response(
-            b"this is the second, ", seq=2, is_chunked=True, total_chunks=3
-        ),
-        mock_consensus_response(
-            b"and this is the end.", seq=3, is_chunked=True, total_chunks=3
-        ),
+        mock_consensus_response(b"This is the first part, ", seq=1, is_chunked=True, total_chunks=3),
+        mock_consensus_response(b"this is the second, ", seq=2, is_chunked=True, total_chunks=3),
+        mock_consensus_response(b"and this is the end.", seq=3, is_chunked=True, total_chunks=3),
     ]
 
     topic_msg = TopicMessage.of_many(responses)
@@ -151,9 +142,7 @@ def demonstrate_multi_chunk():
 
     print("  Inspecting individual chunks:")
     for chunk in topic_msg.chunks:
-        print(
-            f"    - Chunk Seq: {chunk.sequence_number}, Size: {chunk.content_size} bytes"
-        )
+        print(f"    - Chunk Seq: {chunk.sequence_number}, Size: {chunk.content_size} bytes")
 
 
 def demonstrate_transaction_id():

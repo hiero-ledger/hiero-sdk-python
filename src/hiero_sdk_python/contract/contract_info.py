@@ -1,11 +1,11 @@
 # pylint: disable=too-many-instance-attributes
-"""
-This module contains the ContractInfo class, which is used to store information about a contract.
-"""
+"""This module contains the ContractInfo class, which is used to store information about a contract."""
+
+from __future__ import annotations
 
 import datetime
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Callable, Optional
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_id import ContractId
@@ -23,43 +23,43 @@ class ContractInfo:
     Information about a contract stored on the network.
 
     Attributes:
-        contract_id (Optional[ContractId]): The ID of the contract
-        account_id (Optional[AccountId]): The ID of the account owned by the contract
-        contract_account_id (Optional[str]): The contract's EVM address (hex).
-        admin_key (Optional[PublicKey]): The key that can modify this contract
-        expiration_time (Optional[Timestamp]): When the contract will expire
-        auto_renew_period (Optional[Duration]): The period for which the contract will auto-renew
-        auto_renew_account_id (Optional[AccountId]):
+        contract_id (ContractId, optional): The ID of the contract
+        account_id (AccountId, optional): The ID of the account owned by the contract
+        contract_account_id (str, optional): The contract's EVM address (hex).
+        admin_key (PublicKey, optional): The key that can modify this contract
+        expiration_time (Timestamp, optional): When the contract will expire
+        auto_renew_period (Duration, optional): The period for which the contract will auto-renew
+        auto_renew_account_id (AccountId, optional):
             The ID of the account that will auto-renew the contract
-        storage (Optional[int]): The storage used by the contract
-        contract_memo (Optional[str]): The memo associated with the contract
-        balance (Optional[int]): The balance of the contract
-        is_deleted (Optional[bool]): Whether the contract has been deleted
-        ledger_id (Optional[bytes]): The ID of the ledger this contract exists in
-        max_automatic_token_associations (Optional[int]):
+        storage (int, optional): The storage used by the contract
+        contract_memo (str, optional): The memo associated with the contract
+        balance (int, optional): The balance of the contract
+        is_deleted (bool, optional): Whether the contract has been deleted
+        ledger_id (bytes, optional): The ID of the ledger this contract exists in
+        max_automatic_token_associations (int, optional):
             The maximum number of token associations that can be automatically renewed
         token_relationships (list[TokenRelationship]): The token relationships of the contract
-        staking_info (Optional[StakingInfo]): The staking information for this contract
+        staking_info (StakingInfo, optional): The staking information for this contract
     """
 
-    contract_id: Optional[ContractId] = None
-    account_id: Optional[AccountId] = None
-    contract_account_id: Optional[str] = None
-    admin_key: Optional[PublicKey] = None
-    expiration_time: Optional[Timestamp] = None
-    auto_renew_period: Optional[Duration] = None
-    auto_renew_account_id: Optional[AccountId] = None
-    storage: Optional[int] = None
-    contract_memo: Optional[str] = None
-    balance: Optional[int] = None
-    is_deleted: Optional[bool] = None
-    ledger_id: Optional[bytes] = None
-    max_automatic_token_associations: Optional[int] = None
+    contract_id: ContractId | None = None
+    account_id: AccountId | None = None
+    contract_account_id: str | None = None
+    admin_key: PublicKey | None = None
+    expiration_time: Timestamp | None = None
+    auto_renew_period: Duration | None = None
+    auto_renew_account_id: AccountId | None = None
+    storage: int | None = None
+    contract_memo: str | None = None
+    balance: int | None = None
+    is_deleted: bool | None = None
+    ledger_id: bytes | None = None
+    max_automatic_token_associations: int | None = None
     token_relationships: list[TokenRelationship] = field(default_factory=list)
-    staking_info: Optional[StakingInfo] = None
+    staking_info: StakingInfo | None = None
 
     @classmethod
-    def _from_proto(cls, proto: ContractGetInfoResponse.ContractInfo) -> "ContractInfo":
+    def _from_proto(cls, proto: ContractGetInfoResponse.ContractInfo) -> ContractInfo:
         """
         Creates a ContractInfo instance from its protobuf representation.
 
@@ -72,26 +72,14 @@ class ContractInfo:
         if proto is None:
             raise ValueError("Contract info proto is None")
 
-        contract_info = cls(
-            contract_id=(
-                cls._from_proto_field(proto, "contractID", ContractId._from_proto)
-            ),
-            account_id=(
-                cls._from_proto_field(proto, "accountID", AccountId._from_proto)
-            ),
+        return cls(
+            contract_id=(cls._from_proto_field(proto, "contractID", ContractId._from_proto)),
+            account_id=(cls._from_proto_field(proto, "accountID", AccountId._from_proto)),
             contract_account_id=proto.contractAccountID,
             admin_key=(cls._from_proto_field(proto, "adminKey", PublicKey._from_proto)),
-            expiration_time=(
-                cls._from_proto_field(proto, "expirationTime", Timestamp._from_protobuf)
-            ),
-            auto_renew_period=(
-                cls._from_proto_field(proto, "autoRenewPeriod", Duration._from_proto)
-            ),
-            auto_renew_account_id=(
-                cls._from_proto_field(
-                    proto, "auto_renew_account_id", AccountId._from_proto
-                )
-            ),
+            expiration_time=(cls._from_proto_field(proto, "expirationTime", Timestamp._from_protobuf)),
+            auto_renew_period=(cls._from_proto_field(proto, "autoRenewPeriod", Duration._from_proto)),
+            auto_renew_account_id=(cls._from_proto_field(proto, "auto_renew_account_id", AccountId._from_proto)),
             storage=proto.storage,
             contract_memo=proto.memo,
             balance=proto.balance,
@@ -99,17 +87,10 @@ class ContractInfo:
             ledger_id=proto.ledger_id,
             max_automatic_token_associations=proto.max_automatic_token_associations,
             token_relationships=[
-                TokenRelationship._from_proto(relationship)
-                for relationship in proto.tokenRelationships
+                TokenRelationship._from_proto(relationship) for relationship in proto.tokenRelationships
             ],
-            staking_info=(
-                StakingInfo._from_proto(proto.staking_info)
-                if proto.HasField('staking_info')
-                else None
-            ),
+            staking_info=(StakingInfo._from_proto(proto.staking_info) if proto.HasField("staking_info") else None),
         )
-
-        return contract_info
 
     def _to_proto(self) -> ContractGetInfoResponse.ContractInfo:
         """
@@ -123,25 +104,15 @@ class ContractInfo:
             contractID=self.contract_id._to_proto() if self.contract_id else None,
             contractAccountID=self.contract_account_id,
             adminKey=self.admin_key._to_proto() if self.admin_key else None,
-            expirationTime=(
-                self.expiration_time._to_protobuf() if self.expiration_time else None
-            ),
-            autoRenewPeriod=(
-                self.auto_renew_period._to_proto() if self.auto_renew_period else None
-            ),
+            expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
+            autoRenewPeriod=(self.auto_renew_period._to_proto() if self.auto_renew_period else None),
             storage=self.storage,
             memo=self.contract_memo,
             balance=self.balance,
             deleted=self.is_deleted,
-            tokenRelationships=[
-                relationship._to_proto() for relationship in self.token_relationships
-            ],
+            tokenRelationships=[relationship._to_proto() for relationship in self.token_relationships],
             ledger_id=self.ledger_id,
-            auto_renew_account_id=(
-                self.auto_renew_account_id._to_proto()
-                if self.auto_renew_account_id
-                else None
-            ),
+            auto_renew_account_id=(self.auto_renew_account_id._to_proto() if self.auto_renew_account_id else None),
             max_automatic_token_associations=self.max_automatic_token_associations,
             staking_info=self.staking_info._to_proto() if self.staking_info else None,
         )
@@ -156,9 +127,7 @@ class ContractInfo:
         return self.__str__()
 
     def __str__(self) -> str:
-        """
-        Pretty-print the ContractInfo.
-        """
+        """Pretty-print the ContractInfo."""
         # Format expiration time as datetime if available
         exp_dt = (
             datetime.datetime.fromtimestamp(self.expiration_time.seconds)
@@ -168,16 +137,12 @@ class ContractInfo:
 
         # Format keys as readable strings
         token_relationships_str = (
-            [str(relationship) for relationship in self.token_relationships]
-            if self.token_relationships
-            else []
+            [str(relationship) for relationship in self.token_relationships] if self.token_relationships else []
         )
 
         # Format ledger_id as hex if it's bytes
         ledger_id_display = (
-            f"0x{self.ledger_id.hex()}"
-            if isinstance(self.ledger_id, (bytes, bytearray))
-            else self.ledger_id
+            f"0x{self.ledger_id.hex()}" if isinstance(self.ledger_id, (bytes, bytearray)) else self.ledger_id
         )
 
         return (

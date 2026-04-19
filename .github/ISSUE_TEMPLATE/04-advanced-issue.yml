@@ -1,0 +1,152 @@
+name: Advanced Issue Template
+description: For expert contributors tackling architectural, multi-module, or core-logic changes.
+labels: ["advanced"]
+assignees: []
+
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ## **Thanks for creating an advanced issue!** 😊
+
+        Advanced issues are high-ownership, high-impact tasks requiring expert-level architectural understanding and significant independent research.
+
+        Read more:
+        > [Applying Advanced Label](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-maintainers/labelling-issues-examples.md)
+        > [Issue Progression System](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-maintainers/README.md)
+        ---
+
+  - type: textarea
+    id: intro
+    attributes:
+      label: 🧑‍🔬 Advanced Issue
+      description: |
+        Adapt as needed. Welcome message.
+      value: |
+        Welcome! This is an **[Advanced Issue](https://github.com/issues?q=is%3Aopen%20is%3Aissue%20org%3Ahiero-ledger%20archived%3Afalse%20no%3Aassignee%20(label%3A%22advanced%22%20OR%20label%3A%22skill%3A%20advanced%22)%20(repo%3Ahiero-ledger%2Fhiero-sdk-cpp%20OR%20repo%3Ahiero-ledger%2Fhiero-sdk-swift%20OR%20repo%3Ahiero-ledger%2Fhiero-sdk-python%20OR%20repo%3Ahiero-ledger%2Fhiero-sdk-js%20OR%20repo%3Ahiero-ledger%2Fhiero-website))** touching core SDK architecture.
+
+        It is designed for expert contributors who have demonstrated deep architectural understanding and a proven track record of high-quality contributions.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 🐞 Problem Description
+      description: |
+        Clearly articulate the problem and its impact. The solution may be unclear or require significant research.
+      value: |
+        <!-- Describe the issue here -->
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 🛠️ Implementation Notes
+      description: |
+        Provide implementation context to understand the complexity and possible approaches.
+
+        Add:
+        - Implementation ideas
+        - Clarify what is unknown or uncertain about the implementation
+        - Highlight any key risks or complexities
+      value: |
+        <!-- Describe the implementation notes -->
+    validations:
+      required: true
+
+  - type: textarea
+    id: advanced_contributors
+    attributes:
+      label: 🧠 Advanced Contributors — Prerequisites & Expectations
+      description: |
+        Adapt as needed. Concrete requirements before claiming this advanced issue. Adapt as needed.
+      value: |
+        > [!CAUTION]
+        > **Advanced issues are the highest-risk work in this project. We will reject PRs that do not meet these standards.**
+
+        ### 🏁 Concrete Prerequisites
+        - **Advanced Language:** Proficient with Python.
+        - **Expertise:** Deep architectural understanding of `_Executable`, `Transaction`, and `Query` base classes.
+        - **Proven History:** Successfully completed **≥ 10 intermediate issues** in this repo.
+        - **Consistency:** **≥ 3–4 months** of active, human-led contributions to this SDK.
+
+        > [!NOTE]
+        > **CI/CD Exception:** For issues focused on **GitHub Actions / Workflows**, the repo-specific thresholds above may be waived if the contributor demonstrates advanced-level proficiency in CI/CD.
+
+        ### ⚠️ AI Usage Policy
+
+        - Using AI to generate code for Advanced issues is **strictly discouraged**
+        - AI may be used to help explain file relationships, but cannot be the main source of research.
+        - Submitting AI-generated or unvalidated code is grounds for **immediate closure**
+
+        ### ⏱️ Timeline & Workflow
+        - **Typical time:** ~1 month / ~50 hours.
+        - 🔴 Completing an advanced issue in 1–3 days is a **red flag** and will likely be rejected.
+        - **Suggested:** Post your proposed architectural approach as a comment and wait for explicit maintainer approval **before writing any code.**
+
+  - type: textarea
+    id: domains
+    attributes:
+      label: 🔬 Technical Domains
+      description: |
+        Adapt as needed. Technical areas this issue touches to help developers self-select based on expertise.
+      value: |
+        <!-- Edit Technical Domains If needed -->
+
+        - [ ] **API Client Architecture** (request → serialization → execution → response mapping)
+        - [ ] **Backward Compatibility** (preserving method signatures, defaults, and return types)
+        - [ ] **Protobuf Alignment** (reading `.proto` files, `_to_proto()` / `_from_proto()` correctness)
+        - [ ] **State & Immutability** (correct usage of guards like `_require_not_frozen`)
+        - [ ] **Execution Boundaries** (retry logic, backoff, node selection, gRPC deadlines)
+        - [ ] **Testing** (unit, integration, mocking, test coverage for edge cases and failure modes)
+
+  - type: textarea
+    id: quality_standards
+    attributes:
+      label: 🛡️ Quality & Review Standards
+      description: |
+        Adapt as needed. The quality standards expected for advanced PRs.
+      value: |
+        Advanced PRs must be **"safe, maintainable, architecturally sound, and production-ready."**
+
+        1. **Architectural Fit:** The solution must fit naturally into the existing SDK abstractions.
+        2. **Security & Correctness:** Evaluate all logic for injection risks, state corruption, or thread-safety issues.
+        3. **Maintainability:** Code must be short and clear enough for any other maintainer to debug without your assistance.
+        4. **Backward Compatibility:** Public API signatures must be preserved. If a breaking change is required, it must be explicitly managed through a deprecation cycle.
+        5. **Comprehensive Testing:** Must include unit and integration tests covering all new logic paths, edge cases, and failure modes. AI generated tests based on AI generated code is grounds for immediate rejection.
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: ✅ PR Quality Checklist
+      description: |
+        Adapt as needed. These are the standards the contributor must meet before opening a PR.
+      value: |
+        Before opening your PR, the contributor must confirm:
+        - [ ] I have spent the majority of my time researching the problem and solution space extensively, including reviewing relevant code, documentation, and external resources.
+        - [ ] I understand the system-wide impact of these changes on affected modules and performance.
+        - [ ] The system design fits with current Hiero SDK architectural approaches.
+        - [ ] I have tested my changes extensively against both local and network environments.
+        - [ ] I have verified naming, types, and field ordering against pinned Protobufs.
+        - [ ] Every line of code is personally understood and explainable.
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: 📚 Resources & Support
+      value: |
+        **References:**
+        - [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs)
+
+        **Python SDK References:**
+        - [SDK Project Structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
+        - [Transaction Lifecycle](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/transaction_lifecycle.md)
+        - [Executable Architecture](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/executable.md)
+        - [Hedera Protobufs (services)](https://github.com/hashgraph/hedera-protobufs/tree/main/services)
+        - [Browse closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aadvanced) — see how others did it
+
+        **🆘 Stuck?**
+        - [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)
+        - [Discord](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md)

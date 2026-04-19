@@ -2,6 +2,8 @@
 Unit tests for the ContractCreateTransaction class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -34,6 +36,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -72,9 +75,7 @@ def test_constructor_with_parameters(contract_params):
         contract_memo=contract_params["contract_memo"],
         bytecode=contract_params["bytecode"],
         auto_renew_account_id=contract_params["auto_renew_account_id"],
-        max_automatic_token_associations=contract_params[
-            "max_automatic_token_associations"
-        ],
+        max_automatic_token_associations=contract_params["max_automatic_token_associations"],
         staked_account_id=contract_params["staked_account_id"],
         staked_node_id=contract_params["staked_node_id"],
         decline_reward=contract_params["decline_reward"],
@@ -92,10 +93,7 @@ def test_constructor_with_parameters(contract_params):
     assert contract_tx.contract_memo == contract_params["contract_memo"]
     assert contract_tx.bytecode == contract_params["bytecode"]
     assert contract_tx.auto_renew_account_id == contract_params["auto_renew_account_id"]
-    assert (
-        contract_tx.max_automatic_token_associations
-        == contract_params["max_automatic_token_associations"]
-    )
+    assert contract_tx.max_automatic_token_associations == contract_params["max_automatic_token_associations"]
     assert contract_tx.staked_account_id == contract_params["staked_account_id"]
     assert contract_tx.staked_node_id == contract_params["staked_node_id"]
     assert contract_tx.decline_reward == contract_params["decline_reward"]
@@ -122,9 +120,7 @@ def test_constructor_default_values():
     assert contract_tx.decline_reward is None
 
 
-def test_build_transaction_body_with_bytecode_file_id(
-    mock_account_ids, contract_params
-):
+def test_build_transaction_body_with_bytecode_file_id(mock_account_ids, contract_params):
     """Test building a contract create transaction body with bytecode file ID."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
 
@@ -145,26 +141,12 @@ def test_build_transaction_body_with_bytecode_file_id(
 
     transaction_body = contract_tx.build_transaction_body()
 
-    assert (
-        transaction_body.contractCreateInstance.fileID
-        == contract_params["bytecode_file_id"]._to_proto()
-    )
+    assert transaction_body.contractCreateInstance.fileID == contract_params["bytecode_file_id"]._to_proto()
     assert transaction_body.contractCreateInstance.gas == contract_params["gas"]
-    assert (
-        transaction_body.contractCreateInstance.initialBalance
-        == contract_params["initial_balance"]
-    )
-    assert (
-        transaction_body.contractCreateInstance.adminKey
-        == contract_params["admin_key"]._to_proto()
-    )
-    assert (
-        transaction_body.contractCreateInstance.memo == contract_params["contract_memo"]
-    )
-    assert (
-        transaction_body.contractCreateInstance.constructorParameters
-        == contract_params["parameters"]
-    )
+    assert transaction_body.contractCreateInstance.initialBalance == contract_params["initial_balance"]
+    assert transaction_body.contractCreateInstance.adminKey == contract_params["admin_key"]._to_proto()
+    assert transaction_body.contractCreateInstance.memo == contract_params["contract_memo"]
+    assert transaction_body.contractCreateInstance.constructorParameters == contract_params["parameters"]
     assert transaction_body.contractCreateInstance.initcode == b""
 
 
@@ -186,14 +168,9 @@ def test_build_transaction_body_with_bytecode(mock_account_ids, contract_params)
 
     transaction_body = contract_tx.build_transaction_body()
 
-    assert (
-        transaction_body.contractCreateInstance.initcode == contract_params["bytecode"]
-    )
+    assert transaction_body.contractCreateInstance.initcode == contract_params["bytecode"]
     assert transaction_body.contractCreateInstance.gas == contract_params["gas"]
-    assert (
-        transaction_body.contractCreateInstance.initialBalance
-        == contract_params["initial_balance"]
-    )
+    assert transaction_body.contractCreateInstance.initialBalance == contract_params["initial_balance"]
     assert not transaction_body.contractCreateInstance.HasField("fileID")
 
 
@@ -223,26 +200,12 @@ def test_build_scheduled_body(mock_account_ids, contract_params):
     assert isinstance(schedulable_body, SchedulableTransactionBody)
 
     # Verify fields in the schedulable body
-    assert (
-        schedulable_body.contractCreateInstance.fileID
-        == contract_params["bytecode_file_id"]._to_proto()
-    )
+    assert schedulable_body.contractCreateInstance.fileID == contract_params["bytecode_file_id"]._to_proto()
     assert schedulable_body.contractCreateInstance.gas == contract_params["gas"]
-    assert (
-        schedulable_body.contractCreateInstance.initialBalance
-        == contract_params["initial_balance"]
-    )
-    assert (
-        schedulable_body.contractCreateInstance.adminKey
-        == contract_params["admin_key"]._to_proto()
-    )
-    assert (
-        schedulable_body.contractCreateInstance.memo == contract_params["contract_memo"]
-    )
-    assert (
-        schedulable_body.contractCreateInstance.constructorParameters
-        == contract_params["parameters"]
-    )
+    assert schedulable_body.contractCreateInstance.initialBalance == contract_params["initial_balance"]
+    assert schedulable_body.contractCreateInstance.adminKey == contract_params["admin_key"]._to_proto()
+    assert schedulable_body.contractCreateInstance.memo == contract_params["contract_memo"]
+    assert schedulable_body.contractCreateInstance.constructorParameters == contract_params["parameters"]
     assert schedulable_body.contractCreateInstance.initcode == b""
 
 
@@ -251,15 +214,11 @@ def test_build_transaction_body_validation_errors():
     # Test missing bytecode_file_id and bytecode
     contract_tx = ContractCreateTransaction()
 
-    with pytest.raises(
-        ValueError, match="Either bytecode_file_id or bytecode must be provided"
-    ):
+    with pytest.raises(ValueError, match="Either bytecode_file_id or bytecode must be provided"):
         contract_tx.build_transaction_body()
 
     # Test missing gas
-    contract_tx = ContractCreateTransaction(
-        contract_params=ContractCreateParams(bytecode=b"test bytecode")
-    )
+    contract_tx = ContractCreateTransaction(contract_params=ContractCreateParams(bytecode=b"test bytecode"))
 
     with pytest.raises(ValueError, match="Gas limit must be provided"):
         contract_tx.build_transaction_body()
@@ -319,9 +278,7 @@ def test_set_methods(contract_params):
 def test_set_bytecode_clears_file_id(contract_params):
     """Test that setting bytecode clears the bytecode_file_id."""
     contract_tx = ContractCreateTransaction(
-        contract_params=ContractCreateParams(
-            bytecode_file_id=contract_params["bytecode_file_id"]
-        )
+        contract_params=ContractCreateParams(bytecode_file_id=contract_params["bytecode_file_id"])
     )
 
     assert contract_tx.bytecode_file_id is not None
@@ -386,9 +343,7 @@ def test_set_methods_require_not_frozen(mock_client, contract_params):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(contract_tx, method_name)(value)
 
 
@@ -407,9 +362,7 @@ def test_contract_create_transaction_can_execute():
     # Create a response for the receipt query
     receipt_query_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=mock_receipt_proto,
         )
     )
@@ -431,9 +384,7 @@ def test_contract_create_transaction_can_execute():
 
         receipt = transaction.execute(client)
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), "Transaction should have succeeded"
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
         assert receipt.contract_id.contract == 1234
 
 

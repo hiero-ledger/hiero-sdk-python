@@ -1,0 +1,69 @@
+name: Secondary PR Check - Examples
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  run-examples:
+    runs-on: ${{ (github.repository_owner != 'hiero-ledger' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork)) && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        with:
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Generate Proto Files
+        run: uv run python generate_proto.py
+
+      - name: Prepare Hiero Solo
+        id: solo
+        uses: hiero-ledger/hiero-solo-action@692b186bd2e4c8d46b9deb1c067dc6ddcf0abcd7 #v0.15.0
+        with:
+          installMirrorNode: true
+      - name: Run Examples
+        env:
+          OPERATOR_ID: ${{ steps.solo.outputs.accountId }}
+          OPERATOR_KEY: ${{ steps.solo.outputs.privateKey }}
+          CHAIN_ID: 012A
+          NETWORK: solo
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PYTHONPATH="$PWD"
+
+          files=$(find examples -name "*.py" -type f ! -name "__init__.py")
+
+          for file in $files; do
+            echo -e "\n************ ${file} ************"
+
+            # Convert path to module name
+            module=$(realpath --relative-to="$PWD" "$file" | sed 's|/|.|g' | sed 's|.py$||')
+
+            if ! output=$(uv run -m "$module" 2>&1); then
+              echo -e "\n❌ Example failed: ${file}"
+              echo "************ Error Output ************"
+              echo "$output"
+              echo "**************************************"
+              exit 1
+            fi
+
+            echo "$output"
+            echo "✅ Completed ${file} successfully."
+          done

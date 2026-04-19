@@ -1,20 +1,21 @@
-"""
-AccountId class.
-"""
+"""AccountId class."""
+
+from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING
 
 from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.utils.entity_id_helper import (
-    parse_from_string,
-    validate_checksum,
     format_to_string_with_checksum,
+    parse_from_string,
     perform_query_to_mirror_node,
     to_solidity_address,
+    validate_checksum,
 )
+
 
 if TYPE_CHECKING:
     from hiero_sdk_python.client.client import Client
@@ -41,11 +42,12 @@ class AccountId:
         shard: int = 0,
         realm: int = 0,
         num: int = 0,
-        alias_key: Optional[PublicKey] = None,
-        evm_address: Optional[EvmAddress] = None,
+        alias_key: PublicKey | None = None,
+        evm_address: EvmAddress | None = None,
     ) -> None:
         """
         Initialize a new AccountId instance.
+
         Args:
             shard (int): The shard number of the account.
             realm (int): The realm number of the account.
@@ -61,14 +63,14 @@ class AccountId:
         self.__checksum: str | None = None
 
     @classmethod
-    def from_string(cls, account_id_str: str) -> "AccountId":
+    def from_string(cls, account_id_str: str) -> AccountId:
         """
         Creates an AccountId instance from a string.
         Supported formats:
         - shard.realm.num
         - shard.realm.num-checksum
         - shard.realm.<hex-alias>
-        - 0x-prefixed or raw 20-byte hex EVM address
+        - 0x-prefixed or raw 20-byte hex EVM address.
 
         Args:
             account_id_str (str): Account ID string
@@ -80,9 +82,7 @@ class AccountId:
             ValueError: If the string format is invalid
         """
         if account_id_str is None or not isinstance(account_id_str, str):
-            raise TypeError(
-                f"account_id_str must be a string, got {type(account_id_str).__name__}."
-            )
+            raise TypeError(f"account_id_str must be a string, got {type(account_id_str).__name__}.")
 
         if cls._is_evm_address(account_id_str):
             # Detect EVM address input (raw 20-byte hex or 0x-prefixed).
@@ -94,9 +94,7 @@ class AccountId:
         try:
             shard, realm, num, checksum = parse_from_string(account_id_str)
 
-            account_id: AccountId = cls(
-                shard=int(shard), realm=int(realm), num=int(num)
-            )
+            account_id: AccountId = cls(shard=int(shard), realm=int(realm), num=int(num))
             account_id.__checksum = checksum
 
             return account_id
@@ -115,14 +113,8 @@ class AccountId:
                     shard=int(shard),
                     realm=int(realm),
                     num=0,
-                    alias_key=(
-                        PublicKey.from_bytes(alias_bytes)
-                        if not is_evm_address
-                        else None
-                    ),
-                    evm_address=(
-                        EvmAddress.from_bytes(alias_bytes) if is_evm_address else None
-                    ),
+                    alias_key=(PublicKey.from_bytes(alias_bytes) if not is_evm_address else None),
+                    evm_address=(EvmAddress.from_bytes(alias_bytes) if is_evm_address else None),
                 )
 
             raise ValueError(
@@ -135,12 +127,10 @@ class AccountId:
             ) from e
 
     @classmethod
-    def from_evm_address(
-        cls, evm_address: Union[str, EvmAddress], shard: int, realm: int
-    ) -> "AccountId":
+    def from_evm_address(cls, evm_address: str | EvmAddress, shard: int, realm: int) -> AccountId:
         """
         Create an AccountId from an EVM address.
-        In case shard and realm are unknown, they should be set to zero
+        In case shard and realm are unknown, they should be set to zero.
 
         Args:
             evm_address (Union[str, EvmAddress]): EVM address string or object
@@ -160,9 +150,7 @@ class AccountId:
                 raise ValueError(f"Invalid EVM address string: {evm_address}") from e
 
         elif not isinstance(evm_address, EvmAddress):
-            raise TypeError(
-                f"evm_address must be a str or EvmAddress, got {type(evm_address).__name__}"
-            )
+            raise TypeError(f"evm_address must be a str or EvmAddress, got {type(evm_address).__name__}")
 
         return cls(
             shard=shard,
@@ -173,7 +161,7 @@ class AccountId:
         )
 
     @classmethod
-    def from_bytes(cls, data: bytes) -> "AccountId":
+    def from_bytes(cls, data: bytes) -> AccountId:
         """
         Deserialize an AccountId from protobuf-encoded bytes.
 
@@ -186,7 +174,7 @@ class AccountId:
         return cls._from_proto(basic_types_pb2.AccountID.FromString(data))
 
     @classmethod
-    def _from_proto(cls, account_id_proto: basic_types_pb2.AccountID) -> "AccountId":
+    def _from_proto(cls, account_id_proto: basic_types_pb2.AccountID) -> AccountId:
         """
         Creates an AccountId instance from a protobuf AccountID object.
 
@@ -234,15 +222,13 @@ class AccountId:
 
     @property
     def checksum(self) -> str | None:
-        """Checksum of the accountId"""
+        """Checksum of the accountId."""
         return self.__checksum
 
-    def validate_checksum(self, client: "Client") -> None:
-        """Validate the checksum for the accountId"""
+    def validate_checksum(self, client: Client) -> None:
+        """Validate the checksum for the accountId."""
         if self.alias_key is not None or self.evm_address is not None:
-            raise ValueError(
-                "Cannot calculate checksum with an account ID that has a aliasKey or evmAddress"
-            )
+            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey or evmAddress")
 
         validate_checksum(
             self.shard,
@@ -254,7 +240,7 @@ class AccountId:
 
     @staticmethod
     def _is_evm_address(value: str) -> bool:
-        """Check if the given string value is an evm_address"""
+        """Check if the given string value is an evm_address."""
         if value.startswith("0x"):
             value = value[2:]
 
@@ -269,28 +255,24 @@ class AccountId:
         return True
 
     def __str__(self) -> str:
-        """
-        Returns the string representation of the AccountId in 'shard.realm.num' format.
-        """
+        """Returns the string representation of the AccountId in 'shard.realm.num' format."""
         if self.alias_key:
             return f"{self.shard}.{self.realm}.{self.alias_key.to_string()}"
         if self.evm_address:
             return f"{self.shard}.{self.realm}.{self.evm_address.to_string()}"
         return f"{self.shard}.{self.realm}.{self.num}"
 
-    def to_string_with_checksum(self, client: "Client") -> str:
+    def to_string_with_checksum(self, client: Client) -> str:
         """
         Returns the string representation of the AccountId with checksum
         in 'shard.realm.num-checksum' format.
         """
         if self.alias_key is not None or self.evm_address is not None:
-            raise ValueError(
-                "Cannot calculate checksum with an account ID that has a aliasKey or evmAddress"
-            )
+            raise ValueError("Cannot calculate checksum with an account ID that has a aliasKey or evmAddress")
 
         return format_to_string_with_checksum(self.shard, self.realm, self.num, client)
 
-    def populate_account_num(self, client: "Client") -> "AccountId":
+    def populate_account_num(self, client: Client) -> AccountId:
         """
         Populate the numeric account ID using the Mirror Node.
         Intended for AccountIds created from EVM addresses.
@@ -319,8 +301,7 @@ class AccountId:
 
         except RuntimeError as e:
             raise RuntimeError(
-                "Failed to populate account number from mirror node for evm_address "
-                f"{self.evm_address.to_string()}"
+                f"Failed to populate account number from mirror node for evm_address {self.evm_address.to_string()}"
             ) from e
 
         try:
@@ -334,7 +315,7 @@ class AccountId:
         except (ValueError, AttributeError) as e:
             raise ValueError(f"Invalid account format received: {account_id}") from e
 
-    def populate_evm_address(self, client: "Client") -> "AccountId":
+    def populate_evm_address(self, client: Client) -> AccountId:
         """
         Populate the EVM address using the Mirror Node.
 
@@ -362,17 +343,13 @@ class AccountId:
                 raise ValueError("Mirror node response missing 'evm_address'")
 
         except RuntimeError as e:
-            raise RuntimeError(
-                f"Failed to populate evm_address from mirror node for account {self.num}"
-            ) from e
+            raise RuntimeError(f"Failed to populate evm_address from mirror node for account {self.num}") from e
 
         evm_address = EvmAddress.from_string(evm_addr)
-        return AccountId(
-            shard=self.shard, realm=self.realm, num=self.num, evm_address=evm_address
-        )
+        return AccountId(shard=self.shard, realm=self.realm, num=self.num, evm_address=evm_address)
 
     def to_evm_address(self) -> str:
-        """Return the EVM-compatible address for this account. Using account num"""
+        """Return the EVM-compatible address for this account. Using account num."""
         if self.evm_address:
             return self.evm_address.to_string()
 
@@ -383,26 +360,20 @@ class AccountId:
         return self._to_proto().SerializeToString()
 
     def __repr__(self) -> str:
-        """
-        Returns the repr representation of the AccountId.
-        """
+        """Returns the repr representation of the AccountId."""
         if self.alias_key:
-            return (
-                f"AccountId(shard={self.shard}, realm={self.realm}, "
-                f"alias_key={self.alias_key.to_string_raw()})"
-            )
+            return f"AccountId(shard={self.shard}, realm={self.realm}, alias_key={self.alias_key.to_string_raw()})"
         if self.evm_address:
-            return (
-                f"AccountId(shard={self.shard}, realm={self.realm}, "
-                f"evm_address={self.evm_address.to_string()})"
-            )
+            return f"AccountId(shard={self.shard}, realm={self.realm}, evm_address={self.evm_address.to_string()})"
         return f"AccountId(shard={self.shard}, realm={self.realm}, num={self.num})"
 
     def __eq__(self, other: object) -> bool:
         """
         Checks equality between two AccountId instances.
+
         Args:
             other (object): The object to compare with.
+
         Returns:
             bool: True if both instances are equal, False otherwise.
         """

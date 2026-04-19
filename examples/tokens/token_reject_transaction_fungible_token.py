@@ -5,6 +5,7 @@ Example demonstrating token reject transaction fungible token.
 uv run examples/tokens/token_reject_transaction_fungible_token.py
 python examples/tokens/token_reject_transaction_fungible_token.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -31,6 +32,7 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
+
 def create_test_account(client):
     """Create a new account for testing."""
     # Generate private key for new account
@@ -47,9 +49,7 @@ def create_test_account(client):
 
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     # Get account ID from receipt
@@ -59,7 +59,7 @@ def create_test_account(client):
     return account_id, new_account_private_key
 
 
-def create_fungible_token(client: "Client", treasury_id, treasury_private_key):
+def create_fungible_token(client: Client, treasury_id, treasury_private_key):
     """Create a fungible token."""
     receipt = (
         TokenCreateTransaction()
@@ -82,9 +82,7 @@ def create_fungible_token(client: "Client", treasury_id, treasury_private_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     token_id = receipt.token_id
@@ -106,17 +104,13 @@ def associate_token(client, receiver_id, token_id, receiver_private_key):
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token association failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Token successfully associated with account: {receiver_id}")
 
 
-def transfer_tokens(
-    client, treasury_id, treasury_private_key, receiver_id, token_id, amount=10
-):
+def transfer_tokens(client, treasury_id, treasury_private_key, receiver_id, token_id, amount=10):
     """Transfer tokens to the receiver account so we can later reject them."""
     # Transfer tokens to the receiver account
     receipt = (
@@ -138,19 +132,11 @@ def transfer_tokens(
 
 def get_token_balances(client, treasury_id, receiver_id, token_id):
     """Get token balances for both accounts."""
-    token_balance = (
-        CryptoGetAccountBalanceQuery().set_account_id(treasury_id).execute(client)
-    )
-    print(
-        f"Token balance of treasury {treasury_id}: {token_balance.token_balances[token_id]}"
-    )
+    token_balance = CryptoGetAccountBalanceQuery().set_account_id(treasury_id).execute(client)
+    print(f"Token balance of treasury {treasury_id}: {token_balance.token_balances[token_id]}")
 
-    receiver_token_balance = (
-        CryptoGetAccountBalanceQuery().set_account_id(receiver_id).execute(client)
-    )
-    print(
-        f"Token balance of receiver {receiver_id}: {receiver_token_balance.token_balances[token_id]}"
-    )
+    receiver_token_balance = CryptoGetAccountBalanceQuery().set_account_id(receiver_id).execute(client)
+    print(f"Token balance of receiver {receiver_id}: {receiver_token_balance.token_balances[token_id]}")
 
 
 def token_reject_fungible():
@@ -194,9 +180,7 @@ def token_reject_fungible():
     )
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token rejection failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token rejection failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print(f"Successfully rejected token {token_id} from account {receiver_id}")

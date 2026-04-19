@@ -9,6 +9,7 @@ A modular example demonstrating token association on Hedera testnet.
 This script shows the complete workflow: client setup, account creation,
 token creation, token association, and verification.
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -59,9 +60,7 @@ def create_test_account(client, operator_key):
         )
 
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
         new_account_id = receipt.account_id
         print(f"✅ Success! Created new account with ID: {new_account_id}")
@@ -100,9 +99,7 @@ def create_fungible_token(client, operator_id, operator_key):
         )
 
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
@@ -137,9 +134,7 @@ def associate_token_with_account(client, token_id, account_id, account_key):
         )
 
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Token association failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Token association failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
         print("✅ Success! Token association complete.")
         print(f"   Account {account_id} can now hold and transfer token {token_id}")
@@ -148,9 +143,7 @@ def associate_token_with_account(client, token_id, account_id, account_key):
         sys.exit(1)
 
 
-def associate_two_tokens_mixed_types_with_set_token_ids(
-    client, token_id_1, token_id_2, account_id, account_key
-):
+def associate_two_tokens_mixed_types_with_set_token_ids(client, token_id_1, token_id_2, account_id, account_key):
     """
     Associate two tokens using set_token_ids() with mixed types:
 
@@ -173,16 +166,11 @@ def associate_two_tokens_mixed_types_with_set_token_ids(
         )
 
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Token association (mixed types) failed with status: "
-                f"{ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Token association (mixed types) failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
         print("✅ Success! Token association completed.")
-        print(
-            f"   Account {account_id} can now hold and transfer tokens {token_id_1} and {token_id_2}"
-        )
+        print(f"   Account {account_id} can now hold and transfer tokens {token_id_1} and {token_id_2}")
     except Exception as e:
         print(f"❌ Error in while associating tokens: {e}")
         sys.exit(1)
@@ -209,19 +197,12 @@ def demonstrate_invalid_set_token_ids_usage(client, account_id, account_key):
         )
 
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Token creation failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
     except Exception as e:
-        if (
-            type(e) == TypeError
-            and "Invalid token_id type: expected TokenId or str, got" in e.args[0]
-        ):
-            print(
-                "✅ Correct behavior: invalid token_id type was rejected from `set_token_ids`"
-            )
+        if type(e) is TypeError and "Invalid token_id type: expected TokenId or str, got" in e.args[0]:
+            print("✅ Correct behavior: invalid token_id type was rejected from `set_token_ids`")
             print(f"   Error: {e}")
         else:
             print(f"❌ Unexpected error while creating transaction: {e}")
@@ -249,9 +230,7 @@ def verify_token_association(client, account_id, token_id):
             for relationship in info.token_relationships:
                 if str(relationship.token_id) == str(token_id):
                     print("✅ Verification Successful!")
-                    print(
-                        f"   Token {token_id} is associated with account {account_id}"
-                    )
+                    print(f"   Token {token_id} is associated with account {account_id}")
                     print(f"   Balance: {relationship.balance}")
                     return True
         print("❌ Verification Failed!")
@@ -306,12 +285,8 @@ def main():
     associate_token_with_account(client, token_id_0, account_id, account_private_key)
 
     # Step 6: Associate multiple tokens with the new account
-    print(
-        f"\nSTEP 6: Associating token {token_id_1} and token {token_id_2} with account {account_id}..."
-    )
-    associate_two_tokens_mixed_types_with_set_token_ids(
-        client, token_id_1, token_id_2, account_id, account_private_key
-    )
+    print(f"\nSTEP 6: Associating token {token_id_1} and token {token_id_2} with account {account_id}...")
+    associate_two_tokens_mixed_types_with_set_token_ids(client, token_id_1, token_id_2, account_id, account_private_key)
 
     # Step 7: Verify the token association
     print("\nSTEP 7: Verifying token association...")

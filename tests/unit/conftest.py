@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import hashlib
-import time
 
 import pytest
 
@@ -13,7 +14,6 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.logger.log_level import LogLevel
 from hiero_sdk_python.node import _Node
-from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -52,7 +52,7 @@ def amount():
 @pytest.fixture
 def metadata():
     """Fixture to provide mock metadata for NFTs."""
-    return [b'a']
+    return [b"a"]
 
 
 @pytest.fixture

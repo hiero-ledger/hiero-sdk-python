@@ -2,6 +2,8 @@
 Integration tests for AccountId.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -11,7 +13,7 @@ from hiero_sdk_python.query.transaction_get_receipt_query import (
     TransactionGetReceiptQuery,
 )
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from tests.integration.utils import env, wait_for_mirror_node
+from tests.integration.utils import wait_for_mirror_node
 
 
 @pytest.fixture
@@ -44,9 +46,7 @@ def test_populate_account_id_num(env, evm_address):
     )
 
     assert transfer_receipt is not None
-    assert (
-        len(transfer_receipt.children) > 0
-    ), "Expected child transaction for auto-account creation"
+    assert len(transfer_receipt.children) > 0, "Expected child transaction for auto-account creation"
 
     created_account_id = transfer_receipt.children[0].account_id
     assert created_account_id is not None, f"AccountId not found in child transaction: {transfer_receipt.children[0]}"
@@ -87,9 +87,7 @@ def test_populate_account_id_evm_address(env, evm_address):
     )
 
     assert transfer_receipt is not None
-    assert (
-        len(transfer_receipt.children) > 0
-    ), "Expected child transaction for auto-account creation"
+    assert len(transfer_receipt.children) > 0, "Expected child transaction for auto-account creation"
 
     created_account_id = transfer_receipt.children[0].account_id
     assert created_account_id is not None, f"AccountId not found in child transaction: {transfer_receipt.children[0]}"

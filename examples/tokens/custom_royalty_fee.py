@@ -6,6 +6,7 @@ Run with:
 uv run examples/tokens/custom_royalty_fee.py
 python examples/tokens/custom_royalty_fee.py
 """
+
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
@@ -67,9 +68,7 @@ def create_token_with_fee(client, royalty_fee):
     receipt = transaction.execute(client)
     if receipt.status != ResponseCode.SUCCESS:
         print(f"Token creation failed: {ResponseCode(receipt.status).name}")
-        raise RuntimeError(
-            f"Token creation failed: {ResponseCode(receipt.status).name}"
-        )
+        raise RuntimeError(f"Token creation failed: {ResponseCode(receipt.status).name}")
 
     token_id = receipt.token_id
     print(f"Token created successfully with ID: {token_id}")

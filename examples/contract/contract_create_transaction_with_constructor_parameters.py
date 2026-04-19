@@ -16,6 +16,7 @@ Usage:
     uv run -m examples.contract.contract_create_transaction_with_constructor_parameters
     python -m examples.contract.contract_create_transaction_with_constructor_parameters
 """
+
 import os
 import sys
 
@@ -31,6 +32,7 @@ from hiero_sdk_python.response_code import ResponseCode
 # Import the bytecode for a basic smart contract (SimpleContract.sol) that can be deployed
 # The contract bytecode is pre-compiled from Solidity source code
 from .contracts import SIMPLE_CONTRACT_BYTECODE
+
 
 load_dotenv()
 
@@ -63,9 +65,7 @@ def create_contract_file(client):
 
     # Check if file creation was successful
     if file_receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"File creation failed with status: {ResponseCode(file_receipt.status).name}"
-        )
+        print(f"File creation failed with status: {ResponseCode(file_receipt.status).name}")
         sys.exit(1)
 
     return file_receipt.file_id
@@ -94,9 +94,7 @@ def contract_create():
 
     # Check if contract creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Contract creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     contract_id = receipt.contract_id

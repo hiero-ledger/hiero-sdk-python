@@ -3,22 +3,19 @@ name: Publish to PyPI
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 permissions:
   contents: read
 
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/p/hiero-sdk-python
-    permissions:
-      id-token: write
+  build:
+    name: Build distributions
+    runs-on: hl-sdk-py-lin-md
+
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
         with:
           egress-policy: audit
 
@@ -27,12 +24,14 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.14'
 
       - name: Upgrade pip
-        run: pip install --upgrade pip
+        run: pip install "pip==26.0.1"
 
       - name: Install build, pdm-backend, and grpcio-tools
-        run: pip install build pdm-backend "grpcio-tools==1.68.1"
+        run: pip install build pdm-backend "grpcio-tools==1.76.0"
 
       - name: Generate Protobuf
         run: python generate_proto.py
@@ -40,5 +39,76 @@ jobs:
       - name: Build wheel and sdist
         run: python -m build
 
+      - name: Upload distributions
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: dist
+          path: dist/*
+          if-no-files-found: error
+
+  publish-and-sign:
+    name: Publish and sign release artifacts
+    needs: build
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: false
+    runs-on: hl-sdk-py-lin-md
+    environment:
+      name: pypi
+      url: https://pypi.org/p/hiero-sdk-python
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        with:
+          egress-policy: audit
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.14'
+
+      - name: Download distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dist
+          path: dist
+
+      - name: Sign release distributions with Sigstore
+        uses: sigstore/gh-action-sigstore-python@04cffa1d795717b140764e8b640de88853c92acc # v3.3.0
+        with:
+          inputs: |
+            dist/*.whl
+            dist/*.tar.gz
+          verify: true
+          verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/publish.yml@refs/tags/${{ github.ref_name }}
+          verify-oidc-issuer: https://token.actions.githubusercontent.com
+
+      - name: Prepare distributions for PyPI upload
+        run: |
+          mkdir -p publish-dist
+          cp dist/*.whl publish-dist/
+          cp dist/*.tar.gz publish-dist/
+
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # release/v1
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
+        with:
+          packages-dir: publish-dist
+          skip-existing: true
+
+      - name: Upload signed assets to GitHub Release
+        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
+        with:
+          body: |
+            ## Important notes
+            - See https://github.com/hiero-ledger/hiero-sdk-python/milestones for the pull requests included in this milestone.
+            - This release includes auto-generated release notes.
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            dist/*.sigstore.json
+          fail_on_unmatched_files: true
+          generate_release_notes: true

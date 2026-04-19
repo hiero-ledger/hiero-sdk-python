@@ -1,0 +1,46 @@
+# This workflow checks that all test files in the repository follow the naming convention of ending with "_test.py".
+name: Primary PR Check - Test Files Naming
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tests/**"
+  pull_request:
+    types: [opened, synchronize, review_requested, ready_for_review, reopened]
+    paths:
+      - "tests/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  check-test-files:
+    # No fork check needed: push-only workflow; fork pushes have different repository_owner
+    runs-on: ${{ (github.repository_owner != 'hiero-ledger') && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+
+      - name: Set up Hiero SDK Upstream
+        run: |
+          git remote set-url origin https://github.com/hiero-ledger/hiero-sdk-python.git
+
+      - name: Fetch main branch
+        run: |
+          git fetch origin main
+
+      - name: Check added test file names
+        run: |
+          chmod +x .github/scripts/pr-check-test-files.sh
+          .github/scripts/pr-check-test-files.sh

@@ -1,6 +1,13 @@
 #!/bin/bash
 set -Eeuo pipefail
 
+# Configuration for labels (overridable from workflow env)
+MENTOR_LABEL="${MENTOR_LABEL:-notes: mentor-duty}"
+if [ -z "${MENTOR_LABEL}" ]; then
+  echo "Error: Missing required environment variable (MENTOR_LABEL)." >&2
+  exit 1
+fi
+
 # Validate required env vars
 if [ -z "${ASSIGNEE:-}" ] || [ -z "${ISSUE_NUMBER:-}" ] || [ -z "${REPO:-}" ]; then
   echo "Error: Missing required environment variables (ASSIGNEE, ISSUE_NUMBER, REPO)."
@@ -17,7 +24,7 @@ get_permission() {
 
 is_spam_user() {
   local spam_file=".github/spam-list.txt"
-  
+
   # Check static spam list
   if [[ -f "$spam_file" ]]; then
     if grep -vE '^\s*#|^\s*$' "$spam_file" | grep -qxF "$ASSIGNEE"; then
@@ -36,20 +43,20 @@ issue_has_gfi() {
 }
 
 # Count open assignments for a user
-# For triage users (mentors), excludes issues with 'mentor-duty' label
+# For triage users (mentors), excludes issues with '${MENTOR_LABEL}' label
 # This allows mentors to be assigned to mentorship issues without consuming their assignment limit
 assignments_count() {
   local permission="${1:-none}"
-  
+
   if [[ "$permission" == "triage" ]]; then
-    echo "Triage user detected — excluding mentor-duty issues from count." >&2
-    # For triage users, exclude issues with 'mentor-duty' label
+    echo "Triage user detected — excluding ${MENTOR_LABEL} issues from count." >&2
+    # For triage users, exclude issues with the configured mentor label
      gh api "repos/${REPO}/issues?per_page=100&page=1" \
        -f assignee="${ASSIGNEE}" \
        -f state=open \
-       --jq '.[] 
+       --jq --arg mentor_label "$MENTOR_LABEL" '.[]
             | select(.pull_request == null)
-            | select(any(.labels[]; .name == "mentor-duty") | not)
+            | select(any(.labels[]; .name == $mentor_label) | not)
             | .number' | grep -c . || echo 0
   else
     # For non-triage users, count all open assignments
@@ -67,11 +74,11 @@ post_comment() {
 
 msg_spam_non_gfi() {
   cat <<EOF
-Hi @$ASSIGNEE, this is the Assignment Bot. 
+Hi @$ASSIGNEE, this is the Assignment Bot.
 
 :warning: **Assignment Restricted**
 
-Your account currently has limited assignment privileges. You may only be assigned to issues labeled **Good First Issue**. 
+Your account currently has limited assignment privileges. You may only be assigned to issues labeled **Good First Issue**.
 
 **Current Restrictions:**
 - :white_check_mark: Can be assigned to 'Good First Issue' labeled issues (maximum 1 at a time)
@@ -148,30 +155,30 @@ if [[ "$SPAM" == "true" ]]; then
     post_comment "$(msg_spam_non_gfi)"
     exit 1
   fi
-  
+
   echo "Issue has 'Good First Issue' label."
-  
+
   # Spam users have a limit of 1 open assignment
   echo "Spam-listed user has $COUNT open assignments."
-  
+
   if (( COUNT > 1 )); then
     echo "Spam user limit exceeded (Max 1 allowed). Revoking assignment."
     remove_assignee
     post_comment "$(msg_spam_limit_exceeded "$COUNT")"
     exit 1
   fi
-  
+
   echo "Spam-listed user assignment valid. User has $COUNT assignment(s)."
 else
   # Normal users have a limit of 2 open assignments
   echo "Current open assignments count: $COUNT"
-  
+
   if (( COUNT > 2 )); then
     echo "Limit exceeded (Max 2 allowed). Revoking assignment."
     remove_assignee
     post_comment "$(msg_normal_limit_exceeded)"
     exit 1
   fi
-  
+
   echo "Assignment valid. User has $COUNT assignments."
 fi

@@ -8,6 +8,7 @@ uv run examples/tokens/token_unfreeze_transaction.py
 python examples/tokens/token_unfreeze_transaction.py
 
 """
+
 import os
 import sys
 
@@ -27,6 +28,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def generate_freeze_key():
     """Generate a Freeze Key on the fly."""
@@ -54,9 +56,7 @@ def create_freezable_token(client):
         )
 
         # FIX: The .execute() method returns the receipt directly.
-        receipt = (
-            tx.freeze_with(client).sign(operator_key).sign(freeze_key).execute(client)
-        )
+        receipt = tx.freeze_with(client).sign(operator_key).sign(freeze_key).execute(client)
         token_id = receipt.token_id
         print(f"✅ Success! Created token with ID: {token_id}")
         return token_id, operator_id, freeze_key, operator_key
@@ -77,9 +77,7 @@ def freeze_token(token_id, client, operator_id, freeze_key):
             .sign(freeze_key)
             .execute(client)
         )
-        print(
-            f"✅ Success! Token freeze complete, Status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"✅ Success! Token freeze complete, Status: {ResponseCode(receipt.status).name}")
     except (RuntimeError, ValueError) as e:
         print(f"❌ Error freezing token: {e}")
         sys.exit(1)
@@ -88,9 +86,7 @@ def freeze_token(token_id, client, operator_id, freeze_key):
 def unfreeze_token(token_id, client, operator_id, freeze_key, operator_key):
     """Unfreeze the token for the operator account."""
     # Step 1: Unfreeze the token for the operator account
-    print(
-        f"\nSTEP 4: Unfreezing token {token_id} for operator account {operator_id}..."
-    )
+    print(f"\nSTEP 4: Unfreezing token {token_id} for operator account {operator_id}...")
     try:
         receipt = (
             TokenUnfreezeTransaction()
@@ -100,9 +96,7 @@ def unfreeze_token(token_id, client, operator_id, freeze_key, operator_key):
             .sign(freeze_key)
             .execute(client)
         )
-        print(
-            f"✅ Success! Token unfreeze complete, Status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"✅ Success! Token unfreeze complete, Status: {ResponseCode(receipt.status).name}")
 
         # Step 2: Attempt a test transfer of 1 unit of token to self
         print(f"Attempting a test transfer of 1 unit of token {token_id} to self...")

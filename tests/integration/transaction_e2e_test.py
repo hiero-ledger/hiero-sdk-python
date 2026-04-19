@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -17,16 +19,11 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_record import TransactionRecord
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
-from tests.integration.utils import env
 
 
 def create_transaction():
     """Create a minimal valid AccountCreateTransaction for integration tests."""
-    return (
-        AccountCreateTransaction()
-        .set_key_without_alias(PrivateKey.generate())
-        .set_initial_balance(1)
-    )
+    return AccountCreateTransaction().set_key_without_alias(PrivateKey.generate()).set_initial_balance(1)
 
 
 @pytest.mark.integration
@@ -169,6 +166,7 @@ def test_get_record_vs_query_returns_same_record(env):
     assert record_via_response.transaction_id == record_via_query.transaction_id
     assert record_via_response.transaction_hash == record_via_query.transaction_hash
 
+
 @pytest.mark.integration
 def test_chunk_tx_returns_responses_without_wait_for_receipt(env):
     """Test chunk transaction return only response when execute without wait for receipt."""
@@ -178,18 +176,13 @@ def test_chunk_tx_returns_responses_without_wait_for_receipt(env):
     )
 
     topic_id = topic_receipt.topic_id
-    message = "A" * (1024 * 14) # message with (1024 * 14) bytes ie 14 chunks
+    message = "A" * (1024 * 14)  # message with (1024 * 14) bytes ie 14 chunks
 
     # Create a chunk transaction
-    message_tx = (
-        TopicMessageSubmitTransaction()
-        .set_topic_id(topic_id)
-        .set_message(message)
-        .freeze_with(env.client)
-    )
+    message_tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message(message).freeze_with(env.client)
 
     message_responses = message_tx.execute_all(env.client, wait_for_receipt=False)
-    
+
     assert len(message_responses) == 14
     assert isinstance(message_responses[0], TransactionResponse)
     assert message_responses[0].transaction is message_tx
@@ -216,18 +209,13 @@ def test_chunk_tx_returns_receipts_with_wait_for_receipt(env):
     )
 
     topic_id = topic_receipt.topic_id
-    message = "A" * (1024 * 14) # message with (1024 * 14) bytes ie 14 chunks
+    message = "A" * (1024 * 14)  # message with (1024 * 14) bytes ie 14 chunks
 
     # Create a chunk transaction
-    message_tx = (
-        TopicMessageSubmitTransaction()
-        .set_topic_id(topic_id)
-        .set_message(message)
-        .freeze_with(env.client)
-    )
+    message_tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message(message).freeze_with(env.client)
 
     message_receipt = message_tx.execute_all(env.client, wait_for_receipt=True)
-    
+
     assert len(message_receipt) == 14
     assert isinstance(message_receipt[0], TransactionReceipt)
 
@@ -241,14 +229,11 @@ def test_chunk_tx_returns_receipts_with_wait_for_receipt(env):
 
     TopicDeleteTransaction().set_topic_id(topic_id).execute(env.client)
 
+
 @pytest.mark.integration
 def test_get_receipt_returns_failed_status_by_default(env):
     """Test receipt is returned normally on failure when validation is disabled."""
-    tx = (
-        AccountDeleteTransaction()
-        .set_transfer_account_id(env.operator_id)
-        .set_account_id(AccountId(0, 0, 0))
-    )
+    tx = AccountDeleteTransaction().set_transfer_account_id(env.operator_id).set_account_id(AccountId(0, 0, 0))
     response = tx.execute(env.client, wait_for_receipt=False)
 
     assert isinstance(response, TransactionResponse)
@@ -263,11 +248,7 @@ def test_get_receipt_returns_failed_status_by_default(env):
 @pytest.mark.integration
 def test_get_receipt_raises_exception_on_failure_with_validation(env):
     """Test error is raised for failing transactions when validation is enabled."""
-    tx = (
-        AccountDeleteTransaction()
-        .set_transfer_account_id(env.operator_id)
-        .set_account_id(AccountId(0, 0, 0))
-    )
+    tx = AccountDeleteTransaction().set_transfer_account_id(env.operator_id).set_account_id(AccountId(0, 0, 0))
     response = tx.execute(env.client, wait_for_receipt=False)
 
     assert isinstance(response, TransactionResponse)
@@ -275,5 +256,5 @@ def test_get_receipt_raises_exception_on_failure_with_validation(env):
 
     with pytest.raises(ReceiptStatusError) as e:
         response.get_receipt(env.client, validate_status=True)
-    
+
     assert e.value.status == ResponseCode.INVALID_ACCOUNT_ID

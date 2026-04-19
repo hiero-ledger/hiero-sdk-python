@@ -1,21 +1,24 @@
-"""hiero_sdk_python.tokens.token_relationship.py
+"""hiero_sdk_python.tokens.token_relationship.py.
 
 Provides TokenRelationship, a dataclass modeling an account’s relationship to a token,
 including ID, symbol, balance, KYC status, freeze status, decimals, and auto-association flag.
 This class is primarily used for parsing and representing data returned by queries like
 CryptoGetAccountInfoQuery.
 """
+
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Optional
 
 from hiero_sdk_python.hapi.services.basic_types_pb2 import (
-    TokenRelationship     as TokenRelationshipProto,
-    TokenFreezeStatus     as TokenFreezeStatusProto,
-    TokenKycStatus        as TokenKycStatusProto,
+    TokenFreezeStatus as TokenFreezeStatusProto,
+    TokenKycStatus as TokenKycStatusProto,
+    TokenRelationship as TokenRelationshipProto,
 )
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
+
 
 @dataclass
 class TokenRelationship:
@@ -23,33 +26,34 @@ class TokenRelationship:
     Represents a relationship between an account and a token.
 
     Attributes:
-        token_id (Optional[TokenId]): The ID of the token.
-        symbol (Optional[str]): The symbol of the token.
-        balance (Optional[int]): The balance of tokens held by the account.
-        kyc_status (Optional[TokenKycStatus]): The KYC status of the account for this token.
-        freeze_status (Optional[TokenFreezeStatus]): 
+        token_id (TokenId, optional): The ID of the token.
+        symbol (str, optional): The symbol of the token.
+        balance (int, optional): The balance of tokens held by the account.
+        kyc_status (TokenKycStatus, optional): The KYC status of the account for this token.
+        freeze_status (TokenFreezeStatus, optional):
             The freeze status of the account for this token.
-        decimals (Optional[int]): The number of decimal places used by the token.
-        automatic_association (Optional[bool]): 
+        decimals (int, optional): The number of decimal places used by the token.
+        automatic_association (bool, optional):
             Whether the token was automatically associated with the account.
     """
-    token_id: Optional[TokenId] = None
-    symbol: Optional[str] = None
-    balance: Optional[int] = None
-    kyc_status: Optional[TokenKycStatus] = None
-    freeze_status: Optional[TokenFreezeStatus] = None
-    decimals: Optional[int] = None
-    automatic_association: Optional[bool] = None
+
+    token_id: TokenId | None = None
+    symbol: str | None = None
+    balance: int | None = None
+    kyc_status: TokenKycStatus | None = None
+    freeze_status: TokenFreezeStatus | None = None
+    decimals: int | None = None
+    automatic_association: bool | None = None
 
     @classmethod
-    def _from_proto(cls, proto: Optional[TokenRelationshipProto]) -> 'TokenRelationship':
+    def _from_proto(cls, proto: TokenRelationshipProto | None) -> TokenRelationship:
         """Creates a TokenRelationship instance from a protobuf TokenRelationship message.
 
-        Parses the protobuf fields, converting enum types (KYC, Freeze status) and 
+        Parses the protobuf fields, converting enum types (KYC, Freeze status) and
         TokenId objects into their corresponding Python representations.
 
         Args:
-            proto (Optional[TokenRelationshipProto]): The protobuf TokenRelationship message.
+            proto (TokenRelationshipProto, optional): The protobuf TokenRelationship message.
 
         Returns:
             TokenRelationship: The corresponding Python dataclass instance.
@@ -60,11 +64,7 @@ class TokenRelationship:
         if proto is None:
             raise ValueError("Token relationship proto is None")
 
-        token_id: Optional[TokenId] = (
-            TokenId._from_proto(proto.tokenId)
-            if proto.tokenId
-            else None
-        )
+        token_id: TokenId | None = TokenId._from_proto(proto.tokenId) if proto.tokenId else None
         # Convert HAPI protobuf enums to SDK enums
         kyc_status: TokenKycStatus = TokenKycStatus._from_proto(proto.kycStatus)
         freeze_status: TokenFreezeStatus = TokenFreezeStatus._from_proto(proto.freezeStatus)
@@ -76,13 +76,13 @@ class TokenRelationship:
             kyc_status=kyc_status,
             freeze_status=freeze_status,
             decimals=proto.decimals,
-            automatic_association=proto.automatic_association
+            automatic_association=proto.automatic_association,
         )
 
     def _to_proto(self) -> TokenRelationshipProto:
         """Converts this TokenRelationship instance into its protobuf representation.
 
-        Converts SDK enums (TokenFreezeStatus, TokenKycStatus) back into their 
+        Converts SDK enums (TokenFreezeStatus, TokenKycStatus) back into their
         HAPI protobuf integer enum values for transmission.
 
         Returns:
@@ -108,7 +108,7 @@ class TokenRelationship:
             kycStatus=kyc_status,
             freezeStatus=freeze_status,
             decimals=self.decimals,
-            )
+        )
 
         if self.token_id:
             proto.tokenId.CopyFrom(self.token_id._to_proto())

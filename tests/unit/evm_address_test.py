@@ -1,5 +1,11 @@
+from __future__ import annotations
+
+import re
+
 import pytest
+
 from hiero_sdk_python.crypto.evm_address import EvmAddress
+
 
 pytestmark = pytest.mark.unit
 
@@ -59,3 +65,12 @@ def test_equality():
     addr2 = EvmAddress.from_string("0x" + raw.hex())
 
     assert addr1 == addr2
+
+
+def test_to_proto_key():
+    """Test to_proto_key raises error when call."""
+    raw = bytes(range(20))
+    address = EvmAddress.from_bytes(raw)
+
+    with pytest.raises(RuntimeError, match=re.escape("to_proto_key() not implemented for EvmAddress")):
+        address.to_proto_key()

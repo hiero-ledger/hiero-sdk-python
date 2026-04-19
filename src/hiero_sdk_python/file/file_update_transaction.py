@@ -1,8 +1,6 @@
-"""
-Transaction to update a file's contents, metadata, or keys on the network.
-"""
+"""Transaction to update a file's contents, metadata, or keys on the network."""
 
-from typing import Optional
+from __future__ import annotations
 
 # pylint: disable=no-name-in-module
 from google.protobuf.wrappers_pb2 import StringValue
@@ -19,6 +17,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
+
 
 DEFAULT_TRANSACTION_FEE = Hbar(2).to_tinybars()
 
@@ -39,38 +38,38 @@ class FileUpdateTransaction(Transaction):
 
     def __init__(
         self,
-        file_id: Optional[FileId] = None,
-        keys: Optional[list[PublicKey]] = None,
-        contents: Optional[str | bytes] = None,
-        expiration_time: Optional[Timestamp] = None,
-        file_memo: Optional[str] = None,
+        file_id: FileId | None = None,
+        keys: list[PublicKey] | None = None,
+        contents: str | bytes | None = None,
+        expiration_time: Timestamp | None = None,
+        file_memo: str | None = None,
     ):  # pylint: [disable=too-many-arguments, disable=too-many-positional-arguments]
         """
         Initializes a new FileUpdateTransaction instance with the specified parameters.
 
         Args:
-            file_id (Optional[FileId], optional): The ID of the file to update.
+            file_id (FileId, optional): The ID of the file to update.
             keys (Optional[list[PublicKey]], optional): The new keys that are allowed to
             update/delete the file.
-            contents (Optional[str | bytes], optional): The new contents of the file.
+            contents (str | bytes, optional): The new contents of the file.
             Strings will be automatically encoded as UTF-8 bytes.
-            expiration_time (Optional[Timestamp], optional): The new expiration time for the file.
-            file_memo (Optional[str], optional): The new memo for the file.
+            expiration_time (Timestamp, optional): The new expiration time for the file.
+            file_memo (str, optional): The new memo for the file.
         """
         super().__init__()
-        self.file_id: Optional[FileId] = file_id
-        self.keys: Optional[list[PublicKey]] = keys
-        self.contents: Optional[bytes] = self._encode_contents(contents)
-        self.expiration_time: Optional[Timestamp] = expiration_time
-        self.file_memo: Optional[str] = file_memo
+        self.file_id: FileId | None = file_id
+        self.keys: list[PublicKey] | None = keys
+        self.contents: bytes | None = self._encode_contents(contents)
+        self.expiration_time: Timestamp | None = expiration_time
+        self.file_memo: str | None = file_memo
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
 
-    def _encode_contents(self, contents: Optional[str | bytes]) -> Optional[bytes]:
+    def _encode_contents(self, contents: str | bytes | None) -> bytes | None:
         """
         Helper method to encode string contents to UTF-8 bytes.
 
         Args:
-            contents (Optional[str | bytes]): The contents to encode.
+            contents (str | bytes | None): The contents to encode.
 
         Returns:
             Optional[bytes]: The encoded contents or None if input is None.
@@ -81,12 +80,12 @@ class FileUpdateTransaction(Transaction):
             return contents.encode("utf-8")
         return contents
 
-    def set_file_id(self, file_id: Optional[FileId]) -> "FileUpdateTransaction":
+    def set_file_id(self, file_id: FileId | None) -> FileUpdateTransaction:
         """
         Sets the FileID to be updated.
 
         Args:
-            file_id (Optional[FileId]): The ID of the file to update.
+            file_id (FileId | None): The ID of the file to update.
 
         Returns:
             FileUpdateTransaction: This transaction instance.
@@ -95,14 +94,12 @@ class FileUpdateTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def set_keys(
-        self, keys: Optional[list[PublicKey]] | PublicKey
-    ) -> "FileUpdateTransaction":
+    def set_keys(self, keys: list[PublicKey] | None | PublicKey) -> FileUpdateTransaction:
         """
         Sets the new list of keys that can modify or delete the file.
 
         Args:
-            keys (Optional[list[PublicKey]] | PublicKey): The new keys to set for the file.
+            keys (list[PublicKey] | PublicKey | None): The new keys to set for the file.
                 Can be a list of PublicKey objects, a single PublicKey, or None.
 
         Returns:
@@ -115,14 +112,12 @@ class FileUpdateTransaction(Transaction):
             self.keys = keys
         return self
 
-    def set_expiration_time(
-        self, expiration_time: Optional[Timestamp]
-    ) -> "FileUpdateTransaction":
+    def set_expiration_time(self, expiration_time: Timestamp | None) -> FileUpdateTransaction:
         """
         Sets the new expiry time for the file.
 
         Args:
-            expiration_time (Optional[Timestamp]): The new expiration time for the file.
+            expiration_time (Timestamp | None): The new expiration time for the file.
 
         Returns:
             FileUpdateTransaction: This transaction instance.
@@ -131,12 +126,12 @@ class FileUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def set_contents(self, contents: Optional[bytes | str]) -> "FileUpdateTransaction":
+    def set_contents(self, contents: bytes | str | None) -> FileUpdateTransaction:
         """
         Sets the new contents that should overwrite the file's current contents.
 
         Args:
-            contents (Optional[bytes | str]): The new contents for the file.
+            contents (bytes | str | None): The new contents for the file.
             Strings will be automatically encoded as UTF-8 bytes.
 
         Returns:
@@ -146,12 +141,12 @@ class FileUpdateTransaction(Transaction):
         self.contents = self._encode_contents(contents)
         return self
 
-    def set_file_memo(self, file_memo: Optional[str]) -> "FileUpdateTransaction":
+    def set_file_memo(self, file_memo: str | None) -> FileUpdateTransaction:
         """
         Sets the new memo to be associated with the file (UTF-8 encoding max 100 bytes).
 
         Args:
-            file_memo (Optional[str]): The new memo for the file.
+            file_memo (str | None): The new memo for the file.
 
         Returns:
             FileUpdateTransaction: This transaction instance.
@@ -175,20 +170,10 @@ class FileUpdateTransaction(Transaction):
 
         return FileUpdateTransactionBody(
             fileID=self.file_id._to_proto(),
-            keys=(
-                KeyListProto(keys=[key._to_proto() for key in self.keys])
-                if self.keys
-                else None
-            ),
+            keys=(KeyListProto(keys=[key._to_proto() for key in self.keys]) if self.keys else None),
             contents=self.contents if self.contents is not None else b"",
-            expirationTime=(
-                self.expiration_time._to_protobuf() if self.expiration_time else None
-            ),
-            memo=(
-                StringValue(value=self.file_memo)
-                if self.file_memo is not None
-                else None
-            ),
+            expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
+            memo=(StringValue(value=self.file_memo) if self.file_memo is not None else None),
         )
 
     def build_transaction_body(self):

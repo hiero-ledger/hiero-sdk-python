@@ -29,13 +29,13 @@ jobs:
     # Only run when the newly added label is beginner, intermediate, or advanced (case-insensitive)
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event.action == 'labeled' && 
+      (github.event.action == 'labeled' &&
       github.event.issue.state == 'open' &&
       contains(fromJson('["beginner","intermediate","advanced","Beginner","Intermediate","Advanced"]'), github.event.label.name))
-  
+
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@58077d3c7e43986b6b15fba718e8ea69e387dfcc # v2.15.1
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
         with:
           egress-policy: audit
 
@@ -46,8 +46,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd #v8.0.0
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9.0.0
         with:
           script: |
-            const script = require('./.github/scripts/coderabbit_plan_trigger.js');      
+            const script = require('./.github/scripts/coderabbit_plan_trigger.js');
             await script({ github, context});

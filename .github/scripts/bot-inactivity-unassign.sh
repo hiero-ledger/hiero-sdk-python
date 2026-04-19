@@ -24,7 +24,7 @@ if [[ -z "$REPO" ]]; then
 fi
 
 echo "------------------------------------------------------------"
-echo " Unified Inactivity Bot"
+echo " Cron Reminder: Inactivity Unassign"
 echo " Repo:     $REPO"
 echo " Threshold $DAYS days"
 echo " DRY_RUN:  $DRY_RUN"
@@ -91,7 +91,7 @@ fi
 
 # Get list of open issues with assignees (pagination via gh)
 ISSUES=$(
-  gh api "repos/$REPO/issues" --paginate --jq '.[] 
+  gh api "repos/$REPO/issues" --paginate --jq '.[]
     | select(.state=="open" and (.assignees|length>0) and (.pull_request|not))
     | .number' 2>/dev/null || true
 )
@@ -108,7 +108,7 @@ for ISSUE in $ISSUES; do
   echo "  [INFO] Issue created at: ${ISSUE_CREATED_AT:-(unknown)}"
   echo
 
-  # Fetch full timeline with pagination and flatten array 
+  # Fetch full timeline with pagination and flatten array
   TIMELINE=$(gh api --paginate -H "Accept: application/vnd.github.mockingbird-preview+json" "repos/$REPO/issues/$ISSUE/timeline" 2>/dev/null | jq -s 'add' || echo "[]")
   TIMELINE=${TIMELINE:-'[]'}
 
@@ -170,7 +170,7 @@ for ISSUE in $ISSUES; do
 
         if (( DRY_RUN == 0 )); then
           MESSAGE=$(cat <<EOF
-Hi @$USER, this is InactivityBot 👋
+Hi @$USER, this is CronInactivityBot 👋
 
 You were assigned to this issue **${ASSIGNED_AGE_DAYS} days** ago, and there is currently no open pull request linked to it.
 To keep the backlog available for active contributors, I'm unassigning you for now.
@@ -212,6 +212,13 @@ EOF
         continue
       fi
 
+      PR_LABELS=$(gh pr view "$PR_NUM" --repo "$REPO" --json labels --jq '.labels[].name' 2>/dev/null || true)
+
+      if echo "$PR_LABELS" | grep -qi '^discussion$'; then
+        echo "    [SKIP] PR #$PR_NUM has 'discussion' label — skipping close & unassign"
+        continue
+      fi
+
 
 
       COMMITS_JSON=$(gh api "repos/$REPO/pulls/$PR_NUM/commits" --paginate 2>/dev/null || echo "[]")
@@ -231,7 +238,7 @@ EOF
 
         if (( DRY_RUN == 0 )); then
           MESSAGE=$(cat <<EOF
-Hi @$USER, this is InactivityBot 👋
+Hi @$USER, this is CronInactivityBot 👋
 
 This pull request has had no new commits for **${PR_AGE_DAYS} days**, so I'm closing it and unassigning you from the linked issue to keep the backlog healthy.
 
@@ -263,6 +270,6 @@ EOF
 done
 
 echo "------------------------------------------------------------"
-echo " Unified Inactivity Bot Complete"
+echo " Cron Reminder: Inactivity Unassign Complete"
 echo " DRY_RUN: $DRY_RUN"
 echo "------------------------------------------------------------"

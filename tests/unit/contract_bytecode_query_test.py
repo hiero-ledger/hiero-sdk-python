@@ -2,6 +2,8 @@
 Unit tests for ContractBytecodeQuery.
 """
 
+from __future__ import annotations
+
 from unittest.mock import Mock
 
 import pytest
@@ -16,6 +18,7 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -60,9 +63,7 @@ def test_execute_fails_with_missing_contract_id(mock_client):
     """Test request creation with missing Contract ID."""
     query = ContractBytecodeQuery()
 
-    with pytest.raises(
-        ValueError, match="Contract ID must be set before making the request."
-    ):
+    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
         query.execute(mock_client)
 
 
@@ -84,9 +85,7 @@ def test_make_request_with_missing_contract_id():
     """Test _make_request raises ValueError when contract ID is missing."""
     query = ContractBytecodeQuery()
 
-    with pytest.raises(
-        ValueError, match="Contract ID must be set before making the request."
-    ):
+    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
         query._make_request()
 
 

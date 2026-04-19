@@ -12,6 +12,7 @@ Key points shown:
 
 Do NOT expect to see non-empty duplicates in this example — that's intentional.
 """
+
 import sys
 import time
 
@@ -55,7 +56,7 @@ def submit_duplicates(tx, client, count=3):
 def print_record_info(record):
     """Print summary of the main record and any duplicates (usually none)."""
     main_status = ResponseCode(record.receipt.status).name
-    memo = record.transaction_memo or '(none)'
+    memo = record.transaction_memo or "(none)"
 
     print("\nMain record:")
     print(f"  Status     : {main_status}")
@@ -66,7 +67,7 @@ def print_record_info(record):
         print("\nDuplicates (rare in normal operation):")
         for i, dup in enumerate(record.duplicates, 1):
             dup_status = ResponseCode(dup.receipt.status).name
-            dup_memo = dup.transaction_memo or '(none)'
+            dup_memo = dup.transaction_memo or "(none)"
             print(f"  #{i:2} | Status: {dup_status:18} | Memo: {dup_memo}")
     else:
         print("  (No duplicate records — this is normal when duplicates are rejected at precheck)")
@@ -104,12 +105,7 @@ def _run():
     time.sleep(5)  # Usually enough on testnet; increase if needed
 
     print("\nQuerying record with include_duplicates=True...")
-    record = (
-        TransactionRecordQuery()
-        .set_transaction_id(tx_id)
-        .set_include_duplicates(True)
-        .execute(client)
-    )
+    record = TransactionRecordQuery().set_transaction_id(tx_id).set_include_duplicates(True).execute(client)
 
     print_record_info(record)
 

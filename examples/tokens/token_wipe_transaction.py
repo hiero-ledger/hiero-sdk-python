@@ -5,6 +5,7 @@ Example demonstrating token wipe transaction.
 uv run examples/tokens/token_wipe_transaction.py
 python examples/tokens/token_wipe_transaction.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -28,6 +29,7 @@ def setup_client():
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
 
+
 def create_test_account(client):
     """Create a new account for testing."""
     # Generate private key for new account
@@ -46,9 +48,7 @@ def create_test_account(client):
 
     # Check if account creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Account creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     # Get account ID from receipt
@@ -108,9 +108,7 @@ def associate_token(client, account_id, token_id, account_private_key):
     receipt = associate_transaction.execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Token association failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Token association failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     print("Token successfully associated with account")
@@ -142,11 +140,7 @@ def wipe_tokens(client, token_id, account_id, amount):
     # Wipe the tokens from the account
     # Note: This requires the wipe key that was specified during token creation
     transaction = (
-        TokenWipeTransaction()
-        .set_token_id(token_id)
-        .set_account_id(account_id)
-        .set_amount(amount)
-        .freeze_with(client)
+        TokenWipeTransaction().set_token_id(token_id).set_account_id(account_id).set_amount(amount).freeze_with(client)
     )
 
     receipt = transaction.execute(client)

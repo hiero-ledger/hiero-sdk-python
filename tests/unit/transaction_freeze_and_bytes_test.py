@@ -6,15 +6,17 @@ converting them to bytes without executing them, including edge cases
 and expected behavior.
 """
 
+from __future__ import annotations
+
 import pytest
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
-from hiero_sdk_python.transaction.transaction_id import TransactionId
-
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
+from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 
 pytestmark = pytest.mark.unit
@@ -24,7 +26,7 @@ def test_freeze_without_transaction_id_raises_error():
     """Test that freeze() raises ValueError when transaction_id is not set."""
     transaction = TransferTransaction()
     transaction.node_account_id = AccountId.from_string("0.0.3")
-    
+
     with pytest.raises(ValueError, match="Transaction ID must be set before freezing"):
         transaction.freeze()
 
@@ -33,7 +35,7 @@ def test_freeze_without_node_account_id_raises_error():
     """Test that freeze() raises ValueError when node_account_id is not set."""
     transaction = TransferTransaction()
     transaction.transaction_id = TransactionId.generate(AccountId.from_string("0.0.1234"))
-    
+
     with pytest.raises(ValueError, match="Node account ID must be set before freezing"):
         transaction.freeze()
 
@@ -43,22 +45,20 @@ def test_freeze_with_valid_parameters():
     operator_id = AccountId.from_string("0.0.1234")
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
-    
+
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
-    
+
     transaction.transaction_id = TransactionId.generate(operator_id)
     transaction.node_account_id = node_id
-    
+
     # Should not raise any errors
     result = transaction.freeze()
-    
+
     # Should return self for method chaining
     assert result is transaction
-    
+
     # Should have transaction body bytes set
     assert len(transaction._transaction_body_bytes) > 0
     assert node_id in transaction._transaction_body_bytes
@@ -69,21 +69,19 @@ def test_freeze_is_idempotent():
     operator_id = AccountId.from_string("0.0.1234")
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
-    
+
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
-    
+
     transaction.transaction_id = TransactionId.generate(operator_id)
     transaction.node_account_id = node_id
-    
+
     # Freeze multiple times
     transaction.freeze()
     transaction.freeze()
     transaction.freeze()
-    
+
     # Should still work fine
     assert len(transaction._transaction_body_bytes) > 0
 
@@ -91,7 +89,7 @@ def test_freeze_is_idempotent():
 def test_to_bytes_requires_frozen_transaction():
     """Test that to_bytes() raises error if transaction is not frozen."""
     transaction = TransferTransaction()
-    
+
     with pytest.raises(Exception, match="Transaction is not frozen"):
         transaction.to_bytes()
 
@@ -101,26 +99,24 @@ def test_to_bytes_returns_bytes():
     operator_id = AccountId.from_string("0.0.1234")
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
-    
+
     # Generate a private key for signing
     private_key = PrivateKey.generate()
-    
+
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
-    
+
     transaction.transaction_id = TransactionId.generate(operator_id)
     transaction.node_account_id = node_id
-    
+
     # Freeze and sign the transaction
     transaction.freeze()
     transaction.sign(private_key)
-    
+
     # Get bytes
     transaction_bytes = transaction.to_bytes()
-    
+
     # Verify it's bytes
     assert isinstance(transaction_bytes, bytes)
     assert len(transaction_bytes) > 0
@@ -131,26 +127,24 @@ def test_to_bytes_produces_consistent_output():
     operator_id = AccountId.from_string("0.0.1234")
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
-    
+
     private_key = PrivateKey.generate()
-    
+
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
-    
+
     transaction.transaction_id = TransactionId.generate(operator_id)
     transaction.node_account_id = node_id
-    
+
     transaction.freeze()
     transaction.sign(private_key)
-    
+
     # Get bytes multiple times
     bytes1 = transaction.to_bytes()
     bytes2 = transaction.to_bytes()
     bytes3 = transaction.to_bytes()
-    
+
     # All should be identical
     assert bytes1 == bytes2
     assert bytes2 == bytes3
@@ -161,17 +155,15 @@ def test_cannot_modify_transaction_after_freeze():
     operator_id = AccountId.from_string("0.0.1234")
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
-    
+
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
-    
+
     transaction.transaction_id = TransactionId.generate(operator_id)
     transaction.node_account_id = node_id
     transaction.freeze()
-    
+
     # Attempting to add more transfers should raise an error
     with pytest.raises(Exception, match="Transaction is immutable"):
         transaction.add_hbar_transfer(AccountId.from_string("0.0.9999"), 50_000_000)
@@ -197,9 +189,9 @@ def test_freeze_and_sign_workflow():
     operator_id = AccountId.from_string("0.0.1234")
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
-    
+
     private_key = PrivateKey.generate()
-    
+
     # Create transaction
     transaction = (
         TransferTransaction()
@@ -207,24 +199,24 @@ def test_freeze_and_sign_workflow():
         .add_hbar_transfer(receiver_id, 100_000_000)
         .set_transaction_memo("Test transaction")
     )
-    
+
     # Set required IDs
     transaction.transaction_id = TransactionId.generate(operator_id)
     transaction.node_account_id = node_id
-    
+
     # Freeze
     transaction.freeze()
-    
+
     # Sign
     transaction.sign(private_key)
-    
+
     # Convert to bytes
     transaction_bytes = transaction.to_bytes()
-    
+
     # Verify
     assert isinstance(transaction_bytes, bytes)
     assert len(transaction_bytes) > 0
-    
+
     # Verify the transaction is signed
     assert transaction.is_signed_by(private_key.public_key())
 
@@ -331,9 +323,7 @@ def test_from_bytes_round_trip_multiple_signatures():
 
     # Create transaction
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -300_000_000)
-        .add_hbar_transfer(receiver_id, 300_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -300_000_000).add_hbar_transfer(receiver_id, 300_000_000)
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
@@ -407,9 +397,7 @@ def test_from_bytes_external_signing_workflow():
 
     # Step 1: Create unsigned transaction (e.g., on online system)
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
@@ -450,9 +438,7 @@ def test_to_bytes_works_without_signatures():
     receiver_id = AccountId.from_string("0.0.5678")
 
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
@@ -475,9 +461,7 @@ def test_freeze_only_builds_for_single_node():
     receiver_id = AccountId.from_string("0.0.5678")
 
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
@@ -498,9 +482,7 @@ def test_signed_and_unsigned_bytes_are_different():
     private_key = PrivateKey.generate()
 
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
@@ -532,9 +514,7 @@ def test_multiple_signatures_increase_size():
     key3 = PrivateKey.generate()
 
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
@@ -566,9 +546,7 @@ def test_changing_node_after_freeze_fails_for_to_bytes():
     receiver_id = AccountId.from_string("0.0.5678")
 
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
@@ -596,9 +574,7 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
     private_key = PrivateKey.generate()
 
     transaction = (
-        TransferTransaction()
-        .add_hbar_transfer(operator_id, -100_000_000)
-        .add_hbar_transfer(receiver_id, 100_000_000)
+        TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
@@ -617,12 +593,13 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
     assert unsigned_bytes != signed_bytes
     assert isinstance(signed_bytes, bytes)
 
+
 def test_transaction_freeze_with_node_ids(mock_client):
     """
     Test freeze_with() correctly initializes transaction bytes using provided node_account_id(s).
     """
     # Case 1 Single node_account_id
-    single_node_id = AccountId(0,0,3)
+    single_node_id = AccountId(0, 0, 3)
     tx = TransferTransaction()
     tx.node_account_id = single_node_id
 
@@ -634,16 +611,17 @@ def test_transaction_freeze_with_node_ids(mock_client):
     assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
 
     # Case 2 node_account_id list
-    node_account_ids = [AccountId(0,0,3), AccountId(0,0,4)]
+    node_account_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
     tx = TransferTransaction()
     tx.node_account_ids = node_account_ids
-    
+
     tx.freeze_with(mock_client)
 
     assert tx.node_account_ids == node_account_ids
     # Verify creates transaction_bytes for two node_ids
     assert len(tx._transaction_body_bytes) == 2
     assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+
 
 def test_transaction_freeze_with_node_ids_without_client():
     """
@@ -652,7 +630,7 @@ def test_transaction_freeze_with_node_ids_without_client():
     operator_id = AccountId.from_string("0.0.1234")
 
     # Case 1 Single node_account_id
-    single_node_id = AccountId(0,0,3)
+    single_node_id = AccountId(0, 0, 3)
     tx = TransferTransaction()
     tx.set_transaction_id(TransactionId.generate(operator_id))
     tx.node_account_id = single_node_id
@@ -665,17 +643,18 @@ def test_transaction_freeze_with_node_ids_without_client():
     assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
 
     # Case 2 node_account_id list
-    node_account_ids = [AccountId(0,0,3), AccountId(0,0,4)]
+    node_account_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
     tx = TransferTransaction()
     tx.set_transaction_id(TransactionId.generate(operator_id))
     tx.node_account_ids = node_account_ids
-    
+
     tx.freeze()
 
     assert tx.node_account_ids == node_account_ids
     # Verify creates transaction_bytes for two node_ids
     assert len(tx._transaction_body_bytes) == 2
     assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+
 
 def test_transaction_freeze_without_node_ids(mock_client):
     """
@@ -689,6 +668,7 @@ def test_transaction_freeze_without_node_ids(mock_client):
     assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
     assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
 
+
 def test_map_response_raises_if_proto_request_is_not_transaction():
     """
     Test _map_response raises ValueError when provided proto is not a transaction_pb2.Transaction.
@@ -696,8 +676,8 @@ def test_map_response_raises_if_proto_request_is_not_transaction():
     tx = TransferTransaction()
 
     mock_response = TransactionResponseProto()
-    mock_node_id = None  
-    invalid_proto_request = object() 
+    mock_node_id = None
+    invalid_proto_request = object()
 
     with pytest.raises(TypeError, match="Expected Transaction but got"):
         tx._map_response(

@@ -14,6 +14,7 @@ Optional:
 Run with:
   uv run examples/tls_query_balance.py
 """
+
 import os
 
 from dotenv import load_dotenv

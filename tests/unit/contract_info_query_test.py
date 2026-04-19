@@ -2,6 +2,8 @@
 Unit tests for the ContractInfoQuery class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import Mock
 
 import pytest
@@ -19,6 +21,7 @@ from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampP
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -49,9 +52,7 @@ def test_execute_fails_with_missing_contract_id(mock_client):
     """Test request creation with missing Contract ID."""
     query = ContractInfoQuery()
 
-    with pytest.raises(
-        ValueError, match="Contract ID must be set before making the request."
-    ):
+    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
         query.execute(mock_client)
 
 
@@ -104,9 +105,7 @@ def test_contract_info_query_execute(private_key):
 
         assert result.contract_id == contract_id
         assert result.contract_account_id == "0.0.100"
-        assert (
-            result.admin_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
-        )
+        assert result.admin_key.to_bytes_raw() == private_key.public_key().to_bytes_raw()
         assert result.expiration_time == Timestamp._from_protobuf(expiration_time)
         assert result.storage == 2048
         assert result.contract_memo == "test contract memo"

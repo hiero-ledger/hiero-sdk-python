@@ -1,0 +1,57 @@
+name: Secondary PR Check - TCK Unit Test
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "src/**"
+      - "tck/**"
+      - "tests/tck/**"
+  pull_request:
+    paths:
+      - "src/**"
+      - "tck/**"
+      - "tests/tck/**"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tck-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tck-unit-test:
+    name: TCK Unit Test
+    runs-on: hl-sdk-py-lin-md
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.14"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-extras --dev
+
+      - name: Generate Proto Files
+        run: uv run generate_proto.py
+
+      - name: Run unit tests
+        run: |
+          uv run pytest tests/tck -v

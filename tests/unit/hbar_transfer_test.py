@@ -2,11 +2,14 @@
 Unit tests for the HbarTransfer class.
 """
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
 from hiero_sdk_python.tokens.hbar_transfer import HbarTransfer
+
 
 pytestmark = pytest.mark.unit
 
@@ -28,9 +31,7 @@ def test_hbar_transfer_constructor(mock_account_ids):
     assert hbar_transfer.is_approved is False
 
     # Test with explicit is_approved=True
-    approved_transfer = HbarTransfer(
-        account_id=account_id, amount=amount, is_approved=True
-    )
+    approved_transfer = HbarTransfer(account_id=account_id, amount=amount, is_approved=True)
 
     assert approved_transfer.account_id == account_id
     assert approved_transfer.amount == amount
@@ -50,9 +51,7 @@ def test_to_proto(mock_account_ids):
     amount = 1000
     is_approved = True
 
-    hbar_transfer = HbarTransfer(
-        account_id=account_id, amount=amount, is_approved=is_approved
-    )
+    hbar_transfer = HbarTransfer(account_id=account_id, amount=amount, is_approved=is_approved)
 
     # Convert to protobuf
     proto = hbar_transfer._to_proto()
@@ -72,9 +71,7 @@ def test_from_proto(mock_account_ids):
     amount = 1000
     is_approved = True
 
-    proto = basic_types_pb2.AccountAmount(
-        accountID=account_id._to_proto(), amount=amount, is_approval=is_approved
-    )
+    proto = basic_types_pb2.AccountAmount(accountID=account_id._to_proto(), amount=amount, is_approval=is_approved)
 
     hbar_transfer = HbarTransfer._from_proto(proto)
 

@@ -6,6 +6,7 @@ Usage:
     uv run examples/transaction/transfer_transaction_gigabar.py
     python examples/transaction/transfer_transaction_gigabar.py
 """
+
 import os
 import sys
 
@@ -23,6 +24,7 @@ from hiero_sdk_python import (
     ResponseCode,
     TransferTransaction,
 )
+
 
 load_dotenv()
 network_name = os.getenv("NETWORK", "testnet").lower()
@@ -54,18 +56,12 @@ def create_account(client, operator_key):
     print("\nSTEP 1: Creating a new recipient account...")
     recipient_key = PrivateKey.generate()
     try:
-        tx = (
-            AccountCreateTransaction()
-            .set_key(recipient_key.public_key())
-            .set_initial_balance(Hbar.from_tinybars(0))
-        )
+        tx = AccountCreateTransaction().set_key(recipient_key.public_key()).set_initial_balance(Hbar.from_tinybars(0))
 
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)
 
         if receipt.status != ResponseCode.SUCCESS:
-            print(
-                f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}"
-            )
+            print(f"❌ Account creation failed with status: {ResponseCode(receipt.status).name}")
             sys.exit(1)
 
         recipient_id = receipt.account_id
@@ -108,9 +104,7 @@ def transfer_gigabars(client, operator_id, recipient_id, operator_key):
 def get_balance(client, account_id, when=""):
     """Query and display account balance."""
     try:
-        balance = (
-            CryptoGetAccountBalanceQuery(account_id=account_id).execute(client).hbars
-        )
+        balance = CryptoGetAccountBalanceQuery(account_id=account_id).execute(client).hbars
         print(f"Recipient account balance{when}: {balance} hbars")
         return balance
     except Exception as e:

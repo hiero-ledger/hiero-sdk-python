@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.hapi.services import transaction_receipt_pb2

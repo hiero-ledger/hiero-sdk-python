@@ -5,6 +5,7 @@ Example demonstrating token info query fungible.
 uv run examples/query/token_info_query_fungible.py
 python examples/query/token_info_query_fungible.py
 """
+
 import sys
 
 from hiero_sdk_python import (
@@ -51,9 +52,7 @@ def create_fungible_token(client, operator_id, operator_key):
 
     # Check if token creation was successful
     if receipt.status != ResponseCode.SUCCESS:
-        print(
-            f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}"
-        )
+        print(f"Fungible token creation failed with status: {ResponseCode(receipt.status).name}")
         sys.exit(1)
 
     # Get token ID from receipt

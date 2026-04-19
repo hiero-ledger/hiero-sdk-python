@@ -5,6 +5,7 @@ Example demonstrating token pause transaction.
 uv run examples/tokens/token_pause_transaction.py
 python examples/tokens/token_pause_transaction.py
 """
+
 from hiero_sdk_python import Client
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -20,6 +21,7 @@ def setup_client():
     print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
     return client
+
 
 def assert_success(receipt, action: str):
     """
@@ -70,12 +72,7 @@ def create_token(client, operator_id, admin_key, pause_key):
 def pause_token(client, token_id, pause_key):
     """Pause token."""
     # Note: This requires the pause key that was specified during token creation
-    pause_transaction = (
-        TokenPauseTransaction()
-        .set_token_id(token_id)
-        .freeze_with(client)
-        .sign(pause_key)
-    )
+    pause_transaction = TokenPauseTransaction().set_token_id(token_id).freeze_with(client).sign(pause_key)
 
     receipt = pause_transaction.execute(client)
     assert_success(receipt, "Token pause")
@@ -92,12 +89,7 @@ def check_pause_status(client, token_id):
 def delete_token(client, token_id, admin_key):
     """Delete token."""
     # Note: This requires the admin key that was specified during token creation
-    delete_transaction = (
-        TokenDeleteTransaction()
-        .set_token_id(token_id)
-        .freeze_with(client)
-        .sign(admin_key)
-    )
+    delete_transaction = TokenDeleteTransaction().set_token_id(token_id).freeze_with(client).sign(admin_key)
 
     receipt = delete_transaction.execute(client)
     assert_success(receipt, "Token delete")
@@ -133,9 +125,7 @@ def token_pause():
     # Try deleting token with admin key – should fail with TOKEN_IS_PAUSED
     try:
         delete_token(client, token_id, admin_key)
-        print(
-            "❌ Whoops, delete succeeded—but it should have failed on a paused token!"
-        )
+        print("❌ Whoops, delete succeeded—but it should have failed on a paused token!")
     except RuntimeError as e:
         print(f"✅ Unable to delete token as expected as it is paused: {e}")
 

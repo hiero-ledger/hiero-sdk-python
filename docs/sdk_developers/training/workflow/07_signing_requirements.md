@@ -11,7 +11,7 @@ git commit -S -s -m "prefix: your commit message"
 ```
 For example:
 ```bash
-git commit -S -s -m "chore: changelog entry for TokenCreateTransaction"
+git commit -S -s -m "chore: example for TokenCreateTransaction"
 ```
 
 **WARNING**: using the default commit button on GitHub desktop or VS Studio will result in un-signed commits.
@@ -19,4 +19,4 @@ git commit -S -s -m "chore: changelog entry for TokenCreateTransaction"
 **WARNING** any merge or rebase operations will cause a loss of signing status unless you preserve signing: `git rebase main -S`
 
 Read more about signing and how to set up a GPG key at:
-[Signing Guide](../../signing.md)
+[Signing Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md)

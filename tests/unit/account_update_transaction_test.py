@@ -2,6 +2,8 @@
 Test cases for the AccountUpdateTransaction class.
 """
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -16,6 +18,7 @@ from hiero_sdk_python.account.account_update_transaction import (
     AccountUpdateParams,
     AccountUpdateTransaction,
 )
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
@@ -33,6 +36,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
+
 
 pytestmark = pytest.mark.unit
 
@@ -76,9 +80,7 @@ def test_constructor_with_account_params():
     assert account_tx.expiration_time == expiration_time
     assert account_tx.max_automatic_token_associations == max_associations
     assert account_tx.staked_account_id == staked_account_id
-    assert (
-        account_tx.staked_node_id is None
-    )  # Should be cleared when staked_account_id is set
+    assert account_tx.staked_node_id is None  # Should be cleared when staked_account_id is set
     assert account_tx.decline_staking_reward == decline_reward
 
 
@@ -192,9 +194,7 @@ def test_set_methods_require_not_frozen(mock_client):
     ]
 
     for method_name, value in test_cases:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(account_tx, method_name)(value)
 
     zero_arg_methods = [
@@ -203,9 +203,7 @@ def test_set_methods_require_not_frozen(mock_client):
     ]
 
     for method_name in zero_arg_methods:
-        with pytest.raises(
-            Exception, match="Transaction is immutable; it has been frozen"
-        ):
+        with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(account_tx, method_name)()
 
 
@@ -238,22 +236,12 @@ def test_build_transaction_body(mock_account_ids):
 
     transaction_body = account_tx.build_transaction_body()
 
-    assert (
-        transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
-    )
+    assert transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
     assert transaction_body.cryptoUpdateAccount.key == public_key._to_proto()
-    assert (
-        transaction_body.cryptoUpdateAccount.autoRenewPeriod
-        == auto_renew_period._to_proto()
-    )
+    assert transaction_body.cryptoUpdateAccount.autoRenewPeriod == auto_renew_period._to_proto()
     assert transaction_body.cryptoUpdateAccount.memo == StringValue(value=account_memo)
-    assert transaction_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(
-        value=receiver_sig_required
-    )
-    assert (
-        transaction_body.cryptoUpdateAccount.expirationTime
-        == expiration_time._to_protobuf()
-    )
+    assert transaction_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(value=receiver_sig_required)
+    assert transaction_body.cryptoUpdateAccount.expirationTime == expiration_time._to_protobuf()
 
 
 def test_build_transaction_body_with_optional_fields(mock_account_ids):
@@ -270,24 +258,17 @@ def test_build_transaction_body_with_optional_fields(mock_account_ids):
 
     transaction_body = account_tx.build_transaction_body()
 
-    assert (
-        transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
-    )
+    assert transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
     # When key is None, the key field should not be set in the protobuf
     assert not transaction_body.cryptoUpdateAccount.HasField("key")
     # When account_memo is None, the memo field should not be set in the protobuf
     assert not transaction_body.cryptoUpdateAccount.HasField("memo")
     # When receiver_signature_required is None, the field should not be set
-    assert not transaction_body.cryptoUpdateAccount.HasField(
-        "receiverSigRequiredWrapper"
-    )
+    assert not transaction_body.cryptoUpdateAccount.HasField("receiverSigRequiredWrapper")
     # When expiration_time is None, the expirationTime field should not be set
     assert not transaction_body.cryptoUpdateAccount.HasField("expirationTime")
     # auto_renew_period should still be set to default value
-    assert (
-        transaction_body.cryptoUpdateAccount.autoRenewPeriod
-        == AUTO_RENEW_PERIOD._to_proto()
-    )
+    assert transaction_body.cryptoUpdateAccount.autoRenewPeriod == AUTO_RENEW_PERIOD._to_proto()
 
 
 def test_build_transaction_body_account_memo_variants(mock_account_ids):
@@ -335,25 +316,19 @@ def test_build_transaction_body_receiver_sig_required_variants(mock_account_ids)
     transaction_body = account_tx.build_transaction_body()
 
     # When receiver_signature_required is None, the field should not be set
-    assert not transaction_body.cryptoUpdateAccount.HasField(
-        "receiverSigRequiredWrapper"
-    )
+    assert not transaction_body.cryptoUpdateAccount.HasField("receiverSigRequiredWrapper")
 
     account_tx.set_receiver_signature_required(True)
     transaction_body = account_tx.build_transaction_body()
     # When receiver_signature_required is set to True, the field should be set in the protobuf
     assert transaction_body.cryptoUpdateAccount.HasField("receiverSigRequiredWrapper")
-    assert transaction_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(
-        value=True
-    )
+    assert transaction_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(value=True)
 
     account_tx.set_receiver_signature_required(False)
     transaction_body = account_tx.build_transaction_body()
     # When receiver_signature_required is set to False, the field should be set in the protobuf
     assert transaction_body.cryptoUpdateAccount.HasField("receiverSigRequiredWrapper")
-    assert transaction_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(
-        value=False
-    )
+    assert transaction_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(value=False)
 
 
 def test_missing_account_id():
@@ -420,9 +395,7 @@ def test_account_update_transaction_can_execute():
     # Create a response for the receipt query
     receipt_query_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=mock_receipt_proto,
         )
     )
@@ -445,9 +418,7 @@ def test_account_update_transaction_can_execute():
 
         receipt = transaction.execute(client)
 
-        assert (
-            receipt.status == ResponseCode.SUCCESS
-        ), "Transaction should have succeeded"
+        assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
 
 
 def test_get_method():
@@ -502,9 +473,7 @@ def test_build_transaction_body_with_none_auto_renew_period(mock_account_ids):
 
     transaction_body = account_tx.build_transaction_body()
 
-    assert (
-        transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
-    )
+    assert transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
     # When auto_renew_period is None, the field should not be set in the protobuf
     assert not transaction_body.cryptoUpdateAccount.HasField("autoRenewPeriod")
 
@@ -545,22 +514,12 @@ def test_build_scheduled_body(mock_account_ids):
     # Verify the transaction was built with account update type
     assert schedulable_body.HasField("cryptoUpdateAccount")
 
-    assert (
-        schedulable_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
-    )
+    assert schedulable_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
     assert schedulable_body.cryptoUpdateAccount.key == public_key._to_proto()
-    assert (
-        schedulable_body.cryptoUpdateAccount.autoRenewPeriod
-        == auto_renew_period._to_proto()
-    )
+    assert schedulable_body.cryptoUpdateAccount.autoRenewPeriod == auto_renew_period._to_proto()
     assert schedulable_body.cryptoUpdateAccount.memo == StringValue(value=account_memo)
-    assert schedulable_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(
-        value=receiver_sig_required
-    )
-    assert (
-        schedulable_body.cryptoUpdateAccount.expirationTime
-        == expiration_time._to_protobuf()
-    )
+    assert schedulable_body.cryptoUpdateAccount.receiverSigRequiredWrapper == BoolValue(value=receiver_sig_required)
+    assert schedulable_body.cryptoUpdateAccount.expirationTime == expiration_time._to_protobuf()
 
 
 def test_constructor_with_new_fields():
@@ -581,9 +540,7 @@ def test_constructor_with_new_fields():
     assert account_tx.account_id == account_id
     assert account_tx.max_automatic_token_associations == max_associations
     assert account_tx.staked_account_id == staked_account_id
-    assert (
-        account_tx.staked_node_id is None
-    )  # Should be cleared when staked_account_id is set
+    assert account_tx.staked_node_id is None  # Should be cleared when staked_account_id is set
     assert account_tx.decline_staking_reward is True
 
 
@@ -743,17 +700,9 @@ def test_build_transaction_body_with_new_fields(mock_account_ids):
 
     transaction_body = account_tx.build_transaction_body()
 
-    assert (
-        transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
-    )
-    assert (
-        transaction_body.cryptoUpdateAccount.max_automatic_token_associations
-        == Int32Value(value=max_associations)
-    )
-    assert (
-        transaction_body.cryptoUpdateAccount.staked_account_id.accountNum
-        == staked_account_id.num
-    )
+    assert transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
+    assert transaction_body.cryptoUpdateAccount.max_automatic_token_associations == Int32Value(value=max_associations)
+    assert transaction_body.cryptoUpdateAccount.staked_account_id.accountNum == staked_account_id.num
     assert transaction_body.cryptoUpdateAccount.decline_reward == BoolValue(value=True)
 
 
@@ -772,9 +721,7 @@ def test_build_transaction_body_with_staked_node_id(mock_account_ids):
 
     transaction_body = account_tx.build_transaction_body()
 
-    assert (
-        transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
-    )
+    assert transaction_body.cryptoUpdateAccount.accountIDToUpdate == account_id._to_proto()
     assert transaction_body.cryptoUpdateAccount.staked_node_id == staked_node_id
     # staked_account_id should not be set
     assert not transaction_body.cryptoUpdateAccount.HasField("staked_account_id")
@@ -794,9 +741,7 @@ def test_build_transaction_body_with_optional_new_fields_none(mock_account_ids):
     transaction_body = account_tx.build_transaction_body()
 
     # When new fields are None, they should not be set in the protobuf
-    assert not transaction_body.cryptoUpdateAccount.HasField(
-        "max_automatic_token_associations"
-    )
+    assert not transaction_body.cryptoUpdateAccount.HasField("max_automatic_token_associations")
     assert not transaction_body.cryptoUpdateAccount.HasField("staked_account_id")
     assert not transaction_body.cryptoUpdateAccount.HasField("staked_node_id")
     assert not transaction_body.cryptoUpdateAccount.HasField("decline_reward")
@@ -826,3 +771,45 @@ def test_build_transaction_body_with_cleared_staking(mock_account_ids):
     txn_body = account_tx.build_transaction_body().cryptoUpdateAccount
     assert txn_body.staked_node_id == -1
     assert not txn_body.HasField("staked_account_id")
+
+
+def test_set_keylist_multiple_keys():
+    """Verify that a generic KeyList is properly converted to protobuf in AccountUpdateTransaction."""
+    tx = AccountUpdateTransaction()
+    tx.set_account_id(AccountId.from_string("0.0.123"))
+
+    key1 = PrivateKey.generate_ed25519().public_key()
+    key2 = PrivateKey.generate_ed25519().public_key()
+
+    # Create a KeyList with two public keys
+    key_list = KeyList([key1, key2])
+    tx.set_key(key_list)
+
+    proto_body = tx._build_proto_body()
+    update_body = proto_body
+
+    # Assert that the protobuf key has a keyList set
+    assert update_body.key.HasField("keyList")
+    assert len(update_body.key.keyList.keys) == 2
+
+
+def test_set_keylist_threshold_key():
+    """Verify that a KeyList with a threshold is properly converted to a thresholdKey protobuf."""
+    tx = AccountUpdateTransaction()
+    tx.set_account_id(AccountId.from_string("0.0.123"))
+
+    key1 = PrivateKey.generate_ed25519().public_key()
+    key2 = PrivateKey.generate_ed25519().public_key()
+    key3 = PrivateKey.generate_ed25519().public_key()
+
+    # Create a threshold key (requires 2 of 3 signatures)
+    threshold_key = KeyList([key1, key2, key3], threshold=2)
+    tx.set_key(threshold_key)
+
+    proto_body = tx._build_proto_body()
+    update_body = proto_body
+
+    # Assert that the protobuf key has a thresholdKey set
+    assert update_body.key.HasField("thresholdKey")
+    assert update_body.key.thresholdKey.threshold == 2
+    assert len(update_body.key.thresholdKey.keys.keys) == 3

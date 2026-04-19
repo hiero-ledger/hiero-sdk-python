@@ -1,0 +1,42 @@
+name: CodeRabbit Release Gate Comment
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: coderabbit-release-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  coderabbit-release-gate:
+    runs-on: ubuntu-latest
+    # Only run for release PRs /title check as initial filter
+    if: |
+      github.event.pull_request &&
+      (github.event.pull_request.author_association == 'MEMBER' ||
+      github.event.pull_request.author_association == 'OWNER') &&
+      (startsWith(github.event.pull_request.title, 'chore: release v') ||
+      startsWith(github.event.pull_request.title, 'release v'))
+
+    steps:
+      - name:  Harden the runner
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        with:
+            egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
+
+      - name: Post CodeRabbit release-gate prompt comment
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9.0.0
+        with:
+          script: |
+            const script = require('./.github/scripts/release-pr-coderabbit-gate.js');
+            await script({ github, context});

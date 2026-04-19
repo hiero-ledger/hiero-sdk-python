@@ -1,11 +1,15 @@
+from __future__ import annotations
+
 import time
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.node import _Node
+
 
 pytestmark = pytest.mark.unit
 
@@ -19,7 +23,7 @@ def mock_network_nodes(monkeypatch):
         _Node(AccountId(0, 0, 5), "127.0.0.1:50212", NodeAddress()),
     ]
 
-    def fake_fetch_nodes(self):
+    def fake_fetch_nodes(_self):
         return fake_nodes
 
     monkeypatch.setattr(Network, "_fetch_nodes_from_mirror_node", fake_fetch_nodes)
@@ -340,9 +344,7 @@ def test_get_node_by_account_id():
 
     network._healthy_nodes = [node]
 
-    with patch(
-        "hiero_sdk_python.client.network.Network._readmit_nodes"
-    ) as mock_readmit:
+    with patch("hiero_sdk_python.client.network.Network._readmit_nodes") as mock_readmit:
         result = network._get_node(AccountId(0, 0, 3))
 
     assert mock_readmit.call_count == 1

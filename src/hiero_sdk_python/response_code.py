@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 import warnings
 from enum import IntEnum
+
 
 class ResponseCode(IntEnum):
     OK = 0
@@ -88,8 +91,8 @@ class ResponseCode(IntEnum):
     CONTRACT_FILE_EMPTY = 83
     CONTRACT_BYTECODE_EMPTY = 84
     INVALID_INITIAL_BALANCE = 85
-    INVALID_RECEIVE_RECORD_THRESHOLD = 86   # [Deprecated]
-    INVALID_SEND_RECORD_THRESHOLD = 87      # [Deprecated]
+    INVALID_RECEIVE_RECORD_THRESHOLD = 86  # [Deprecated]
+    INVALID_SEND_RECORD_THRESHOLD = 87  # [Deprecated]
     ACCOUNT_IS_NOT_GENESIS_ACCOUNT = 88
     PAYER_ACCOUNT_UNAUTHORIZED = 89
     INVALID_FREEZE_TRANSACTION_BODY = 90
@@ -244,25 +247,25 @@ class ResponseCode(IntEnum):
     MAX_STORAGE_IN_PRICE_REGIME_HAS_BEEN_USED = 281
     INVALID_ALIAS_KEY = 282
     UNEXPECTED_TOKEN_DECIMALS = 283
-    INVALID_PROXY_ACCOUNT_ID = 284         # [Deprecated]
+    INVALID_PROXY_ACCOUNT_ID = 284  # [Deprecated]
     INVALID_TRANSFER_ACCOUNT_ID = 285
     INVALID_FEE_COLLECTOR_ACCOUNT_ID = 286
     ALIAS_IS_IMMUTABLE = 287
     SPENDER_ACCOUNT_SAME_AS_OWNER = 288
     AMOUNT_EXCEEDS_TOKEN_MAX_SUPPLY = 289
     NEGATIVE_ALLOWANCE_AMOUNT = 290
-    CANNOT_APPROVE_FOR_ALL_FUNGIBLE_COMMON = 291   # [Deprecated]
+    CANNOT_APPROVE_FOR_ALL_FUNGIBLE_COMMON = 291  # [Deprecated]
     SPENDER_DOES_NOT_HAVE_ALLOWANCE = 292
     AMOUNT_EXCEEDS_ALLOWANCE = 293
     MAX_ALLOWANCES_EXCEEDED = 294
     EMPTY_ALLOWANCES = 295
-    SPENDER_ACCOUNT_REPEATED_IN_ALLOWANCES = 296   # [Deprecated]
-    REPEATED_SERIAL_NUMS_IN_NFT_ALLOWANCES = 297   # [Deprecated]
+    SPENDER_ACCOUNT_REPEATED_IN_ALLOWANCES = 296  # [Deprecated]
+    REPEATED_SERIAL_NUMS_IN_NFT_ALLOWANCES = 297  # [Deprecated]
     FUNGIBLE_TOKEN_IN_NFT_ALLOWANCES = 298
     NFT_IN_FUNGIBLE_TOKEN_ALLOWANCES = 299
     INVALID_ALLOWANCE_OWNER_ID = 300
     INVALID_ALLOWANCE_SPENDER_ID = 301
-    REPEATED_ALLOWANCES_TO_DELETE = 302     # [Deprecated]
+    REPEATED_ALLOWANCES_TO_DELETE = 302  # [Deprecated]
     INVALID_DELEGATING_SPENDER = 303
     DELEGATING_SPENDER_CANNOT_GRANT_APPROVE_FOR_ALL = 304
     DELEGATING_SPENDER_DOES_NOT_HAVE_APPROVE_FOR_ALL = 305
@@ -357,7 +360,7 @@ class ResponseCode(IntEnum):
     INVALID_BATCH_KEY = 394
 
     @classmethod
-    def _missing_(cls, value: object) -> "ResponseCode":
+    def _missing_(cls, value: object) -> ResponseCode:
         """
         Handles cases where an integer value does not match any ResponseCode member
         and returns 'UNKNOWN_CODE_<value>'.
@@ -366,7 +369,7 @@ class ResponseCode(IntEnum):
             raise ValueError(f"{value!r} is not a valid {cls.__name__}")
 
         unknown = int.__new__(cls, value)
-        unknown._name_ = f'UNKNOWN_CODE_{value}'
+        unknown._name_ = f"UNKNOWN_CODE_{value}"
         unknown._value_ = value
         return unknown
 
@@ -375,13 +378,11 @@ class ResponseCode(IntEnum):
         return self.name.startswith("UNKNOWN_CODE_")
 
     @classmethod
-    def get_name(cls,code: int) -> str:
-        """
-        Returns the name of the response code.
-        """
+    def get_name(cls, code: int) -> str:
+        """Returns the name of the response code."""
         warnings.warn(
-            "The `get_name` method to be deprecated in v0.1.4. "
-            "Please use `ResponseCode(code).name` instead.", 
-            FutureWarning
+            "The `get_name` method to be deprecated in v0.1.4. Please use `ResponseCode(code).name` instead.",
+            FutureWarning,
+            stacklevel=2,
         )
         return cls(code).name

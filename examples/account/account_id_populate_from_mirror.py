@@ -13,6 +13,7 @@ using mirror node lookups:
 3. Populate account number (num) from mirror node
 4. Populate EVM address from mirror node
 """
+
 import sys
 import time
 
@@ -90,11 +91,7 @@ def populate_account_num_example(client, evm_address, created_account_id):
     print(f"  Num:   {new_account_id.num}")
 
     if new_account_id.num != created_account_id.num:
-        print(
-            "Account number mismatch:\n"
-            f"  Expected: {created_account_id.num}\n"
-            f"  Got:      {new_account_id.num}"
-        )
+        print(f"Account number mismatch:\n  Expected: {created_account_id.num}\n  Got:      {new_account_id.num}")
         sys.exit(1)
 
 
@@ -115,11 +112,7 @@ def populate_evm_address_example(client, created_account_id, evm_address):
     print(f"After populate: evm_address = {new_account_id.evm_address}")
 
     if new_account_id.evm_address != evm_address:
-        print(
-            "EVM address mismatch:\n"
-            f"  Expected: {evm_address}\n"
-            f"  Got:      {new_account_id.evm_address}"
-        )
+        print(f"EVM address mismatch:\n  Expected: {evm_address}\n  Got:      {new_account_id.evm_address}")
         sys.exit(1)
 
 

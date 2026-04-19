@@ -11,6 +11,7 @@ This example demonstrates various ways to use the AccountId class:
 3. Comparing AccountId instances
 4. Creating an AccountId with a public key alias
 """
+
 from hiero_sdk_python import AccountId, PrivateKey
 
 
@@ -81,9 +82,7 @@ def compare_account_ids():
     print(f"\nHash of AccountId 1: {hash(account_id1)}")
     print(f"Hash of AccountId 2: {hash(account_id2)}")
     print(f"Hash of AccountId 3: {hash(account_id3)}")
-    print(
-        f"Are hashes of AccountId 1 and 2 equal? {hash(account_id1) == hash(account_id2)}"
-    )
+    print(f"Are hashes of AccountId 1 and 2 equal? {hash(account_id1) == hash(account_id2)}")
 
 
 def create_account_id_with_alias():

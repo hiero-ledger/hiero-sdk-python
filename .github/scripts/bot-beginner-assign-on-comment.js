@@ -252,7 +252,7 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
         }
         return;
       }
-      
+
       // --- ASSIGNMENT LOGIC ---
       if (issue.assignees && issue.assignees.length > 0) {
         try{

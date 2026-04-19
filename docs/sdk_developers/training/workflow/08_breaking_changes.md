@@ -44,11 +44,10 @@ Examples include:
 - Replacing deprecated functionality that cannot be maintained
 
 If a breaking change must occur:
-- Clearly communicate it in your commit messages and changelog.
-- Provide a detailed explanation in the changelog.
+- Document it in the pull request
 - When possible, implement or propose backwards compatibility solutions (deprecation warnings, transitional methods, alternative APIs, etc.).
 
-Example changelog entry:
+Example pull request description:
 
 `BREAKING CHANGE: transfer_tokens() now requires an AccountId object instead of a string.`
 
