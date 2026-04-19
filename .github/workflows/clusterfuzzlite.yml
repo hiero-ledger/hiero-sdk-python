@@ -16,7 +16,7 @@ jobs:
   # changed code paths (code-change mode).
   PR:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     concurrency:
       group: ${{ github.workflow }}-pr-${{ matrix.sanitizer }}-${{ github.ref }}
       cancel-in-progress: true
@@ -54,7 +54,7 @@ jobs:
   # fuzzing can determine whether a crash was newly introduced.
   Build:
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
     concurrency:
       group: ${{ github.workflow }}-build-${{ matrix.sanitizer }}-${{ github.ref }}
       cancel-in-progress: true
