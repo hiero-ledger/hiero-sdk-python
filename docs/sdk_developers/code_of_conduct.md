@@ -23,8 +23,8 @@ We aim to maintain a respectful, inclusive, and collaborative community.
 
 ## Contribution Guidelines
 
-- Follow the project contribution workflow in `CONTRIBUTING.md`
-- Sign commits using both GPG and DCO (see Quickstart Signing in `CONTRIBUTING.md`)
+- Follow the project contribution workflow in [CONTRIBUTING.md](../../CONTRIBUTING.md)
+- Sign commits using both GPG and DCO (see [Quickstart Signing](../../CONTRIBUTING.md#quickstart-signing))
 - Use clear, respectful language in issues and pull requests
 - Respond to feedback constructively
 - Do not take on more issues than you can reasonably handle
