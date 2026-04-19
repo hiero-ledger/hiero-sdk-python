@@ -13,6 +13,7 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
+from hiero_sdk_python.query.fee_estimate_query import FeeEstimateQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -117,3 +118,13 @@ def test_execute_returns_receipt_without_error_when_validation_disabled():
         receipt = tx.execute(client)
 
         assert receipt.status == ResponseCode.INVALID_SIGNATURE
+
+
+def test_estimate_fee_returns_fee_query():
+
+    tx = AccountCreateTransaction()
+
+    query = tx.estimate_fee()
+
+    assert isinstance(query, FeeEstimateQuery)
+    assert query.get_transaction() == tx
