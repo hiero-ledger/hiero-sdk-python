@@ -43,6 +43,15 @@ eth = [
 
 tck = ["flask>=3.0.0,<4"]
 
+fuzz = [
+    # Atheris (Linux + libFuzzer only) and PyInstaller are used exclusively by
+    # the ClusterFuzzLite Docker build (.clusterfuzzlite/build.sh).
+    # They are intentionally not part of the standard dev group because Atheris
+    # requires a libFuzzer-instrumented build environment.
+    "atheris>=2.3.0",
+    "pyinstaller>=6.0.0",
+]
+
 [dependency-groups]
 dev = [
     "grpcio-tools>=1.76.0,<2",

@@ -1,0 +1,78 @@
+name: ClusterFuzzLite
+
+on:
+  pull_request:
+    paths:
+      - "**"
+  push:
+    branches:
+      - main
+
+permissions: read-all
+
+jobs:
+  # ── PR fuzzing ────────────────────────────────────────────────────────────
+  # Runs on every pull request and reports any new crashes found in the
+  # changed code paths (code-change mode).
+  PR:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-pr-${{ matrix.sanitizer }}-${{ github.ref }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - address
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        with:
+          egress-policy: audit
+
+      - name: Build Fuzzers (${{ matrix.sanitizer }})
+        id: build
+        uses: google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          language: python
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          sanitizer: ${{ matrix.sanitizer }}
+
+      - name: Run Fuzzers (${{ matrix.sanitizer }})
+        id: run
+        uses: google/clusterfuzzlite/actions/run_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          fuzz-seconds: 600
+          mode: code-change
+          sanitizer: ${{ matrix.sanitizer }}
+          output-sarif: true
+
+  # ── Continuous builds ─────────────────────────────────────────────────────
+  # Uploads a fresh fuzzer build artifact on every push to main so that PR
+  # fuzzing can determine whether a crash was newly introduced.
+  Build:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ matrix.sanitizer }}-${{ github.ref }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer:
+          - address
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        with:
+          egress-policy: audit
+
+      - name: Build Fuzzers (${{ matrix.sanitizer }})
+        id: build
+        uses: google/clusterfuzzlite/actions/build_fuzzers@884713a6c30a92e5e8544c39945cd7cb630abcd1 # v1
+        with:
+          language: python
+          sanitizer: ${{ matrix.sanitizer }}
+          upload-build: true
