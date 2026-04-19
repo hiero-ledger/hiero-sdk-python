@@ -191,8 +191,8 @@ def test_generate_with_jitter():
     ts = Timestamp.generate(has_jitter=True)
     delta = time.time() - ts.to_date().timestamp()
 
-    # Jitter is explicitly 3-8 seconds backward (with small tolerance for timing precision)
-    assert 2.99 <= delta <= 9.0
+    # Jitter is explicitly 3-8 seconds backward
+    assert 3.0 <= delta <= 9.0
 
 
 # Protobuf serialization tests
