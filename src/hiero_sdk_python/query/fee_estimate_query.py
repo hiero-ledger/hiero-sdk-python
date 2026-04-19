@@ -5,7 +5,7 @@ from the network or fee service.
 """
 
 from __future__ import annotations
-#conment to test errors
+
 import logging
 import time
 from typing import TYPE_CHECKING
@@ -17,10 +17,12 @@ from hiero_sdk_python.fees.fee_estimate_mode import FeeEstimateMode
 from hiero_sdk_python.fees.fee_estimate_response import FeeEstimateResponse
 from hiero_sdk_python.fees.network_fee import NetworkFee
 
+
 if TYPE_CHECKING:
     from hiero_sdk_python.transaction.transaction import Transaction
 
 logger = logging.getLogger(__name__)
+
 
 class FeeEstimateQuery:
     """
@@ -163,7 +165,7 @@ class FeeEstimateQuery:
 
     def _post_with_retry(self, url: str, data: bytes, max_retries: int = 2):
         """POST request with retry logic for transient failures."""
-        for attempt in range(max_retries):
+        for attempt in range(max_retries):  # noqa: PERF203
             try:
                 response = requests.post(
                     url,
@@ -177,7 +179,7 @@ class FeeEstimateQuery:
 
                 return response
 
-            except Exception as exc:  # pylint: disable=broad-exception-caught
+            except Exception as exc:  # pylint: disable=broad-exception-caught # noqa: PERF203
                 if attempt == max_retries - 1:
                     raise
 
@@ -232,7 +234,8 @@ class FeeEstimateQuery:
         service_fee = FeeEstimate(base=data["service"]["subtotal"], extras=[])
 
         network_fee = NetworkFee(
-            multiplier=data["network"]["multiplier"], subtotal=0  # computed later
+            multiplier=data["network"]["multiplier"],
+            subtotal=0,  # computed later
         )
 
         return FeeEstimateResponse(
