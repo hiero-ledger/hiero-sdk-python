@@ -15,7 +15,7 @@ pip3 install .
 pip3 install atheris pyinstaller
 
 # Build every *_fuzzer.py target found in the .clusterfuzzlite directory.
-for fuzzer in $(find "$SRC/hiero-sdk-python/.clusterfuzzlite" -name '*_fuzzer.py'); do
+find "$SRC/hiero-sdk-python/.clusterfuzzlite" -name '*_fuzzer.py' -print0 | while IFS= read -r -d '' fuzzer; do
   fuzzer_basename=$(basename -s .py "$fuzzer")
   fuzzer_package="${fuzzer_basename}.pkg"
 

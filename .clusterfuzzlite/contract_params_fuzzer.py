@@ -14,7 +14,7 @@ with atheris.instrument_imports():
 def TestOneInput(data: bytes) -> None:
     """Feed arbitrary bytes into ContractFunctionParameters encoding paths."""
     fdp = atheris.FuzzedDataProvider(data)
-    choice = fdp.ConsumeIntInRange(0, 7)
+    choice = fdp.ConsumeIntInRange(0, 9)
 
     try:
         params = ContractFunctionParameters()
@@ -36,9 +36,15 @@ def TestOneInput(data: bytes) -> None:
         elif choice == 6:
             count = fdp.ConsumeIntInRange(0, 8)
             params.add_string_array([fdp.ConsumeUnicodeNoSurrogates(64) for _ in range(count)])
-        else:
+        elif choice == 7:
             count = fdp.ConsumeIntInRange(0, 8)
             params.add_bytes_array([fdp.ConsumeBytes(32) for _ in range(count)])
+        elif choice == 8:
+            count = fdp.ConsumeIntInRange(0, 8)
+            params.add_address_array([fdp.ConsumeBytes(20).hex() for _ in range(count)])
+        else:
+            count = fdp.ConsumeIntInRange(0, 8)
+            params.add_bytes32_array([fdp.ConsumeBytes(32) for _ in range(count)])
 
         params.to_bytes()
 
