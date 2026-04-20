@@ -6,10 +6,12 @@ import secrets
 import time
 from typing import Any
 
+import grpc
 import requests
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
+from hiero_sdk_python.hapi.mirror import consensus_service_pb2_grpc as mirror_consensus_grpc
 from hiero_sdk_python.node import _Node
 
 
@@ -97,7 +99,9 @@ class Network:
             Use Client.set_transport_security() and Client.set_verify_certificates() to customize.
         """
         self.network: str = network or "localhost"
-        self.mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(network, "localhost:5600")
+        self._mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(network, "localhost:5600")
+        self._mirror_channel = None
+        self._mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
 
         self.ledger_id = ledger_id or self.LEDGER_ID.get(network, bytes.fromhex("03"))
 
@@ -121,6 +125,17 @@ class Network:
 
         self._node_index: int = secrets.randbelow(len(self._healthy_nodes))
         self.current_node: _Node = self._healthy_nodes[self._node_index]
+
+    @property
+    def mirror_address(self) -> str:
+        return self._mirror_address
+
+    @mirror_address.setter
+    def mirror_address(self, value: str):
+        """Reset the connection when the address changes."""
+        if self._mirror_address != value:
+            self._mirror_address = value
+            self.close_mirror_connection()
 
     def _set_network_nodes(self, nodes: list[_Node] | None = None):
         """Configure the consensus nodes used by this network."""
@@ -406,3 +421,25 @@ class Network:
 
         if node not in self._healthy_nodes:
             self._healthy_nodes.append(node)
+
+    def close_mirror_connection(self):
+        """Safely closes the mirror gRPC channel."""
+        if self._mirror_channel is not None:
+            self._mirror_channel.close()
+
+        self._mirror_channel = None
+        self._mirror_stub = None
+
+    def get_mirror_stub(self) -> mirror_consensus_grpc.ConsensusServiceStub:
+        """Returns the mirror stub."""
+        if self._mirror_stub is None:
+            addr = self._mirror_address
+
+            if addr.endswith(":50212") or addr.endswith(":443"):
+                self._mirror_channel = grpc.secure_channel(addr, grpc.ssl_channel_credentials())
+            else:
+                self._mirror_channel = grpc.insecure_channel(addr)
+
+            self._mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self._mirror_channel)
+
+        return self._mirror_stub
