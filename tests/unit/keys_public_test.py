@@ -344,13 +344,9 @@ def test_encode_der_length_negative_raises():
 
 def test_encode_der_oid_known_values():
     # id-ecPublicKey
-    assert PublicKey._encode_der_oid("1.2.840.10045.2.1") == bytes.fromhex(
-        "06072a8648ce3d0201"
-    )
+    assert PublicKey._encode_der_oid("1.2.840.10045.2.1") == bytes.fromhex("06072a8648ce3d0201")
     # secp256k1
-    assert PublicKey._encode_der_oid("1.3.132.0.10") == bytes.fromhex(
-        "06052b8104000a"
-    )
+    assert PublicKey._encode_der_oid("1.3.132.0.10") == bytes.fromhex("06052b8104000a")
 
 
 def test_encode_der_oid_combined_root_multibyte():
@@ -390,11 +386,9 @@ def test_to_bytes_der_ecdsa_compressed_structure_and_roundtrip(ecdsa_keypair):
     compressed_point = public_key.to_bytes_ecdsa(compressed=True)
 
     # Fixed SPKI prefix for secp256k1 compressed-point encoding.
-    expected_prefix = bytes.fromhex(
-        "3036301006072a8648ce3d020106052b8104000a032200"
-    )
+    expected_prefix = bytes.fromhex("3036301006072a8648ce3d020106052b8104000a032200")
     assert der.startswith(expected_prefix)
-    assert der[len(expected_prefix):] == compressed_point
+    assert der[len(expected_prefix) :] == compressed_point
 
     # Ensure produced DER is parseable and preserves the same public key bytes.
     loaded = PublicKey.from_der(der)

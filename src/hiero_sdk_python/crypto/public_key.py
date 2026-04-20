@@ -452,12 +452,7 @@ class PublicKey(Key):
         """
         parts = [int(part) for part in oid.split(".")]
 
-        is_valid = (
-            len(parts) >= 2 and
-            parts[0] in (0, 1, 2) and
-            parts[1] >= 0 and
-            (parts[0] == 2 or parts[1] < 40)
-        )
+        is_valid = len(parts) >= 2 and parts[0] in (0, 1, 2) and parts[1] >= 0 and (parts[0] == 2 or parts[1] < 40)
         if not is_valid:
             raise ValueError(f"Invalid OID structure for '{oid}'")
 
@@ -495,8 +490,7 @@ class PublicKey(Key):
 
         # id-ecPublicKey + secp256k1 OID algorithm identifier
         algorithm_id = self._encode_der_sequence(
-            self._encode_der_oid("1.2.840.10045.2.1")
-            + self._encode_der_oid("1.3.132.0.10")
+            self._encode_der_oid("1.2.840.10045.2.1") + self._encode_der_oid("1.3.132.0.10")
         )
         compressed_point = self.to_bytes_ecdsa(compressed=True)
         subject_public_key = self._encode_der_bit_string(compressed_point)
@@ -529,7 +523,7 @@ class PublicKey(Key):
         Hex-encoded DER form of the public key.
         """
         return self.to_bytes_der().hex()
-    
+
     def to_string_der_ecdsa_compressed(self) -> str:
         """
         Returns DER SPKI hex for ECDSA secp256k1 using a compressed SEC1 point.
