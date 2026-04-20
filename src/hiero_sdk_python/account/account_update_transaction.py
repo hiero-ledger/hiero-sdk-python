@@ -10,6 +10,7 @@ from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.crypto_update_pb2 import CryptoUpdateTransactionBody
@@ -361,8 +362,6 @@ class AccountUpdateTransaction(Transaction):
 
     @classmethod
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):  # noqa: PLR0912
-        from hiero_sdk_python.crypto.public_key import PublicKey
-
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("cryptoUpdateAccount"):
             body = transaction_body.cryptoUpdateAccount

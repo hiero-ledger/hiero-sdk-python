@@ -29,6 +29,7 @@ from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 
@@ -562,8 +563,6 @@ class TokenCreateTransaction(Transaction):
 
     @classmethod
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):  # noqa: PLR0912
-        from hiero_sdk_python.crypto.public_key import PublicKey
-
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("tokenCreation"):
             body = transaction_body.tokenCreation
