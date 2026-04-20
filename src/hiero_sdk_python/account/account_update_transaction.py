@@ -362,7 +362,6 @@ class AccountUpdateTransaction(Transaction):
     @classmethod
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
         from hiero_sdk_python.crypto.public_key import PublicKey
-        from hiero_sdk_python.hapi.services.crypto_update_pb2 import CryptoUpdateTransactionBody
 
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("cryptoUpdateAccount"):
