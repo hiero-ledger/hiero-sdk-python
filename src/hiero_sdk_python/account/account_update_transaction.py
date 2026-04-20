@@ -360,7 +360,7 @@ class AccountUpdateTransaction(Transaction):
         return _Method(transaction_func=channel.crypto.updateAccount, query_func=None)
 
     @classmethod
-    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):  # noqa: PLR0912
         from hiero_sdk_python.crypto.public_key import PublicKey
 
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
