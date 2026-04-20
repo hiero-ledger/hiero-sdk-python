@@ -214,3 +214,18 @@ class FileUpdateTransaction(Transaction):
             _Method: An object containing the transaction function to update a file.
         """
         return _Method(transaction_func=channel.file.updateFile, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("fileUpdate"):
+            body = transaction_body.fileUpdate
+            if body.HasField("fileID"):
+                transaction.file_id = FileId._from_proto(body.fileID)
+            transaction.keys = [PublicKey._from_proto(k) for k in body.keys.keys] if body.keys.keys else None
+            transaction.contents = body.contents if body.contents else None
+            if body.HasField("expirationTime"):
+                transaction.expiration_time = Timestamp._from_protobuf(body.expirationTime)
+            if body.HasField("memo"):
+                transaction.file_memo = body.memo.value
+        return transaction
