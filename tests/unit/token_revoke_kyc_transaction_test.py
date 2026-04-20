@@ -138,6 +138,23 @@ def test_build_scheduled_body(mock_account_ids):
     assert schedulable_body.tokenRevokeKyc.account == account_id._to_proto()
 
 
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenRevokeKycTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenRevokeKycTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_account_id(account_id_sender)
+    tx.operator_account_id = account_id_sender
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenRevokeKycTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.account_id == account_id_sender
+
+
 def test_revoke_kyc_transaction_from_proto(mock_account_ids):
     """Test that a revoke KYC transaction can be created from a protobuf object."""
     account_id, _, _, token_id, _ = mock_account_ids

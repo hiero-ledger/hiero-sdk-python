@@ -145,6 +145,23 @@ def test_grant_kyc_transaction_from_proto(mock_account_ids):
     assert from_proto.account_id == AccountId()
 
 
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenGrantKycTransaction."""
+    account_id, _, node_account_id, token_id, _ = mock_account_ids
+
+    tx = TokenGrantKycTransaction()
+    tx.set_token_id(token_id)
+    tx.set_account_id(account_id)
+    tx.operator_account_id = account_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenGrantKycTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id
+    assert reconstructed.account_id == account_id
+
+
 def test_build_scheduled_body(mock_account_ids):
     """Test building a scheduled transaction body for token grant KYC transaction."""
     account_id, _, _, token_id, _ = mock_account_ids

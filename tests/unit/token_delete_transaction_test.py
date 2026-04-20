@@ -113,3 +113,18 @@ def test_build_scheduled_body(mock_account_ids):
     assert isinstance(schedulable_body, SchedulableTransactionBody)
     assert schedulable_body.HasField("tokenDeletion")
     assert schedulable_body.tokenDeletion.token == token_id._to_proto()
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenDeleteTransaction."""
+    account_id, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenDeleteTransaction()
+    tx.set_token_id(token_id_1)
+    tx.transaction_id = generate_transaction_id(account_id)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1

@@ -539,3 +539,22 @@ def test_set_stake_account_id_reset_stake_node_id():
     tx.set_staked_account_id(AccountId(0, 0, 1))
     assert tx.staked_account_id == AccountId(0, 0, 1)
     assert tx.staked_node_id is None
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for AccountCreateTransaction."""
+    operator_id, node_account_id = mock_account_ids
+
+    from hiero_sdk_python.hbar import Hbar
+
+    tx = AccountCreateTransaction()
+    tx.set_initial_balance(Hbar(5).to_tinybars())
+    tx.set_receiver_signature_required(True)
+    tx.transaction_id = generate_transaction_id(operator_id)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = AccountCreateTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.initial_balance == Hbar(5).to_tinybars()
+    assert reconstructed.receiver_signature_required is True

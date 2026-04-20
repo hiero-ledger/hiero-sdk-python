@@ -169,6 +169,21 @@ def test_from_proto(mock_account_ids):
     assert unpause_tx.token_id.num == token_id.num
 
 
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenUnpauseTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenUnpauseTransaction()
+    tx.set_token_id(token_id_1)
+    tx.operator_account_id = account_id_sender
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenUnpauseTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+
+
 def test_upause_transaction_can_execute(mock_account_ids):
     """Test that a token upause transaction can be executed successfully."""
     _, _, _, token_id, _ = mock_account_ids

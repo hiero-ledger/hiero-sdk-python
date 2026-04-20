@@ -466,3 +466,22 @@ def test_build_transaction_body_with_keys(mock_account_ids, key_type, use_privat
     assert transaction_body.tokenUpdate.name == new_token_data["name"]
     verify_key_in_proto(transaction_body.tokenUpdate.adminKey, expected_admin_public, key_type)
     verify_key_in_proto(transaction_body.tokenUpdate.freezeKey, expected_freeze_public, key_type)
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenUpdateTransaction."""
+    operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenUpdateTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_token_name("NewName")
+    tx.set_token_symbol("NNS")
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenUpdateTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.token_name == "NewName"
+    assert reconstructed.token_symbol == "NNS"

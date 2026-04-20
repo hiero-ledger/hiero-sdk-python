@@ -192,3 +192,18 @@ def test_schedule_id_property_access():
     # Test getting via property
     retrieved_schedule_id = schedule_sign_tx.schedule_id
     assert retrieved_schedule_id == schedule_id
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for ScheduleSignTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    schedule_id = ScheduleId(0, 0, 42)
+
+    tx = ScheduleSignTransaction(schedule_id=schedule_id)
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = ScheduleSignTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.schedule_id == schedule_id

@@ -289,3 +289,18 @@ def test_build_proto_body_with_none_fields():
     assert not proto_body.HasField("update_file")
     assert proto_body.file_hash == b""
     assert proto_body.freeze_type == proto_FreezeType.UNKNOWN_FREEZE_TYPE
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for FreezeTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = FreezeTransaction()
+    tx.set_freeze_type(FreezeType.FREEZE_ONLY)
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = FreezeTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.freeze_type == FreezeType.FREEZE_ONLY

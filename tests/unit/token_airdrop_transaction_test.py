@@ -402,3 +402,19 @@ def test_from_proto_without_token_transfer(mock_account_ids):
     assert nft_transfer[0].is_approved == True
 
     assert not airdrop_tx.token_transfers
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenAirdropTransaction."""
+    sender, receiver, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenAirdropTransaction()
+    tx.add_token_transfer(token_id=token_id_1, account_id=sender, amount=-1)
+    tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=1)
+    tx.operator_account_id = sender
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenAirdropTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert len(reconstructed.token_transfers[token_id_1]) == 2

@@ -358,3 +358,21 @@ def test_encode_contents_string():
     # Test None handling
     encoded = file_tx._encode_contents(None)
     assert encoded is None
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for FileUpdateTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    test_file_id = FileId(0, 0, 5)
+
+    tx = FileUpdateTransaction()
+    tx.set_file_id(test_file_id)
+    tx.set_contents(b"updated")
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = FileUpdateTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.file_id == test_file_id
+    assert reconstructed.contents == b"updated"

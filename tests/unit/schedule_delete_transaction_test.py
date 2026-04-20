@@ -249,3 +249,18 @@ def test_schedule_delete_transaction_can_execute():
         receipt = transaction.execute(client)
 
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for ScheduleDeleteTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    schedule_id = ScheduleId(0, 0, 99)
+
+    tx = ScheduleDeleteTransaction(schedule_id=schedule_id)
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = ScheduleDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.schedule_id == schedule_id

@@ -212,3 +212,24 @@ def test_update_nfts_transaction_from_proto(mock_account_ids):
     assert isinstance(empty_tx.token_id, TokenId)
     assert empty_tx.serial_numbers == []
     assert empty_tx.metadata is empty_proto.metadata.value  # Should be None or empty
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenUpdateNftsTransaction."""
+    operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    serial_numbers = [1, 2, 3]
+    metadata = b"newmeta"
+
+    tx = TokenUpdateNftsTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_serial_numbers(serial_numbers)
+    tx.set_metadata(metadata)
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenUpdateNftsTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert list(reconstructed.serial_numbers) == serial_numbers
+    assert reconstructed.metadata == metadata

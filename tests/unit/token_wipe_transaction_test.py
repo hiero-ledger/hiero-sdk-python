@@ -194,3 +194,42 @@ def test_build_scheduled_body_with_serial_numbers(mock_account_ids):
     assert schedulable_body.tokenWipe.token == token_id._to_proto()
     assert schedulable_body.tokenWipe.account == wipe_account_id._to_proto()
     assert schedulable_body.tokenWipe.serialNumbers == serial_numbers
+
+
+def test_from_protobuf_fungible(mock_account_ids):
+    """Test round-trip via _from_protobuf for fungible TokenWipeTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenWipeTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_account_id(account_id_sender)
+    tx.set_amount(50)
+    tx.transaction_id = generate_transaction_id(account_id_sender)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenWipeTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.account_id == account_id_sender
+    assert reconstructed.amount == 50
+
+
+def test_from_protobuf_nft(mock_account_ids):
+    """Test round-trip via _from_protobuf for NFT TokenWipeTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+    serial = [4, 5]
+
+    tx = TokenWipeTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_account_id(account_id_sender)
+    tx.set_serial(serial)
+    tx.transaction_id = generate_transaction_id(account_id_sender)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenWipeTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.account_id == account_id_sender
+    assert list(reconstructed.serial) == serial

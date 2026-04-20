@@ -131,3 +131,17 @@ def test_get_method():
 
     assert method.query is None
     assert method.transaction == mock_file_stub.deleteFile
+
+
+def test_from_protobuf(mock_account_ids, file_id):
+    """Test round-trip via _from_protobuf for FileDeleteTransaction."""
+    account_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = FileDeleteTransaction(file_id=file_id)
+    tx.node_account_id = node_account_id
+    tx.operator_account_id = account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = FileDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.file_id == file_id

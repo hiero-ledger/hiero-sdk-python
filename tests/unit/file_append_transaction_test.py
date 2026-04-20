@@ -401,3 +401,22 @@ def test_chunk_transaction_id_nanosecond_overflow(file_id):
     # Second chunk seconds=base_seconds + 1, nanos=0
     assert tx._transaction_ids[1].valid_start.seconds == base_seconds + 1
     assert tx._transaction_ids[1].valid_start.nanos == 0
+
+
+@pytest.mark.unit
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for FileAppendTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    test_file_id = FileId(0, 0, 5)
+
+    tx = FileAppendTransaction()
+    tx.set_file_id(test_file_id)
+    tx.set_contents(b"appended")
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = FileAppendTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.file_id == test_file_id
+    assert reconstructed.contents == b"appended"
