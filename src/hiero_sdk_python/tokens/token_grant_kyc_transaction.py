@@ -127,6 +127,17 @@ class TokenGrantKycTransaction(Transaction):
         """
         return _Method(transaction_func=channel.token.grantKycToTokenAccount, query_func=None)
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenGrantKyc"):
+            body = transaction_body.tokenGrantKyc
+            if body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(body.token)
+            if body.HasField("account"):
+                transaction.account_id = AccountId._from_proto(body.account)
+        return transaction
+
     def _from_proto(self, proto: token_grant_kyc_pb2.TokenGrantKycTransactionBody) -> TokenGrantKycTransaction:
         """
         Initializes a new TokenGrantKycTransaction instance from a protobuf object.

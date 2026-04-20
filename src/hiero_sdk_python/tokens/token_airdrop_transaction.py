@@ -63,6 +63,37 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
         return token_airdrop_pb2.TokenAirdropTransactionBody(token_transfers=token_transfers)
 
     @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        from hiero_sdk_python.account.account_id import AccountId
+        from hiero_sdk_python.tokens.token_id import TokenId
+        from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
+        from hiero_sdk_python.tokens.token_transfer import TokenTransfer
+
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenAirdrop"):
+            for transfer in transaction_body.tokenAirdrop.token_transfers:
+                if not transfer.HasField("token"):
+                    continue
+                token_id = TokenId._from_proto(transfer.token)
+                for t in transfer.transfers:
+                    if not t.HasField("accountID"):
+                        continue
+                    account_id = AccountId._from_proto(t.accountID)
+                    expected_decimals = transfer.expected_decimals.value if transfer.HasField("expected_decimals") else None
+                    transaction.token_transfers[token_id].append(
+                        TokenTransfer(token_id, account_id, t.amount, expected_decimals, t.is_approval)
+                    )
+                for n in transfer.nftTransfers:
+                    if not n.HasField("senderAccountID") or not n.HasField("receiverAccountID"):
+                        continue
+                    sender_id = AccountId._from_proto(n.senderAccountID)
+                    receiver_id = AccountId._from_proto(n.receiverAccountID)
+                    transaction.nft_transfers[token_id].append(
+                        TokenNftTransfer(token_id, sender_id, receiver_id, n.serialNumber, n.is_approval)
+                    )
+        return transaction
+
+    @classmethod
     def _from_proto(cls, proto: token_airdrop_pb2.TokenAirdropTransactionBody) -> TokenAirdropTransaction:
         """
         Construct an instance of TokenAirdropTransaction from protobuf TokenAirdropTransactionBody.
