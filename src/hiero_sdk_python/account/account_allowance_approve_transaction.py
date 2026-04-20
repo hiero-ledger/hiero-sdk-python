@@ -372,3 +372,13 @@ class AccountAllowanceApproveTransaction(Transaction):
             _Method: An object containing the transaction function to approve allowances.
         """
         return _Method(transaction_func=channel.crypto.approveAllowances, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("cryptoApproveAllowance"):
+            body = transaction_body.cryptoApproveAllowance
+            transaction.hbar_allowances = [HbarAllowance._from_proto(a) for a in body.cryptoAllowances]
+            transaction.token_allowances = [TokenAllowance._from_proto(a) for a in body.tokenAllowances]
+            transaction.nft_allowances = [TokenNftAllowance._from_proto(a) for a in body.nftAllowances]
+        return transaction

@@ -358,3 +358,34 @@ class AccountUpdateTransaction(Transaction):
             _Method: An object containing the transaction function to update an account.
         """
         return _Method(transaction_func=channel.crypto.updateAccount, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        from hiero_sdk_python.crypto.public_key import PublicKey
+        from hiero_sdk_python.hapi.services.crypto_update_pb2 import CryptoUpdateTransactionBody
+
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("cryptoUpdateAccount"):
+            body = transaction_body.cryptoUpdateAccount
+            if body.HasField("accountIDToUpdate"):
+                transaction.account_id = AccountId._from_proto(body.accountIDToUpdate)
+            if body.HasField("key"):
+                transaction.key = PublicKey._from_proto(body.key)
+            if body.HasField("autoRenewPeriod"):
+                transaction.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
+            if body.HasField("memo"):
+                transaction.account_memo = body.memo.value
+            if body.HasField("expirationTime"):
+                transaction.expiration_time = Timestamp._from_protobuf(body.expirationTime)
+            if body.HasField("receiverSigRequiredWrapper"):
+                transaction.receiver_signature_required = body.receiverSigRequiredWrapper.value
+            if body.HasField("max_automatic_token_associations"):
+                transaction.max_automatic_token_associations = body.max_automatic_token_associations.value
+            if body.HasField("decline_reward"):
+                transaction.decline_staking_reward = body.decline_reward.value
+            staked_id = body.WhichOneof("staked_id")
+            if staked_id == "staked_account_id":
+                transaction.staked_account_id = AccountId._from_proto(body.staked_account_id)
+            elif staked_id == "staked_node_id":
+                transaction.staked_node_id = body.staked_node_id
+        return transaction
