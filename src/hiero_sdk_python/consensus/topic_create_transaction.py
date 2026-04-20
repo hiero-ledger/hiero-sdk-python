@@ -21,6 +21,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.utils.key_utils import key_to_proto
 
@@ -281,8 +282,6 @@ class TopicCreateTransaction(Transaction):
 
     @classmethod
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):  # noqa: PLR0912
-        from hiero_sdk_python.crypto.public_key import PublicKey
-
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("consensusCreateTopic"):
             body = transaction_body.consensusCreateTopic

@@ -10,6 +10,7 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2, transaction_pb2
@@ -374,7 +375,6 @@ class AccountCreateTransaction(Transaction):
 
     @classmethod
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
-        from hiero_sdk_python.crypto.public_key import PublicKey
 
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("cryptoCreateAccount"):
