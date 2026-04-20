@@ -1,4 +1,4 @@
-# This workflow warns the team about P0 issues immediately when they are created.
+# This workflow warns the team about priority: critical issues immediately when they are created.
 name: P0 Issue Alert
 on:
   issues:
@@ -12,10 +12,10 @@ permissions:
 jobs:
   p0_notify_team:
     runs-on: hl-sdk-py-lin-md
-    # Only run for issues labeled with 'p0' (case-insensitive)
+    # Only run for issues labeled with 'priority: critical' (case-insensitive)
     if: >
       (github.event_name == 'issues' && (
-          (github.event.label.name == 'p0' || github.event.label.name == 'P0'))
+          (github.event.label.name == 'priority: critical' || github.event.label.name == 'Priority: Critical'))
       )
 
     steps:
@@ -34,4 +34,4 @@ jobs:
         with:
           script: |
             const script = require('./.github/scripts/bot-p0-issues-notify-team.js');
-            await script({ github, context});
+            await script({ github, context });
