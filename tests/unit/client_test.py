@@ -579,3 +579,28 @@ def test_for_network_with_non_hosted_network_not_downgrade_tls(network):
     assert str(node._address) == "127.0.0.1:50212"
     assert node._address._is_transport_security() is True
     assert client.network.is_transport_security() is False  # Non hosted network.
+
+
+def test_for_network_with_empty_map_raises_error():
+    """Test that for_network raises ValueError when map is empty."""
+    with pytest.raises(ValueError, match="network_map cannot be empty"):
+        Client.for_network({})
+
+
+@pytest.mark.parametrize(
+    "invalid_map, error_msg",
+    [
+        (
+            {"127.0.0.1:50211": AccountId(0, 0, 3), "127.0.0.1:50212": AccountId(1, 0, 4)},
+            "network is not valid, all nodes must be in the same shard and realm",
+        ),
+        (
+            {"127.0.0.1:50211": AccountId(0, 0, 3), "127.0.0.1:50212": AccountId(0, 1, 4)},
+            "network is not valid, all nodes must be in the same shard and realm",
+        ),
+    ],
+)
+def test_for_network_invalid_shard_realm_raises_error(invalid_map, error_msg):
+    """Test that for_network catches mismatched shards or realms."""
+    with pytest.raises(ValueError, match=error_msg):
+        Client.for_network(invalid_map)
