@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from unittest.mock import Mock, patch
 
+import grpc
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -487,7 +488,7 @@ def test_non_hosted_network_respects_port_50211(network):
     """Test that on non-hosted network, port 50211 stays 50211 and remains non-tls."""
     node_50211 = _Node(AccountId(0, 0, 3), "127.0.0.1:50211", None)
 
-    network = Network(network=None, nodes=[node_50211])
+    network = Network(network=network, nodes=[node_50211])
 
     assert ":50211" in str(network.nodes[0]._address)
     assert network.nodes[0]._address._is_transport_security() is False
@@ -504,3 +505,70 @@ def test_non_hosted_network_respect_port_50212(network):
     assert ":50212" in str(network.nodes[0]._address)
     assert network.nodes[0]._address._is_transport_security() is True
     assert network._transport_security is False
+
+
+def test_mirror_address_setter_resets_connection(monkeypatch):
+    """Test  updating the mirror_address automatically closes the existing connection and the stub."""
+    network = Network("testnet", mirror_address="old.mirror:5600")
+
+    mock_channel = Mock(spec=grpc.Channel)
+    network._mirror_channel = mock_channel
+    network._mirror_stub = Mock()
+
+    network.mirror_address = "new.mirror:5600"
+
+    mock_channel.close.assert_called_once()
+    assert network._mirror_channel is None
+    assert network._mirror_stub is None
+    assert network.mirror_address == "new.mirror:5600"
+
+
+def test_mirror_address_setter_no_op_on_same_value():
+    """Test that setting the mirror_address to the current value does not reset the connection."""
+    network = Network("testnet", mirror_address="same.mirror:5600")
+
+    mock_channel = Mock(spec=grpc.Channel)
+    network._mirror_channel = mock_channel
+    network._mirror_stub = Mock()
+
+    network.mirror_address = "same.mirror:5600"
+
+    mock_channel.close.assert_not_called()
+    assert network._mirror_stub is not None
+
+
+def test_get_mirror_stub_initializes_secure_channel():
+    """Test that get_mirror_stub creates a secure channel for ports 50212 or 443."""
+    network = Network("testnet", mirror_address="hiero.mirror:50212")
+
+    with (
+        patch("grpc.secure_channel") as mock_secure,
+        patch("hiero_sdk_python.client.network.mirror_consensus_grpc.ConsensusServiceStub"),
+    ):
+        network.get_mirror_stub()
+
+    mock_secure.assert_called_once()
+    args, kwargs = mock_secure.call_args
+    assert any(isinstance(arg, grpc.ChannelCredentials) for arg in args) or "credentials" in kwargs
+
+
+def test_get_mirror_stub_initializes_insecure_channel():
+    """Test get_mirror_stub creates an insecure channel for standard ports."""
+    network = Network("testnet", mirror_address="localhost:5600")
+
+    with (
+        patch("grpc.insecure_channel") as mock_insecure,
+        patch("hiero_sdk_python.client.network.mirror_consensus_grpc.ConsensusServiceStub"),
+    ):
+        network.get_mirror_stub()
+
+    mock_insecure.assert_called_once_with("localhost:5600")
+
+
+def test_close_mirror_connection_is_safe_when_none():
+    """Test close_mirror_connection if no connection exists."""
+    network = Network("testnet")
+    network._mirror_channel = None
+
+    network.close_mirror_connection()
+    assert network._mirror_stub is None

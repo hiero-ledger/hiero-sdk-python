@@ -57,9 +57,6 @@ class Client:
 
         self.network: Network = network
 
-        self.mirror_channel: grpc.Channel = None
-        self.mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
-
         self.max_attempts: int = 10
         self.default_max_query_payment: Hbar = DEFAULT_MAX_QUERY_PAYMENT
 
@@ -69,9 +66,16 @@ class Client:
         self._grpc_deadline: float = DEFAULT_GRPC_DEADLINE
         self._request_timeout: float = DEFAULT_REQUEST_TIMEOUT
 
-        self._init_mirror_stub()
-
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
+
+    @property
+    def mirror_stub(self) -> mirror_consensus_grpc.ConsensusServiceStub | None:
+        return self.network.get_mirror_stub()
+
+    @property
+    def mirror_channel(self) -> grpc.Channel | None:
+        self.network.get_mirror_stub()
+        return self.network._mirror_channel
 
     @classmethod
     def from_env(cls, network: NetworkName | None = None) -> Client:
@@ -180,19 +184,6 @@ class Client:
         nodes = [_Node(account_id, address, None) for address, account_id in network_map.items()]
         return cls(Network(network=network_name, nodes=nodes))
 
-    def _init_mirror_stub(self) -> None:
-        """
-        Connect to a mirror node for topic message subscriptions.
-        Mirror nodes always use TLS (mandatory). We use self.network.get_mirror_address()
-        for a configurable mirror address, which should use port 443 for HTTPS connections.
-        """
-        mirror_address = self.network.get_mirror_address()
-        if mirror_address.endswith(":50212") or mirror_address.endswith(":443"):
-            self.mirror_channel = grpc.secure_channel(mirror_address, grpc.ssl_channel_credentials())
-        else:
-            self.mirror_channel = grpc.insecure_channel(mirror_address)
-        self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self.mirror_channel)
-
     def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> None:
         """Sets the operator credentials (account ID and private key)."""
         self.operator_account_id = account_id
@@ -228,11 +219,7 @@ class Client:
         Closes any open gRPC channels and frees resources.
         Call this when you are done using the Client to ensure a clean shutdown.
         """
-        if self.mirror_channel is not None:
-            self.mirror_channel.close()
-            self.mirror_channel = None
-
-        self.mirror_stub = None
+        self.network.close_mirror_connection()
 
     def set_transport_security(self, enabled: bool) -> Client:
         """
