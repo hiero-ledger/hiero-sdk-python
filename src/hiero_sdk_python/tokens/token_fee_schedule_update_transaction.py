@@ -90,6 +90,16 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
         """Gets the gRPC method for this transaction."""
         return _Method(transaction_func=channel.token.updateTokenFeeSchedule)
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("token_fee_schedule_update"):
+            body = transaction_body.token_fee_schedule_update
+            if body.HasField("token_id"):
+                transaction.token_id = TokenId._from_proto(body.token_id)
+            transaction.custom_fees = [CustomFee._from_proto(f) for f in body.custom_fees]
+        return transaction
+
     def __repr__(self):
         """Readable representation for debugging."""
         return f"<TokenFeeScheduleUpdateTransaction token_id={self.token_id} fees={len(self.custom_fees)}>"

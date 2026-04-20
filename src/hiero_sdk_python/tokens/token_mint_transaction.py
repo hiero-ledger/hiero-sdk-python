@@ -160,3 +160,14 @@ class TokenMintTransaction(Transaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(transaction_func=channel.token.mintToken, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenMint"):
+            body = transaction_body.tokenMint
+            if body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(body.token)
+            transaction.amount = body.amount if body.amount else None
+            transaction.metadata = list(body.metadata) if body.metadata else None
+        return transaction
