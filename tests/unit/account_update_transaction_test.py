@@ -813,3 +813,21 @@ def test_set_keylist_threshold_key():
     assert update_body.key.HasField("thresholdKey")
     assert update_body.key.thresholdKey.threshold == 2
     assert len(update_body.key.thresholdKey.keys.keys) == 3
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for AccountUpdateTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id_sender = AccountId(0, 0, 1)
+
+    tx = AccountUpdateTransaction()
+    tx.set_account_id(account_id_sender)
+    tx.set_account_memo("updated")
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = AccountUpdateTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.account_id == account_id_sender
+    assert reconstructed.account_memo == "updated"

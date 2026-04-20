@@ -259,3 +259,23 @@ def test_empty_nft_wipe_list(account_allowance_delete_transaction):
 
     proto_body = account_allowance_delete_transaction._build_proto_body()
     assert len(proto_body.nftAllowances) == 0
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for AccountAllowanceDeleteTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    owner = AccountId(0, 0, 200)
+    token_id = TokenId(0, 0, 100)
+    nft_id = NftId(token_id, 1)
+
+    tx = AccountAllowanceDeleteTransaction()
+    tx.delete_all_token_nft_allowances(nft_id, owner)
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = AccountAllowanceDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert len(reconstructed.nft_wipe) == 1
+    assert reconstructed.nft_wipe[0].token_id == token_id
+    assert reconstructed.nft_wipe[0].owner_account_id == owner

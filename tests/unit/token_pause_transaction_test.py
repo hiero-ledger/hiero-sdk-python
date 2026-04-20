@@ -161,3 +161,18 @@ def test_build_scheduled_body(token_id):
     assert isinstance(schedulable_body, SchedulableTransactionBody)
     assert schedulable_body.HasField("token_pause")
     assert schedulable_body.token_pause.token == token_id._to_proto()
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenPauseTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenPauseTransaction()
+    tx.set_token_id(token_id_1)
+    tx.operator_account_id = account_id_sender
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenPauseTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1

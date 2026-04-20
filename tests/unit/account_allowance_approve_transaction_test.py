@@ -349,3 +349,22 @@ def test_zero_amount_allowances(account_allowance_transaction, sample_accounts, 
     assert len(account_allowance_transaction.token_allowances) == 1
     assert account_allowance_transaction.hbar_allowances[0].amount == 0
     assert account_allowance_transaction.token_allowances[0].amount == 0
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for AccountAllowanceApproveTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    owner = AccountId(0, 0, 200)
+    spender = AccountId(0, 0, 300)
+
+    tx = AccountAllowanceApproveTransaction()
+    tx.approve_hbar_allowance(owner, spender, Hbar(10))
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = AccountAllowanceApproveTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert len(reconstructed.hbar_allowances) == 1
+    assert reconstructed.hbar_allowances[0].owner_account_id == owner
+    assert reconstructed.hbar_allowances[0].spender_account_id == spender

@@ -299,3 +299,38 @@ def test_build_scheduled_body_nft(mock_account_ids, metadata):
     assert schedulable_body.tokenMint.token == token_id._to_proto()
     assert schedulable_body.tokenMint.amount == 0
     assert schedulable_body.tokenMint.metadata == metadata
+
+
+def test_from_protobuf_fungible(mock_account_ids):
+    """Test round-trip via _from_protobuf for fungible TokenMintTransaction."""
+    payer_account, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenMintTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_amount(500)
+    tx.transaction_id = generate_transaction_id(payer_account)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenMintTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.amount == 500
+
+
+def test_from_protobuf_nft(mock_account_ids):
+    """Test round-trip via _from_protobuf for NFT TokenMintTransaction."""
+    payer_account, _, node_account_id, token_id_1, _ = mock_account_ids
+    nft_metadata = [b"meta1", b"meta2"]
+
+    tx = TokenMintTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_metadata(nft_metadata)
+    tx.transaction_id = generate_transaction_id(payer_account)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenMintTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert list(reconstructed.metadata) == nft_metadata

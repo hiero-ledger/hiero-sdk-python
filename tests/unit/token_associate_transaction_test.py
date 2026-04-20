@@ -217,3 +217,23 @@ def test_from_proto_builds_transaction(mock_account_ids):
     assert len(tx.token_ids) == 2
     assert tx.token_ids[0] == token_id_1
     assert tx.token_ids[1] == token_id_2
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenAssociateTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, token_id_2 = mock_account_ids
+
+    tx = TokenAssociateTransaction()
+    tx.set_account_id(account_id_sender)
+    tx.add_token_id(token_id_1)
+    tx.add_token_id(token_id_2)
+    tx.transaction_id = generate_transaction_id(account_id_sender)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenAssociateTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.account_id == account_id_sender
+    assert len(reconstructed.token_ids) == 2
+    assert reconstructed.token_ids[0] == token_id_1
+    assert reconstructed.token_ids[1] == token_id_2

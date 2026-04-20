@@ -180,6 +180,26 @@ def test_from_proto(mock_account_ids):
     assert reconstructed_tx.token_ids[1] == token_id_2
 
 
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenDissociateTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, token_id_2 = mock_account_ids
+
+    tx = TokenDissociateTransaction()
+    tx.set_account_id(account_id_sender)
+    tx.add_token_id(token_id_1)
+    tx.add_token_id(token_id_2)
+    tx.transaction_id = generate_transaction_id(account_id_sender)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenDissociateTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.account_id == account_id_sender
+    assert len(reconstructed.token_ids) == 2
+    assert reconstructed.token_ids[0] == token_id_1
+    assert reconstructed.token_ids[1] == token_id_2
+
+
 def test_build_scheduled_body(mock_account_ids):
     """Test building a scheduled transaction body for token dissociate transaction."""
     account_id, _, _, token_id_1, token_id_2 = mock_account_ids

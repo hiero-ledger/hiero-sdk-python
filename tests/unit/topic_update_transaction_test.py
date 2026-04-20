@@ -140,6 +140,23 @@ def test_execute_topic_update_transaction(topic_id):
         assert receipt.status == ResponseCode.SUCCESS
 
 
+def test_from_protobuf(mock_account_ids, topic_id):
+    """Test round-trip via _from_protobuf for TopicUpdateTransaction."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    tx = TopicUpdateTransaction()
+    tx.set_topic_id(topic_id)
+    tx.set_memo("Updated Memo")
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TopicUpdateTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.topic_id == topic_id
+    assert reconstructed.memo == "Updated Memo"
+
+
 # This test uses fixture topic_id as parameter
 def test_topic_update_transaction_with_all_fields(topic_id):
     """Test updating a topic with all available fields."""

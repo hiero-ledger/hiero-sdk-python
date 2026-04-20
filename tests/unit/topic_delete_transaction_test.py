@@ -113,3 +113,17 @@ def test_execute_topic_delete_transaction(topic_id):
 
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
+
+
+def test_from_protobuf(mock_account_ids, topic_id):
+    """Test round-trip via _from_protobuf for TopicDeleteTransaction."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    tx = TopicDeleteTransaction(topic_id=topic_id)
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TopicDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.topic_id == topic_id

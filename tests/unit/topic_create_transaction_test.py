@@ -574,3 +574,20 @@ def test_mixed_key_types_in_constructor(mock_account_ids):
     assert transaction_body.consensusCreateTopic.submitKey.ed25519 == ed25519_public.to_bytes_raw()
     assert transaction_body.consensusCreateTopic.fee_schedule_key.HasField("ECDSA_secp256k1")
     assert len(transaction_body.consensusCreateTopic.fee_exempt_key_list) == 2
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TopicCreateTransaction."""
+    account_id_sender, _, node_account_id, _, _ = mock_account_ids
+
+    tx = TopicCreateTransaction()
+    tx.set_memo("hello")
+    tx.set_auto_renew_account(account_id_sender)
+    tx.operator_account_id = account_id_sender
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TopicCreateTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.memo == "hello"
+    assert reconstructed.auto_renew_account == account_id_sender

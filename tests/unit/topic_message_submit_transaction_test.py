@@ -482,6 +482,23 @@ def test_topic_submit_execute_raises_error_with_validation(topic_id):
         assert e.value.status == ResponseCode.INVALID_SIGNATURE
 
 
+def test_from_protobuf(topic_id):
+    """Test round-trip via _from_protobuf for TopicMessageSubmitTransaction."""
+    from hiero_sdk_python.account.account_id import AccountId
+
+    tx = TopicMessageSubmitTransaction()
+    tx.set_topic_id(topic_id)
+    tx.set_message("hello world")
+    tx.operator_account_id = AccountId(0, 0, 1)
+    tx.node_account_id = AccountId(0, 0, 3)
+
+    body = tx.build_transaction_body()
+    reconstructed = TopicMessageSubmitTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.topic_id == topic_id
+    assert reconstructed.message == "hello world"
+
+
 def test_topic_submit_execute_returns_failed_receipt_by_default(topic_id):
     """Test execute returns the failing receipt by default when validation is disabled."""
     message = "Hello Hiero"

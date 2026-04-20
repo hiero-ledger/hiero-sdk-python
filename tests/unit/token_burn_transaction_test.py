@@ -182,3 +182,34 @@ def test_build_scheduled_body_nft(mock_account_ids):
     assert schedulable_body.tokenBurn.token == token_id._to_proto()
     assert schedulable_body.tokenBurn.amount == 0
     assert schedulable_body.tokenBurn.serialNumbers == serials
+
+
+def test_from_protobuf_fungible(mock_account_ids):
+    """Test round-trip via _from_protobuf for fungible TokenBurnTransaction."""
+    operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenBurnTransaction(token_id=token_id_1, amount=100)
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenBurnTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.amount == 100
+
+
+def test_from_protobuf_nft(mock_account_ids):
+    """Test round-trip via _from_protobuf for NFT TokenBurnTransaction."""
+    operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    serials = [1, 2, 3]
+
+    tx = TokenBurnTransaction(token_id=token_id_1, serials=serials)
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenBurnTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert list(reconstructed.serials) == serials

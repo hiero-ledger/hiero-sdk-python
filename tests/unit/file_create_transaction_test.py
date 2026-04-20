@@ -260,3 +260,20 @@ def test_file_create_transaction_from_proto():
     assert from_proto.contents == b""
     assert from_proto.file_memo == ""
     assert from_proto.keys == []
+
+
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for FileCreateTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = FileCreateTransaction()
+    tx.set_contents(b"file contents")
+    tx.set_file_memo("my file")
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = FileCreateTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.contents == b"file contents"
+    assert reconstructed.file_memo == "my file"

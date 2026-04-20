@@ -247,6 +247,26 @@ def test_build_scheduled_body(delete_params):
     assert schedulable_body.cryptoDelete.transferAccountID == delete_params["transfer_account_id"]._to_proto()
 
 
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for AccountDeleteTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id_sender = AccountId(0, 0, 1)
+    account_id_recipient = AccountId(0, 0, 2)
+
+    tx = AccountDeleteTransaction(
+        account_id=account_id_sender,
+        transfer_account_id=account_id_recipient,
+    )
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = AccountDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.account_id == account_id_sender
+    assert reconstructed.transfer_account_id == account_id_recipient
+
+
 def test_parameter_validation_none_values():
     """Test that parameters can be set to None."""
     delete_tx = AccountDeleteTransaction(

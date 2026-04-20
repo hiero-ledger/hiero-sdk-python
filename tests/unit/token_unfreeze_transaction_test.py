@@ -112,6 +112,23 @@ def test_build_scheduled_body(mock_account_ids):
     assert schedulable_body.tokenUnfreeze.account == freeze_id._to_proto()
 
 
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenUnfreezeTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenUnfreezeTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_account_id(account_id_sender)
+    tx.transaction_id = generate_transaction_id(account_id_sender)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = TokenUnfreezeTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.account_id == account_id_sender
+
+
 def test_to_proto(mock_account_ids, mock_client):
     """Test converting the token unfreeze transaction to protobuf format after signing."""
     account_id, freeze_id, _, token_id, _ = mock_account_ids

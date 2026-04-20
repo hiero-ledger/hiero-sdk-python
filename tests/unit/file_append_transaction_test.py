@@ -372,3 +372,22 @@ def test_file_append_execute_all_returns_receipt_without_validation(file_id):
         receipts = tx.execute_all(client)
 
         assert receipts[0].status == ResponseCode.INVALID_FILE_ID
+
+
+@pytest.mark.unit
+def test_from_protobuf(mock_account_ids):
+    """Test round-trip via _from_protobuf for FileAppendTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    test_file_id = FileId(0, 0, 5)
+
+    tx = FileAppendTransaction()
+    tx.set_file_id(test_file_id)
+    tx.set_contents(b"appended")
+    tx.operator_account_id = operator_id
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body()
+    reconstructed = FileAppendTransaction._from_protobuf(body, body.SerializeToString(), None)
+
+    assert reconstructed.file_id == test_file_id
+    assert reconstructed.contents == b"appended"
