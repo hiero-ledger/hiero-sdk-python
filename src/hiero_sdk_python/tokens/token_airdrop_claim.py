@@ -116,7 +116,7 @@ class TokenClaimAirdropTransaction(Transaction):
         ]
 
     @classmethod
-    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):  # noqa: PLR0912
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("tokenClaimAirdrop"):
             body = transaction_body.tokenClaimAirdrop
