@@ -166,6 +166,17 @@ class Client:
         Returns:
             Client: A Client instance configured with the custom network.
         """
+        if not network_map:
+            raise ValueError("network_map cannot be empty")
+
+        first_node = next(iter(network_map.values()))
+        shard = first_node.shard
+        realm = first_node.realm
+
+        for account_id in network_map.values():
+            if shard != account_id.shard or realm != account_id.realm:
+                raise ValueError("network is not valid, all nodes must be in the same shard and realm")
+
         nodes = [_Node(account_id, address, None) for address, account_id in network_map.items()]
         return cls(Network(network=network_name, nodes=nodes))
 
