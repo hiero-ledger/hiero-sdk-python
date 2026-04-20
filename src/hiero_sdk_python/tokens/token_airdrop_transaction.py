@@ -9,6 +9,7 @@ Hedera Token Service (HTS) airdrop functionality.
 
 from __future__ import annotations
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import token_airdrop_pb2, transaction_pb2
@@ -16,6 +17,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.tokens.abstract_token_transfer_transaction import AbstractTokenTransferTransaction
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
 
@@ -64,11 +66,6 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
 
     @classmethod
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
-        from hiero_sdk_python.account.account_id import AccountId
-        from hiero_sdk_python.tokens.token_id import TokenId
-        from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
-        from hiero_sdk_python.tokens.token_transfer import TokenTransfer
-
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("tokenAirdrop"):
             for transfer in transaction_body.tokenAirdrop.token_transfers:
