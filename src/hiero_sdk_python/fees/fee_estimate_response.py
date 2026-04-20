@@ -4,8 +4,9 @@ Contains the calculated fees across different categories along with
 the estimation mode and optional notes.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from typing import Optional
 
 from hiero_sdk_python.fees.fee_estimate import FeeEstimate
 from hiero_sdk_python.fees.fee_estimate_mode import FeeEstimateMode
@@ -17,8 +18,8 @@ class FeeEstimateResponse:
     """Represents the result of a fee estimation operation."""
 
     mode: FeeEstimateMode
-    network_fee: Optional[NetworkFee] = None
-    node_fee: Optional[FeeEstimate] = None
-    service_fee: Optional[FeeEstimate] = None
+    network_fee: NetworkFee | None = None
+    node_fee: FeeEstimate | None = None
+    service_fee: FeeEstimate | None = None
     notes: list[str] = field(default_factory=list)
     total: int = 0

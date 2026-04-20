@@ -895,15 +895,15 @@ class Transaction(_Executable):
         self.freeze_with(client)
         self.sign(client.operator_private_key)
         return self
-    
-    def estimate_fee(self) -> "FeeEstimateQuery":
+
+    def estimate_fee(self) -> FeeEstimateQuery:
         """
         Creates a FeeEstimateQuery for this transaction.
 
         Returns:
             FeeEstimateQuery: A query configured to estimate fees for this transaction.
         """
-        
+
         query = FeeEstimateQuery()
         query.set_transaction(self)
         return query

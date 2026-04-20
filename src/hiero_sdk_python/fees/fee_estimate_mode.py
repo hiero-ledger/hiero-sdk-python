@@ -3,6 +3,8 @@
 Defines the available strategies for calculating fee estimates.
 """
 
+from __future__ import annotations
+
 from enum import Enum
 
 

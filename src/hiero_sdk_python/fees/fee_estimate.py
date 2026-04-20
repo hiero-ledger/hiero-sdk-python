@@ -4,6 +4,8 @@ This module defines the FeeEstimate dataclass, which aggregates
 a base fee with optional extra fee components.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 from hiero_sdk_python.fees.fee_extra import FeeExtra
