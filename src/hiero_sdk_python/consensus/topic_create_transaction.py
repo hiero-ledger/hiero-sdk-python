@@ -250,3 +250,25 @@ class TopicCreateTransaction(Transaction):
             _Method: The method for executing the transaction.
         """
         return _Method(transaction_func=channel.topic.createTopic, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        from hiero_sdk_python.crypto.public_key import PublicKey
+
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("consensusCreateTopic"):
+            body = transaction_body.consensusCreateTopic
+            transaction.memo = body.memo if body.memo else ""
+            if body.HasField("adminKey"):
+                transaction.admin_key = PublicKey._from_proto(body.adminKey)
+            if body.HasField("submitKey"):
+                transaction.submit_key = PublicKey._from_proto(body.submitKey)
+            if body.HasField("autoRenewPeriod"):
+                transaction.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
+            if body.HasField("autoRenewAccount"):
+                transaction.auto_renew_account = AccountId._from_proto(body.autoRenewAccount)
+            if body.HasField("fee_schedule_key"):
+                transaction.fee_schedule_key = PublicKey._from_proto(body.fee_schedule_key)
+            transaction.custom_fees = [CustomFixedFee._from_proto(f) for f in body.custom_fees]
+            transaction.fee_exempt_keys = [PublicKey._from_proto(k) for k in body.fee_exempt_key_list]
+        return transaction

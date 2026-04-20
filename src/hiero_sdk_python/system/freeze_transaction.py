@@ -156,3 +156,16 @@ class FreezeTransaction(Transaction):
             _Method: An object containing the transaction function to freeze the network.
         """
         return _Method(transaction_func=channel.freeze.freeze, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("freeze"):
+            body = transaction_body.freeze
+            if body.HasField("start_time"):
+                transaction.start_time = Timestamp._from_protobuf(body.start_time)
+            if body.HasField("update_file"):
+                transaction.file_id = FileId._from_proto(body.update_file)
+            transaction.file_hash = body.file_hash if body.file_hash else None
+            transaction.freeze_type = FreezeType._from_proto(body.freeze_type)
+        return transaction

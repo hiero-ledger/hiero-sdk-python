@@ -104,3 +104,12 @@ class FileDeleteTransaction(Transaction):
             _Method: An object containing the transaction function to delete a file.
         """
         return _Method(transaction_func=channel.file.deleteFile, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("fileDelete"):
+            body = transaction_body.fileDelete
+            if body.HasField("fileID"):
+                transaction.file_id = FileId._from_proto(body.fileID)
+        return transaction
