@@ -327,6 +327,7 @@ def test_from_bytes_invalid():
     with pytest.warns(UserWarning), pytest.raises(ValueError, match="Failed to load public key"):
         PublicKey.from_bytes(data)
 
+
 # ------------------------------------------------------------------------------
 # Test: DER helper encoders and compressed DER export
 # ------------------------------------------------------------------------------
@@ -336,6 +337,7 @@ def test_encode_der_length_short_and_long_forms():
     assert PublicKey._encode_der_length(0x80) == b"\x81\x80"
     assert PublicKey._encode_der_length(0x0100) == b"\x82\x01\x00"
     assert PublicKey._encode_der_length(0x1000000) == b"\x84\x01\x00\x00\x00"
+
 
 def test_encode_der_length_negative_raises():
     with pytest.raises(ValueError, match="non-negative"):
@@ -403,11 +405,13 @@ def test_to_bytes_der_ecdsa_compressed_rejects_ed25519(ed25519_keypair):
     with pytest.raises(ValueError, match="only supported for ECDSA"):
         public_key.to_bytes_der_ecdsa_compressed()
 
+
 def test_encode_vlq_values():
     assert PublicKey._encode_vlq(0) == b"\x00"
     assert PublicKey._encode_vlq(127) == b"\x7f"
     assert PublicKey._encode_vlq(128) == b"\x81\x00"
     assert PublicKey._encode_vlq(0x4000) == b"\x81\x80\x00"
+
 
 # ------------------------------------------------------------------------------
 # Test: from_string_xxx
