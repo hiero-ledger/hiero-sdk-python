@@ -297,6 +297,7 @@ def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, acco
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 3
+    assert tx._current_index == 0
 
 
 def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, account_id, transaction_id):
@@ -362,9 +363,27 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
 
     # Size should be greater than single chunk size
     assert large_size > 1024
-
     # The larger chunked transaction should be bigger than the single-chunk transaction
     assert large_size > small_size
-
-    # Check for chuck index reset reset
     assert large_tx._current_chunk_index == 0
+
+
+def test_chunked_tx_differ_size_if_chunk_are_not_equal(topic_id, account_id, transaction_id):
+    """Test that the last chunk's size is different from the full chunks if the chunk size is not even."""
+    chunk_size = 1024
+    message = "a" * (chunk_size + 512)
+
+    tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_chunk_size(chunk_size)
+        .set_message(message)
+        .set_transaction_id(transaction_id)
+        .set_node_account_id(account_id)
+        .freeze()
+    )
+
+    sizes = tx.body_size_all_chunks
+    assert len(sizes) == 2
+    # The first chunk should be larger than the second because it carries more message data
+    assert sizes[0] > sizes[1]
