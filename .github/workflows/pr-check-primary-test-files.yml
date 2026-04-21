@@ -15,32 +15,26 @@ permissions:
   contents: read
 
 concurrency:
-  group: pr-checks-${{ github.workflow }}-${{ github.ref || github.run_id }}
+  group: pr-checks-${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
   check-test-files:
-    # No fork check needed: push-only workflow; fork pushes have different repository_owner
-    runs-on: ${{ (github.repository_owner != 'hiero-ledger') && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
+    runs-on: ${{ (github.event.pull_request.head.repo.full_name == github.repository && github.repository_owner == 'hiero-ledger') && 'hl-sdk-py-lin-md' || 'ubuntu-latest' }}
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@6c3c2f2c1c457b00c10c4848d6f5491db3b629df # v2.18.0
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
         with:
           egress-policy: audit
 
-      - name: Checkout repository
+      - name: Checkout repository (shallow)
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        with:
+          fetch-depth: 1 # Only fetch the latest commit
 
-      - name: Set up Hiero SDK Upstream
-        run: |
-          git remote set-url origin https://github.com/hiero-ledger/hiero-sdk-python.git
+      - name: Set up Node.js
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
 
-      - name: Fetch main branch
-        run: |
-          git fetch origin main
-
-      - name: Check added test file names
-        run: |
-          chmod +x .github/scripts/pr-check-test-files.sh
-          .github/scripts/pr-check-test-files.sh
+      - name: Run test file naming check
+        run: node .github/scripts/pr-check-test-files.js
