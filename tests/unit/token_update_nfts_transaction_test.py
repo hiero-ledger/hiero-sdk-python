@@ -13,6 +13,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_update_nfts_transaction import TokenUpdateNftsTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -214,7 +216,7 @@ def test_update_nfts_transaction_from_proto(mock_account_ids):
     assert empty_tx.metadata is empty_proto.metadata.value  # Should be None or empty
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids):
     """Test round-trip via _from_protobuf for TokenUpdateNftsTransaction."""
     operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
     serial_numbers = [1, 2, 3]
@@ -224,12 +226,13 @@ def test_from_protobuf(mock_account_ids):
     tx.set_token_id(token_id_1)
     tx.set_serial_numbers(serial_numbers)
     tx.set_metadata(metadata)
-    tx.operator_account_id = operator_id
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TokenUpdateNftsTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TokenUpdateNftsTransaction)
     assert reconstructed.token_id == token_id_1
     assert list(reconstructed.serial_numbers) == serial_numbers
     assert reconstructed.metadata == metadata

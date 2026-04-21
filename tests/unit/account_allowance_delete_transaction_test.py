@@ -17,6 +17,8 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_allowance import TokenNftAllowance
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 pytestmark = pytest.mark.unit
@@ -261,7 +263,7 @@ def test_empty_nft_wipe_list(account_allowance_delete_transaction):
     assert len(proto_body.nftAllowances) == 0
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids):
     """Test round-trip via _from_protobuf for AccountAllowanceDeleteTransaction."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
     owner = AccountId(0, 0, 200)
@@ -270,12 +272,14 @@ def test_from_protobuf(mock_account_ids):
 
     tx = AccountAllowanceDeleteTransaction()
     tx.delete_all_token_nft_allowances(nft_id, owner)
-    tx.operator_account_id = operator_id
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = AccountAllowanceDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, AccountAllowanceDeleteTransaction)
     assert len(reconstructed.nft_wipe) == 1
     assert reconstructed.nft_wipe[0].token_id == token_id
     assert reconstructed.nft_wipe[0].owner_account_id == owner
+    assert reconstructed.nft_wipe[0].serial_numbers == [1]

@@ -9,6 +9,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -115,7 +116,7 @@ def test_build_scheduled_body(mock_account_ids):
     assert schedulable_body.tokenDeletion.token == token_id._to_proto()
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids):
     """Test round-trip via _from_protobuf for TokenDeleteTransaction."""
     account_id, _, node_account_id, token_id_1, _ = mock_account_ids
 
@@ -123,8 +124,9 @@ def test_from_protobuf(mock_account_ids):
     tx.set_token_id(token_id_1)
     tx.transaction_id = generate_transaction_id(account_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TokenDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TokenDeleteTransaction)
     assert reconstructed.token_id == token_id_1
