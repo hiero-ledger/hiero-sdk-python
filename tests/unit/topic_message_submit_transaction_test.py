@@ -6,11 +6,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
+    timestamp_pb2,
     transaction_get_receipt_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
@@ -20,6 +22,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from tests.unit.mock_server import mock_hedera_servers
@@ -511,3 +514,30 @@ def test_topic_submit_message_raises_error_on_freeze(topic_id):
 
     with pytest.raises(ValueError):
         tx.freeze()
+
+
+def test_chunk_transaction_id_nanosecond_overflow(topic_id):
+    """Test that multi-chunk transaction IDs handle nanosecond overflow correctly."""
+    base_seconds = 1770911831
+    base_nanos = 999_999_999
+
+    start_timestamp = timestamp_pb2.Timestamp(seconds=base_seconds, nanos=base_nanos)
+    tx_id = TransactionId(account_id=AccountId(0, 0, 2), valid_start=start_timestamp)
+
+    tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_message("a" * 20)
+        .set_chunk_size(10)
+        .set_transaction_id(tx_id)
+        .set_node_account_id(AccountId(0, 0, 3))
+        .freeze()
+    )
+
+    # First chunk is exactly equal initial ID
+    assert tx._transaction_ids[0].valid_start.seconds == base_seconds
+    assert tx._transaction_ids[0].valid_start.nanos == base_nanos
+
+    # Second chunk seconds=base_seconds + 1, nanos=0
+    assert tx._transaction_ids[1].valid_start.seconds == base_seconds + 1
+    assert tx._transaction_ids[1].valid_start.nanos == 0
