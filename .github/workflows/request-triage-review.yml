@@ -19,8 +19,20 @@ jobs:
 
     steps:
       - name: Request triage review
-        uses: thollander/actions-comment-pull-request@e4a76dd2b0a3c2027c3fd84147a67c22ee4c90fa # v3.0.1
+        uses: actions/github-script@v9.0.0 #v9.0.0
         with:
-          message: |
-            Requesting triage review from: @hiero-ledger/hiero-sdk-python-triage
-          comment-tag: execution
+          script: |
+            const tag = "<!-- triage -->";
+            const { data: comments } = await github.rest.issues.listComments({
+                                         owner: context.repo.owner,
+                                         repo: context.repo.repo,
+                                         issue_number: context.payload.pull_request.number
+                                    });
+            if (!comments.some(c => c.body?.includes(tag))) {
+                await github.rest.issues.createComment({
+                 owner: context.repo.owner,
+                  repo: context.repo.repo,
+                   issue_number: context.payload.pull_request.number,
+             body: `${tag} Requesting triage review from: @hiero-ledger/hiero-sdk-python-triage`
+               });
+            }
