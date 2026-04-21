@@ -365,3 +365,6 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
 
     # The larger chunked transaction should be bigger than the single-chunk transaction
     assert large_size > small_size
+
+    # Check for chuck index reset reset
+    assert large_tx._current_chunk_index == 0
