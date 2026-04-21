@@ -17,6 +17,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -115,15 +117,16 @@ def test_execute_topic_delete_transaction(topic_id):
         assert receipt.status == ResponseCode.SUCCESS
 
 
-def test_from_protobuf(mock_account_ids, topic_id):
-    """Test round-trip via _from_protobuf for TopicDeleteTransaction."""
+def test_from_bytes(mock_account_ids, topic_id):
+    """Test round-trip via Transaction.from_bytes() for TopicDeleteTransaction."""
     _, _, node_account_id, _, _ = mock_account_ids
 
     tx = TopicDeleteTransaction(topic_id=topic_id)
-    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.transaction_id = TransactionId.generate(AccountId(0, 0, 2))
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TopicDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TopicDeleteTransaction)
     assert reconstructed.topic_id == topic_id

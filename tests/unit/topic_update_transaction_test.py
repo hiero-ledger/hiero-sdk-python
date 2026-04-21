@@ -20,6 +20,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -140,8 +142,8 @@ def test_execute_topic_update_transaction(topic_id):
         assert receipt.status == ResponseCode.SUCCESS
 
 
-def test_from_protobuf(mock_account_ids, topic_id):
-    """Test round-trip via _from_protobuf for TopicUpdateTransaction."""
+def test_from_bytes(mock_account_ids, topic_id):
+    """Test round-trip via Transaction.from_bytes() for TopicUpdateTransaction."""
     _, _, node_account_id, _, _ = mock_account_ids
 
     admin_key = PrivateKey.generate().public_key()
@@ -156,12 +158,13 @@ def test_from_protobuf(mock_account_ids, topic_id):
     tx.set_submit_key(submit_key)
     tx.set_auto_renew_period(auto_renew_period)
     tx.set_auto_renew_account(auto_renew_account)
-    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.transaction_id = TransactionId.generate(AccountId(0, 0, 2))
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TopicUpdateTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TopicUpdateTransaction)
     assert reconstructed.topic_id == topic_id
     assert reconstructed.memo == "Updated Memo"
     assert reconstructed.admin_key == admin_key

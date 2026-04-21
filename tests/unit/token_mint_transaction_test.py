@@ -11,6 +11,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -301,8 +302,8 @@ def test_build_scheduled_body_nft(mock_account_ids, metadata):
     assert schedulable_body.tokenMint.metadata == metadata
 
 
-def test_from_protobuf_fungible(mock_account_ids):
-    """Test round-trip via _from_protobuf for fungible TokenMintTransaction."""
+def test_from_bytes_fungible(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for fungible TokenMintTransaction."""
     payer_account, _, node_account_id, token_id_1, _ = mock_account_ids
 
     tx = TokenMintTransaction()
@@ -310,16 +311,17 @@ def test_from_protobuf_fungible(mock_account_ids):
     tx.set_amount(500)
     tx.transaction_id = generate_transaction_id(payer_account)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TokenMintTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TokenMintTransaction)
     assert reconstructed.token_id == token_id_1
     assert reconstructed.amount == 500
 
 
-def test_from_protobuf_nft(mock_account_ids):
-    """Test round-trip via _from_protobuf for NFT TokenMintTransaction."""
+def test_from_bytes_nft(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for NFT TokenMintTransaction."""
     payer_account, _, node_account_id, token_id_1, _ = mock_account_ids
     nft_metadata = [b"meta1", b"meta2"]
 
@@ -328,9 +330,10 @@ def test_from_protobuf_nft(mock_account_ids):
     tx.set_metadata(nft_metadata)
     tx.transaction_id = generate_transaction_id(payer_account)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TokenMintTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TokenMintTransaction)
     assert reconstructed.token_id == token_id_1
     assert list(reconstructed.metadata) == nft_metadata
