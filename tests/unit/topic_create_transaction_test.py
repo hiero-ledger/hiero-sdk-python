@@ -9,6 +9,7 @@ from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTrans
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -580,9 +581,16 @@ def test_from_protobuf(mock_account_ids):
     """Test round-trip via _from_protobuf for TopicCreateTransaction."""
     account_id_sender, _, node_account_id, _, _ = mock_account_ids
 
+    admin_key = PrivateKey.generate_ed25519().public_key()
+    submit_key = PrivateKey.generate_ed25519().public_key()
+    auto_renew_period = Duration(8000000)
+
     tx = TopicCreateTransaction()
     tx.set_memo("hello")
     tx.set_auto_renew_account(account_id_sender)
+    tx.set_admin_key(admin_key)
+    tx.set_submit_key(submit_key)
+    tx.set_auto_renew_period(auto_renew_period)
     tx.operator_account_id = account_id_sender
     tx.node_account_id = node_account_id
 
@@ -591,3 +599,6 @@ def test_from_protobuf(mock_account_ids):
 
     assert reconstructed.memo == "hello"
     assert reconstructed.auto_renew_account == account_id_sender
+    assert reconstructed.admin_key == admin_key
+    assert reconstructed.submit_key == submit_key
+    assert reconstructed.auto_renew_period == auto_renew_period

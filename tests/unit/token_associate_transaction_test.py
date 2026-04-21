@@ -10,6 +10,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -219,7 +220,7 @@ def test_from_proto_builds_transaction(mock_account_ids):
     assert tx.token_ids[1] == token_id_2
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids):
     """Test round-trip via _from_protobuf for TokenAssociateTransaction."""
     account_id_sender, _, node_account_id, token_id_1, token_id_2 = mock_account_ids
 
@@ -229,10 +230,11 @@ def test_from_protobuf(mock_account_ids):
     tx.add_token_id(token_id_2)
     tx.transaction_id = generate_transaction_id(account_id_sender)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TokenAssociateTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TokenAssociateTransaction)
     assert reconstructed.account_id == account_id_sender
     assert len(reconstructed.token_ids) == 2
     assert reconstructed.token_ids[0] == token_id_1

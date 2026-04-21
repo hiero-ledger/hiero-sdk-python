@@ -18,6 +18,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.system.freeze_transaction import FreezeTransaction
 from hiero_sdk_python.system.freeze_type import FreezeType
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 pytestmark = pytest.mark.unit
@@ -291,16 +293,24 @@ def test_build_proto_body_with_none_fields():
     assert proto_body.freeze_type == proto_FreezeType.UNKNOWN_FREEZE_TYPE
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids, freeze_params):
     """Test round-trip via _from_protobuf for FreezeTransaction."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
 
-    tx = FreezeTransaction()
-    tx.set_freeze_type(FreezeType.FREEZE_ONLY)
-    tx.operator_account_id = operator_id
+    tx = FreezeTransaction(
+        start_time=freeze_params["start_time"],
+        file_id=freeze_params["file_id"],
+        file_hash=freeze_params["file_hash"],
+        freeze_type=freeze_params["freeze_type"],
+    )
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = FreezeTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
-    assert reconstructed.freeze_type == FreezeType.FREEZE_ONLY
+    assert isinstance(reconstructed, FreezeTransaction)
+    assert reconstructed.freeze_type == freeze_params["freeze_type"]
+    assert reconstructed.start_time == freeze_params["start_time"]
+    assert reconstructed.file_id == freeze_params["file_id"]
+    assert reconstructed.file_hash == freeze_params["file_hash"]

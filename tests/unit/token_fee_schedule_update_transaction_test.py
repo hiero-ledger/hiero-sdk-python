@@ -123,4 +123,8 @@ def test_from_protobuf(mock_account_ids):
 
     assert reconstructed.token_id == token_id_1
     assert len(reconstructed.custom_fees) == 1
-    assert reconstructed.custom_fees[0].amount == 100
+    restored_fee = reconstructed.custom_fees[0]
+    assert isinstance(restored_fee, CustomFixedFee)
+    assert restored_fee.amount == 100
+    assert restored_fee.denominating_token_id == token_id_2
+    assert restored_fee.fee_collector_account_id == account_id_sender

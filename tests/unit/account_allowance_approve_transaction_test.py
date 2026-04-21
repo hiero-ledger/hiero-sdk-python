@@ -16,6 +16,8 @@ from hiero_sdk_python.hapi.services.crypto_approve_allowance_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 pytestmark = pytest.mark.unit
@@ -351,20 +353,34 @@ def test_zero_amount_allowances(account_allowance_transaction, sample_accounts, 
     assert account_allowance_transaction.token_allowances[0].amount == 0
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids):
     """Test round-trip via _from_protobuf for AccountAllowanceApproveTransaction."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
     owner = AccountId(0, 0, 200)
     spender = AccountId(0, 0, 300)
+    token_id = TokenId(0, 0, 500)
+    nft_id = NftId(token_id, 1)
 
     tx = AccountAllowanceApproveTransaction()
     tx.approve_hbar_allowance(owner, spender, Hbar(10))
-    tx.operator_account_id = operator_id
+    tx.approve_token_allowance(token_id, owner, spender, 100)
+    tx.approve_token_nft_allowance(nft_id, owner, spender)
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = AccountAllowanceApproveTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, AccountAllowanceApproveTransaction)
     assert len(reconstructed.hbar_allowances) == 1
     assert reconstructed.hbar_allowances[0].owner_account_id == owner
     assert reconstructed.hbar_allowances[0].spender_account_id == spender
+    assert len(reconstructed.token_allowances) == 1
+    assert reconstructed.token_allowances[0].token_id == token_id
+    assert reconstructed.token_allowances[0].owner_account_id == owner
+    assert reconstructed.token_allowances[0].spender_account_id == spender
+    assert reconstructed.token_allowances[0].amount == 100
+    assert len(reconstructed.nft_allowances) == 1
+    assert reconstructed.nft_allowances[0].token_id == token_id
+    assert reconstructed.nft_allowances[0].owner_account_id == owner
+    assert reconstructed.nft_allowances[0].spender_account_id == spender

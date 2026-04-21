@@ -32,6 +32,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -360,7 +362,7 @@ def test_encode_contents_string():
     assert encoded is None
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids):
     """Test round-trip via _from_protobuf for FileUpdateTransaction."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
     test_file_id = FileId(0, 0, 5)
@@ -368,11 +370,12 @@ def test_from_protobuf(mock_account_ids):
     tx = FileUpdateTransaction()
     tx.set_file_id(test_file_id)
     tx.set_contents(b"updated")
-    tx.operator_account_id = operator_id
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = FileUpdateTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, FileUpdateTransaction)
     assert reconstructed.file_id == test_file_id
     assert reconstructed.contents == b"updated"

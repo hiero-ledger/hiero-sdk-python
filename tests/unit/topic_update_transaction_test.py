@@ -144,9 +144,18 @@ def test_from_protobuf(mock_account_ids, topic_id):
     """Test round-trip via _from_protobuf for TopicUpdateTransaction."""
     _, _, node_account_id, _, _ = mock_account_ids
 
+    admin_key = PrivateKey.generate().public_key()
+    submit_key = PrivateKey.generate().public_key()
+    auto_renew_account = AccountId(0, 0, 5678)
+    auto_renew_period = Duration(8000000)
+
     tx = TopicUpdateTransaction()
     tx.set_topic_id(topic_id)
     tx.set_memo("Updated Memo")
+    tx.set_admin_key(admin_key)
+    tx.set_submit_key(submit_key)
+    tx.set_auto_renew_period(auto_renew_period)
+    tx.set_auto_renew_account(auto_renew_account)
     tx.operator_account_id = AccountId(0, 0, 2)
     tx.node_account_id = node_account_id
 
@@ -155,6 +164,10 @@ def test_from_protobuf(mock_account_ids, topic_id):
 
     assert reconstructed.topic_id == topic_id
     assert reconstructed.memo == "Updated Memo"
+    assert reconstructed.admin_key == admin_key
+    assert reconstructed.submit_key == submit_key
+    assert reconstructed.auto_renew_period == auto_renew_period
+    assert reconstructed.auto_renew_account == auto_renew_account
 
 
 # This test uses fixture topic_id as parameter

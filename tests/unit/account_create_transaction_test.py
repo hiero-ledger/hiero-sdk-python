@@ -25,6 +25,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -541,7 +542,7 @@ def test_set_stake_account_id_reset_stake_node_id():
     assert tx.staked_node_id is None
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids):
     """Test round-trip via _from_protobuf for AccountCreateTransaction."""
     operator_id, node_account_id = mock_account_ids
 
@@ -552,9 +553,10 @@ def test_from_protobuf(mock_account_ids):
     tx.set_receiver_signature_required(True)
     tx.transaction_id = generate_transaction_id(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = AccountCreateTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, AccountCreateTransaction)
     assert reconstructed.initial_balance == Hbar(5).to_tinybars()
     assert reconstructed.receiver_signature_required is True

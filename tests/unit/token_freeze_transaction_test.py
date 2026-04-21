@@ -151,5 +151,6 @@ def test_from_protobuf(mock_account_ids):
     body = tx.build_transaction_body()
     reconstructed = TokenFreezeTransaction._from_protobuf(body, body.SerializeToString(), None)
 
+    assert isinstance(reconstructed, TokenFreezeTransaction)
     assert reconstructed.token_id == token_id_1
     assert reconstructed.account_id == account_id_sender

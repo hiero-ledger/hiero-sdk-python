@@ -16,6 +16,8 @@ from hiero_sdk_python.schedule.schedule_create_transaction import (
 )
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 
@@ -268,7 +270,7 @@ def test_to_proto(mock_client):
     assert len(proto.signedTransactionBytes) > 0
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids):
     """Test round-trip via _from_protobuf for ScheduleCreateTransaction."""
     account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
 
@@ -281,11 +283,14 @@ def test_from_protobuf(mock_account_ids):
     tx.set_schedule_memo("test memo")
     tx.set_payer_account_id(account_id_sender)
     tx._set_schedulable_body(schedulable_body)
-    tx.operator_account_id = account_id_sender
+    tx.transaction_id = TransactionId.generate(account_id_sender)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = ScheduleCreateTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, ScheduleCreateTransaction)
     assert reconstructed.schedule_memo == "test memo"
     assert reconstructed.payer_account_id == account_id_sender
+    assert reconstructed.schedulable_body == schedulable_body
+    assert reconstructed.schedulable_body.HasField("tokenGrantKyc")

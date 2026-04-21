@@ -17,6 +17,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateKeys, TokenUpdateParams, TokenUpdateTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -468,7 +470,7 @@ def test_build_transaction_body_with_keys(mock_account_ids, key_type, use_privat
     verify_key_in_proto(transaction_body.tokenUpdate.freezeKey, expected_freeze_public, key_type)
 
 
-def test_from_protobuf(mock_account_ids):
+def test_from_bytes(mock_account_ids):
     """Test round-trip via _from_protobuf for TokenUpdateTransaction."""
     operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
 
@@ -476,12 +478,13 @@ def test_from_protobuf(mock_account_ids):
     tx.set_token_id(token_id_1)
     tx.set_token_name("NewName")
     tx.set_token_symbol("NNS")
-    tx.operator_account_id = operator_id
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TokenUpdateTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TokenUpdateTransaction)
     assert reconstructed.token_id == token_id_1
     assert reconstructed.token_name == "NewName"
     assert reconstructed.token_symbol == "NNS"

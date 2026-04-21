@@ -12,6 +12,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -184,32 +186,36 @@ def test_build_scheduled_body_nft(mock_account_ids):
     assert schedulable_body.tokenBurn.serialNumbers == serials
 
 
-def test_from_protobuf_fungible(mock_account_ids):
+def test_from_bytes_fungible(mock_account_ids):
     """Test round-trip via _from_protobuf for fungible TokenBurnTransaction."""
     operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
 
     tx = TokenBurnTransaction(token_id=token_id_1, amount=100)
-    tx.operator_account_id = operator_id
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TokenBurnTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TokenBurnTransaction)
     assert reconstructed.token_id == token_id_1
     assert reconstructed.amount == 100
+    assert reconstructed.serials == []
 
 
-def test_from_protobuf_nft(mock_account_ids):
+def test_from_bytes_nft(mock_account_ids):
     """Test round-trip via _from_protobuf for NFT TokenBurnTransaction."""
     operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
     serials = [1, 2, 3]
 
     tx = TokenBurnTransaction(token_id=token_id_1, serials=serials)
-    tx.operator_account_id = operator_id
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TokenBurnTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TokenBurnTransaction)
     assert reconstructed.token_id == token_id_1
     assert list(reconstructed.serials) == serials
+    assert reconstructed.amount is None
