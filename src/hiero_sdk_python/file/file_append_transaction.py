@@ -299,8 +299,10 @@ class FileAppendTransaction(Transaction):
                 else:
                     # Subsequent chunks get incremented timestamps
                     # Add i nanoseconds to space out chunks
+                    next_nanos = base_timestamp.nanos + i
+
                     chunk_valid_start = timestamp_pb2.Timestamp(
-                        seconds=base_timestamp.seconds, nanos=base_timestamp.nanos + i
+                        seconds=base_timestamp.seconds + next_nanos // 1_000_000_000, nanos=next_nanos % 1_000_000_000
                     )
                     chunk_transaction_id = TransactionId(
                         account_id=self.transaction_id.account_id, valid_start=chunk_valid_start
@@ -456,10 +458,15 @@ class FileAppendTransaction(Transaction):
 
         original_index = self._current_chunk_index
         original_transaction_id = self.transaction_id
-        for transaction_id in self._transaction_ids:
-            self.transaction_id = transaction_id
-            sizes.append(self.body_size)
 
-        self._current_chunk_index = original_index
-        self.transaction_id = original_transaction_id
+        try:
+            for i, transaction_id in enumerate(self._transaction_ids):
+                self._current_chunk_index = i
+                self.transaction_id = transaction_id
+
+                sizes.append(self.body_size)
+        finally:
+            self._current_chunk_index = original_index
+            self.transaction_id = original_transaction_id
+
         return sizes
