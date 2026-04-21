@@ -8,7 +8,9 @@ This guide walks you through setting up your development environment for contrib
 - [Installation](#installation)
   - [Installing from PyPI](#installing-from-pypi)
   - [Installing from Source](#installing-from-source)
-  - [Local Editable Installation](#local-editable-installation)
+- [Install Dependencies](#install-dependencies)
+- [Installing Optional Dependencies](#installing-optional-dependencies)
+- [Pre-Commit Tool Setup](#pre-commit-tool-setup)
 - [Generate Protocol Buffers](#generate-protocol-buffers)
 - [Environment Setup](#environment-setup)
 - [Setup Checklist](#examples)
@@ -178,6 +180,9 @@ uv sync --dev --all-extras
 
 To maintain high code quality and security, this repository uses `re-commit` hooks. These hooks automatically run checks (like `Ruff` for linting and `Gitleaks` for security) every time you attempt to commit code.
 
+### Installation
+---
+
 **Option 1: Using `uv` (Recommended)**
 
 `uv` is recommended because it manages pre-commit within your project’s locked environment, ensuring your local linting matches the CI exactly.
@@ -209,6 +214,20 @@ pre-commit install
 Once installed, `git commit` will automatically trigger the checks.
 - If they **pass**: Your commit is created normally.
 - If they **fail**: The hooks will often fix the files for you (e.g., `Ruff` reformatting). Simply `git add` the changed files and commit again.
+
+
+### Manual Execution
+---
+To run the hooks manually at any time:
+
+```
+# Run against only changed files
+uv run pre-commit run
+
+# Run against every file in the repository
+uv run pre-commit run --all-files
+```
+
 
 ## Generate Protocol Buffers
 

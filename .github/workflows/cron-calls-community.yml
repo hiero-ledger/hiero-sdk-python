@@ -27,7 +27,7 @@ jobs:
         runs-on: hl-sdk-py-lin-md
         steps:
             - name: Harden the runner
-              uses: step-security/harden-runner@f808768d1510423e83855289c910610ca9b43176 #2.17.0
+              uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 #2.19.0
               with:
                   egress-policy: audit
 
@@ -39,4 +39,4 @@ jobs:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
               run: |
-                  bash .github/scripts/cron-community-calls.sh
+                  bash .github/scripts/cron-calls-community.sh
