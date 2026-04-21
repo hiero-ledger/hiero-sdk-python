@@ -24,6 +24,8 @@ from hiero_sdk_python.schedule.schedule_delete_transaction import (
     ScheduleDeleteTransaction,
 )
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -251,16 +253,17 @@ def test_schedule_delete_transaction_can_execute():
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
 
 
-def test_from_protobuf(mock_account_ids):
-    """Test round-trip via _from_protobuf for ScheduleDeleteTransaction."""
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for ScheduleDeleteTransaction."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
     schedule_id = ScheduleId(0, 0, 99)
 
     tx = ScheduleDeleteTransaction(schedule_id=schedule_id)
-    tx.operator_account_id = operator_id
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = ScheduleDeleteTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, ScheduleDeleteTransaction)
     assert reconstructed.schedule_id == schedule_id

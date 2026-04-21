@@ -24,6 +24,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -630,8 +631,8 @@ def test_freeze_with_leaves_auto_renew_account_unset_without_operator(mock_clien
     assert not body.consensusCreateTopic.HasField("autoRenewAccount")
 
 
-def test_from_protobuf(mock_account_ids):
-    """Test round-trip via _from_protobuf for TopicCreateTransaction."""
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for TopicCreateTransaction."""
     account_id_sender, _, node_account_id, _, _ = mock_account_ids
 
     admin_key = PrivateKey.generate_ed25519().public_key()
@@ -644,12 +645,13 @@ def test_from_protobuf(mock_account_ids):
     tx.set_admin_key(admin_key)
     tx.set_submit_key(submit_key)
     tx.set_auto_renew_period(auto_renew_period)
-    tx.operator_account_id = account_id_sender
+    tx.transaction_id = TransactionId.generate(account_id_sender)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = TopicCreateTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, TopicCreateTransaction)
     assert reconstructed.memo == "hello"
     assert reconstructed.auto_renew_account == account_id_sender
     assert reconstructed.admin_key == admin_key

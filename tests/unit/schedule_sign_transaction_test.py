@@ -10,6 +10,8 @@ import pytest
 
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 pytestmark = pytest.mark.unit
@@ -194,16 +196,17 @@ def test_schedule_id_property_access():
     assert retrieved_schedule_id == schedule_id
 
 
-def test_from_protobuf(mock_account_ids):
-    """Test round-trip via _from_protobuf for ScheduleSignTransaction."""
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for ScheduleSignTransaction."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
     schedule_id = ScheduleId(0, 0, 42)
 
     tx = ScheduleSignTransaction(schedule_id=schedule_id)
-    tx.operator_account_id = operator_id
+    tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
+    tx.freeze()
 
-    body = tx.build_transaction_body()
-    reconstructed = ScheduleSignTransaction._from_protobuf(body, body.SerializeToString(), None)
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
 
+    assert isinstance(reconstructed, ScheduleSignTransaction)
     assert reconstructed.schedule_id == schedule_id
