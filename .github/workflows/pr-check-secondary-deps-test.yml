@@ -29,7 +29,8 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-
+        with:
+          fetch-depth: 0 # ensure full git history for SCM-based versioning
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
@@ -44,7 +45,8 @@ jobs:
 
       - name: Install minimum dependencies and tooling
         run: |
-          uv sync --all-extras --resolution=lowest-direct
+         # Minimum-deps compatibility check: use a non-editable install for stable packaging behavior.
+          uv sync --all-extras --resolution=lowest-direct --no-editable
 
       - name: Show resolved core dependency versions
         run: |
