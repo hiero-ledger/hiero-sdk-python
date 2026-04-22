@@ -1,20 +1,13 @@
 #!/bin/bash -eu
 
-# Install grpcio-tools first so generate_proto.py can compile the protobufs.
 pip3 install grpcio-tools
 
-# Generate the protobuf Python bindings required by the SDK.
 python3 generate_proto.py
 
-# Install the SDK and all runtime dependencies (uses current CFLAGS/CXXFLAGS so
-# any C extensions such as grpcio and cryptography are built with the right flags).
 pip3 install .
 
-# Install Atheris (the Python fuzzing engine) and PyInstaller (used to produce
-# self-contained fuzzer executables that ClusterFuzzLite can run reliably).
 pip3 install atheris pyinstaller
 
-# Build every *_fuzzer.py target found in the .clusterfuzzlite directory.
 find "$SRC/hiero-sdk-python/.clusterfuzzlite" -name '*_fuzzer.py' -print0 | while IFS= read -r -d '' fuzzer; do
   fuzzer_basename=$(basename -s .py "$fuzzer")
   fuzzer_package="${fuzzer_basename}.pkg"
