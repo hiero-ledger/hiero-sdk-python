@@ -896,6 +896,9 @@ class Transaction(_Executable):
         self.sign(client.operator_private_key)
         return self
 
+    def get_required_chunks(self) -> int:
+        return 1
+
     def estimate_fee(self) -> FeeEstimateQuery:
         """
         Creates a FeeEstimateQuery for this transaction.

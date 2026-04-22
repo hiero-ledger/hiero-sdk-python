@@ -201,6 +201,68 @@ class FeeEstimateQuery:
         mode = self._mode or FeeEstimateMode.STATE
         url = f"{client.mirror_network}/api/v1/network/fees?mode={mode.value}"
 
+        from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
+
+        if isinstance(self._transaction, TopicMessageSubmitTransaction):
+            original_id = self._transaction.transaction_id
+            original_index = getattr(self._transaction, "_current_index", 0)
+
+            require_chunk = self._transaction.get_required_chunks()
+
+            aggregate_response = {
+                "node_fee": 0,
+                "service_fee": 0,
+                "network_multiplier": 0,
+                "network_subtotal": 0,
+                "notes": [],
+                "total": 0,
+            }
+
+            if not self._transaction._transaction_body_bytes:
+                self._transaction.freeze_with(client)
+
+            for i in range(require_chunk):
+                self._transaction._current_index += i
+                self._transaction.transaction_id = self._transaction._transaction_ids[i]
+
+                tx_bytes = self._transaction.to_bytes()
+                response = self._post_with_retry(url, tx_bytes)
+
+                data = response.json()
+
+                node_total = data.get("node", {}).get("subtotal", 0)
+                service_total = data.get("service", {}).get("subtotal", 0)
+                network_multiplier = data.get("network", {}).get("multiplier", 0)
+                notes = data.get("notes", [])
+
+                network_total = node_total * network_multiplier
+                total = node_total + service_total + network_total
+
+                aggregate_response["node_fee"] += node_total
+                aggregate_response["service_fee"] += service_total
+                aggregate_response["network_multiplier"] += network_multiplier
+                aggregate_response["network_subtotal"] += network_total
+                aggregate_response["notes"].extend(notes)
+                aggregate_response["total"] += total
+
+            # make the tx back to original
+            self._transaction.transaction_id = original_id
+            self._transaction._current_index = original_index
+
+            self._transaction._transaction_body_bytes.clear()
+
+            return FeeEstimateResponse(
+                mode=mode,
+                node_fee=FeeEstimate(base=aggregate_response["node_fee"], extras=[]),
+                service_fee=FeeEstimate(base=aggregate_response["service_fee"], extras=[]),
+                network_fee=NetworkFee(
+                    multiplier=aggregate_response["network_multiplier"],
+                    subtotal=aggregate_response["network_subtotal"],
+                ),
+                notes=aggregate_response["notes"],
+                total=aggregate_response["total"],
+            )
+
         transaction_bytes = self._serialize_transaction(self._transaction, client)
 
         response = self._post_with_retry(url, transaction_bytes)
