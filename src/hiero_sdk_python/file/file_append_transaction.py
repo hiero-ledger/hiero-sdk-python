@@ -259,8 +259,8 @@ class FileAppendTransaction(Transaction):
         Returns:
             FileAppendTransaction: This transaction instance.
         """
-        self.file_id = FileId._from_proto(proto.fileID) if proto.fileID else None
-        self.contents = proto.contents
+        self.file_id = FileId._from_proto(proto.fileID) if proto.HasField("fileID") else None
+        self.contents = proto.contents if proto.contents else None
         self._total_chunks = self._calculate_total_chunks()
         return self
 
