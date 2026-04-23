@@ -44,12 +44,19 @@ def _must_env(key: str) -> str:
     return value
 
 
+def _optional_int_env(key: str) -> int | None:
+    value = os.getenv(key)
+    if not value:
+        return None
+    return int(value)
+
+
 def registered_node_lifecycle() -> None:
     load_dotenv()
 
     operator_id = AccountId.from_string(_must_env("OPERATOR_ID"))
     operator_key = PrivateKey.from_string(_must_env("OPERATOR_KEY"))
-    node_id_to_update = int(_must_env("CONSENSUS_NODE_ID"))
+    node_id_to_update = _optional_int_env("CONSENSUS_NODE_ID")
 
     client = Client.for_testnet()
     client.set_operator(operator_id, operator_key)
@@ -104,14 +111,17 @@ def registered_node_lifecycle() -> None:
     if update_receipt.status != ResponseCode.SUCCESS:
         raise RuntimeError(f"Update failed with status: {ResponseCode(update_receipt.status).name}")
 
-    associate_receipt = (
-        NodeUpdateTransaction()
-        .set_node_id(node_id_to_update)
-        .add_associated_registered_node(registered_node_id)
-        .execute(client)
-    )
-    if associate_receipt.status != ResponseCode.SUCCESS:
-        raise RuntimeError(f"Node association failed with status: {ResponseCode(associate_receipt.status).name}")
+    if node_id_to_update is None:
+        print("Skipping consensus-node association: CONSENSUS_NODE_ID is not set.")
+    else:
+        associate_receipt = (
+            NodeUpdateTransaction()
+            .set_node_id(node_id_to_update)
+            .add_associated_registered_node(registered_node_id)
+            .execute(client)
+        )
+        if associate_receipt.status != ResponseCode.SUCCESS:
+            raise RuntimeError(f"Node association failed with status: {ResponseCode(associate_receipt.status).name}")
 
     delete_receipt = (
         RegisteredNodeDeleteTransaction()
