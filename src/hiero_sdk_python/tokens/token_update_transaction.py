@@ -492,21 +492,21 @@ class TokenUpdateTransaction(Transaction):
                 transaction.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
             transaction.token_key_verification_mode = TokenKeyValidation._from_proto(body.key_verification_mode)
             if body.HasField("adminKey"):
-                transaction.admin_key = PublicKey._from_proto(body.adminKey)
+                transaction.admin_key = Key.from_proto_key(body.adminKey)
             if body.HasField("freezeKey"):
-                transaction.freeze_key = PublicKey._from_proto(body.freezeKey)
+                transaction.freeze_key = Key.from_proto_key(body.freezeKey)
             if body.HasField("wipeKey"):
-                transaction.wipe_key = PublicKey._from_proto(body.wipeKey)
+                transaction.wipe_key = Key.from_proto_key(body.wipeKey)
             if body.HasField("supplyKey"):
-                transaction.supply_key = PublicKey._from_proto(body.supplyKey)
+                transaction.supply_key = Key.from_proto_key(body.supplyKey)
             if body.HasField("metadata_key"):
-                transaction.metadata_key = PublicKey._from_proto(body.metadata_key)
+                transaction.metadata_key = Key.from_proto_key(body.metadata_key)
             if body.HasField("pause_key"):
-                transaction.pause_key = PublicKey._from_proto(body.pause_key)
+                transaction.pause_key = Key.from_proto_key(body.pause_key)
             if body.HasField("kycKey"):
-                transaction.kyc_key = PublicKey._from_proto(body.kycKey)
+                transaction.kyc_key = Key.from_proto_key(body.kycKey)
             if body.HasField("fee_schedule_key"):
-                transaction.fee_schedule_key = PublicKey._from_proto(body.fee_schedule_key)
+                transaction.fee_schedule_key = Key.from_proto_key(body.fee_schedule_key)
         return transaction
 
     def _set_keys_to_proto(self, token_update_body: token_update_pb2.TokenUpdateTransactionBody) -> None:

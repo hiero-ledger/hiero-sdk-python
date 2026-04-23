@@ -10,7 +10,6 @@ from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.key import Key
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.crypto_update_pb2 import CryptoUpdateTransactionBody
@@ -368,7 +367,7 @@ class AccountUpdateTransaction(Transaction):
             if body.HasField("accountIDToUpdate"):
                 transaction.account_id = AccountId._from_proto(body.accountIDToUpdate)
             if body.HasField("key"):
-                transaction.key = PublicKey._from_proto(body.key)
+                transaction.key = Key.from_proto_key(body.key)
             if body.HasField("autoRenewPeriod"):
                 transaction.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
             if body.HasField("memo"):

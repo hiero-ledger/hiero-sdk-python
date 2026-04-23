@@ -10,7 +10,6 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.evm_address import EvmAddress
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import crypto_create_pb2, duration_pb2, transaction_pb2
@@ -380,7 +379,7 @@ class AccountCreateTransaction(Transaction):
         if transaction_body.HasField("cryptoCreateAccount"):
             body = transaction_body.cryptoCreateAccount
             if body.HasField("key"):
-                transaction.key = PublicKey._from_proto(body.key)
+                transaction.key = Key.from_proto_key(body.key)
             transaction.initial_balance = body.initialBalance
             transaction.receiver_signature_required = body.receiverSigRequired
             if body.HasField("autoRenewPeriod"):
