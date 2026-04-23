@@ -26,7 +26,6 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_key_validation import TokenKeyValidation
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.crypto.key import Key
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.utils.key_utils import key_to_proto
 
 
