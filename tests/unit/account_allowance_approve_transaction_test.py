@@ -375,6 +375,7 @@ def test_from_bytes(mock_account_ids):
     assert len(reconstructed.hbar_allowances) == 1
     assert reconstructed.hbar_allowances[0].owner_account_id == owner
     assert reconstructed.hbar_allowances[0].spender_account_id == spender
+    assert reconstructed.hbar_allowances[0].amount == Hbar(10).to_tinybars()
     assert len(reconstructed.token_allowances) == 1
     assert reconstructed.token_allowances[0].token_id == token_id
     assert reconstructed.token_allowances[0].owner_account_id == owner
@@ -384,3 +385,4 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed.nft_allowances[0].token_id == token_id
     assert reconstructed.nft_allowances[0].owner_account_id == owner
     assert reconstructed.nft_allowances[0].spender_account_id == spender
+    assert nft_id.serial_number in reconstructed.nft_allowances[0].serial_numbers
