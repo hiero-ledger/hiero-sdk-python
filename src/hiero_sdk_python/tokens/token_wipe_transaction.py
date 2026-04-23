@@ -158,7 +158,7 @@ class TokenWipeTransaction(Transaction):
                 transaction.token_id = TokenId._from_proto(body.token)
             if body.HasField("account"):
                 transaction.account_id = AccountId._from_proto(body.account)
-            transaction.amount = body.amount if body.amount else None
+            transaction.amount = body.amount
             transaction.serial = list(body.serialNumbers)
         return transaction
 

@@ -237,4 +237,4 @@ def test_from_bytes_nft(mock_account_ids):
     assert reconstructed.token_id == token_id_1
     assert reconstructed.account_id == account_id_sender
     assert list(reconstructed.serial) == serial
-    assert reconstructed.amount is None
+    assert reconstructed.amount == 0
