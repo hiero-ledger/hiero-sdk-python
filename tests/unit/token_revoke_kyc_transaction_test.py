@@ -156,6 +156,8 @@ def test_from_bytes(mock_account_ids):
     assert isinstance(reconstructed, TokenRevokeKycTransaction)
     assert reconstructed.token_id == token_id_1
     assert reconstructed.account_id == account_id_sender
+    assert reconstructed.transaction_id == tx.transaction_id
+    assert reconstructed.node_account_id == node_account_id
 
 
 def test_revoke_kyc_transaction_from_proto(mock_account_ids):

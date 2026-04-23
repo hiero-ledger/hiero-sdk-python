@@ -470,14 +470,22 @@ def test_build_transaction_body_with_keys(mock_account_ids, key_type, use_privat
     verify_key_in_proto(transaction_body.tokenUpdate.freezeKey, expected_freeze_public, key_type)
 
 
-def test_from_bytes(mock_account_ids):
+def test_from_bytes(mock_account_ids, new_token_data):
     """Test round-trip via _from_protobuf for TokenUpdateTransaction."""
     operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    key = PrivateKey.generate().public_key()
 
     tx = TokenUpdateTransaction()
     tx.set_token_id(token_id_1)
     tx.set_token_name("NewName")
     tx.set_token_symbol("NNS")
+    tx.set_token_memo(new_token_data["memo"])
+    tx.set_metadata(new_token_data["metadata"])
+    tx.set_treasury_account_id(operator_id)
+    tx.set_auto_renew_account_id(operator_id)
+    tx.set_auto_renew_period(new_token_data["auto_renew_period"])
+    tx.set_expiration_time(new_token_data["expiration_time"])
+    tx.set_admin_key(key)
     tx.transaction_id = TransactionId.generate(operator_id)
     tx.node_account_id = node_account_id
     tx.freeze()
@@ -488,3 +496,10 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed.token_id == token_id_1
     assert reconstructed.token_name == "NewName"
     assert reconstructed.token_symbol == "NNS"
+    assert reconstructed.token_memo == new_token_data["memo"]
+    assert reconstructed.metadata == new_token_data["metadata"]
+    assert reconstructed.treasury_account_id == operator_id
+    assert reconstructed.auto_renew_account_id == operator_id
+    assert reconstructed.auto_renew_period.seconds == new_token_data["auto_renew_period"].seconds
+    assert reconstructed.expiration_time.seconds == new_token_data["expiration_time"].seconds
+    assert reconstructed.admin_key.to_bytes_raw() == key.to_bytes_raw()
