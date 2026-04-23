@@ -10,6 +10,8 @@ from .account.account_update_transaction import AccountUpdateTransaction
 
 # Address book
 from .address_book.endpoint import Endpoint
+from .address_book.general_service_endpoint import GeneralServiceEndpoint
+from .address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
 from .address_book.node_address import NodeAddress
 
 # Client and Network
@@ -235,6 +237,8 @@ __all__ = [
     "AccountInfoQuery",
     # Address book
     "Endpoint",
+    "GeneralServiceEndpoint",
+    "MirrorNodeServiceEndpoint",
     "NodeAddress",
     # Logger
     "Logger",

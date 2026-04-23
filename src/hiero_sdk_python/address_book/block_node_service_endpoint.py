@@ -26,12 +26,17 @@ class BlockNodeServiceEndpoint(RegisteredServiceEndpoint):
 
     def _endpoint_type_proto(self) -> dict[str, RegisteredServiceEndpointProto.BlockNodeEndpoint]:
         """Return the protobuf block-node subtype."""
-        return {"block_node": RegisteredServiceEndpointProto.BlockNodeEndpoint(endpoint_api=int(self.endpoint_api))}
+        return {"block_node": RegisteredServiceEndpointProto.BlockNodeEndpoint(endpoint_api=[int(self.endpoint_api)])}
 
     @classmethod
     def _from_proto(cls, proto: RegisteredServiceEndpointProto) -> BlockNodeServiceEndpoint:
         """Build a block node endpoint from protobuf."""
+        endpoint_api = (
+            BlockNodeApi(proto.block_node.endpoint_api[0])
+            if len(proto.block_node.endpoint_api) > 0
+            else BlockNodeApi.OTHER
+        )
         return cls(
-            endpoint_api=BlockNodeApi(proto.block_node.endpoint_api),
+            endpoint_api=endpoint_api,
             **cls._base_kwargs_from_proto(proto),
         )

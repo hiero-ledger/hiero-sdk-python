@@ -11,7 +11,7 @@ This document maps HIP-1137 concepts to current SDK implementation status.
   - Block: [src/hiero_sdk_python/address_book/block_node_service_endpoint.py](../../src/hiero_sdk_python/address_book/block_node_service_endpoint.py)
   - Mirror: [src/hiero_sdk_python/address_book/mirror_node_service_endpoint.py](../../src/hiero_sdk_python/address_book/mirror_node_service_endpoint.py)
   - RPC relay: [src/hiero_sdk_python/address_book/rpc_relay_service_endpoint.py](../../src/hiero_sdk_python/address_book/rpc_relay_service_endpoint.py)
-  - General service (deferred/public API not exposed yet): [src/hiero_sdk_python/address_book/general_service_endpoint.py](../../src/hiero_sdk_python/address_book/general_service_endpoint.py)
+  - General service: [src/hiero_sdk_python/address_book/general_service_endpoint.py](../../src/hiero_sdk_python/address_book/general_service_endpoint.py)
 - Registered node transactions:
   - Create: [src/hiero_sdk_python/nodes/registered_node_create_transaction.py](../../src/hiero_sdk_python/nodes/registered_node_create_transaction.py)
   - Update: [src/hiero_sdk_python/nodes/registered_node_update_transaction.py](../../src/hiero_sdk_python/nodes/registered_node_update_transaction.py)
@@ -21,6 +21,8 @@ This document maps HIP-1137 concepts to current SDK implementation status.
 - Consensus node association fields:
   - Create: [src/hiero_sdk_python/nodes/node_create_transaction.py](../../src/hiero_sdk_python/nodes/node_create_transaction.py)
   - Update (including clear semantics): [src/hiero_sdk_python/nodes/node_update_transaction.py](../../src/hiero_sdk_python/nodes/node_update_transaction.py)
+- HIP-1137 response codes (public SDK enum):
+  - [src/hiero_sdk_python/response_code.py](../../src/hiero_sdk_python/response_code.py)
 - Registered node read models:
   - [src/hiero_sdk_python/address_book/registered_node.py](../../src/hiero_sdk_python/address_book/registered_node.py)
   - [src/hiero_sdk_python/address_book/registered_node_address_book.py](../../src/hiero_sdk_python/address_book/registered_node_address_book.py)
@@ -29,7 +31,8 @@ This document maps HIP-1137 concepts to current SDK implementation status.
 
 - `RegisteredNodeAddressBookQuery` execution is intentionally deferred until mirror-node API support is defined, matching HIP guidance:
   [src/hiero_sdk_python/address_book/registered_node_address_book_query.py](../../src/hiero_sdk_python/address_book/registered_node_address_book_query.py)
-- `GeneralServiceEndpoint` protobuf subtype is not present in the currently generated schema for this repository. The SDK includes internal forward-compatible handling, but it is not a stable public top-level API until protobuf support lands.
+- End-to-end integration coverage for the registered-node lifecycle remains gated on environment/network support in CI:
+  [tests/integration/registered_node_transaction_e2e_test.py](../../tests/integration/registered_node_transaction_e2e_test.py)
 
 ## Tests
 
