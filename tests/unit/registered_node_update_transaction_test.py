@@ -1,5 +1,7 @@
 """Unit tests for RegisteredNodeUpdateTransaction."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -17,6 +19,7 @@ from hiero_sdk_python.nodes.registered_node_update_transaction import (
     RegisteredNodeUpdateTransaction,
 )
 from hiero_sdk_python.transaction.transaction import Transaction
+
 
 pytestmark = pytest.mark.unit
 

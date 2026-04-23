@@ -1,5 +1,7 @@
 """Unit tests for RegisteredNodeCreateTransaction."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -20,6 +22,7 @@ from hiero_sdk_python.nodes.registered_node_create_transaction import (
     RegisteredNodeCreateTransaction,
 )
 from hiero_sdk_python.transaction.transaction import Transaction
+
 
 pytestmark = pytest.mark.unit
 
@@ -163,11 +166,7 @@ def test_build_transaction_body_accepts_private_key_admin_key(mock_account_ids, 
     """Private keys should be accepted and serialized as public keys."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
     admin_key = PrivateKey.generate_ed25519()
-    transaction = (
-        RegisteredNodeCreateTransaction()
-        .set_admin_key(admin_key)
-        .add_service_endpoint(service_endpoint)
-    )
+    transaction = RegisteredNodeCreateTransaction().set_admin_key(admin_key).add_service_endpoint(service_endpoint)
     transaction.operator_account_id = operator_id
     transaction.node_account_id = node_account_id
 

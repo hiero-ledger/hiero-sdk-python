@@ -11,6 +11,7 @@ from hiero_sdk_python.hapi.services.registered_service_endpoint_pb2 import (
     RegisteredServiceEndpoint as RegisteredServiceEndpointProto,
 )
 
+
 _DOMAIN_LABEL_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$")
 
 

@@ -1,5 +1,7 @@
 """Integration tests for the registered node lifecycle."""
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.address_book.block_node_api import BlockNodeApi

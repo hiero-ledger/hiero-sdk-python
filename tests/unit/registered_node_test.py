@@ -1,5 +1,7 @@
 """Unit tests for the RegisteredNode model."""
 
+from __future__ import annotations
+
 from dataclasses import FrozenInstanceError
 
 import pytest
@@ -13,6 +15,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services.state.addressbook.registered_node_pb2 import (
     RegisteredNode as RegisteredNodeProto,
 )
+
 
 pytestmark = pytest.mark.unit
 

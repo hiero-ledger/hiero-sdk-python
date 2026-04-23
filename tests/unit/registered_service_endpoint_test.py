@@ -1,5 +1,7 @@
 """Unit tests for registered service endpoint types."""
 
+from __future__ import annotations
+
 import pytest
 
 from hiero_sdk_python.address_book.block_node_api import BlockNodeApi
@@ -21,6 +23,7 @@ from hiero_sdk_python.address_book.rpc_relay_service_endpoint import (
 from hiero_sdk_python.hapi.services.registered_service_endpoint_pb2 import (
     RegisteredServiceEndpoint as RegisteredServiceEndpointProto,
 )
+
 
 pytestmark = pytest.mark.unit
 

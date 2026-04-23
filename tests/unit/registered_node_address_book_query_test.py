@@ -1,5 +1,7 @@
 """Unit tests for RegisteredNodeAddressBookQuery."""
 
+from __future__ import annotations
+
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,6 +9,7 @@ import pytest
 from hiero_sdk_python.address_book.registered_node_address_book_query import (
     RegisteredNodeAddressBookQuery,
 )
+
 
 pytestmark = pytest.mark.unit
 

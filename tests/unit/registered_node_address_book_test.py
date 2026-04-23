@@ -1,5 +1,7 @@
 """Unit tests for RegisteredNodeAddressBook."""
 
+from __future__ import annotations
+
 from dataclasses import FrozenInstanceError
 
 import pytest
@@ -8,6 +10,7 @@ from hiero_sdk_python.address_book.registered_node import RegisteredNode
 from hiero_sdk_python.address_book.registered_node_address_book import (
     RegisteredNodeAddressBook,
 )
+
 
 pytestmark = pytest.mark.unit
 
