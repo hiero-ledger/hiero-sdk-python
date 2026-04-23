@@ -92,6 +92,14 @@ class NodeDeleteTransaction(Transaction):
         scheduled_body.nodeDelete.CopyFrom(node_delete_body)
         return scheduled_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("nodeDelete"):
+            body = transaction_body.nodeDelete
+            transaction.node_id = body.node_id if body.node_id else None
+        return transaction
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the node delete transaction.

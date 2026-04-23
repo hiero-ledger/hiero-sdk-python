@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.node_create_pb2 import NodeCreateTransactionBody
@@ -253,6 +254,25 @@ class NodeCreateTransaction(Transaction):
         scheduled_body = self.build_base_scheduled_body()
         scheduled_body.nodeCreate.CopyFrom(node_create_body)
         return scheduled_body
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("nodeCreate"):
+            body = transaction_body.nodeCreate
+            if body.HasField("account_id"):
+                transaction.account_id = AccountId._from_proto(body.account_id)
+            transaction.description = body.description if body.description else None
+            transaction.gossip_endpoints = [Endpoint._from_proto(ep) for ep in body.gossip_endpoint]
+            transaction.service_endpoints = [Endpoint._from_proto(ep) for ep in body.service_endpoint]
+            transaction.gossip_ca_certificate = body.gossip_ca_certificate if body.gossip_ca_certificate else None
+            transaction.grpc_certificate_hash = body.grpc_certificate_hash if body.grpc_certificate_hash else None
+            if body.HasField("admin_key"):
+                transaction.admin_key = Key.from_proto_key(body.admin_key)
+            transaction.decline_reward = body.decline_reward if body.decline_reward else None
+            if body.HasField("grpc_proxy_endpoint"):
+                transaction.grpc_web_proxy_endpoint = Endpoint._from_proto(body.grpc_proxy_endpoint)
+        return transaction
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

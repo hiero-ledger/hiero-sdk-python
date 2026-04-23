@@ -10,6 +10,7 @@ from google.protobuf.wrappers_pb2 import BoolValue, BytesValue, StringValue
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.node_update_pb2 import NodeUpdateTransactionBody
@@ -287,6 +288,30 @@ class NodeUpdateTransaction(Transaction):
         scheduled_body = self.build_base_scheduled_body()
         scheduled_body.nodeUpdate.CopyFrom(node_update_body)
         return scheduled_body
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("nodeUpdate"):
+            body = transaction_body.nodeUpdate
+            transaction.node_id = body.node_id if body.node_id else None
+            if body.HasField("account_id"):
+                transaction.account_id = AccountId._from_proto(body.account_id)
+            if body.HasField("description"):
+                transaction.description = body.description.value
+            transaction.gossip_endpoints = [Endpoint._from_proto(ep) for ep in body.gossip_endpoint]
+            transaction.service_endpoints = [Endpoint._from_proto(ep) for ep in body.service_endpoint]
+            if body.HasField("gossip_ca_certificate"):
+                transaction.gossip_ca_certificate = body.gossip_ca_certificate.value
+            if body.HasField("grpc_certificate_hash"):
+                transaction.grpc_certificate_hash = body.grpc_certificate_hash.value
+            if body.HasField("admin_key"):
+                transaction.admin_key = Key.from_proto_key(body.admin_key)
+            if body.HasField("decline_reward"):
+                transaction.decline_reward = body.decline_reward.value
+            if body.HasField("grpc_proxy_endpoint"):
+                transaction.grpc_web_proxy_endpoint = Endpoint._from_proto(body.grpc_proxy_endpoint)
+        return transaction
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
