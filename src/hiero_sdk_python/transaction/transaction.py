@@ -469,7 +469,7 @@ class Transaction(_Executable):
 
         transaction_body.transactionValidDuration.seconds = self.transaction_valid_duration
         transaction_body.generateRecord = self.generate_record
-        transaction_body.memo = self.memo
+        transaction_body.memo = self.memo if self.memo is not None else ""
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         transaction_body.max_custom_fees.extend(custom_fee_limits)
 
@@ -494,7 +494,7 @@ class Transaction(_Executable):
         else:
             schedulable_body.transactionFee = int(fee)
 
-        schedulable_body.memo = self.memo
+        schedulable_body.memo = self.memo if self.memo is not None else ""
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         schedulable_body.max_custom_fees.extend(custom_fee_limits)
 
