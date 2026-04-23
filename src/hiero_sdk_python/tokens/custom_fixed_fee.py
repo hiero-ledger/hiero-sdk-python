@@ -264,6 +264,8 @@ class CustomFixedFee(CustomFee):
         Raises:
             ValueError: If the `fixed_fee` field is not set in the protobuf message.
         """
+        if not proto_fee.HasField("fixed_fee"):
+            raise ValueError("fixed_fee is required in CustomFee proto")
         fixed_fee_proto = proto_fee.fixed_fee
 
         denominating_token_id = None
@@ -288,6 +290,8 @@ class CustomFixedFee(CustomFee):
         """Creates a CustomFixedFee from a FixedCustomFee protobuf (used for topic fees)."""
         from hiero_sdk_python.tokens.token_id import TokenId
 
+        if not proto_fee.HasField("fixed_fee"):
+            raise ValueError("fixed_fee is required in FixedCustomFee proto")
         fixed_fee_proto = proto_fee.fixed_fee
 
         denominating_token_id = None
