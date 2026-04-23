@@ -33,4 +33,4 @@ def key_to_proto(key: Key | None) -> basic_types_pb2.Key | None:
     if isinstance(key, Key):
         return key.to_proto_key()
 
-    raise TypeError("Key must be of type PrivateKey or PublicKey")
+    raise TypeError("Key must be of type PrivateKey or PublicKey, or another SDK Key implementation")
