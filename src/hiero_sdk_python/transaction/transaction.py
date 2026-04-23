@@ -799,7 +799,7 @@ class Transaction(_Executable):
             "nodeCreate": "hiero_sdk_python.nodes.node_create_transaction.NodeCreateTransaction",
             "nodeUpdate": "hiero_sdk_python.nodes.node_update_transaction.NodeUpdateTransaction",
             "nodeDelete": "hiero_sdk_python.nodes.node_delete_transaction.NodeDeleteTransaction",
-            "utilPrng": "hiero_sdk_python.prng_transaction.PrngTransaction",
+            "util_prng": "hiero_sdk_python.prng_transaction.PrngTransaction",
             "tokenReject": "hiero_sdk_python.tokens.token_reject_transaction.TokenRejectTransaction",
             "tokenAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction.TokenAirdropTransaction",
             "tokenCancelAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction_cancel.TokenCancelAirdropTransaction",
