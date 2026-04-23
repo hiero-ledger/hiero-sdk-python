@@ -241,8 +241,8 @@ class ScheduleCreateTransaction(Transaction):
                 transaction.admin_key = PublicKey._from_proto(body.adminKey)
             if body.HasField("scheduledTransactionBody"):
                 transaction.schedulable_body = body.scheduledTransactionBody
-            transaction.schedule_memo = body.memo if body.memo else None
+            transaction.schedule_memo = body.memo
             if body.HasField("expiration_time"):
                 transaction.expiration_time = Timestamp._from_protobuf(body.expiration_time)
-            transaction.wait_for_expiry = body.wait_for_expiry if body.wait_for_expiry else None
+            transaction.wait_for_expiry = body.wait_for_expiry
         return transaction
