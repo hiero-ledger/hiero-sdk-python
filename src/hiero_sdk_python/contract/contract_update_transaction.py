@@ -11,6 +11,7 @@ from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
@@ -301,6 +302,37 @@ class ContractUpdateTransaction(Transaction):
         schedulable_body = self.build_base_scheduled_body()
         schedulable_body.contractUpdateInstance.CopyFrom(contract_update_body)
         return schedulable_body
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("contractUpdateInstance"):
+            body = transaction_body.contractUpdateInstance
+            if body.HasField("contractID"):
+                transaction.contract_id = ContractId._from_proto(body.contractID)
+            if body.HasField("expirationTime"):
+                transaction.expiration_time = Timestamp._from_protobuf(body.expirationTime)
+            if body.HasField("adminKey"):
+                transaction.admin_key = Key.from_proto_key(body.adminKey)
+            if body.HasField("autoRenewPeriod"):
+                transaction.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
+            memo_field = body.WhichOneof("memoField")
+            if memo_field == "memoWrapper":
+                transaction.contract_memo = body.memoWrapper.value
+            elif memo_field == "memo":
+                transaction.contract_memo = body.memo if body.memo else None
+            if body.HasField("max_automatic_token_associations"):
+                transaction.max_automatic_token_associations = body.max_automatic_token_associations.value
+            if body.HasField("auto_renew_account_id"):
+                transaction.auto_renew_account_id = AccountId._from_proto(body.auto_renew_account_id)
+            if body.HasField("decline_reward"):
+                transaction.decline_reward = body.decline_reward.value
+            staked_id = body.WhichOneof("staked_id")
+            if staked_id == "staked_account_id":
+                transaction.staked_account_id = AccountId._from_proto(body.staked_account_id)
+            elif staked_id == "staked_node_id":
+                transaction.staked_node_id = body.staked_node_id
+        return transaction
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
