@@ -6,6 +6,7 @@ from __future__ import annotations
 from google.protobuf.wrappers_pb2 import StringValue
 
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.file.file_id import FileId
@@ -222,7 +223,7 @@ class FileUpdateTransaction(Transaction):
             body = transaction_body.fileUpdate
             if body.HasField("fileID"):
                 transaction.file_id = FileId._from_proto(body.fileID)
-            transaction.keys = [PublicKey._from_proto(k) for k in body.keys.keys] if body.keys.keys else None
+            transaction.keys = [Key.from_proto_key(k) for k in body.keys.keys] if body.keys.keys else None
             transaction.contents = body.contents if body.contents else None
             if body.HasField("expirationTime"):
                 transaction.expiration_time = Timestamp._from_protobuf(body.expirationTime)
