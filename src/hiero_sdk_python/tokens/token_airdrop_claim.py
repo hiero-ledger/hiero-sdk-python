@@ -123,6 +123,7 @@ class TokenClaimAirdropTransaction(Transaction):
             transaction._pending_airdrop_ids = [
                 PendingAirdropId._from_proto(a) for a in body.pending_airdrops
             ]
+            transaction._validate_all(transaction._pending_airdrop_ids)
         return transaction
 
     @classmethod
