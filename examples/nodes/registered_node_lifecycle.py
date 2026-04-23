@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 
+import grpc
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
@@ -51,6 +52,10 @@ def _optional_int_env(key: str) -> int | None:
     return int(value)
 
 
+def _is_unimplemented_rpc_error(exc: BaseException) -> bool:
+    return isinstance(exc, grpc.RpcError) and exc.code() == grpc.StatusCode.UNIMPLEMENTED
+
+
 def registered_node_lifecycle() -> None:
     load_dotenv()
 
@@ -79,7 +84,13 @@ def registered_node_lifecycle() -> None:
         .sign(registered_node_admin_key)
     )
 
-    create_receipt = create_tx.execute(client)
+    try:
+        create_receipt = create_tx.execute(client)
+    except Exception as exc:  # noqa: BLE001
+        if _is_unimplemented_rpc_error(exc):
+            print("Skipping example: network does not support HIP-1137 registered-node RPC methods yet.")
+            return
+        raise
     if create_receipt.status != ResponseCode.SUCCESS:
         raise RuntimeError(f"Create failed with status: {ResponseCode(create_receipt.status).name}")
 
@@ -107,29 +118,50 @@ def registered_node_lifecycle() -> None:
         # Current protobuf/network does not support this subtype yet.
         print("Skipping GeneralServiceEndpoint: unavailable in current protobuf schema.")
 
-    update_receipt = update_tx.freeze_with(client).sign(registered_node_admin_key).execute(client)
+    try:
+        update_receipt = update_tx.freeze_with(client).sign(registered_node_admin_key).execute(client)
+    except Exception as exc:  # noqa: BLE001
+        if _is_unimplemented_rpc_error(exc):
+            print("Skipping remaining lifecycle steps: registered-node update RPC is unavailable on this network.")
+            return
+        raise
     if update_receipt.status != ResponseCode.SUCCESS:
         raise RuntimeError(f"Update failed with status: {ResponseCode(update_receipt.status).name}")
 
     if node_id_to_update is None:
         print("Skipping consensus-node association: CONSENSUS_NODE_ID is not set.")
     else:
-        associate_receipt = (
-            NodeUpdateTransaction()
-            .set_node_id(node_id_to_update)
-            .add_associated_registered_node(registered_node_id)
-            .execute(client)
-        )
-        if associate_receipt.status != ResponseCode.SUCCESS:
+        try:
+            associate_receipt = (
+                NodeUpdateTransaction()
+                .set_node_id(node_id_to_update)
+                .add_associated_registered_node(registered_node_id)
+                .execute(client)
+            )
+        except Exception as exc:  # noqa: BLE001
+            if _is_unimplemented_rpc_error(exc):
+                print("Skipping consensus-node association: node update RPC is unavailable on this network.")
+                associate_receipt = None
+            else:
+                raise
+        if associate_receipt is None:
+            pass
+        elif associate_receipt.status != ResponseCode.SUCCESS:
             raise RuntimeError(f"Node association failed with status: {ResponseCode(associate_receipt.status).name}")
 
-    delete_receipt = (
-        RegisteredNodeDeleteTransaction()
-        .set_registered_node_id(registered_node_id)
-        .freeze_with(client)
-        .sign(registered_node_admin_key)
-        .execute(client)
-    )
+    try:
+        delete_receipt = (
+            RegisteredNodeDeleteTransaction()
+            .set_registered_node_id(registered_node_id)
+            .freeze_with(client)
+            .sign(registered_node_admin_key)
+            .execute(client)
+        )
+    except Exception as exc:  # noqa: BLE001
+        if _is_unimplemented_rpc_error(exc):
+            print("Skipping delete step: registered-node delete RPC is unavailable on this network.")
+            return
+        raise
     if delete_receipt.status != ResponseCode.SUCCESS:
         raise RuntimeError(f"Delete failed with status: {ResponseCode(delete_receipt.status).name}")
 
