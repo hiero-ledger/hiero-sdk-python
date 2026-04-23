@@ -1,5 +1,7 @@
 """Deferred registered node address book query."""
 
+from __future__ import annotations
+
 from hiero_sdk_python.address_book.registered_node_address_book import (
     RegisteredNodeAddressBook,
 )
