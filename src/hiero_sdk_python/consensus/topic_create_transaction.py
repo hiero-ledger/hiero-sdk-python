@@ -268,6 +268,6 @@ class TopicCreateTransaction(Transaction):
                 transaction.auto_renew_account = AccountId._from_proto(body.autoRenewAccount)
             if body.HasField("fee_schedule_key"):
                 transaction.fee_schedule_key = PublicKey._from_proto(body.fee_schedule_key)
-            transaction.custom_fees = [CustomFixedFee._from_proto(f) for f in body.custom_fees]
+            transaction.custom_fees = [CustomFixedFee._from_topic_fee_proto(f) for f in body.custom_fees]
             transaction.fee_exempt_keys = [PublicKey._from_proto(k) for k in body.fee_exempt_key_list]
         return transaction

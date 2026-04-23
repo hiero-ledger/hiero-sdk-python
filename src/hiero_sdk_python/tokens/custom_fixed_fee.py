@@ -283,6 +283,27 @@ class CustomFixedFee(CustomFee):
             all_collectors_are_exempt=collectors_are_exempt,
         )
 
+    @classmethod
+    def _from_topic_fee_proto(cls, proto_fee: custom_fees_pb2.FixedCustomFee) -> CustomFixedFee:
+        """Creates a CustomFixedFee from a FixedCustomFee protobuf (used for topic fees)."""
+        from hiero_sdk_python.tokens.token_id import TokenId
+
+        fixed_fee_proto = proto_fee.fixed_fee
+
+        denominating_token_id = None
+        if fixed_fee_proto.HasField("denominating_token_id"):
+            denominating_token_id = TokenId._from_proto(fixed_fee_proto.denominating_token_id)
+
+        fee_collector_account_id = None
+        if proto_fee.HasField("fee_collector_account_id"):
+            fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
+
+        return cls(
+            amount=fixed_fee_proto.amount,
+            denominating_token_id=denominating_token_id,
+            fee_collector_account_id=fee_collector_account_id,
+        )
+
     def __eq__(self, other: CustomFixedFee) -> bool:
         """Compares this CustomFixedFee instance with another object for equality.
 
