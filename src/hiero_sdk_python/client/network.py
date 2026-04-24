@@ -99,11 +99,11 @@ class Network:
             Use Client.set_transport_security() and Client.set_verify_certificates() to customize.
         """
         self.network: str = network or "localhost"
-        self._mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(network, "localhost:5600")
-        self._mirror_channel = None
-        self._mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
+        self._mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(self.network, "localhost:5600")
+        self._mirror_channel: grpc.Channel | None = None
+        self._mirror_stub: mirror_consensus_grpc.ConsensusServiceStub | None = None
 
-        self.ledger_id = ledger_id or self.LEDGER_ID.get(network, bytes.fromhex("03"))
+        self.ledger_id = ledger_id or self.LEDGER_ID.get(self.network, bytes.fromhex("03"))
 
         # Default TLS configuration: enabled for hosted networks, disabled for local/custom
         hosted_networks = ("mainnet", "testnet", "previewnet")
