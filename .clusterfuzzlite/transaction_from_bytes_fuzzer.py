@@ -16,7 +16,7 @@ def TestOneInput(data: bytes) -> None:
     try:
         tx = Transaction.from_bytes(data)
         tx.to_bytes()
-    except Exception:
+    except ValueError:
         # All parsing / validation failures are expected; only unhandled
         # exceptions that escape this function are reported as fuzzer crashes.
         pass

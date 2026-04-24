@@ -37,7 +37,7 @@ def TestOneInput(data: bytes) -> None:
         else:
             raw = fdp.ConsumeBytes(128)
             _quiet(PublicKey.from_bytes, raw)
-    except Exception:
+    except ValueError:
         pass
 
 
