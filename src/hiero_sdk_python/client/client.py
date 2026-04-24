@@ -69,11 +69,11 @@ class Client:
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
     @property
-    def mirror_stub(self) -> mirror_consensus_grpc.ConsensusServiceStub | None:
+    def mirror_stub(self) -> mirror_consensus_grpc.ConsensusServiceStub:
         return self.network.get_mirror_stub()
 
     @property
-    def mirror_channel(self) -> grpc.Channel | None:
+    def mirror_channel(self) -> grpc.Channel:
         self.network.get_mirror_stub()
         return self.network._mirror_channel
 
