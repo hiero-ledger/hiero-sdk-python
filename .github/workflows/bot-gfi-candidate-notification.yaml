@@ -14,7 +14,7 @@ permissions:
 jobs:
   gfi_candidate_notify_team:
     runs-on: hl-sdk-py-lin-md
-    if: contains(github.event.issue.labels.*.name, 'good first issue candidate')
+    if: contains(github.event.issue.labels.*.name, 'Good First Issue candidate')
     concurrency:
       group: gfi-candidate-${{ github.event.issue.number }}
       cancel-in-progress: false

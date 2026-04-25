@@ -59,7 +59,7 @@ module.exports = async ({ github, context, core }) => {
     // Determine issue difficulty level
     const difficultyLevels = {
       beginner: labelSet.has('beginner'),
-      goodFirstIssue: labelSet.has('good first issue'),
+      goodFirstIssue: labelSet.has('Good First Issue'),
       intermediate: labelSet.has('intermediate'),
       advanced: labelSet.has('advanced'),
     };
@@ -85,7 +85,7 @@ module.exports = async ({ github, context, core }) => {
 
     if (recommendedIssues.length === 0) {
       isFallback = true;
-      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
+      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'Good First Issue');
       recommendedLabel = 'Good First Issue';
     }
 
@@ -170,7 +170,7 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
       `org:${context.repo.owner}`,
       'archived:false',
       'no:assignee',
-      '(label:"good first issue" OR label:"skill: good first issue")',
+      '(label:"Good First Issue" OR label:"skill: Good First Issue")',
       `(${repoQuery})`,
     ].join(' ');
 
