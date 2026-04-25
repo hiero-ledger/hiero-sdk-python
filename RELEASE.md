@@ -32,7 +32,7 @@ MAJOR.MINOR.PATCH
    ```
 
 4. **Monitor the Publish Workflow**
-   - The `.github/workflows/publish.yml` workflow runs automatically when the tag is pushed.
+   - The `.github/workflows/release-publish.yml` workflow runs automatically when the tag is pushed.
    - The workflow builds the source distribution and wheel, generates protobufs before packaging, signs the release artifacts with Sigstore, publishes the package to PyPI, and creates or updates the GitHub release.
 
 5. **Verify Published Artifacts**
