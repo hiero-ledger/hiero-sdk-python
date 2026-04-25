@@ -29,7 +29,8 @@ from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.key_utils import key_to_proto
+from hiero_sdk_python.crypto.key import Key
 
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds

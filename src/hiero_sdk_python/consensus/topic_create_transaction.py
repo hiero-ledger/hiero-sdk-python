@@ -19,7 +19,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.key_utils import key_to_proto
+from hiero_sdk_python.crypto.key import Key
 
 
 class TopicCreateTransaction(Transaction):

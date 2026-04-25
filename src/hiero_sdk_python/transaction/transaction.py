@@ -15,7 +15,8 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.key_utils import key_to_proto
+from hiero_sdk_python.crypto.key import Key
 
 
 if TYPE_CHECKING:
