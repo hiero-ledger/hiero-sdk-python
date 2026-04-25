@@ -18,6 +18,7 @@ from typing import Any
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import token_create_pb2, transaction_pb2
@@ -25,7 +26,6 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_type import TokenType

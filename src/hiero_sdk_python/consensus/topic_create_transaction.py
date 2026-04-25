@@ -22,6 +22,7 @@ from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.utils.key_utils import key_to_proto
 
+
 class TopicCreateTransaction(Transaction):
     """
     Represents a transaction to create a new topic in the Hedera
