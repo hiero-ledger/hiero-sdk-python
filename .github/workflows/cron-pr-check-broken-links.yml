@@ -1,5 +1,9 @@
 name: Cron – Check Broken Markdown Links
 
+concurrency:
+  group: cron-check-broken-markdown-links
+  cancel-in-progress: false
+
 on:
   schedule:
     - cron: "0 0 1 * *"
@@ -42,12 +46,14 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
+            const { LABEL_BROKEN_MARKDOWN_LINKS, LABEL_AUTOMATED } = require('./.github/scripts/labels.js');
+
             // Determine if this is a dry run
             const isManual = context.eventName === 'workflow_dispatch';
-            const dryRun = isManual ? String(context.payload.inputs.dry_run).toLowerCase() === 'true' : false;
+            const dryRun = isManual ? String(context.payload?.inputs?.dry_run).toLowerCase() === 'true' : false;
 
             // Labels configuration
-            const targetLabels = ['broken-markdown-links', 'automated'];
+            const targetLabels = [LABEL_BROKEN_MARKDOWN_LINKS, LABEL_AUTOMATED];
             const issueTitle = "Scheduled Markdown Link Check Found Broken Links";
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
