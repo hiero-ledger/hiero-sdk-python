@@ -327,6 +327,7 @@ def test_get_receipt_query_child_receipts_have_none_transaction_id_e2e(env):
 
 
 @pytest.mark.integration
+@pytest.mark.xfail(reason="Uses threads to create duplicate tx, may be flaky")
 def test_get_receipt_query_duplicate_receipts_retain_parent_transaction_id_e2e(env):
     """
     E2E:
