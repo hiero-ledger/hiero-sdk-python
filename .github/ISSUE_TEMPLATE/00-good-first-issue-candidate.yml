@@ -95,7 +95,7 @@ body:
     attributes:
       label: 🧠 Good First Issue Developers — Prerequisites & Expectations
       description: |
-        Adapt as needed. Concrete requirements before claiming this Good First Issue. Adapt as needed.
+        Adapt as needed. Concrete requirements before claiming this Good First Issue.
       value: |
         > [!IMPORTANT]
         > **This issue does not require prior domain knowledge.**
