@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import consensus_create_topic_pb2, transaction_pb2
@@ -20,8 +19,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.crypto.key import Key as CryptoKey
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.utils.key_utils import key_to_proto
 
 
 class TopicCreateTransaction(Transaction):
@@ -260,15 +259,15 @@ class TopicCreateTransaction(Transaction):
             body = transaction_body.consensusCreateTopic
             transaction.memo = body.memo if body.memo else ""
             if body.HasField("adminKey"):
-                transaction.admin_key = CryptoKey.from_proto_key(body.adminKey)
+                transaction.admin_key = Key.from_proto_key(body.adminKey)
             if body.HasField("submitKey"):
-                transaction.submit_key = CryptoKey.from_proto_key(body.submitKey)
+                transaction.submit_key = Key.from_proto_key(body.submitKey)
             if body.HasField("autoRenewPeriod"):
                 transaction.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
             if body.HasField("autoRenewAccount"):
                 transaction.auto_renew_account = AccountId._from_proto(body.autoRenewAccount)
             if body.HasField("fee_schedule_key"):
-                transaction.fee_schedule_key = CryptoKey.from_proto_key(body.fee_schedule_key)
+                transaction.fee_schedule_key = Key.from_proto_key(body.fee_schedule_key)
             transaction.custom_fees = [CustomFixedFee._from_topic_fee_proto(f) for f in body.custom_fees]
-            transaction.fee_exempt_keys = [CryptoKey.from_proto_key(k) for k in body.fee_exempt_key_list]
+            transaction.fee_exempt_keys = [Key.from_proto_key(k) for k in body.fee_exempt_key_list]
         return transaction
