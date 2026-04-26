@@ -325,9 +325,9 @@ class TopicUpdateTransaction(Transaction):
             if body.HasField("memo"):
                 transaction.memo = body.memo.value
             if body.HasField("adminKey"):
-                transaction.admin_key = CryptoKey.from_proto_key(body.adminKey)
+                transaction.admin_key = Key.from_proto_key(body.adminKey)
             if body.HasField("submitKey"):
-                transaction.submit_key = CryptoKey.from_proto_key(body.submitKey)
+                transaction.submit_key = Key.from_proto_key(body.submitKey)
             if body.HasField("autoRenewPeriod"):
                 transaction.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
             if body.HasField("autoRenewAccount"):
@@ -335,9 +335,9 @@ class TopicUpdateTransaction(Transaction):
             if body.HasField("expirationTime"):
                 transaction.expiration_time = Timestamp._from_protobuf(body.expirationTime)
             if body.HasField("fee_schedule_key"):
-                transaction.fee_schedule_key = CryptoKey.from_proto_key(body.fee_schedule_key)
+                transaction.fee_schedule_key = Key.from_proto_key(body.fee_schedule_key)
             if body.HasField("custom_fees"):
                 transaction.custom_fees = [CustomFixedFee._from_topic_fee_proto(f) for f in body.custom_fees.fees]
             if body.HasField("fee_exempt_key_list"):
-                transaction.fee_exempt_keys = [CryptoKey.from_proto_key(k) for k in body.fee_exempt_key_list.keys]
+                transaction.fee_exempt_keys = [Key.from_proto_key(k) for k in body.fee_exempt_key_list.keys]
         return transaction
