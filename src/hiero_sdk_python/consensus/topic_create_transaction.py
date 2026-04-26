@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import consensus_create_topic_pb2, transaction_pb2
@@ -19,7 +20,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.key_utils import key_to_proto
 
 
 class TopicCreateTransaction(Transaction):

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_contents_pb2, transaction_pb2
@@ -15,7 +16,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.key_utils import key_to_proto
 
 
 if TYPE_CHECKING:
