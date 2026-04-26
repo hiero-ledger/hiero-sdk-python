@@ -1,0 +1,53 @@
+# Automatically adds requested reviewers (individuals + expanded team members) as assignees on PRs.
+# Triggered when reviewers are requested via CODEOWNERS or manually.
+# Logic implemented in: .github/scripts/bot-pr-add-reviewers-as-assignees.js
+
+name: "Bot: Add Reviewers as Assignees"
+
+on:
+  pull_request:
+    types:
+      - review_requested
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to process (for manual testing)'
+        required: false
+        type: number
+      dry_run:
+        description: 'Run without making changes'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: write
+
+concurrency:
+  group: reviewer-assignee-${{ github.event.pull_request.number || github.event.inputs.pr_number || github.run_id }}
+  cancel-in-progress: false
+
+jobs:
+  add-reviewers-as-assignees:
+    name: Add Reviewers as Assignees
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: hl-sdk-py-lin-md
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Run reviewer → assignee handler
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-pr-add-reviewers-as-assignees.js');
+            await script({ github, context });            
