@@ -5,16 +5,6 @@ name: CodeRabbit Plan Trigger
 on:
   issues:
     types: [labeled]
-  workflow_dispatch:
-    inputs:
-      dry_run:
-        description: "Run without posting comments"
-        required: false
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
 
 permissions:
   issues: write
@@ -28,10 +18,9 @@ jobs:
       cancel-in-progress: false
     # Only run when the newly added label is beginner, intermediate, or advanced (case-insensitive)
     if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.action == 'labeled' &&
+      github.event.action == 'labeled' &&
       github.event.issue.state == 'open' &&
-      contains(fromJson('["beginner","intermediate","advanced","Beginner","Intermediate","Advanced"]'), github.event.label.name))
+      contains(fromJson('["beginner","intermediate","advanced","Beginner","Intermediate","Advanced"]'), github.event.label.name)
 
     steps:
       - name: Harden the runner
@@ -45,7 +34,6 @@ jobs:
       - name: Trigger CodeRabbit Plan
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9.0.0
         with:
           script: |
