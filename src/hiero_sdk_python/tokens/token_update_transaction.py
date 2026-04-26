@@ -14,6 +14,7 @@ from google.protobuf.wrappers_pb2 import BytesValue, StringValue
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import token_update_pb2, transaction_pb2
