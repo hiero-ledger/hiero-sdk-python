@@ -23,8 +23,7 @@ def test_integration_account_record_query_can_execute(env):
     transfer_tx = TransferTransaction()
     transfer_tx.transaction_fee = Hbar(2).to_tinybars()
     transfer_receipt = (
-        transfer_tx
-        .add_hbar_transfer(account.id, Hbar(1).to_tinybars())
+        transfer_tx.add_hbar_transfer(account.id, Hbar(1).to_tinybars())
         .add_hbar_transfer(env.operator_id, -Hbar(1).to_tinybars())
         .execute(env.client)
     )
@@ -55,8 +54,7 @@ def test_integration_account_record_query_get_cost(env):
     transfer_tx = TransferTransaction()
     transfer_tx.transaction_fee = Hbar(2).to_tinybars()
     transfer_receipt = (
-        transfer_tx
-        .add_hbar_transfer(account.id, Hbar(1).to_tinybars())
+        transfer_tx.add_hbar_transfer(account.id, Hbar(1).to_tinybars())
         .add_hbar_transfer(env.operator_id, -Hbar(1).to_tinybars())
         .execute(env.client)
     )
@@ -82,8 +80,7 @@ def test_integration_account_record_query_insufficient_payment(env):
     transfer_tx = TransferTransaction()
     transfer_tx.transaction_fee = Hbar(2).to_tinybars()
     transfer_receipt = (
-        transfer_tx
-        .add_hbar_transfer(account.id, Hbar(1).to_tinybars())
+        transfer_tx.add_hbar_transfer(account.id, Hbar(1).to_tinybars())
         .add_hbar_transfer(env.operator_id, -Hbar(1).to_tinybars())
         .execute(env.client)
     )
