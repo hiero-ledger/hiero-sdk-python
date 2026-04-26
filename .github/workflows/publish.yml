@@ -84,7 +84,7 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
           verify: true
-          verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/publish.yml@refs/tags/${{ github.ref_name }}
+          verify-cert-identity: https://github.com/${{ github.repository }}/.github/workflows/release-publish.yml@refs/tags/${{ github.ref_name }}
           verify-oidc-issuer: https://token.actions.githubusercontent.com
 
       - name: Prepare distributions for PyPI upload
