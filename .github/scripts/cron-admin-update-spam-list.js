@@ -8,9 +8,18 @@
  */
 
 const fs = require('fs').promises;
+const { LABEL_AUTOMATED } = require('./labels.js');
 
 const SPAM_LIST_PATH = '.github/spam-list.txt';
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
+
+/**
+ * These constants control the GitHub label names used by the spam automation.
+ * To rename labels, update only the constant values here.
+ * Ensure corresponding labels exist in the GitHub repository settings.
+ */
+const LABEL_SPAM = 'notes: spam';
+const LABEL_SPAM_LIST_UPDATE = 'notes: spam-list-update';
 
 // Load current spam list and compute updates based on spam vs rehabilitated users
 
@@ -121,7 +130,7 @@ module.exports = async ({github, context, core}) => {
     const searches = [
       {
         name: 'spam PRs',
-        query: `repo:${owner}/${repo} is:pr is:closed -is:merged label:spam`,
+        query: `repo:${owner}/${repo} is:pr is:closed -is:merged label:"${LABEL_SPAM}"`,
         process: async (pr) => {
           if (!pr.user?.login) {
             console.log(`Skipping PR #${pr.number}: user account unavailable`);
@@ -208,7 +217,7 @@ module.exports = async ({github, context, core}) => {
         const { data: existing } = await github.rest.issues.listForRepo({
           owner,
           repo,
-          labels: 'spam-list-update',
+          labels: LABEL_SPAM_LIST_UPDATE,
           state: 'open',
           per_page: 1
         });
@@ -221,7 +230,7 @@ module.exports = async ({github, context, core}) => {
           repo,
           title,
           body,
-          labels: ['spam-list-update', 'automated']
+          labels: [LABEL_SPAM_LIST_UPDATE, LABEL_AUTOMATED]
         });
         console.log('Issue created successfully');
       }
