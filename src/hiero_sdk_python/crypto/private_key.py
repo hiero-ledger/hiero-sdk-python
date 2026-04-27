@@ -283,8 +283,11 @@ class PrivateKey(Key):
             # Ed25519 automatically handles the hashing internally
             return self._private_key.sign(data)
 
-        data_hash = keccak256(data)
-        signature_der = self._private_key.sign(data_hash, ec.ECDSA(asym_utils.Prehashed(hashes.SHA256())))
+        # ECDSA (secp256k1) uses SHA-256 for hashing during signing
+        signature_der = self._private_key.sign(
+            data,
+            ec.ECDSA(hashes.SHA256())
+        )
         r, s = asym_utils.decode_dss_signature(signature_der)
         return r.to_bytes(32, "big") + s.to_bytes(32, "big")
 
