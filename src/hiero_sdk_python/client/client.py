@@ -18,6 +18,7 @@ from hiero_sdk_python.hapi.mirror import (
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.logger.logger import Logger, LogLevel
+from hiero_sdk_python.node import _UserAgentInterceptor
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 from .network import Network
@@ -163,6 +164,8 @@ class Client:
             self.mirror_channel = grpc.secure_channel(mirror_address, grpc.ssl_channel_credentials())
         else:
             self.mirror_channel = grpc.insecure_channel(mirror_address)
+
+        self.mirror_channel = grpc.intercept_channel(self.mirror_channel, _UserAgentInterceptor())
         self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self.mirror_channel)
 
     def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> None:
