@@ -18,7 +18,7 @@ from hiero_sdk_python.hapi.mirror import (
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.logger.logger import Logger, LogLevel
-from hiero_sdk_python.node import _UserAgentInterceptor
+from hiero_sdk_python.channels import _UserAgentInterceptor
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 from .network import Network

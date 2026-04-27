@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from collections import namedtuple
 import hashlib
-from importlib.metadata import PackageNotFoundError, version
 import socket
 import ssl  # Python's ssl module implements TLS (despite the name)
 import time
@@ -11,48 +9,12 @@ import grpc
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
-from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.channels import _Channel, _UserAgentInterceptor
 from hiero_sdk_python.managed_node_address import _ManagedNodeAddress
 
 
 # Timeout for fetching server certificates during TLS validation
 CERT_FETCH_TIMEOUT_SECONDS = 10
-
-
-class _UserAgentInterceptor(grpc.UnaryUnaryClientInterceptor, grpc.UnaryStreamClientInterceptor):
-    _HEADER_KEY = "x-user-agent"
-    _SDK_NAME = "hiero-sdk-python"
-    _CallDetails = namedtuple(
-        "_CallDetails",
-        ("method", "timeout", "metadata", "credentials", "wait_for_ready", "compression"),
-    )
-
-    def _user_agent_value(self) -> str:
-        try:
-            sdk_version = version(self._SDK_NAME)
-        except PackageNotFoundError:
-            sdk_version = "dev"
-
-        return f"{self._SDK_NAME}/{sdk_version}"
-
-    def _with_user_agent(self, details: grpc.ClientCallDetails) -> grpc.ClientCallDetails:
-        metadata = [] if details.metadata is None else list(details.metadata)
-        metadata.append((self._HEADER_KEY, self._user_agent_value()))
-
-        return self._CallDetails(
-            details.method,
-            details.timeout,
-            metadata,
-            getattr(details, "credentials", None),
-            getattr(details, "wait_for_ready", None),
-            getattr(details, "compression", None),
-        )
-
-    def intercept_unary_unary(self, continuation, client_call_details, request):
-        return continuation(self._with_user_agent(client_call_details), request)
-
-    def intercept_unary_stream(self, continuation, client_call_details, request):
-        return continuation(self._with_user_agent(client_call_details), request)
 
 
 class _HederaTrustManager:

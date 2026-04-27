@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import grpc
 import pytest
 
-from hiero_sdk_python import node
-from hiero_sdk_python.node import _UserAgentInterceptor
+from hiero_sdk_python import channels
+from hiero_sdk_python.channels import _UserAgentInterceptor
 
 
 pytestmark = pytest.mark.unit
@@ -30,28 +31,28 @@ class _DummyCallDetails:
 def test_user_agent_value_from_installed_version(monkeypatch):
     """Interceptor should build x-user-agent from package version when available."""
 
-    monkeypatch.setattr(node, "version", lambda _name: "0.0.0")
+    monkeypatch.setattr(channels, "version", lambda _name: "0.0.0")
 
     interceptor = _UserAgentInterceptor()
-    assert interceptor._user_agent_value() == "hiero-sdk-python/0.0.0"
+    assert interceptor._user_agent == "hiero-sdk-python/0.0.0"
 
 
 def test_user_agent_value_falls_back_to_dev(monkeypatch):
     """Interceptor should fall back to dev when package metadata is unavailable."""
 
     def _raise_not_found(_name):
-        raise node.PackageNotFoundError
+        raise channels.PackageNotFoundError
 
-    monkeypatch.setattr(node, "version", _raise_not_found)
+    monkeypatch.setattr(channels, "version", _raise_not_found)
 
     interceptor = _UserAgentInterceptor()
-    assert interceptor._user_agent_value() == "hiero-sdk-python/dev"
+    assert interceptor._user_agent == "hiero-sdk-python/dev"
 
 
 def test_intercept_unary_unary_appends_user_agent_metadata(monkeypatch):
     """Unary calls should forward metadata including x-user-agent."""
 
-    monkeypatch.setattr(node, "version", lambda _name: "0.0.0")
+    monkeypatch.setattr(channels, "version", lambda _name: "0.0.0")
 
     interceptor = _UserAgentInterceptor()
     request = object()
@@ -75,7 +76,7 @@ def test_intercept_unary_unary_appends_user_agent_metadata(monkeypatch):
 def test_intercept_unary_stream_adds_metadata_when_none(monkeypatch):
     """Unary-stream calls should work even when original metadata is None."""
 
-    monkeypatch.setattr(node, "version", lambda _name: "0.0.0")
+    monkeypatch.setattr(channels, "version", lambda _name: "0.0.0")
 
     interceptor = _UserAgentInterceptor()
     request = object()
@@ -93,3 +94,10 @@ def test_intercept_unary_stream_adds_metadata_when_none(monkeypatch):
     assert captured["request"] is request
     expected_header = (interceptor._HEADER_KEY, f"{interceptor._SDK_NAME}/0.0.0")
     assert captured["details"].metadata == [expected_header]
+
+
+def test_interceptor_implements_required_grpc_interfaces():
+    """Guard against accidental loss of gRPC interceptor interface inheritance."""
+    interceptor = _UserAgentInterceptor()
+    assert isinstance(interceptor, grpc.UnaryUnaryClientInterceptor)
+    assert isinstance(interceptor, grpc.UnaryStreamClientInterceptor)
