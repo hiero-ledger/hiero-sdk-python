@@ -32,7 +32,7 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 3. Follow [Setup Guide](docs/sdk_developers/training/setup)
 4. Follow [Workflow Guide](docs/sdk_developers/workflow.md)
 5. GPG and DCO sign commits [Quickstart Signing](docs/sdk_developers/training/workflow/07_signing_requirements.md)
-6. Submit a PR [Quickstart Submit PR](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+6. Submit a PR [Quickstart Submit PR](docs/sdk_developers/training/workflow/10_submit_pull_request.md)
 
 **Detailed Docs:**
 

@@ -8,6 +8,7 @@
  */
 
 const fs = require('fs').promises;
+const { LABEL_AUTOMATED } = require('./labels.js');
 
 const SPAM_LIST_PATH = '.github/spam-list.txt';
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
@@ -229,7 +230,7 @@ module.exports = async ({github, context, core}) => {
           repo,
           title,
           body,
-          labels: [LABEL_SPAM_LIST_UPDATE, 'automated']
+          labels: [LABEL_SPAM_LIST_UPDATE, LABEL_AUTOMATED]
         });
         console.log('Issue created successfully');
       }
