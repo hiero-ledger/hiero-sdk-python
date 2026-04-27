@@ -200,11 +200,20 @@ class Client:
         Closes any open gRPC channels and frees resources.
         Call this when you are done using the Client to ensure a clean shutdown.
         """
+        # Close mirror channel
         if self.mirror_channel is not None:
             self.mirror_channel.close()
             self.mirror_channel = None
 
         self.mirror_stub = None
+
+        # Fix: Close all consensus node channels
+        if hasattr(self, "network") and self.network is not None:
+            if hasattr(self.network, "nodes") and self.network.nodes is not None:
+                for node in self.network.nodes.values():
+                    if hasattr(node, "_channel") and node._channel is not None:
+                        node._channel.close()
+                        node._channel = None
 
     def set_transport_security(self, enabled: bool) -> Client:
         """
