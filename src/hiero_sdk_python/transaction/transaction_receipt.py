@@ -88,10 +88,15 @@ class TransactionReceipt:
         """
         Retrieves the AccountId associated with the transaction receipt, if available.
 
+        Unlike other ID properties (token_id, file_id, etc.), this returns the AccountId
+        even when accountNum is 0. This is intentional to support EVM auto-account creation
+        scenarios where the protobuf may contain an AccountID with num=0 to identify the
+        newly created account before it's fully initialized on-chain.
+
         Returns:
-            AccountId or None: The AccountId if present; otherwise, None.
+            AccountId or None: The AccountId if present (including num=0); otherwise, None.
         """
-        if self._receipt_proto.HasField("accountID") and self._receipt_proto.accountID.accountNum != 0:
+        if self._receipt_proto.HasField("accountID"):
             return AccountId._from_proto(self._receipt_proto.accountID)
         return None
 
@@ -107,7 +112,9 @@ class TransactionReceipt:
 
     @property
     def file_id(self) -> FileId | None:
-        """Returns the file ID associated with this receipt."""
+        """
+        Returns the file ID associated with this receipt.
+        """
         if self._receipt_proto.HasField("fileID") and self._receipt_proto.fileID.fileNum != 0:
             return FileId._from_proto(self._receipt_proto.fileID)
         return None
@@ -243,14 +250,14 @@ class TransactionReceipt:
 
     @classmethod
     def _from_proto(
-        cls, proto: transaction_receipt_pb2.TransactionReceipt, transaction_id: TransactionId
+        cls, proto: transaction_receipt_pb2.TransactionReceipt, transaction_id: TransactionId | None
     ) -> TransactionReceipt:
         """
         Creates a TransactionReceipt instance from a protobuf TransactionReceipt object.
 
         Args:
             proto (transaction_receipt_pb2.TransactionReceipt): The protobuf TransactionReceipt object.
-            transaction_id (TransactionId): The transaction ID associated with this receipt.
+            transaction_id (TransactionId | None): The transaction ID associated with this receipt. Can be None for child receipts.
 
         Returns:
             TransactionReceipt: A new instance of TransactionReceipt populated with data from the protobuf object.
