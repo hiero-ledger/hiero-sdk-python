@@ -26,7 +26,7 @@ import rlp
 from dotenv import load_dotenv
 from eth_keys import keys
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey
+from hiero_sdk_python import AccountId, Client, Hbar, PrivateKey
 from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,

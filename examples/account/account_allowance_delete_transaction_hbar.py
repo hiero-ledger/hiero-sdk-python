@@ -5,7 +5,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey, TransactionId
+from hiero_sdk_python import AccountId, Client, Hbar, PrivateKey, TransactionId
 from hiero_sdk_python.account.account_allowance_approve_transaction import (
     AccountAllowanceApproveTransaction,
 )

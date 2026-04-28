@@ -14,7 +14,6 @@ from dotenv import load_dotenv
 from hiero_sdk_python import (
     AccountId,
     Client,
-    Network,
     PrivateKey,
     TransferTransaction,
 )
@@ -46,6 +45,7 @@ def setup_client() -> tuple[Client, AccountId, PrivateKey]:
     print(f"Client set up with operator id {client.operator_account_id}")
 
     return client, operator_id, operator_key
+
 
 def create_test_account(client):
     """Create a new account for testing."""

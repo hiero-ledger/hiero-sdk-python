@@ -14,7 +14,6 @@ from dotenv import load_dotenv
 from hiero_sdk_python import (
     AccountId,
     Client,
-    Network,
     PrivateKey,
     ResponseCode,
     TopicCreateTransaction,

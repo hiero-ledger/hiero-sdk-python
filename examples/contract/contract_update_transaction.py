@@ -23,7 +23,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+from hiero_sdk_python import Client
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )

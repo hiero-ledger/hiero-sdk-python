@@ -14,7 +14,7 @@ import time
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Hbar, Network, PrivateKey
+from hiero_sdk_python import Client, Hbar, PrivateKey
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery

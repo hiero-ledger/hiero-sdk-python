@@ -12,7 +12,7 @@ import sys
 
 from dotenv import load_dotenv
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey
+from hiero_sdk_python import Client, PrivateKey
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction

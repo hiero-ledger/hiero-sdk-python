@@ -8,18 +8,11 @@ Example: Using CustomFeeLimit with a revenue-generating topic.
   willing to pay in custom fees for that message.
 """
 
-import os
-import sys
-
-from dotenv import load_dotenv
-
 from hiero_sdk_python import (
     AccountId,
     Client,
     CustomFixedFee,
     Hbar,
-    Network,
-    PrivateKey,
     TopicCreateTransaction,
     TopicMessageSubmitTransaction,
 )

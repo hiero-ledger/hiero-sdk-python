@@ -6,16 +6,12 @@ uv run examples/consensus/topic_message_submit_chunked.py
 python examples/consensus/topic_message_submit_chunked.py
 """
 
-import os
 import sys
 
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
-    AccountId,
     Client,
-    Network,
-    PrivateKey,
     ResponseCode,
     TopicCreateTransaction,
     TopicInfoQuery,

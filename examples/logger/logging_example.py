@@ -19,11 +19,9 @@ from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
-    AccountId,
     Client,
     Logger,
     LogLevel,
-    Network,
     PrivateKey,
 )
 
@@ -34,7 +32,7 @@ load_dotenv()
 def setup_client() -> Client:
     """
     Setup Client.
-    
+
     Returns:
         Client: Configured Hiero client ready for use
     """

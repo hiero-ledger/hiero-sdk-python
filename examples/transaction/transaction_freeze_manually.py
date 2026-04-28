@@ -17,8 +17,6 @@ from dotenv import load_dotenv
 from hiero_sdk_python import (
     AccountId,
     Client,
-    Network,
-    PrivateKey,
     ResponseCode,
     TopicCreateTransaction,
     Transaction,
@@ -32,6 +30,7 @@ NETWORK_NAME = os.getenv("NETWORK", "testnet").lower()
 OPERATOR_ID = os.getenv("OPERATOR_ID")
 OPERATOR_KEY = os.getenv("OPERATOR_KEY")
 NODE_ACCOUNT_ID = AccountId.from_string("0.0.3")
+
 
 def setup_client():
     """Initialize and return a Hedera Client using operator credentials."""

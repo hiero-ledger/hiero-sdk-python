@@ -5,18 +5,15 @@ Example demonstrating batch transaction.
 uv run examples/transaction/batch_transaction.py.
 """
 
-import os
 import sys
 
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
-    AccountId,
     BatchTransaction,
     Client,
     CryptoGetAccountBalanceQuery,
-    Network,
     PrivateKey,
     ResponseCode,
     TokenCreateTransaction,
