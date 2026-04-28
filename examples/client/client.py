@@ -87,7 +87,7 @@ def demonstrate_manual_setup():
     """Run the detailed, step-by-step setup."""
     print("\n--- [ Method 1: Manual Setup] ---")
     network = setup_network()
-    client = setup_client(network)
+    client = setup_client()
     setup_operator(client)
     display_client_configuration(client)
     display_available_nodes(client)
