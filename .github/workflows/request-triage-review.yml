@@ -1,0 +1,43 @@
+name: Request triage review on beginner and Good First Issue PRs
+
+on:
+  pull_request_target:
+    types: [opened, labeled]
+
+concurrency:
+  group: triage-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  request-triage:
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'Good First Issue') || contains(github.event.pull_request.labels.*.name, 'beginner') }}
+    runs-on: [self-hosted,hl-sdk-py-lin-md]
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Request triage review
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const tag = "<!-- triage -->";
+            const { data: comments } = await github.rest.issues.listComments({
+                                         owner: context.repo.owner,
+                                         repo: context.repo.repo,
+                                         issue_number: context.payload.pull_request.number
+                                    });
+            if (!comments.some(c => c.body?.includes(tag))) {
+                await github.rest.issues.createComment({
+                 owner: context.repo.owner,
+                  repo: context.repo.repo,
+                   issue_number: context.payload.pull_request.number,
+             body: `${tag} Requesting triage review from: @hiero-ledger/hiero-sdk-python-triage`
+               });
+            }
