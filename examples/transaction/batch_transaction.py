@@ -5,18 +5,15 @@ Example demonstrating batch transaction.
 uv run examples/transaction/batch_transaction.py.
 """
 
-import os
 import sys
 
 from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
-    AccountId,
     BatchTransaction,
     Client,
     CryptoGetAccountBalanceQuery,
-    Network,
     PrivateKey,
     ResponseCode,
     TokenCreateTransaction,
@@ -36,21 +33,12 @@ def get_balance(client, account_id, token_id):
     print(f"Account: {account_id}: {tokens_balance[token_id] if tokens_balance else 0}")
 
 
-def setup_client():
+def setup_client() -> Client:
     """Set up and configure a Hedera client for testnet operations."""
-    network_name = os.getenv("NETWORK", "testnet").lower()
-
-    print(f"Connecting to Hedera {network_name} network!")
-
     try:
-        network = Network(network_name)
-        client = Client(network)
-
-        operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-        operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-
-        client.set_operator(operator_id, operator_key)
-        print(f"Client initialized with operator: {operator_id}")
+        client = Client.from_env()
+        print(f"Network: {client.network.network}")
+        print(f"Client initialized with operator: {client.operator_account_id}")
         return client
     except Exception as e:
         print(f"Failed to set up client: {e}")

@@ -17,8 +17,6 @@ from dotenv import load_dotenv
 from hiero_sdk_python import (
     AccountId,
     Client,
-    Network,
-    PrivateKey,
     ResponseCode,
     TopicCreateTransaction,
     Transaction,
@@ -36,22 +34,8 @@ NODE_ACCOUNT_ID = AccountId.from_string("0.0.3")
 
 def setup_client():
     """Initialize and return a Hedera Client using operator credentials."""
-    if not OPERATOR_ID or not OPERATOR_KEY:
-        raise RuntimeError("OPERATOR_ID or OPERATOR_KEY not set in .env")
-
-    print(f"Connecting to Hedera {NETWORK_NAME} network!")
-
-    try:
-        client = Client(Network(NETWORK_NAME))
-
-        operator_id = AccountId.from_string(OPERATOR_ID)
-        operator_key = PrivateKey.from_string(OPERATOR_KEY)
-
-        client.set_operator(operator_id, operator_key)
-
-    except Exception as exc:
-        raise RuntimeError(f"Failed to initialize client: {exc}") from exc
-
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client initialized with operator {client.operator_account_id}")
     return client
 
