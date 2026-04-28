@@ -62,15 +62,20 @@ lint = [
 default-groups = ["dev", "lint"]
 
 [build-system]
-requires = ["pdm-backend", "setuptools", "setuptools_scm", "grpcio-tools"]
+requires = [
+    "pdm-backend>=2.4.8,<3",
+    "setuptools>=82,<83",
+    "setuptools_scm>=7,<9",
+    "grpcio-tools>=1.76.0,<2"
+]
 build-backend = "pdm.backend"
 
 [tool.setuptools_scm]
 version_scheme = "python-simplified-semver"
 local_scheme = "dirty-tag"
 
-[tool.pdm]
-version = { source = "scm" }
+[tool.pdm.version]
+source = "scm"
 
 [tool.pdm.build]
 package-dir = "src"
