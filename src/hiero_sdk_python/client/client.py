@@ -211,7 +211,6 @@ class Client:
         if self.network and self.network.nodes:
             for node in self.network.nodes:
                 node._close()
-    
     def set_transport_security(self, enabled: bool) -> Client:
         """
         Enable or disable TLS for consensus node connections.
