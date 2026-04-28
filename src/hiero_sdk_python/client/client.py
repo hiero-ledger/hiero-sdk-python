@@ -210,7 +210,6 @@ class Client:
         # Fix: Close all consensus node channels
         if self.network and self.network.nodes:
             for node in self.network.nodes:
-                node.close()
 
     def set_transport_security(self, enabled: bool) -> Client:
         """
