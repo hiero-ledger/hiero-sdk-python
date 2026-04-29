@@ -1,6 +1,6 @@
 ## Getting Assigned to an Issue
 
-Claim an issue as yours to work on by commenting on a Good First Issue with exactly: /assign
+Claim an issue as yours to work on by commenting on a good first issue with exactly: /assign
 
 We recommend Good First Issues for developers new to the Python SDK. These are easier and better documented tasks.
 
