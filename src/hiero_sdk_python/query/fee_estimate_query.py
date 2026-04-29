@@ -122,7 +122,7 @@ class FeeEstimateQuery:
         """Ensure the transaction is frozen before serialization."""
         try:
             tx._require_frozen()  # pylint: disable=protected-access
-        except Exception:  # fallback
+        except (RuntimeError, ValueError):  # fallback
             if hasattr(tx, "freeze_with"):
                 tx.freeze_with(client)
             else:
