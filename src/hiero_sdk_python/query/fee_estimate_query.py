@@ -276,6 +276,7 @@ class FeeEstimateQuery:
             for item in extra_list
         ]
 
+    # noqa: UP038
     def _is_chunked(self) -> bool:
         from hiero_sdk_python.consensus.topic_message_submit_transaction import (
             TopicMessageSubmitTransaction,
@@ -284,7 +285,4 @@ class FeeEstimateQuery:
             FileAppendTransaction,
         )
 
-        return isinstance(
-            self._transaction,
-            (TopicMessageSubmitTransaction, FileAppendTransaction),  # noqa: UP038
-        )
+        return isinstance(self._transaction, (TopicMessageSubmitTransaction, FileAppendTransaction))  # noqa: UP038
