@@ -9,7 +9,11 @@ from .account.account_records_query import AccountRecordsQuery
 from .account.account_update_transaction import AccountUpdateTransaction
 
 # Address book
+from .address_book.block_node_api import BlockNodeApi
+from .address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
 from .address_book.endpoint import Endpoint
+from .address_book.general_service_endpoint import GeneralServiceEndpoint
+from .address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
 from .address_book.node_address import NodeAddress
 
 # Client and Network
@@ -68,6 +72,9 @@ from .logger.logger import Logger
 from .nodes.node_create_transaction import NodeCreateTransaction
 from .nodes.node_delete_transaction import NodeDeleteTransaction
 from .nodes.node_update_transaction import NodeUpdateTransaction
+from .nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
+from .nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
+from .nodes.registered_node_update_transaction import RegisteredNodeUpdateTransaction
 
 # PRNG
 from .prng_transaction import PrngTransaction
@@ -234,7 +241,11 @@ __all__ = [
     "TokenInfoQuery",
     "AccountInfoQuery",
     # Address book
+    "BlockNodeApi",
+    "BlockNodeServiceEndpoint",
     "Endpoint",
+    "GeneralServiceEndpoint",
+    "MirrorNodeServiceEndpoint",
     "NodeAddress",
     # Logger
     "Logger",
@@ -277,6 +288,9 @@ __all__ = [
     "NodeCreateTransaction",
     "NodeUpdateTransaction",
     "NodeDeleteTransaction",
+    "RegisteredNodeCreateTransaction",
+    "RegisteredNodeUpdateTransaction",
+    "RegisteredNodeDeleteTransaction",
     # PRNG
     "PrngTransaction",
     # Custom Fees

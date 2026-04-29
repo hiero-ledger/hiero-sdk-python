@@ -30,3 +30,18 @@ def test_transaction_receipt_set_children_updates_property():
     assert len(parent.children) == 2
     assert parent.children[0] is child1
     assert parent.children[1] is child2
+
+
+def test_transaction_receipt_registered_node_id_maps_zero_to_none():
+    """registered_node_id should follow the same optional semantics as other IDs."""
+    empty_receipt = TransactionReceipt(
+        receipt_proto=transaction_receipt_pb2.TransactionReceipt(),
+        transaction_id=None,
+    )
+    populated_receipt = TransactionReceipt(
+        receipt_proto=transaction_receipt_pb2.TransactionReceipt(registered_node_id=7),
+        transaction_id=None,
+    )
+
+    assert empty_receipt.registered_node_id is None
+    assert populated_receipt.registered_node_id == 7

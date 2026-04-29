@@ -1,4 +1,6 @@
-"""NodeUpdateTransaction class."""
+"""
+NodeUpdateTransaction class.
+"""
 
 from __future__ import annotations
 
@@ -10,14 +12,17 @@ from google.protobuf.wrappers_pb2 import BoolValue, BytesValue, StringValue
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services.node_update_pb2 import NodeUpdateTransactionBody
+from hiero_sdk_python.hapi.services.node_update_pb2 import (
+    AssociatedRegisteredNodeList,
+    NodeUpdateTransactionBody,
+)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 
 @dataclass
@@ -26,16 +31,18 @@ class NodeUpdateParams:
     Represents node attributes that can be set on update.
 
     Attributes:
-        node_id (int, optional): The node ID of the node.
-        account_id (AccountId, optional): The account ID of the node.
-        description (str, optional): The description of the node.
+        node_id (int | None): The node ID of the node.
+        account_id (AccountId | None): The account ID of the node.
+        description (str | None): The description of the node.
         gossip_endpoints (list[Endpoint]): The gossip endpoints of the node.
         service_endpoints (list[Endpoint]): The service endpoints of the node.
-        gossip_ca_certificate (bytes, None): The gossip ca certificate of the node.
-        grpc_certificate_hash (bytes, None): The grpc certificate hash of the node.
-        admin_key (PublicKey, optional): The admin key of the node.
-        decline_reward (bool, optional): The decline reward of the node.
-        grpc_web_proxy_endpoint (Endpoint, optional): The grpc web proxy endpoint of the node.
+        associated_registered_nodes (list[int] | None):
+            Registered nodes associated with this consensus node.
+        gossip_ca_certificate (bytes | None): The gossip ca certificate of the node.
+        grpc_certificate_hash (bytes | None): The grpc certificate hash of the node.
+        admin_key (Key | None): The admin key of the node.
+        decline_reward (bool | None): The decline reward of the node.
+        grpc_web_proxy_endpoint (Endpoint | None): The grpc web proxy endpoint of the node.
     """
 
     node_id: int | None = None
@@ -43,14 +50,17 @@ class NodeUpdateParams:
     description: str | None = None
     gossip_endpoints: list[Endpoint] = field(default_factory=list)
     service_endpoints: list[Endpoint] = field(default_factory=list)
+    associated_registered_nodes: list[int] | None = None
     gossip_ca_certificate: bytes | None = None
     grpc_certificate_hash: bytes | None = None
-    admin_key: PublicKey | None = None
+    admin_key: Key | None = None
     decline_reward: bool | None = None
     grpc_web_proxy_endpoint: Endpoint | None = None
 
 
 class NodeUpdateTransaction(Transaction):
+    MAX_ASSOCIATED_REGISTERED_NODES = 20
+
     """
     Represents a node update transaction on the network.
 
@@ -66,7 +76,7 @@ class NodeUpdateTransaction(Transaction):
         Initializes a new NodeUpdateTransaction instance with the specified parameters.
 
         Args:
-            node_update_params (NodeUpdateParams, optional):
+            node_update_params (NodeUpdateParams | None):
                 The parameters for the node update transaction.
         """
         super().__init__()
@@ -74,11 +84,16 @@ class NodeUpdateTransaction(Transaction):
         self.node_id: int | None = node_update_params.node_id
         self.account_id: AccountId | None = node_update_params.account_id
         self.description: str | None = node_update_params.description
-        self.gossip_endpoints: list[Endpoint] = node_update_params.gossip_endpoints
-        self.service_endpoints: list[Endpoint] = node_update_params.service_endpoints
+        self.gossip_endpoints: list[Endpoint] | None = node_update_params.gossip_endpoints
+        self.service_endpoints: list[Endpoint] | None = node_update_params.service_endpoints
+        self.associated_registered_nodes: list[int] | None = (
+            list(node_update_params.associated_registered_nodes)
+            if node_update_params.associated_registered_nodes is not None
+            else None
+        )
         self.gossip_ca_certificate: bytes | None = node_update_params.gossip_ca_certificate
         self.grpc_certificate_hash: bytes | None = node_update_params.grpc_certificate_hash
-        self.admin_key: PublicKey | None = node_update_params.admin_key
+        self.admin_key: Key | None = node_update_params.admin_key
         self.decline_reward: bool | None = node_update_params.decline_reward
         self.grpc_web_proxy_endpoint: Endpoint | None = node_update_params.grpc_web_proxy_endpoint
 
@@ -87,7 +102,7 @@ class NodeUpdateTransaction(Transaction):
         Sets the node id for this node update transaction.
 
         Args:
-            node_id (int):
+            node_id (Optional[int]):
                 The node id of the node.
 
         Returns:
@@ -132,7 +147,7 @@ class NodeUpdateTransaction(Transaction):
         Sets the gossip endpoints for this node update transaction.
 
         Args:
-            gossip_endpoints (list[Endpoint]):
+            gossip_endpoints (List[Endpoint]):
                 The gossip endpoints of the node.
 
         Returns:
@@ -147,7 +162,7 @@ class NodeUpdateTransaction(Transaction):
         Sets the service endpoints for this node update transaction.
 
         Args:
-            service_endpoints (list[Endpoint]):
+            service_endpoints (List[Endpoint]):
                 The service endpoints of the node.
 
         Returns:
@@ -155,6 +170,57 @@ class NodeUpdateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.service_endpoints = service_endpoints
+        return self
+
+    def set_associated_registered_nodes(self, associated_registered_nodes: list[int] | None) -> NodeUpdateTransaction:
+        """
+        Sets the registered nodes associated with this node update transaction.
+
+        Args:
+            associated_registered_nodes (list[int] | None):
+                The registered node IDs associated with this consensus node.
+                ``None`` leaves the existing associations unchanged.
+
+        Returns:
+            NodeUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        if associated_registered_nodes is None:
+            self.associated_registered_nodes = None
+            return self
+
+        associated_registered_nodes_list = list(associated_registered_nodes)
+        self._validate_associated_registered_nodes(associated_registered_nodes_list)
+        self.associated_registered_nodes = associated_registered_nodes_list
+        return self
+
+    def add_associated_registered_node(self, registered_node_id: int) -> NodeUpdateTransaction:
+        """
+        Adds a registered node association to this node update transaction.
+
+        Args:
+            registered_node_id (int):
+                The registered node ID to associate.
+
+        Returns:
+            NodeUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        if self.associated_registered_nodes is None:
+            self.associated_registered_nodes = []
+        self._validate_associated_registered_nodes(self.associated_registered_nodes + [registered_node_id])
+        self.associated_registered_nodes.append(registered_node_id)
+        return self
+
+    def clear_associated_registered_nodes(self) -> NodeUpdateTransaction:
+        """
+        Clears the registered node associations for this node update transaction.
+
+        Returns:
+            NodeUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes = []
         return self
 
     def set_gossip_ca_certificate(self, gossip_ca_certificate: bytes | None) -> NodeUpdateTransaction:
@@ -187,12 +253,12 @@ class NodeUpdateTransaction(Transaction):
         self.grpc_certificate_hash = grpc_certificate_hash
         return self
 
-    def set_admin_key(self, admin_key: PublicKey | None) -> NodeUpdateTransaction:
+    def set_admin_key(self, admin_key: Key | None) -> NodeUpdateTransaction:
         """
         Sets the admin key for this node update transaction.
 
         Args:
-            admin_key (PublicKey):
+            admin_key (Key):
                 The admin key of the node.
 
         Returns:
@@ -233,12 +299,17 @@ class NodeUpdateTransaction(Transaction):
         return self
 
     def _convert_to_proto(self, obj: Any | None) -> Any:
-        """Convert object to proto if it exists, otherwise return None."""
+        """Convert object to proto if it exists, otherwise return None"""
         return obj._to_proto() if obj else None
 
     def _convert_to_proto_list(self, obj: list[Any] | None) -> Any:
-        """Convert list of objects to proto if it exists, otherwise return empty list."""
+        """Convert list of objects to proto if it exists, otherwise return empty list"""
         return [obj._to_proto() for obj in obj or []]
+
+    def _validate_associated_registered_nodes(self, associated_registered_nodes: list[int]) -> None:
+        """Validate the associated registered node list."""
+        if len(associated_registered_nodes) > self.MAX_ASSOCIATED_REGISTERED_NODES:
+            raise ValueError("A maximum of 20 associated registered nodes is allowed.")
 
     def _build_proto_body(self) -> NodeUpdateTransactionBody:
         """
@@ -247,6 +318,9 @@ class NodeUpdateTransaction(Transaction):
         Returns:
             NodeUpdateTransactionBody: The protobuf body for this transaction.
         """
+        if self.associated_registered_nodes is not None:
+            self._validate_associated_registered_nodes(self.associated_registered_nodes)
+
         return NodeUpdateTransactionBody(
             node_id=self.node_id,
             account_id=self._convert_to_proto(self.account_id),
@@ -259,9 +333,14 @@ class NodeUpdateTransaction(Transaction):
             grpc_certificate_hash=(
                 BytesValue(value=self.grpc_certificate_hash) if self.grpc_certificate_hash is not None else None
             ),
-            admin_key=self._convert_to_proto(self.admin_key),
+            admin_key=key_to_proto(self.admin_key),
             decline_reward=(BoolValue(value=self.decline_reward) if self.decline_reward is not None else None),
             grpc_proxy_endpoint=self._convert_to_proto(self.grpc_web_proxy_endpoint),
+            associated_registered_node_list=(
+                AssociatedRegisteredNodeList(associated_registered_node=self.associated_registered_nodes)
+                if self.associated_registered_nodes is not None
+                else None
+            ),
         )
 
     def build_transaction_body(self) -> TransactionBody:
