@@ -16,8 +16,7 @@ class FeeEstimate:
     """Represents a fee estimate composed of a base amount and optional extras."""
 
     base: int
-    # extras: list[FeeExtra] = field(default_factory=list)
-    extras: tuple[FeeExtra, ...] = field(default_factory=tuple)
+    extras: list[FeeExtra] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "extras", tuple(self.extras))

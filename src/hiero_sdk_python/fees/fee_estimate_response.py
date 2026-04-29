@@ -6,7 +6,7 @@ the estimation mode and optional notes.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from hiero_sdk_python.fees.fee_estimate import FeeEstimate
 from hiero_sdk_python.fees.fee_estimate_mode import FeeEstimateMode
@@ -21,5 +21,5 @@ class FeeEstimateResponse:
     network_fee: NetworkFee | None = None
     node_fee: FeeEstimate | None = None
     service_fee: FeeEstimate | None = None
-    notes: list[str] = field(default_factory=list)
     total: int = 0
+    high_volume_multiplier: int = 0
