@@ -109,7 +109,7 @@ class FeeEstimateQuery:
 
         try:
             self._transaction.freeze_with(client)
-        except Exception as e:
+        except (RuntimeError, ValueError) as e:
             # Ignore if it's already frozen
             if "already frozen" not in str(e).lower():
                 raise
@@ -286,5 +286,5 @@ class FeeEstimateQuery:
 
         return isinstance(
             self._transaction,
-            (TopicMessageSubmitTransaction, FileAppendTransaction),
+            (TopicMessageSubmitTransaction, FileAppendTransaction),  # noqa: UP038
         )
