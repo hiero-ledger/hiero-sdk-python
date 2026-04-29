@@ -107,6 +107,13 @@ class FeeEstimateQuery:
         mode = self._mode or FeeEstimateMode.INTRINSIC
         url = self._build_url(client, mode)
 
+        try:
+            self._transaction.freeze_with(client)
+        except Exception as e:
+            # Ignore if it's already frozen
+            if "already frozen" not in str(e).lower():
+                raise
+
         self._ensure_frozen(self._transaction, client)
 
         if self._is_chunked():
