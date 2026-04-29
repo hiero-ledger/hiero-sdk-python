@@ -1,6 +1,7 @@
+const shared = require('./shared/labels.js');
 const COMMENT_MARKER = process.env.INTERMEDIATE_COMMENT_MARKER || '<!-- Intermediate Issue Guard -->';
-const INTERMEDIATE_LABEL = process.env.INTERMEDIATE_LABEL?.trim() || 'intermediate';
-const BEGINNER_LABEL = process.env.BEGINNER_LABEL?.trim() || 'beginner';
+const INTERMEDIATE_LABEL = process.env.INTERMEDIATE_LABEL?.trim() || shared.INTERMEDIATE_LABEL;
+const BEGINNER_LABEL = process.env.BEGINNER_LABEL?.trim() || shared.BEGINNER_LABEL;
 const EXEMPT_PERMISSION_LEVELS = (process.env.INTERMEDIATE_EXEMPT_PERMISSIONS || 'admin,maintain,write,triage')
   .split(',')
   .map((entry) => entry.trim().toLowerCase())
@@ -61,7 +62,7 @@ async function countCompletedBeginnerIssues(github, owner, repo, username) {
     !isSafeSearchToken(owner) ||
     !isSafeSearchToken(repo) ||
     !isSafeSearchToken(username) ||
-    !isSafeSearchToken(BEGINNER_LABEL)
+    !shared.isSafeLabel(BEGINNER_LABEL)
   ) {
     console.log('Invalid search inputs', {
       owner,
@@ -75,7 +76,7 @@ async function countCompletedBeginnerIssues(github, owner, repo, username) {
   try {
     const searchQuery = [
       `repo:${owner}/${repo}`,
-      `label:${BEGINNER_LABEL}`,
+      `label:"${BEGINNER_LABEL}"`,
       'is:issue',
       'is:closed',
       `assignee:${username}`,
