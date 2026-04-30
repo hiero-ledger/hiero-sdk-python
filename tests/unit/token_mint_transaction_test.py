@@ -11,6 +11,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -299,3 +300,40 @@ def test_build_scheduled_body_nft(mock_account_ids, metadata):
     assert schedulable_body.tokenMint.token == token_id._to_proto()
     assert schedulable_body.tokenMint.amount == 0
     assert schedulable_body.tokenMint.metadata == metadata
+
+
+def test_from_bytes_fungible(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for fungible TokenMintTransaction."""
+    payer_account, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenMintTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_amount(500)
+    tx.transaction_id = generate_transaction_id(payer_account)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenMintTransaction)
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.amount == 500
+
+
+def test_from_bytes_nft(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for NFT TokenMintTransaction."""
+    payer_account, _, node_account_id, token_id_1, _ = mock_account_ids
+    nft_metadata = [b"meta1", b"meta2"]
+
+    tx = TokenMintTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_metadata(nft_metadata)
+    tx.transaction_id = generate_transaction_id(payer_account)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenMintTransaction)
+    assert reconstructed.token_id == token_id_1
+    assert list(reconstructed.metadata) == nft_metadata

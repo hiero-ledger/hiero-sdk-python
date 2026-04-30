@@ -131,3 +131,11 @@ class AccountAllowanceDeleteTransaction(Transaction):
             _Method: An object containing the transaction function to delete allowances.
         """
         return _Method(transaction_func=channel.crypto.deleteAllowances, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("cryptoDeleteAllowance"):
+            body = transaction_body.cryptoDeleteAllowance
+            transaction.nft_wipe = [TokenNftAllowance._from_wipe_proto(a) for a in body.nftAllowances]
+        return transaction

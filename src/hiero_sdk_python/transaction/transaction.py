@@ -470,7 +470,7 @@ class Transaction(_Executable):
 
         transaction_body.transactionValidDuration.seconds = self.transaction_valid_duration
         transaction_body.generateRecord = self.generate_record
-        transaction_body.memo = self.memo
+        transaction_body.memo = self.memo if self.memo is not None else ""
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         transaction_body.max_custom_fees.extend(custom_fee_limits)
 
@@ -495,7 +495,7 @@ class Transaction(_Executable):
         else:
             schedulable_body.transactionFee = int(fee)
 
-        schedulable_body.memo = self.memo
+        schedulable_body.memo = self.memo if self.memo is not None else ""
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         schedulable_body.max_custom_fees.extend(custom_fee_limits)
 
@@ -773,7 +773,7 @@ class Transaction(_Executable):
             "fileUpdate": "hiero_sdk_python.file.file_update_transaction.FileUpdateTransaction",
             "systemDelete": None,  # Admin transaction
             "systemUndelete": None,  # Admin transaction
-            "freeze": None,  # Admin transaction
+            "freeze": "hiero_sdk_python.system.freeze_transaction.FreezeTransaction",
             "consensusCreateTopic": "hiero_sdk_python.consensus.topic_create_transaction.TopicCreateTransaction",
             "consensusUpdateTopic": "hiero_sdk_python.consensus.topic_update_transaction.TopicUpdateTransaction",
             "consensusDeleteTopic": "hiero_sdk_python.consensus.topic_delete_transaction.TopicDeleteTransaction",
@@ -790,20 +790,21 @@ class Transaction(_Executable):
             "tokenWipe": "hiero_sdk_python.tokens.token_wipe_transaction.TokenWipeTransaction",
             "tokenAssociate": "hiero_sdk_python.tokens.token_associate_transaction.TokenAssociateTransaction",
             "tokenDissociate": "hiero_sdk_python.tokens.token_dissociate_transaction.TokenDissociateTransaction",
-            "tokenPause": "hiero_sdk_python.tokens.token_pause_transaction.TokenPauseTransaction",
-            "tokenUnpause": "hiero_sdk_python.tokens.token_pause_transaction.TokenUnpauseTransaction",
+            "token_pause": "hiero_sdk_python.tokens.token_pause_transaction.TokenPauseTransaction",
+            "token_unpause": "hiero_sdk_python.tokens.token_unpause_transaction.TokenUnpauseTransaction",
             "scheduleCreate": "hiero_sdk_python.schedule.schedule_create_transaction.ScheduleCreateTransaction",
             "scheduleDelete": "hiero_sdk_python.schedule.schedule_delete_transaction.ScheduleDeleteTransaction",
             "scheduleSign": "hiero_sdk_python.schedule.schedule_sign_transaction.ScheduleSignTransaction",
-            "tokenFeeScheduleUpdate": None,  # Not commonly used
-            "tokenUpdateNfts": "hiero_sdk_python.tokens.token_update_nfts_transaction.TokenUpdateNftsTransaction",
+            "token_fee_schedule_update": "hiero_sdk_python.tokens.token_fee_schedule_update_transaction.TokenFeeScheduleUpdateTransaction",
+            "token_update_nfts": "hiero_sdk_python.tokens.token_update_nfts_transaction.TokenUpdateNftsTransaction",
             "nodeCreate": "hiero_sdk_python.nodes.node_create_transaction.NodeCreateTransaction",
             "nodeUpdate": "hiero_sdk_python.nodes.node_update_transaction.NodeUpdateTransaction",
             "nodeDelete": "hiero_sdk_python.nodes.node_delete_transaction.NodeDeleteTransaction",
-            "utilPrng": "hiero_sdk_python.prng_transaction.PrngTransaction",
+            "util_prng": "hiero_sdk_python.prng_transaction.PrngTransaction",
             "tokenReject": "hiero_sdk_python.tokens.token_reject_transaction.TokenRejectTransaction",
             "tokenAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction.TokenAirdropTransaction",
-            "tokenCancelAirdrop": "hiero_sdk_python.tokens.token_cancel_airdrop_transaction.TokenCancelAirdropTransaction",
+            "tokenCancelAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction_cancel.TokenCancelAirdropTransaction",
+            "tokenClaimAirdrop": "hiero_sdk_python.tokens.token_airdrop_claim.TokenClaimAirdropTransaction",
             "atomic_batch": "hiero_sdk_python.transaction.batch_transaction.BatchTransaction",
         }
 

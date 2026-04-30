@@ -18,6 +18,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -161,3 +163,19 @@ def test_build_scheduled_body(token_id):
     assert isinstance(schedulable_body, SchedulableTransactionBody)
     assert schedulable_body.HasField("token_pause")
     assert schedulable_body.token_pause.token == token_id._to_proto()
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for TokenPauseTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenPauseTransaction()
+    tx.set_token_id(token_id_1)
+    tx.transaction_id = TransactionId.generate(account_id_sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenPauseTransaction)
+    assert reconstructed.token_id == token_id_1

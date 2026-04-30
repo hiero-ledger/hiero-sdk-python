@@ -100,5 +100,15 @@ class TokenCancelAirdropTransaction(Transaction):
         schedulable_body.tokenCancelAirdrop.CopyFrom(token_airdrop_cancel_body)
         return schedulable_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenCancelAirdrop"):
+            body = transaction_body.tokenCancelAirdrop
+            transaction.pending_airdrops = [
+                PendingAirdropId._from_proto(a) for a in body.pending_airdrops
+            ]
+        return transaction
+
     def _get_method(self, channel):
         return _Method(transaction_func=channel.token.cancelAirdrop, query_func=None)

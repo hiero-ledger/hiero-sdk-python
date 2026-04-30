@@ -30,7 +30,8 @@ from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.utils.key_utils import key_to_proto
+from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.utils.key_utils import Key, key_to_proto
 
 
 AUTO_RENEW_PERIOD = Duration(7890000)  # around 90 days in seconds
@@ -560,3 +561,46 @@ class TokenCreateTransaction(Transaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(transaction_func=channel.token.createToken, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):  # noqa: PLR0912
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenCreation"):
+            body = transaction_body.tokenCreation
+            transaction._token_params.token_name = body.name
+            transaction._token_params.token_symbol = body.symbol
+            transaction._token_params.decimals = body.decimals
+            transaction._token_params.initial_supply = body.initialSupply
+            transaction._token_params.token_type = TokenType(body.tokenType)
+            transaction._token_params.supply_type = SupplyType(body.supplyType)
+            transaction._token_params.max_supply = body.maxSupply
+            transaction._token_params.freeze_default = body.freezeDefault
+            if body.HasField("treasury"):
+                transaction._token_params.treasury_account_id = AccountId._from_proto(body.treasury)
+            if body.HasField("expiry"):
+                transaction._token_params.expiration_time = Timestamp._from_protobuf(body.expiry)
+                transaction._token_params.auto_renew_period = None
+            if body.HasField("autoRenewAccount"):
+                transaction._token_params.auto_renew_account_id = AccountId._from_proto(body.autoRenewAccount)
+            if body.HasField("autoRenewPeriod"):
+                transaction._token_params.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
+            transaction._token_params.memo = body.memo if body.memo else None
+            transaction._token_params.metadata = body.metadata if body.metadata else None
+            transaction._token_params.custom_fees = [CustomFee._from_proto(f) for f in body.custom_fees]
+            if body.HasField("adminKey"):
+                transaction._keys.admin_key = PublicKey._from_proto(body.adminKey)
+            if body.HasField("kycKey"):
+                transaction._keys.kyc_key = PublicKey._from_proto(body.kycKey)
+            if body.HasField("freezeKey"):
+                transaction._keys.freeze_key = PublicKey._from_proto(body.freezeKey)
+            if body.HasField("wipeKey"):
+                transaction._keys.wipe_key = PublicKey._from_proto(body.wipeKey)
+            if body.HasField("supplyKey"):
+                transaction._keys.supply_key = PublicKey._from_proto(body.supplyKey)
+            if body.HasField("fee_schedule_key"):
+                transaction._keys.fee_schedule_key = PublicKey._from_proto(body.fee_schedule_key)
+            if body.HasField("pause_key"):
+                transaction._keys.pause_key = PublicKey._from_proto(body.pause_key)
+            if body.HasField("metadata_key"):
+                transaction._keys.metadata_key = PublicKey._from_proto(body.metadata_key)
+        return transaction

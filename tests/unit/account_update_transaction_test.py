@@ -35,6 +35,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -813,3 +815,30 @@ def test_set_keylist_threshold_key():
     assert update_body.key.HasField("thresholdKey")
     assert update_body.key.thresholdKey.threshold == 2
     assert len(update_body.key.thresholdKey.keys.keys) == 3
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via _from_protobuf for AccountUpdateTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id_sender = AccountId(0, 0, 1)
+
+    tx = AccountUpdateTransaction()
+    tx.set_account_id(account_id_sender)
+    tx.set_account_memo("updated")
+    tx.set_staked_node_id(5)
+    tx.set_decline_staking_reward(False)
+    tx.set_receiver_signature_required(False)
+    tx.set_max_automatic_token_associations(10)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, AccountUpdateTransaction)
+    assert reconstructed.account_id == account_id_sender
+    assert reconstructed.account_memo == "updated"
+    assert reconstructed.staked_node_id == 5
+    assert reconstructed.decline_staking_reward == False
+    assert reconstructed.receiver_signature_required == False
+    assert reconstructed.max_automatic_token_associations == 10

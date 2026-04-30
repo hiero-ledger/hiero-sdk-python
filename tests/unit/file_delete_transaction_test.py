@@ -12,6 +12,8 @@ from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 pytestmark = pytest.mark.unit
@@ -131,3 +133,18 @@ def test_get_method():
 
     assert method.query is None
     assert method.transaction == mock_file_stub.deleteFile
+
+
+def test_from_bytes(mock_account_ids, file_id):
+    """Test round-trip via Transaction.from_bytes() for FileDeleteTransaction."""
+    account_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = FileDeleteTransaction(file_id=file_id)
+    tx.transaction_id = TransactionId.generate(account_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, FileDeleteTransaction)
+    assert reconstructed.file_id == file_id

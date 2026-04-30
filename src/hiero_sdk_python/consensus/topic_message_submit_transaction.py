@@ -249,6 +249,17 @@ class TopicMessageSubmitTransaction(Transaction):
         """
         return _Method(transaction_func=channel.topic.submitMessage, query_func=None)
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("consensusSubmitMessage"):
+            body = transaction_body.consensusSubmitMessage
+            if body.HasField("topicID"):
+                transaction.topic_id = TopicId._from_proto(body.topicID)
+            transaction.message = body.message.decode("utf-8") if body.message else None
+            transaction._total_chunks = transaction.get_required_chunks()
+        return transaction
+
     def freeze_with(self, client: Client) -> TopicMessageSubmitTransaction:
         if self._transaction_body_bytes:
             return self

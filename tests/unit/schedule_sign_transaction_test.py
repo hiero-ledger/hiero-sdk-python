@@ -10,6 +10,8 @@ import pytest
 
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 pytestmark = pytest.mark.unit
@@ -192,3 +194,19 @@ def test_schedule_id_property_access():
     # Test getting via property
     retrieved_schedule_id = schedule_sign_tx.schedule_id
     assert retrieved_schedule_id == schedule_id
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for ScheduleSignTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    schedule_id = ScheduleId(0, 0, 42)
+
+    tx = ScheduleSignTransaction(schedule_id=schedule_id)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ScheduleSignTransaction)
+    assert reconstructed.schedule_id == schedule_id

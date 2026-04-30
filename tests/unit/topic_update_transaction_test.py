@@ -20,6 +20,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -138,6 +140,37 @@ def test_execute_topic_update_transaction(topic_id):
 
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
+
+
+def test_from_bytes(mock_account_ids, topic_id):
+    """Test round-trip via Transaction.from_bytes() for TopicUpdateTransaction."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    admin_key = PrivateKey.generate().public_key()
+    submit_key = PrivateKey.generate().public_key()
+    auto_renew_account = AccountId(0, 0, 5678)
+    auto_renew_period = Duration(8000000)
+
+    tx = TopicUpdateTransaction()
+    tx.set_topic_id(topic_id)
+    tx.set_memo("Updated Memo")
+    tx.set_admin_key(admin_key)
+    tx.set_submit_key(submit_key)
+    tx.set_auto_renew_period(auto_renew_period)
+    tx.set_auto_renew_account(auto_renew_account)
+    tx.transaction_id = TransactionId.generate(AccountId(0, 0, 2))
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TopicUpdateTransaction)
+    assert reconstructed.topic_id == topic_id
+    assert reconstructed.memo == "Updated Memo"
+    assert reconstructed.admin_key == admin_key
+    assert reconstructed.submit_key == submit_key
+    assert reconstructed.auto_renew_period == auto_renew_period
+    assert reconstructed.auto_renew_account == auto_renew_account
 
 
 # This test uses fixture topic_id as parameter

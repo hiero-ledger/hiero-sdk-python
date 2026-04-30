@@ -72,6 +72,15 @@ class TokenUnpauseTransaction(Transaction):
             self.token_id.validate_checksum(client)
 
     @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("token_unpause"):
+            body = transaction_body.token_unpause
+            if body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(body.token)
+        return transaction
+
+    @classmethod
     def _from_proto(cls, proto: TokenUnpauseTransactionBody) -> TokenUnpauseTransaction:
         """
         Construct TokenUnpauseTransaction from TokenUnpauseTransactionBody.

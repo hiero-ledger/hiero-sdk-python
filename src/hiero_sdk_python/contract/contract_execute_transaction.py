@@ -163,6 +163,18 @@ class ContractExecuteTransaction(Transaction):
         schedulable_body.contractCall.CopyFrom(contract_execute_body)
         return schedulable_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("contractCall"):
+            body = transaction_body.contractCall
+            if body.HasField("contractID"):
+                transaction.contract_id = ContractId._from_proto(body.contractID)
+            transaction.gas = body.gas if body.gas else None
+            transaction.amount = body.amount if body.amount else None
+            transaction.function_parameters = body.functionParameters if body.functionParameters else None
+        return transaction
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the contract execute transaction.

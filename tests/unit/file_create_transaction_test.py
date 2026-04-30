@@ -26,6 +26,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -260,3 +262,29 @@ def test_file_create_transaction_from_proto():
     assert from_proto.contents == b""
     assert from_proto.file_memo == ""
     assert from_proto.keys == []
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for FileCreateTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    key = PrivateKey.generate().public_key()
+    expiration = Timestamp(seconds=9999999999, nanos=0)
+
+    tx = FileCreateTransaction()
+    tx.set_contents(b"file contents")
+    tx.set_file_memo("my file")
+    tx.set_expiration_time(expiration)
+    tx.set_keys([key])
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, FileCreateTransaction)
+    assert reconstructed.contents == b"file contents"
+    assert reconstructed.file_memo == "my file"
+    assert reconstructed.expiration_time.seconds == expiration.seconds
+    assert len(reconstructed.keys) == 1
+    assert reconstructed.keys[0].to_bytes_raw() == key.to_bytes_raw()

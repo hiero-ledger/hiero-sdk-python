@@ -78,6 +78,16 @@ class TokenDissociateTransaction(Transaction):
                 token_id.validate_checksum(client)
 
     @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenDissociate"):
+            body = transaction_body.tokenDissociate
+            if body.HasField("account"):
+                transaction.account_id = AccountId._from_proto(body.account)
+            transaction.token_ids = [TokenId._from_proto(t) for t in body.tokens]
+        return transaction
+
+    @classmethod
     def _from_proto(cls, proto: token_dissociate_pb2.TokenDissociateTransactionBody) -> TokenDissociateTransaction:
         """
         Creates a TokenDissociateTransaction instance from a protobuf
