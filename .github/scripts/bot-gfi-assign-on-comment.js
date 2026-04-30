@@ -60,7 +60,7 @@ function commentRequestsAssignment(body) {
 }
 
 /**
- * Returns true if the issue has the good first issue label.
+ * Returns true if the issue has the Good First Issue label.
  */
 function issueIsGoodFirstIssue(issue) {
     const labels = issue?.labels?.map(label => label.name) ?? [];
