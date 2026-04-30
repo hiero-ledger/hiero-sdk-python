@@ -12,6 +12,7 @@ from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_contents
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.fee_estimate_query import FeeEstimateQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
@@ -895,3 +896,18 @@ class Transaction(_Executable):
         self.freeze_with(client)
         self.sign(client.operator_private_key)
         return self
+
+    def get_required_chunks(self) -> int:
+        return 1
+
+    def estimate_fee(self) -> FeeEstimateQuery:
+        """
+        Creates a FeeEstimateQuery for this transaction.
+
+        Returns:
+            FeeEstimateQuery: A query configured to estimate fees for this transaction.
+        """
+
+        query = FeeEstimateQuery()
+        query.set_transaction(self)
+        return query
