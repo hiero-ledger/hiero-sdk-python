@@ -44,7 +44,8 @@ def TestOneInput(data: bytes) -> None:
             count = fdp.ConsumeIntInRange(0, 8)
             params.add_bytes32_array([fdp.ConsumeBytes(32) for _ in range(count)])
         params.to_bytes()
-    except Exception:
+    except (TypeError, ValueError):
+        # Expected validation errors from malformed input
         pass
 
 
