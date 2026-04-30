@@ -1,6 +1,6 @@
 name: Advanced Issue Template
 description: For expert contributors tackling architectural, multi-module, or core-logic changes.
-labels: ["advanced"]
+labels: ["skill: advanced"]
 assignees: []
 
 body:
@@ -145,7 +145,7 @@ body:
         - [Transaction Lifecycle](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/transaction_lifecycle.md)
         - [Executable Architecture](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/executable.md)
         - [Hedera Protobufs (services)](https://github.com/hashgraph/hedera-protobufs/tree/main/services)
-        - [Browse closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aadvanced) — see how others did it
+        - [Browse closed advanced PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3A%22skill%3A+advanced%22) — see how others did it
 
         **🆘 Stuck?**
         - [Community Calls](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)

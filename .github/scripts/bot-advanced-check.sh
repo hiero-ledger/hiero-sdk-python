@@ -12,6 +12,7 @@ log() {
 # Configuration
 #######################################
 REQUIRED_INTERMEDIATE_COUNT=1
+INTERMEDIATE_LABEL="${INTERMEDIATE_LABEL:-skill: intermediate}"
 
 #######################################
 # Validate required environment variables
@@ -67,12 +68,12 @@ get_intermediate_count() {
 
   gh api graphql \
     -f query='
-      query($owner: String!, $name: String!, $user: String!) {
+      query($owner: String!, $name: String!, $user: String!, $labels: [String!]!) {
         repository(owner: $owner, name: $name) {
           intermediate: issues(
             first: 1
             states: CLOSED
-            filterBy: { assignee: $user, labels: ["intermediate"] }
+            filterBy: { assignee: $user, labels: $labels }
           ) {
             totalCount
           }
@@ -80,7 +81,8 @@ get_intermediate_count() {
       }' \
     -f owner="$OWNER" \
     -f name="$NAME" \
-    -f user="$user"
+    -f user="$user" \
+    -f "labels[]=$INTERMEDIATE_LABEL"
 }
 
 #######################################
@@ -187,7 +189,9 @@ check_user() {
   ###################################
   log "User @$user NOT qualified."
 
-  SUGGESTION="[intermediate issues](https://github.com/$REPO/labels/intermediate)"
+  # URL-encode: jq @uri handles colons, spaces, and all special chars
+  ENCODED_LABEL=$(printf '%s' "$INTERMEDIATE_LABEL" | jq -Rr @uri)
+  SUGGESTION="[$INTERMEDIATE_LABEL issues](https://github.com/$REPO/labels/$ENCODED_LABEL)"
 
   MSG="Hi @$user, I cannot assign you to this issue yet.
 
@@ -195,7 +199,7 @@ check_user() {
 Advanced issues involve high-risk changes to the core codebase and require prior experience in this repository.
 
 **Requirement:**
-- Complete at least **$REQUIRED_INTERMEDIATE_COUNT** 'intermediate' issue (You have: **$INT_COUNT**)
+- Complete at least **$REQUIRED_INTERMEDIATE_COUNT** '$INTERMEDIATE_LABEL' issue (You have: **$INT_COUNT**)
 
 Please check out our **$SUGGESTION** to build your experience first!
 
