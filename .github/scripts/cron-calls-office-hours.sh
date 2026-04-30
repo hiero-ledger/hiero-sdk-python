@@ -6,6 +6,12 @@ DRY_RUN="${DRY_RUN:-true}"
 ANCHOR_DATE="2025-12-03"
 MEETING_LINK="https://zoom-lfx.platform.linuxfoundation.org/meeting/99912667426?password=5b584a0e-1ed7-49d3-b2fc-dc5ddc888338"
 CALENDAR_LINK="https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week"
+MEETING_HOUR="${MEETING_HOUR:-14}"  # 14:00 UTC — change this to adjust the meeting time
+
+if ! [[ "$MEETING_HOUR" =~ ^[0-9]+$ ]] || [ "$MEETING_HOUR" -lt 0 ] || [ "$MEETING_HOUR" -gt 23 ]; then
+  echo "ERROR: MEETING_HOUR must be an integer between 0 and 23, got '$MEETING_HOUR'."
+  exit 1
+fi
 
 CANCELLED_DATES=(
   "2025-12-31"
@@ -63,15 +69,18 @@ if [ -z "$PR_DATA" ] || [ "$PR_DATA" = "[]" ]; then
   exit 0
 fi
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TIME_UNTIL_MEETING=$(python3 "$SCRIPT_DIR/utils/compute-time-until-meeting.py" "$MEETING_HOUR")
+
 COMMENT_BODY=$(cat <<EOF
 Hello, this is the OfficeHourBot.
 
-This is a reminder that the Hiero Python SDK Office Hours are scheduled in approximately 4 hours (14:00 UTC).
+This is a reminder that the Hiero Python SDK Office Hours are scheduled in approximately $TIME_UNTIL_MEETING (${MEETING_HOUR}:00 UTC).
 
 This session provides an opportunity to ask questions regarding this Pull Request.
 
 Details:
-- Time: 14:00 UTC
+- Time: ${MEETING_HOUR}:00 UTC
 - Join Link: [Zoom Meeting]($MEETING_LINK)
 
 Disclaimer: This is an automated reminder. Please verify the schedule [here]($CALENDAR_LINK) for any changes.
