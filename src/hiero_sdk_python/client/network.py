@@ -133,6 +133,13 @@ class Network:
     @mirror_address.setter
     def mirror_address(self, value: str):
         """Reset the connection when the address changes."""
+        if not isinstance(value, str):
+            raise TypeError(f"mirror_address must be a string, not {type(value).__name__}")
+
+        value = value.strip()
+        if not value:
+            raise ValueError("mirror_address cannot be empty or just whitespace")
+
         if self._mirror_address != value:
             self._mirror_address = value
             self.close_mirror_connection()
