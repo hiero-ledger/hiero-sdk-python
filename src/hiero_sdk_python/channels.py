@@ -1,4 +1,8 @@
 from __future__ import annotations
+from collections import namedtuple
+from importlib.metadata import PackageNotFoundError, version
+
+import grpc
 
 from hiero_sdk_python.hapi.services import (
     address_book_service_pb2_grpc,
@@ -12,6 +16,84 @@ from hiero_sdk_python.hapi.services import (
     token_service_pb2_grpc,
     util_service_pb2_grpc,
 )
+
+
+class _UserAgentInterceptor(grpc.UnaryUnaryClientInterceptor, grpc.UnaryStreamClientInterceptor):
+    """
+    gRPC interceptor that appends an x-user-agent header to all outgoing requests.
+    """
+
+    _HEADER_KEY = "x-user-agent"
+    _SDK_NAME = "hiero-sdk-python"
+    _CallDetails = namedtuple(
+        "_CallDetails",
+        ("method", "timeout", "metadata", "credentials", "wait_for_ready", "compression"),
+    )
+
+    def __init__(self) -> None:
+        """
+        Initialize the interceptor and compute the user agent value.
+        The user agent is computed once during initialization to avoid repeated package metadata lookups on every request.
+        """
+
+        try:
+            sdk_version = version(self._SDK_NAME)
+        except PackageNotFoundError:
+            sdk_version = "dev"
+        self._user_agent = f"{self._SDK_NAME}/{sdk_version}"
+
+    def _with_user_agent(self, details: grpc.ClientCallDetails) -> grpc.ClientCallDetails:
+        """
+        Append the user agent header to the call details.
+
+        Args:
+            details: The original gRPC call details.
+
+        Returns:
+            A new ClientCallDetails object with the x-user-agent header included in the metadata.
+        """
+        metadata = [] if details.metadata is None else list(details.metadata)
+        metadata = [entry for entry in metadata if entry[0] != self._HEADER_KEY]
+        metadata.append((self._HEADER_KEY, self._user_agent))
+
+        return self._CallDetails(
+            details.method,
+            details.timeout,
+            metadata,
+            getattr(details, "credentials", None),
+            getattr(details, "wait_for_ready", None),
+            getattr(details, "compression", None),
+        )
+
+    def intercept_unary_unary(self, continuation, client_call_details, request):
+        """
+        Intercept unary-unary calls and append the user agent header.
+
+        Args:
+            continuation: The gRPC continuation function to call the next interceptor or actual RPC.
+            client_call_details: The details of the gRPC call, including method, timeout, metadata, etc.
+            request: The request object being sent.
+
+        Returns:
+            The result of the gRPC call after appending the user agent header.
+        """
+
+        return continuation(self._with_user_agent(client_call_details), request)
+
+    def intercept_unary_stream(self, continuation, client_call_details, request):
+        """
+        Intercept unary-stream calls and append the user agent header.
+
+        Args:
+            continuation: The gRPC continuation function to call the next interceptor or actual RPC.
+            client_call_details: The details of the gRPC call, including method, timeout, metadata, etc.
+            request: The request object being sent.
+
+        Returns:
+            The result of the gRPC call after appending the user agent header.
+        """
+
+        return continuation(self._with_user_agent(client_call_details), request)
 
 
 class _Channel:
