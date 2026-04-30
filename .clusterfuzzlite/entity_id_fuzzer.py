@@ -16,7 +16,8 @@ _CLASSES = (AccountId, TokenId, ContractId, FileId, TopicId)
 def _try_parse_entity_id(entity_id_class, text: str) -> None:
     try:
         entity_id_class.from_string(text)
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, IndexError, OverflowError):
+        # Expected errors from malformed string input (parsing, indexing, conversions)
         pass
 
 

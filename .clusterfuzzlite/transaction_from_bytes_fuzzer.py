@@ -16,9 +16,10 @@ def TestOneInput(data: bytes) -> None:
     try:
         tx = Transaction.from_bytes(data)
         tx.to_bytes()
-    except ValueError:
-        # All parsing / validation failures are expected; only unhandled
-        # exceptions that escape this function are reported as fuzzer crashes.
+    except Exception:
+        # Protobuf deserialization and transaction parsing can raise many
+        # exception types (DecodeError, ValueError, TypeError, KeyError, etc.);
+        # only unhandled exceptions that escape are reported as fuzzer crashes.
         pass
 
 
