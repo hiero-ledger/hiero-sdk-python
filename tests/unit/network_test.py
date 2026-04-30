@@ -572,3 +572,24 @@ def test_close_mirror_connection_is_safe_when_none():
 
     network.close_mirror_connection()
     assert network._mirror_stub is None
+
+
+@pytest.mark.parametrize("address", [None, 123, True, [], {}])
+def test_mirror_address_setter_validation_type_error(address):
+    """Test that setting mirror_address to a non-string raises TypeError."""
+    network = Network("testnet", mirror_address="valid.mirror:5600")
+    network._mirror_stub = Mock()
+
+    with pytest.raises(TypeError, match="mirror_address must be a string"):
+        network.mirror_address = address
+
+    assert network._mirror_stub is not None
+
+
+@pytest.mark.parametrize("address", ["", "   ", "\n"])
+def test_mirror_address_setter_validation_value_error(address):
+    """Test that setting mirror_address to an empty string raises ValueError."""
+    network = Network("testnet", mirror_address="valid.mirror:5600")
+
+    with pytest.raises(ValueError, match="mirror_address cannot be empty"):
+        network.mirror_address = address
