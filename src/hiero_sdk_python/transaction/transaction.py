@@ -223,6 +223,27 @@ class Transaction(_Executable):
 
         return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
 
+    def _resolve_transaction_id(self, client: Client):
+        if self.transaction_id is not None:
+            return
+
+        if client is not None:
+            operator_account_id = client.operator_account_id
+            if operator_account_id is not None:
+                self.transaction_id = client.generate_transaction_id()
+            else:
+                raise ValueError("Client must have an operator_account or transactionId must be set.")
+        else:
+            raise ValueError(
+                "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
+            )
+
+    def _resolve_node_ids(self, client: Client):
+        if self.node_account_id is None and len(self.node_account_ids) == 0 and client is None:
+            raise ValueError(
+                "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
+            )
+
     def freeze(self):
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
@@ -241,33 +262,9 @@ class Transaction(_Executable):
         Raises:
             ValueError: If transaction_id or node_account_id are not set.
         """
-        if self._transaction_body_bytes:
-            return self
+        return self.freeze_with(None)
 
-        if self.transaction_id is None:
-            raise ValueError(
-                "Transaction ID must be set before freezing. Use freeze_with(client) or set_transaction_id()."
-            )
-
-        if self.node_account_id is None and len(self.node_account_ids) == 0:
-            raise ValueError(
-                "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
-            )
-
-        # Populate node_account_ids for backward compatibility
-        if self.node_account_id:
-            self.set_node_account_id(self.node_account_id)
-            self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
-            return self
-
-        # Build the transaction body for the single node
-        for node_account_id in self.node_account_ids:
-            self.node_account_id = node_account_id
-            self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
-
-        return self
-
-    def freeze_with(self, client):
+    def freeze_with(self, client: Client):
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
 
@@ -283,8 +280,10 @@ class Transaction(_Executable):
         if self._transaction_body_bytes:
             return self
 
-        if self.transaction_id is None:
-            self.transaction_id = client.generate_transaction_id()
+        # Check transaction_id and node id to be set when using freeze()
+        self._resolve_transaction_id(client)
+
+        self._resolve_node_ids(client)
 
         # We iterate through every node in the client's network
         # For each node, set the node_account_id and build the transaction body
@@ -407,7 +406,7 @@ class Transaction(_Executable):
 
         return any(sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair)
 
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Abstract method to build the transaction body.
 
@@ -895,3 +894,15 @@ class Transaction(_Executable):
         self.freeze_with(client)
         self.sign(client.operator_private_key)
         return self
+
+    @property
+    def size(self) -> int:
+        """Returns the total transaction size in bytes after protobuf encoding"""
+        self._require_frozen()
+        return self._make_request().ByteSize()
+
+    @property
+    def body_size(self) -> int:
+        """Returns just the transaction body size in bytes after encoding"""
+        self._require_frozen()
+        return self.build_transaction_body().ByteSize()

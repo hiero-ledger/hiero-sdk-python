@@ -253,8 +253,7 @@ class TopicMessageSubmitTransaction(Transaction):
         if self._transaction_body_bytes:
             return self
 
-        if self.transaction_id is None:
-            self.transaction_id = client.generate_transaction_id()
+        self._resolve_transaction_id(client)
 
         if not self._transaction_ids:
             base_timestamp = self.transaction_id.valid_start
@@ -266,8 +265,10 @@ class TopicMessageSubmitTransaction(Transaction):
 
                     chunk_transaction_id = self.transaction_id
                 else:
+                    next_nanos = base_timestamp.nanos + i
+
                     chunk_valid_start = timestamp_pb2.Timestamp(
-                        seconds=base_timestamp.seconds, nanos=base_timestamp.nanos + i
+                        seconds=base_timestamp.seconds + next_nanos // 1_000_000_000, nanos=next_nanos % 1_000_000_000
                     )
                     chunk_transaction_id = TransactionId(
                         account_id=self.transaction_id.account_id, valid_start=chunk_valid_start
@@ -404,3 +405,24 @@ class TopicMessageSubmitTransaction(Transaction):
 
         super().sign(private_key)
         return self
+
+    @property
+    def body_size_all_chunks(self) -> list[int]:
+        """Returns an array of body sizes for transactions with multiple chunks."""
+        self._require_frozen()
+        sizes = []
+
+        original_index = self._current_index
+        original_transaction_id = self.transaction_id
+
+        try:
+            for i, transaction_id in enumerate(self._transaction_ids):
+                self._current_index = i
+                self.transaction_id = transaction_id
+
+                sizes.append(self.body_size)
+        finally:
+            self._current_index = original_index
+            self.transaction_id = original_transaction_id
+
+        return sizes
