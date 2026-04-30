@@ -1,8 +1,10 @@
+"""TCK request parameter models for account endpoints."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
 
-from tck.param.base import BaseTransactionParams
+from tck.param.base import BaseParams, BaseTransactionParams
 from tck.util.param_utils import (
     parse_common_transaction_params,
     parse_session_id,
@@ -13,6 +15,8 @@ from tck.util.param_utils import (
 
 @dataclass
 class CreateAccountParams(BaseTransactionParams):
+    """Request parameters for the createAccount endpoint."""
+
     key: str | None = None
     initialBalance: int | None = None
     receiverSignatureRequired: bool | None = None
@@ -26,6 +30,7 @@ class CreateAccountParams(BaseTransactionParams):
 
     @classmethod
     def parse_json_params(cls, params: dict) -> CreateAccountParams:
+        """Parse JSON-RPC params into a CreateAccountParams instance."""
         return cls(
             key=params.get("key"),
             initialBalance=to_int(params.get("initialBalance")),
@@ -40,3 +45,15 @@ class CreateAccountParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class GetAccountInfoParams(BaseParams):
+    """Request parameters for the getAccountInfo endpoint."""
+
+    accountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GetAccountInfoParams:
+        """Parse JSON-RPC params into a GetAccountInfoParams instance."""
+        return cls(accountId=params.get("accountId"), sessionId=parse_session_id(params))
