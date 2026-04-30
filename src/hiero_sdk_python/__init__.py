@@ -31,6 +31,7 @@ from .contract.contract_delete_transaction import ContractDeleteTransaction
 from .contract.contract_execute_transaction import ContractExecuteTransaction
 from .contract.contract_function_parameters import ContractFunctionParameters
 from .contract.contract_function_result import ContractFunctionResult
+from .contract.contract_id import ContractId
 from .contract.contract_info import ContractInfo
 from .contract.contract_info_query import ContractInfoQuery
 from .contract.contract_update_transaction import ContractUpdateTransaction
@@ -52,6 +53,7 @@ from .file.file_append_transaction import FileAppendTransaction
 from .file.file_contents_query import FileContentsQuery
 from .file.file_create_transaction import FileCreateTransaction
 from .file.file_delete_transaction import FileDeleteTransaction
+from .file.file_id import FileId
 from .file.file_info import FileInfo
 from .file.file_info_query import FileInfoQuery
 from .file.file_update_transaction import FileUpdateTransaction
@@ -249,6 +251,7 @@ __all__ = [
     # File
     "FileCreateTransaction",
     "FileAppendTransaction",
+    "FileId",
     "FileInfoQuery",
     "FileInfo",
     "FileContentsQuery",
@@ -257,6 +260,7 @@ __all__ = [
     # Contract
     "ContractCreateTransaction",
     "ContractCallQuery",
+    "ContractId",
     "ContractInfoQuery",
     "ContractBytecodeQuery",
     "ContractExecuteTransaction",
