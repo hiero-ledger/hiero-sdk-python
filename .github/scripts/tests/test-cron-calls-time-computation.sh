@@ -6,7 +6,7 @@ set -euo pipefail
 # cron-calls-community.sh and cron-calls-office-hours.sh
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HELPER="$SCRIPT_DIR/compute-time-until-meeting.py"
+HELPER="$SCRIPT_DIR/../utils/compute-time-until-meeting.py"
 
 # Color codes for output
 RED='\033[0;31m'
@@ -111,10 +111,10 @@ test_past_meeting_time() {
   local result
   result=$(python3 "$HELPER" 14 "15:00")
 
-  if [[ "$result" == "0 minutes" ]]; then
-    print_result "Past meeting time shows 0 minutes" "PASS"
+  if [[ "$result" == "has already started" ]]; then
+    print_result "Past meeting time shows has already started" "PASS"
   else
-    print_result "Past meeting time shows 0 minutes" "FAIL" "Expected '0 minutes', got '$result'"
+    print_result "Past meeting time shows has already started" "FAIL" "Expected 'has already started', got '$result'"
   fi
 }
 
@@ -198,6 +198,22 @@ test_seconds_just_past_boundary() {
   fi
 }
 
+# Test 11: UTC day boundary (23:00 -> 02:00 next day)
+test_utc_day_boundary() {
+  echo ""
+  echo "Test 11: UTC day boundary (23:00 → 02:00 next day)"
+  echo "===================================================="
+
+  local result
+  result=$(python3 "$HELPER" 2 "23:00")
+
+  if [[ "$result" == "3 hours" ]]; then
+    print_result "UTC day boundary adds 1 day" "PASS"
+  else
+    print_result "UTC day boundary adds 1 day" "FAIL" "Expected '3 hours', got '$result'"
+  fi
+}
+
 main() {
   echo "=============================================="
   echo "  Cron Calls Time Computation - Test Suite"
@@ -218,6 +234,7 @@ main() {
   test_different_meeting_hour
   test_rounding_with_seconds
   test_seconds_just_past_boundary
+  test_utc_day_boundary
 
   echo ""
   echo "=============================================="

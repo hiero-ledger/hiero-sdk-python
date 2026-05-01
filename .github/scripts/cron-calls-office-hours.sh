@@ -72,10 +72,16 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIME_UNTIL_MEETING=$(python3 "$SCRIPT_DIR/utils/compute-time-until-meeting.py" "$MEETING_HOUR")
 
+if [ "$TIME_UNTIL_MEETING" = "has already started" ]; then
+  TIME_PHRASE="have already started"
+else
+  TIME_PHRASE="will begin in approximately $TIME_UNTIL_MEETING"
+fi
+
 COMMENT_BODY=$(cat <<EOF
 Hello, this is the OfficeHourBot.
 
-This is a reminder that the Hiero Python SDK Office Hours are scheduled in approximately $TIME_UNTIL_MEETING (${MEETING_HOUR}:00 UTC).
+This is a reminder that the Hiero Python SDK Office Hours $TIME_PHRASE (${MEETING_HOUR}:00 UTC).
 
 This session provides an opportunity to ask questions regarding this Pull Request.
 

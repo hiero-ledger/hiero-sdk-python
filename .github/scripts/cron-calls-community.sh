@@ -72,10 +72,16 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIME_UNTIL_MEETING=$(python3 "$SCRIPT_DIR/utils/compute-time-until-meeting.py" "$MEETING_HOUR")
 
+if [ "$TIME_UNTIL_MEETING" = "has already started" ]; then
+  TIME_PHRASE="has already started"
+else
+  TIME_PHRASE="will begin in approximately $TIME_UNTIL_MEETING"
+fi
+
 COMMENT_BODY=$(cat <<EOF
 Hello, this is CommunityCallBot.
 
-This is a reminder that the Hiero Python SDK Community Call will begin in approximately $TIME_UNTIL_MEETING (${MEETING_HOUR}:00 UTC).
+This is a reminder that the Hiero Python SDK Community Call $TIME_PHRASE (${MEETING_HOUR}:00 UTC).
 
 The call is an open forum where contributors and users can discuss topics, raise issues, and influence the direction of the Python SDK.
 
