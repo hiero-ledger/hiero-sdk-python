@@ -98,7 +98,7 @@ body:
         > **Beginner issues are low-risk but we expect a working solution.**
 
         > [!IMPORTANT]
-        > We recommend completing at least 3 good first issues before attempting a beginner issue.
+        > We recommend completing at least 3 Good First Issues before attempting a beginner issue.
 
         **Difficulty:**
 
@@ -113,7 +113,7 @@ body:
         > - Keeping your fork up to date with main by [rebasing](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md)
         > - Looking things up on your own before asking for help
 
-        If any of that feels unfamiliar, good first issues might still be the most rewarding path for you right now — [find one here](https://github.com/issues?q=is%3Aopen%20is%3Aissue%20org%3Ahiero-ledger%20archived%3Afalse%20no%3Aassignee%20(label%3A%22good%20first%20issue%22%20OR%20label%3A%22skill%3A%20good%20first%20issue%22)%20(repo%3Ahiero-ledger%2Fhiero-sdk-cpp%20OR%20repo%3Ahiero-ledger%2Fhiero-sdk-swift%20OR%20repo%3Ahiero-ledger%2Fhiero-sdk-python%20OR%20repo%3Ahiero-ledger%2Fhiero-sdk-js%20OR%20repo%3Ahiero-ledger%2Fhiero-website)).
+        If any of that feels unfamiliar, Good First Issues might still be the most rewarding path for you right now — [find one here](https://github.com/issues?q=is%3Aopen%20is%3Aissue%20org%3Ahiero-ledger%20archived%3Afalse%20no%3Aassignee%20(label%3A%22good%20first%20issue%22%20OR%20label%3A%22skill%3A%20good%20first%20issue%22)%20(repo%3Ahiero-ledger%2Fhiero-sdk-cpp%20OR%20repo%3Ahiero-ledger%2Fhiero-sdk-swift%20OR%20repo%3Ahiero-ledger%2Fhiero-sdk-python%20OR%20repo%3Ahiero-ledger%2Fhiero-sdk-js%20OR%20repo%3Ahiero-ledger%2Fhiero-website)).
         You can always come back when you are ready.
 
         ### ⚠️ AI Usage Policy

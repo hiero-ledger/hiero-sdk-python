@@ -69,7 +69,7 @@ body:
         - The complete steps to implement the solution
         - What the final result or output should look like
         - Links to relevant documentation or code (if helpful)
-        For good first issues, please keep this as guided and clear as possible.
+        For Good First Issues, please keep this as guided and clear as possible.
       value: |
         <!-- Identify what to change in which files -->
 
@@ -82,7 +82,7 @@ body:
     attributes:
       label: 🧠 Good First Issue Developers — Prerequisites & Expectations
       description: |
-        Adapt as needed. Concrete requirements before claiming this good first issue. Adapt as needed.
+        Adapt as needed. Concrete requirements before claiming this Good First Issue. Adapt as needed.
       value: |
         > [!IMPORTANT]
         > **This issue does not require prior domain knowledge.**
