@@ -96,11 +96,10 @@ def test_batch_transaction_can_execute_large_batch(env):
         )
 
         batch_tx.add_inner_transaction(transfer_tx)
-    
+
     batch_tx.transaction_fee = Hbar.from_hbars(10)
     batch_tx.freeze_with(env.client)
     batch_tx.sign(batch_key)
-
 
     batch_receipt = batch_tx.execute(env.client)
 

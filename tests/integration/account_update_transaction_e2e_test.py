@@ -92,11 +92,7 @@ def test_integration_account_update_transaction_set_key_with_threshold_keylist(e
     key_2_private = PrivateKey.generate_ed25519()
     threshold_key = KeyList([key_1_private.public_key(), key_2_private.public_key()], threshold=2)
 
-    tx = (
-        AccountUpdateTransaction()
-        .set_account_id(account_id)
-        .set_key(threshold_key)
-    )
+    tx = AccountUpdateTransaction().set_account_id(account_id).set_key(threshold_key)
 
     tx.transaction_fee = Hbar.from_hbars(5)
     tx.freeze_with(env.client)

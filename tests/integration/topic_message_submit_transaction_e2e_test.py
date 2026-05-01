@@ -260,8 +260,6 @@ def test_integration_scheduled_topic_message_submit_transaction_can_execute_with
         f"Message submission failed with status: {ResponseCode(receipt.status).name}"
     )
 
-    
-
     info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
     assert info.sequence_number == 1
 

@@ -147,7 +147,7 @@ def test_integration_ethereum_transaction_jumbo_transaction(env):
         alias_private_key,
     )
 
-    tx =  EthereumTransaction().set_ethereum_data(transaction_data)
+    tx = EthereumTransaction().set_ethereum_data(transaction_data)
     tx.transaction_fee = Hbar.from_hbars(10)
     receipt = tx.execute(env.client)
     assert receipt.status == ResponseCode.SUCCESS, (
