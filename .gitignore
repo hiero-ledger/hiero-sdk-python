@@ -40,3 +40,9 @@ pubkey.asc
 
 # Ruff cache
 .ruff_cache
+
+# Node modules for CI scripts
+.github/scripts/node_modules/
+
+# Claude Code local state
+.claude/
