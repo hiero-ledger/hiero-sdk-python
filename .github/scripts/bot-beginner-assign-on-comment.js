@@ -54,6 +54,7 @@ Parameters:
 */
 
 const fs = require("fs");
+const { BEGINNER_LABEL } = require('./shared/labels.js');
 
 const SPAM_LIST_PATH = ".github/spam-list.txt";
 const REQUIRED_GFI_COUNT = 1;
@@ -115,9 +116,10 @@ module.exports = async ({ github, context }) => {
     }
 
     // 2. Label Check (Fix 2: Defensive Check)
-    const hasBeginnerLabel = Array.isArray(issue.labels) && issue.labels.some((label) => label.name === "beginner");
+    const beginnerLabel = BEGINNER_LABEL.toLowerCase();
+    const hasBeginnerLabel = Array.isArray(issue.labels) && issue.labels.some((label) => label.name?.toLowerCase() === beginnerLabel);
     if (!hasBeginnerLabel) {
-      console.log(`[Beginner Bot] Issue #${issue.number} does not have 'beginner' label. Exiting.`);
+      console.log(`[Beginner Bot] Issue #${issue.number} does not have '${BEGINNER_LABEL}' label. Exiting.`);
       return;
     }
 
@@ -261,7 +263,7 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
             owner: repo.owner.login,
             repo: repo.name,
             issue_number: issue.number,
-            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "beginner" issues [here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3Abeginner+no%3Aassignee).`,
+            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "${BEGINNER_LABEL}" issues [here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3A%22${encodeURIComponent(BEGINNER_LABEL)}%22+no%3Aassignee).`,
           });
         } catch (error) {
           console.error("[Beginner Bot] Failed to post already-assigned message:", {
