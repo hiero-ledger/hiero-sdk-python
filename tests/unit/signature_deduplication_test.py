@@ -17,6 +17,7 @@ def test_duplicate_signature_not_added():
     tx.freeze()
     tx.sign(key)
     tx.sign(key)
+    assert tx._signature_map, "signature_map should not be empty after freeze+sign"  # ← ADD HERE
     body_bytes = next(iter(tx._signature_map.keys()))
     sig_pairs = tx._signature_map[body_bytes].sigPair
     assert len(sig_pairs) == 1, "Expected 1 signature for duplicate key"
@@ -33,6 +34,7 @@ def test_multiple_keys_still_work():
     tx.freeze()
     tx.sign(key1)
     tx.sign(key2)
+    assert tx._signature_map, "signature_map should not be empty after freeze+sign"
     body_bytes = next(iter(tx._signature_map.keys()))
     sig_pairs = tx._signature_map[body_bytes].sigPair
     assert len(sig_pairs) == 2, "Expected 2 signatures for different keys"
