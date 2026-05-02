@@ -1,6 +1,6 @@
 name: Beginner Issue Template
 description: Create a beginner issue for contributors ready to learn the codebase and own a small implementation.
-labels: ["beginner"]
+labels: ["skill: beginner"]
 assignees: []
 body:
   - type: markdown
@@ -227,7 +227,7 @@ body:
         - [Windows Setup Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/setup_windows.md) — platform-specific installation steps
         - [Pylance guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/pylance.md) — inline type checking during development
         - [Running examples](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/examples.md)
-        - [Browse closed beginner PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Abeginner) — see how others did it
+        - [Browse closed beginner PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3A%22skill%3A+beginner%22) — see how others did it
 
         **References:**
         - [Hedera Protobufs](https://github.com/hashgraph/hedera-protobufs)

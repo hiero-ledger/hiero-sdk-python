@@ -1,6 +1,7 @@
 // Script to trigger CodeRabbit plan for intermediate and advanced issues
 
 const CODERABBIT_MARKER = '<!-- CodeRabbit Plan Trigger -->';
+const { DIFFICULTY_LABELS, GOOD_FIRST_ISSUE_LABEL } = require('./shared/labels.js');
 
 async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERABBIT_MARKER) {
   const comment = `${marker} @coderabbitai plan`;
@@ -27,13 +28,17 @@ async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERA
 }
 
 function hasBeginnerOrHigherLabel(issue, label) {
-  // Check if issue has beginner, intermediate or advanced label (case-insensitive)
-  const allowed = ['beginner', 'intermediate', 'advanced'];
+  // Only beginner+ labels qualify here; GFI gets its own CodeRabbit plan
+  // trigger via the assignment bot chain (bot-gfi-assign-on-comment.js).
+  const beginnerPlus = DIFFICULTY_LABELS
+    .filter(d => d !== GOOD_FIRST_ISSUE_LABEL)
+    .map(d => d.toLowerCase());
+  const allowed = new Set(beginnerPlus);
 
-  const hasAllowedLabel = issue.labels?.some(l => allowed.includes(l?.name?.toLowerCase()));
+  const hasAllowedLabel = issue.labels?.some(l => allowed.has(l?.name?.toLowerCase()));
 
-  // Also check if newly added label is beginner/intermediate/advanced
-  const isNewLabelAllowed = allowed.includes(label?.name?.toLowerCase());
+  // Also check if newly added label is a difficulty label
+  const isNewLabelAllowed = allowed.has(label?.name?.toLowerCase());
 
   return hasAllowedLabel || isNewLabelAllowed;
 }

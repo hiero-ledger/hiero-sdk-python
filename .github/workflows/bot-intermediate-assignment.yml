@@ -22,7 +22,8 @@ jobs:
     concurrency:
       group: intermediate-guard-${{ github.event.issue.number || github.run_id }}
       cancel-in-progress: false
-    if: contains(github.event.issue.labels.*.name, 'intermediate')
+    if: >
+      contains(github.event.issue.labels.*.name, 'skill: intermediate')
     runs-on: hl-sdk-py-lin-md
     steps:
       - name: Harden the runner
@@ -36,7 +37,8 @@ jobs:
       - name: Enforce intermediate assignment guard
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
-          INTERMEDIATE_LABEL: intermediate
+          INTERMEDIATE_LABEL: 'skill: intermediate'
+          BEGINNER_LABEL: 'skill: beginner'
           GFI_LABEL: Good First Issue
           INTERMEDIATE_COMMENT_MARKER: "<!-- Intermediate Issue Guard -->"
           INTERMEDIATE_EXEMPT_PERMISSIONS: admin,maintain,write,triage
