@@ -16,8 +16,8 @@ const { CONFIG } = require('../config');
  * @param {string} repo        - Repo name.
  * @param {string} username    - GitHub login of the contributor.
  * @param {string} labelString - Repo-specific label string to filter by.
- * @param {number} cap         - Maximum results to request (capped at 100).
- * @returns {Promise<number|null>} Count of matching issues, or null on API failure.
+ * @param {number} cap - Maximum number of results to fetch (first page only, capped at 100).
+ * @returns {Promise<number|null>} Number of fetched matching issues (not total count), or null on API failure.
  */
 async function countClosedIssuesByAssignee(github, owner, repo, username, labelString, cap) {
   try {
@@ -38,7 +38,7 @@ async function countClosedIssuesByAssignee(github, owner, repo, username, labelS
  *
  * @param {import('@actions/github').GitHub} github
  * @param {object} repoConfig - Repo entry from CONFIG.repos.
- * @returns {Promise<Array|null>} Issue array, or null on API failure.
+ * @returns {Promise<Array<object>|null>} Issue array, or null on API failure.
  */
 async function fetchIssuesBatch(github, repoConfig) {
   try {

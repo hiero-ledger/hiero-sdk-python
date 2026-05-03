@@ -8,16 +8,18 @@ const { countClosedIssuesByAssignee } = require('../api/github-api');
 
 // Fast path: user has already completed ≥1 issue at this level or higher
 async function passesBypassCheck(github, homeRepo, username, candidate) {
-  const atOrAbove = CONFIG.skillHierarchy.slice(CONFIG.skillHierarchy.indexOf(candidate));
+  const idx = CONFIG.skillHierarchy.indexOf(candidate);
+  if (idx === -1) return false;
+  const atOrAbove = CONFIG.skillHierarchy.slice(idx);
 
-  const counts = await Promise.all(
-    atOrAbove.map(key => countClosedIssuesByAssignee(
+  for (const key of atOrAbove) {
+    const count = await countClosedIssuesByAssignee(
       github, homeRepo.owner, homeRepo.repo, username,
       repoLabelFor(homeRepo, key), 1,
-    ))
-  );
-
-  return counts.some(count => count !== null && count >= 1);
+    );
+    if (count !== null && count >= 1) return true;
+  }
+  return false;
 }
 
 /**
@@ -49,7 +51,7 @@ async function passesNormalCheck(github, homeRepo, username, prereq) {
  * @param {object} homeRepo  - Home repo entry from CONFIG.repos.
  * @param {string} username  - GitHub login of the contributor.
  * @param {string} candidate - Canonical level key being evaluated.
- * @returns {Promise<boolean|null>} True if eligible, false if not, null on API failure.
+ * @returns {Promise<boolean>} True if eligible, false otherwise (API failures treated as false).
  */
 async function isEligibleFor(github, homeRepo, username, candidate) {
   const prereq = CONFIG.skillPrerequisites[candidate];
@@ -84,10 +86,10 @@ async function isEligibleFor(github, homeRepo, username, candidate) {
 async function resolveEligibleLevel(github, homeRepo, username) {
   for (const candidate of [...CONFIG.skillHierarchy].reverse()) {
     const eligible = await isEligibleFor(github, homeRepo, username, candidate);
-    // eligible === null means API failure — skip conservatively.
+    // false includes API failures (treated conservatively as ineligible)
     if (eligible === true) return candidate;
   }
-  return 'gfi';
+  return CONFIG.skillHierarchy[0];
 }
 
 /**
@@ -131,8 +133,10 @@ function adjustEligibilityForCurrentPR(completedKey, eligibleKey) {
 async function detectUnlockedLevel(github, homeRepo, username, currentLevelKey) {
   const hierarchy    = CONFIG.skillHierarchy;
   const currentIndex = hierarchy.indexOf(currentLevelKey);
-  const nextKey      = hierarchy[currentIndex + 1] ?? null;
 
+  if (currentIndex === -1) return null;
+
+  const nextKey      = hierarchy[currentIndex + 1] ?? null;
   if (!nextKey) return null;
 
   const nextPrereq = CONFIG.skillPrerequisites[nextKey];
@@ -144,6 +148,7 @@ async function detectUnlockedLevel(github, homeRepo, username, currentLevelKey) 
   );
 
   if (count === null) return null;
+  // NOTE: count is derived from first-page results only; safe because requiredCount is small.
   return count === nextPrereq.requiredCount ? nextKey : null;
 }
 

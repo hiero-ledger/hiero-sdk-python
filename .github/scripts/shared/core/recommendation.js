@@ -13,7 +13,7 @@ const {
 
 /**
  * Order: level up → same → level down (floored at beginner, capped by eligibility)
- * 
+ *
  * @param {string} completedLevelKey - Canonical key of the level just completed.
  * @param {string} eligibleLevelKey  - Adjusted eligibility ceiling.
  * @returns {number[]} Deduplicated, ordered array of hierarchy indices to try.

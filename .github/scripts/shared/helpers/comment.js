@@ -4,18 +4,28 @@
 
 const { CONFIG } = require('../config');
 
-function buildIssueListBlock(issues) {
+function buildIssueListBlock(issues = []) {
   if (issues.length > 0) {
     return [
       'Here are some issues you might want to explore next:',
       '',
-      ...issues.map(i => `- [${i.title}](${i.html_url})`),
+      ...issues.map(i => {
+        const title = i?.title ?? 'Untitled issue';
+        const url   = i?.html_url ?? '#';
+        return `- [${title}](${url})`;
+      }),
       '',
     ];
   }
   return ['No suitable issues are available right now — check back soon!', ''];
 }
 
+/**
+ * Builds a milestone banner if a new level was unlocked.
+ *
+ * @param {string|null} unlockedLevelKey
+ * @returns {string[]} Lines to include in the comment.
+ */
 function buildMilestoneBlock(unlockedLevelKey) {
   const displayName = unlockedLevelKey
     ? CONFIG.skillPrerequisites[unlockedLevelKey]?.displayName
@@ -43,19 +53,23 @@ function buildMilestoneBlock(unlockedLevelKey) {
  * @returns {string} Fully rendered comment body.
  */
 function buildRecommendationComment(username, issues, completedDisplayName, unlockedLevelKey = null) {
+  const repoUrl = CONFIG.repositoryUrl ?? '';
+  const hasRepoUrl = Boolean(repoUrl);
   return [
     CONFIG.commentMarker,
     '',
     `👋 Hi @${username}! Great work completing a **${completedDisplayName}** issue! 🎉`,
     '',
-    'Thank you for your contribution to the Hiero Python SDK!',
+    'Thanks for your contribution! 🚀',
     '',
     ...buildMilestoneBlock(unlockedLevelKey),
     ...buildIssueListBlock(issues),
+    ...(hasRepoUrl ? [
     '🌟 **Stay connected:**',
-    '- ⭐ [Star this repository](https://github.com/hiero-ledger/hiero-sdk-python)',
-    '- 👀 [Watch for new issues](https://github.com/hiero-ledger/hiero-sdk-python/watchers)',
-    '- 💬 [Join us on Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)',
+    `- ⭐ [Star this repository](${repoUrl})`,
+    `- 👀 [Watch for new issues](${repoUrl}/watchers)`,
+    `- 💬 [Join us on Discord](${repoUrl}/blob/main/docs/discord.md)`,
+    ]:[]),
     '',
     'Happy coding! 🚀',
     '_— Hiero Python SDK Team_',

@@ -14,14 +14,11 @@ const {
 const { CONFIG } = require('./config');
 
 module.exports = {
-  // core
   getRecommendedIssues,
-  // helpers
   getHighestSkillLevelKey,
   buildRecommendationComment,
   postComment,
   alreadyCommented,
   extractLinkedIssueNumber,
-  // config
   CONFIG,
 };

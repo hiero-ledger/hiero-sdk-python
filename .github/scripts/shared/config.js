@@ -47,6 +47,7 @@ const CONFIG = {
     },
   ],
 
+  repositoryUrl: 'https://github.com/hiero-ledger/hiero-sdk-python',
   maxRecommendations: 5,
   fetchPerPage:       50,
   commentMarker:      '<!-- hiero-next-issue-bot -->',
