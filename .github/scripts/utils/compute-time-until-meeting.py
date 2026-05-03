@@ -1,9 +1,10 @@
 """Compute human-readable time remaining until a meeting.
 
 Usage:
-    python3 compute-time-until-meeting.py <MEETING_HOUR> [MOCK_TIME]
+    python3 compute-time-until-meeting.py <MEETING_DATE> <MEETING_HOUR> [MOCK_TIME]
 
 Arguments:
+    MEETING_DATE  The date of the meeting in YYYY-MM-DD format, or 'today'
     MEETING_HOUR  Meeting hour in UTC (0-23)
     MOCK_TIME     Optional mock time in HH:MM or HH:MM:SS format (for testing)
 
@@ -14,7 +15,7 @@ Output:
 from __future__ import annotations
 
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from math import ceil
 
 
@@ -49,10 +50,11 @@ def _format_duration(hours, minutes):
     return f"{minutes} {_pluralize(minutes, 'minute')}"
 
 
-def compute_time_until_meeting(meeting_hour, mock_time=None):
+def compute_time_until_meeting(meeting_date_str, meeting_hour, mock_time=None):
     """Compute the human-readable time remaining until the meeting.
 
     Args:
+        meeting_date_str: The meeting date as "YYYY-MM-DD" or "today".
         meeting_hour: The meeting hour in UTC (0-23).
         mock_time: Optional mock time string in "HH:MM" or "HH:MM:SS" format.
 
@@ -65,12 +67,24 @@ def compute_time_until_meeting(meeting_hour, mock_time=None):
         hour, minute, second = _parse_mock_time(mock_time)
         now = now.replace(hour=hour, minute=minute, second=second, microsecond=0)
 
-    meeting = now.replace(hour=meeting_hour, minute=0, second=0, microsecond=0)
+    if meeting_date_str.lower() == "today":
+        meeting_date = now.date()
+    else:
+        try:
+            meeting_date = datetime.strptime(meeting_date_str, "%Y-%m-%d").date()
+        except ValueError as exc:
+            raise ValueError("MEETING_DATE must be in YYYY-MM-DD format or 'today'.") from exc
 
-    # If the computed meeting time is more than 12 hours in the past,
-    # it means the cron job is running late the day before the meeting.
-    if (meeting - now).total_seconds() < -12 * 3600:
-        meeting += timedelta(days=1)
+    meeting = datetime(
+        year=meeting_date.year,
+        month=meeting_date.month,
+        day=meeting_date.day,
+        hour=meeting_hour,
+        minute=0,
+        second=0,
+        microsecond=0,
+        tzinfo=timezone.utc,
+    )
 
     diff = meeting - now
     if diff.total_seconds() <= 0:
@@ -82,16 +96,17 @@ def compute_time_until_meeting(meeting_hour, mock_time=None):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python3 compute-time-until-meeting.py <MEETING_HOUR> [MOCK_TIME]", file=sys.stderr)
+    if len(sys.argv) < 3:
+        print("Usage: python3 compute-time-until-meeting.py <MEETING_DATE> <MEETING_HOUR> [MOCK_TIME]", file=sys.stderr)
         sys.exit(1)
 
     try:
-        meeting_hour = int(sys.argv[1])
+        meeting_date_str = sys.argv[1]
+        meeting_hour = int(sys.argv[2])
         if not 0 <= meeting_hour <= 23:
             raise ValueError("MEETING_HOUR must be an integer between 0 and 23.")
-        mock_time = sys.argv[2] if len(sys.argv) > 2 else None
-        print(compute_time_until_meeting(meeting_hour, mock_time))
+        mock_time = sys.argv[3] if len(sys.argv) > 3 else None
+        print(compute_time_until_meeting(meeting_date_str, meeting_hour, mock_time))
     except ValueError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         sys.exit(1)

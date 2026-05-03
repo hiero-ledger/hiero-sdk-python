@@ -70,13 +70,14 @@ if [ -z "$ISSUE_DATA" ] || [ "$ISSUE_DATA" = "[]" ]; then
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TIME_UNTIL_MEETING=$(python3 "$SCRIPT_DIR/utils/compute-time-until-meeting.py" "$MEETING_HOUR")
+TIME_UNTIL_MEETING=$(python3 "$SCRIPT_DIR/utils/compute-time-until-meeting.py" "$TODAY" "$MEETING_HOUR")
 
 if [ "$TIME_UNTIL_MEETING" = "has already started" ]; then
-  TIME_PHRASE="has already started"
-else
-  TIME_PHRASE="will begin in approximately $TIME_UNTIL_MEETING"
+  echo "Meeting has already started. Skipping reminder."
+  exit 0
 fi
+
+TIME_PHRASE="will begin in approximately $TIME_UNTIL_MEETING"
 
 COMMENT_BODY=$(cat <<EOF
 Hello, this is CommunityCallBot.
