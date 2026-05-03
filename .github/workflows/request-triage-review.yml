@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   request-triage:
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'Good First Issue') || contains(github.event.pull_request.labels.*.name, 'beginner') }}
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'Good First Issue') || contains(github.event.pull_request.labels.*.name, 'skill: beginner') || contains(github.event.pull_request.labels.*.name, 'beginner') }}
     runs-on: [self-hosted,hl-sdk-py-lin-md]
 
     steps:
