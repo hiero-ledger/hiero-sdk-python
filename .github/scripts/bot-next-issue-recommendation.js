@@ -1,3 +1,17 @@
+const {
+  GOOD_FIRST_ISSUE_LABEL,
+  BEGINNER_LABEL,
+  INTERMEDIATE_LABEL,
+  ADVANCED_LABEL,
+  isSafeLabel,
+} = require('./shared/labels.js');
+
+for (const label of [GOOD_FIRST_ISSUE_LABEL, BEGINNER_LABEL, INTERMEDIATE_LABEL, ADVANCED_LABEL]) {
+  if (!isSafeLabel(label)) {
+    throw new Error(`Invalid configured label: ${label}`);
+  }
+}
+
 const SUPPORTED_GFI_REPOS = [
   'hiero-sdk-cpp',
   'hiero-sdk-swift',
@@ -58,10 +72,10 @@ module.exports = async ({ github, context, core }) => {
 
     // Determine issue difficulty level
     const difficultyLevels = {
-      beginner: labelSet.has('beginner'),
-      goodFirstIssue: labelSet.has('good first issue'),
-      intermediate: labelSet.has('intermediate'),
-      advanced: labelSet.has('advanced'),
+      beginner: labelSet.has(BEGINNER_LABEL.toLowerCase()),
+      goodFirstIssue: labelSet.has(GOOD_FIRST_ISSUE_LABEL.toLowerCase()),
+      intermediate: labelSet.has(INTERMEDIATE_LABEL.toLowerCase()),
+      advanced: labelSet.has(ADVANCED_LABEL.toLowerCase()),
     };
 
     // Skip if intermediate or advanced
@@ -80,13 +94,13 @@ module.exports = async ({ github, context, core }) => {
     let recommendedLabel = null;
     let isFallback = false;
 
-    recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'beginner');
-    recommendedLabel = 'Beginner';
+    recommendedIssues = await searchIssues(github, core, repoOwner, repoName, BEGINNER_LABEL);
+    recommendedLabel = BEGINNER_LABEL;
 
     if (recommendedIssues.length === 0) {
       isFallback = true;
-      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, 'good first issue');
-      recommendedLabel = 'Good First Issue';
+      recommendedIssues = await searchIssues(github, core, repoOwner, repoName, GOOD_FIRST_ISSUE_LABEL);
+      recommendedLabel = GOOD_FIRST_ISSUE_LABEL;
     }
 
 
@@ -94,8 +108,8 @@ module.exports = async ({ github, context, core }) => {
     recommendedIssues = recommendedIssues.filter(i => i.number !== issueNumber);
 
     // Generate and post comment
-    const completedLabel = difficultyLevels.goodFirstIssue ? 'Good First Issue' : 'Beginner';
-    const completedLabelText = completedLabel === 'Beginner' ? 'Beginner issue' : completedLabel;
+    const completedLabel = difficultyLevels.goodFirstIssue ? GOOD_FIRST_ISSUE_LABEL : BEGINNER_LABEL;
+    const completedLabelText = completedLabel === BEGINNER_LABEL ? `${BEGINNER_LABEL} issue` : completedLabel;
     const recommendationMeta = {
       completedLabelText,
       recommendedLabel,
@@ -170,7 +184,7 @@ async function generateAndPostComment(github, context, core, prNumber, recommend
       `org:${context.repo.owner}`,
       'archived:false',
       'no:assignee',
-      '(label:"good first issue" OR label:"skill: good first issue")',
+      `label:"${GOOD_FIRST_ISSUE_LABEL}"`,
       `(${repoQuery})`,
     ].join(' ');
 

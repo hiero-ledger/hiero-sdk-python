@@ -370,7 +370,7 @@ Before every PR:
 
 * [Hiero SDK Contributing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
 
-* [Hiero SDK CHANGELOG](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CHANGELOG.md)
+* [Hiero SDK Releases](https://github.com/hiero-ledger/hiero-sdk-python/releases)
 
 
 
