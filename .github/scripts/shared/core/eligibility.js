@@ -6,7 +6,20 @@ const { CONFIG } = require('../config');
 const { repoLabelFor } = require('../helpers/utils');
 const { countClosedIssuesByAssignee } = require('../api/github-api');
 
-// Fast path: user has already completed ≥1 issue at this level or higher
+/**
+ * Fast-path eligibility check.
+ *
+ * A contributor is considered eligible for `candidate` if they have already
+ * completed at least one issue at that level OR any higher level.
+ *
+ * This avoids forcing strict progression when the user already has experience.
+ *
+ * @param {import('@actions/github').GitHub} github
+ * @param {object} homeRepo
+ * @param {string} username
+ * @param {string} candidate - Canonical level key
+ * @returns {Promise<boolean>}
+ */
 async function passesBypassCheck(github, homeRepo, username, candidate) {
   const idx = CONFIG.skillHierarchy.indexOf(candidate);
   if (idx === -1) return false;
@@ -23,10 +36,16 @@ async function passesBypassCheck(github, homeRepo, username, candidate) {
 }
 
 /**
- * Checks whether a contributor meets the prerequisite count for a given level.
+ * Checks whether a contributor meets the prerequisite count for a level.
  *
- * Unlike the bypass check, this verifies that the contributor has completed
- * enough issues at the *previous* level to formally qualify for the candidate.
+ * This enforces the normal progression rules:
+ * e.g. "3 beginner issues required before intermediate".
+ *
+ * @param {import('@actions/github').GitHub} github
+ * @param {object} homeRepo
+ * @param {string} username
+ * @param {{ requiredLevel: string, requiredCount: number }} prereq
+ * @returns {Promise<boolean|null>} null = API failure
  */
 async function passesNormalCheck(github, homeRepo, username, prereq) {
   const count = await countClosedIssuesByAssignee(
@@ -116,39 +135,61 @@ function adjustEligibilityForCurrentPR(completedKey, eligibleKey) {
 }
 
 /**
- * Detects whether the current PR completion crossed the threshold into the next level.
+ * Computes next level metadata for unlock detection.
  *
- * Checks if the contributor has reached *exactly* the required count for the next
- * level after this PR. Uses cap = requiredCount + 1 to avoid over-fetching.
+ * Ensures:
+ *   - current level exists
+ *   - next level exists
+ *   - next level depends on current level
  *
- * Example: beginner → intermediate requires 3 beginner completions.
- * If the search returns count === 3, this PR was the one that crossed the line.
- *
- * @param {import('@actions/github').GitHub} github
- * @param {object} homeRepo        - Home repo entry from CONFIG.repos.
- * @param {string} username        - GitHub login of the contributor.
- * @param {string} currentLevelKey - Canonical key of the level just completed.
- * @returns {Promise<string|null>} Canonical key of the unlocked level, or null.
+ * @param {string} currentLevelKey
+ * @returns {{ nextKey: string, nextPrereq: object } | null}
  */
-async function detectUnlockedLevel(github, homeRepo, username, currentLevelKey) {
-  const hierarchy    = CONFIG.skillHierarchy;
+function getNextLevelInfo(currentLevelKey) {
+  const hierarchy = CONFIG.skillHierarchy;
   const currentIndex = hierarchy.indexOf(currentLevelKey);
-
   if (currentIndex === -1) return null;
 
-  const nextKey      = hierarchy[currentIndex + 1] ?? null;
+  const nextKey = hierarchy[currentIndex + 1];
   if (!nextKey) return null;
 
   const nextPrereq = CONFIG.skillPrerequisites[nextKey];
-  if (!nextPrereq?.requiredLevel || nextPrereq.requiredLevel !== currentLevelKey) return null;
+  if (!nextPrereq || nextPrereq.requiredLevel !== currentLevelKey) return null;
+
+  return { nextKey, nextPrereq };
+}
+
+/**
+ * Detects if the contributor just unlocked the next level.
+ *
+ * Trigger condition:
+ *   completed count === requiredCount
+ *
+ * Uses a capped query (requiredCount + 1) for efficiency.
+ *
+ * @param {import('@actions/github').GitHub} github
+ * @param {object} homeRepo
+ * @param {string} username
+ * @param {string} currentLevelKey
+ * @returns {Promise<string|null>} unlocked level key
+ */
+async function detectUnlockedLevel(github, homeRepo, username, currentLevelKey) {
+  const next = getNextLevelInfo(currentLevelKey);
+  if (!next) return null;
+
+  const { nextKey, nextPrereq } = next;
 
   const count = await countClosedIssuesByAssignee(
-    github, homeRepo.owner, homeRepo.repo, username,
-    repoLabelFor(homeRepo, currentLevelKey), nextPrereq.requiredCount + 1,
+    github,
+    homeRepo.owner,
+    homeRepo.repo,
+    username,
+    repoLabelFor(homeRepo, currentLevelKey),
+    nextPrereq.requiredCount + 1,
   );
 
   if (count === null) return null;
-  // NOTE: count is derived from first-page results only; safe because requiredCount is small.
+
   return count === nextPrereq.requiredCount ? nextKey : null;
 }
 
