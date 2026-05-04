@@ -124,7 +124,7 @@ class FeeEstimateQuery:
         mode = self._mode or FeeEstimateMode.INTRINSIC
         url = self._build_url(client, mode)
 
-        if url.__contains__("localhost:5551") or url.__contains__("127.0.0.1:5551"):
+        if "localhost:5551" in url or "127.0.0.1:5551" in url:
             url = url.replace(":5551", ":8084")
 
         try:
@@ -231,15 +231,17 @@ class FeeEstimateQuery:
                 data = self._post(url, tx_bytes)
                 response = self._to_response(data, mode)
 
-                total_node_base += response.node_fee.base
-                total_service_base += response.service_fee.base
-                total_network_subtotal += response.network_fee.subtotal
+                if response.node_fee:
+                    total_node_base += response.node_fee.base
+                    node_extras.extend(response.node_fee.extras)
+                if response.service_fee:
+                    total_service_base += response.service_fee.base
+                    service_extras.extend(response.service_fee.extras)
+                if response.network_fee:
+                    total_network_subtotal += response.network_fee.subtotal
+                    final_multiplier = response.network_fee.multiplier
                 total_combined += response.total
 
-                node_extras.extend(response.node_fee.extras)
-                service_extras.extend(response.service_fee.extras)
-
-                final_multiplier = response.network_fee.multiplier
                 final_hvm = response.high_volume_multiplier
 
         finally:

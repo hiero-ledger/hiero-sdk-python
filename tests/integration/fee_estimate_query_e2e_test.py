@@ -34,7 +34,7 @@ def test_can_execute_fee_estimation_query2(env):
 
 
 @pytest.mark.integration
-def test__fee_estimation_query_chuck_tx_can_execute(env):
+def test__fee_estimation_query_chunk_tx_can_execute(env):
 
     tx = FileAppendTransaction().set_file_id(FileId(0, 0, 2)).set_chunk_size(10).set_contents("s" * 33)  # 4 chunks
 
@@ -47,7 +47,7 @@ def test__fee_estimation_query_chuck_tx_can_execute(env):
 
 
 @pytest.mark.integration
-def test_can_execute_fee_estimation_query_chuck_tx(env):
+def test_can_execute_fee_estimation_query_chunk_tx(env):
 
     tx = (
         TopicMessageSubmitTransaction().set_topic_id(TopicId(0, 0, 2)).set_chunk_size(10).set_message("s" * 20)
