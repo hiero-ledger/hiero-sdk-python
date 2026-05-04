@@ -7,15 +7,16 @@ Or from the tests directory:
     python3 -m unittest test_compute_time_until_meeting -v
 """
 
+from __future__ import annotations
+
 import os
 import sys
 import unittest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+from importlib import import_module
 
 # Add the utils directory to sys.path so we can import the helper
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "utils"))
-
-from importlib import import_module
 
 # Import the module using importlib since the filename has hyphens
 _mod = import_module("compute-time-until-meeting")
