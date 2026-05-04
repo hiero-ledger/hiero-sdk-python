@@ -35,12 +35,10 @@ def setup_network():
     return network
 
 
-def setup_client(network):
-    """Create and initialize the client with the network."""
-    print("\nStep 2: Create the client with the network")
-    client = Client(network)
-
-    print(f"  - Client initialized with network: {client.network.network}")
+def setup_client() -> Client:
+    """Setup Client."""
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     return client
 
 
@@ -88,8 +86,8 @@ def display_available_nodes(client):
 def demonstrate_manual_setup():
     """Run the detailed, step-by-step setup."""
     print("\n--- [ Method 1: Manual Setup] ---")
-    network = setup_network()
-    client = setup_client(network)
+    setup_network()
+    client = setup_client()
     setup_operator(client)
     display_client_configuration(client)
     display_available_nodes(client)
