@@ -142,7 +142,7 @@ class Network:
 
         if self._mirror_address != value:
             self._mirror_address = value
-            self.close_mirror_connection()
+            self._close_mirror_node()
 
     def _set_network_nodes(self, nodes: list[_Node] | None = None):
         """Configure the consensus nodes used by this network."""
@@ -429,13 +429,17 @@ class Network:
         if node not in self._healthy_nodes:
             self._healthy_nodes.append(node)
 
-    def _close(self):
+    def _close_mirror_node(self):
         """Safely closes the mirror gRPC channel."""
         if self._mirror_channel is not None:
             self._mirror_channel.close()
 
         self._mirror_channel = None
         self._mirror_stub = None
+
+    def _close(self):
+        """Safely closes the mirror gRPC channel and consensus node."""
+        self._close_mirror_node()
 
         if self.nodes:
             for node in self.nodes:

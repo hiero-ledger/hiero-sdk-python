@@ -570,7 +570,7 @@ def test_close_mirror_connection_is_safe_when_none():
     network = Network("testnet")
     network._mirror_channel = None
 
-    network.close_mirror_connection()
+    network._close_mirror_node()
     assert network._mirror_stub is None
 
 
