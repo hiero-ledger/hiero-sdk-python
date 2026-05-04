@@ -429,13 +429,17 @@ class Network:
         if node not in self._healthy_nodes:
             self._healthy_nodes.append(node)
 
-    def close_mirror_connection(self):
+    def _close(self):
         """Safely closes the mirror gRPC channel."""
         if self._mirror_channel is not None:
             self._mirror_channel.close()
 
         self._mirror_channel = None
         self._mirror_stub = None
+
+        if self.nodes:
+            for node in self.nodes:
+                node._close()
 
     def get_mirror_stub(self) -> mirror_consensus_grpc.ConsensusServiceStub:
         """Returns the mirror stub."""
