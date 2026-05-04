@@ -130,7 +130,7 @@ class TestComputeTimeUntilMeeting(unittest.TestCase):
         helper_path = os.path.join(os.path.dirname(__file__), "..", "utils", "compute-time-until-meeting.py")
         result = subprocess.run(
             ["python3", helper_path, "today", "14", "10:00"],
-            capture_output=True, text=True
+            capture_output=True, text=True, check=True
         )
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout.strip(), "4 hours")
@@ -141,7 +141,7 @@ class TestComputeTimeUntilMeeting(unittest.TestCase):
         helper_path = os.path.join(os.path.dirname(__file__), "..", "utils", "compute-time-until-meeting.py")
         result = subprocess.run(
             ["python3", helper_path],
-            capture_output=True, text=True
+            capture_output=True, text=True, check=False
         )
         self.assertEqual(result.returncode, 1)
 
