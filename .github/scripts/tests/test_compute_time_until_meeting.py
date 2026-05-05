@@ -129,10 +129,10 @@ class TestComputeTimeUntilMeeting(unittest.TestCase):
     def test_cli_invocation(self):
         """CLI: calling via subprocess produces expected output."""
         import subprocess
+
         helper_path = os.path.join(os.path.dirname(__file__), "..", "utils", "compute-time-until-meeting.py")
         result = subprocess.run(
-            ["python3", helper_path, "today", "14", "10:00"],
-            capture_output=True, text=True, check=True
+            ["python3", helper_path, "today", "14", "10:00"], capture_output=True, text=True, check=True
         )
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stdout.strip(), "4 hours")
@@ -140,11 +140,9 @@ class TestComputeTimeUntilMeeting(unittest.TestCase):
     def test_cli_missing_args(self):
         """CLI: missing arguments should exit with error."""
         import subprocess
+
         helper_path = os.path.join(os.path.dirname(__file__), "..", "utils", "compute-time-until-meeting.py")
-        result = subprocess.run(
-            ["python3", helper_path],
-            capture_output=True, text=True, check=False
-        )
+        result = subprocess.run(["python3", helper_path], capture_output=True, text=True, check=False)
         self.assertEqual(result.returncode, 1)
 
 
