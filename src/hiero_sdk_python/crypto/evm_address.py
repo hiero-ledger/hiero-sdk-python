@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.utils.crypto_utils import keccak256
 
 
 class EvmAddress(Key):
@@ -48,6 +49,60 @@ class EvmAddress(Key):
 
     def __str__(self) -> str:
         return self.to_string()
+
+    def to_checksum_address(self) -> str:
+        """Return the EIP-55 checksum address.
+        Reference: https://eips.ethereum.org/EIPS/eip-55
+        """
+        lower_address = self.to_string().lower()
+
+        address_hash = keccak256(lower_address.encode("ascii")).hex()
+
+        checksummed = "".join(
+            char.upper() if char.isalpha() and int(address_hash[index], 16) >= 8 else char
+            for index, char in enumerate(lower_address)
+        )
+
+        return f"0x{checksummed}"
+
+    @staticmethod
+    def normalize(address: str) -> str:
+        """Normalize an EVM address to 40 lowercase hex characters without ``0x``."""
+        if not isinstance(address, str):
+            raise TypeError("address must be a string")
+        addr = address.lower()
+        if addr.startswith("0x"):
+            addr = addr[2:]
+
+        if len(addr) != 40 or not all(c in "0123456789abcdef" for c in addr):
+            raise ValueError("Invalid address")
+
+        return addr
+
+    @staticmethod
+    def is_valid(address: str) -> bool:
+        """Return ``True`` when ``address`` is valid lowercase/uppercase hex EVM address."""
+        if not isinstance(address, str):
+            return False
+
+        addr = address.lower()
+        if addr.startswith("0x"):
+            addr = addr[2:]
+        return len(addr) == 40 and all(c in "0123456789abcdef" for c in addr)
+
+    @staticmethod
+    def is_checksum_valid(address: str) -> bool:
+        """Return ``True`` only if ``address`` is ``0x``-prefixed and EIP-55 checksummed."""
+        if not isinstance(address, str) or not address.startswith("0x"):
+            return False
+
+        raw = address[2:]
+
+        if not EvmAddress.is_valid(raw):
+            return False
+
+        checksummed = EvmAddress.from_string(raw).to_checksum_address()
+        return checksummed == address
 
     def __repr__(self) -> str:
         return f"<EvmAddress hex={self.to_string()}>"
