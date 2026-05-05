@@ -290,11 +290,11 @@ class FeeEstimateQuery:
         return [
             FeeExtra(
                 name=item.get("name", None),
-                included=item.get("included"),
-                count=item.get("count"),
-                charged=item.get("charged"),
-                fee_per_unit=item.get("fee_per_unit"),
-                subtotal=item.get("subtotal"),
+                included=item.get("included", 0),
+                count=item.get("count", 0),
+                charged=item.get("charged", 0),
+                fee_per_unit=item.get("fee_per_unit", 0),
+                subtotal=item.get("subtotal", 0),
             )
             for item in extra_list
         ]

@@ -17,6 +17,3 @@ class FeeEstimate:
 
     base: int
     extras: list[FeeExtra] = field(default_factory=list)
-
-    def __post_init__(self) -> None:
-        object.__setattr__(self, "extras", tuple(self.extras))

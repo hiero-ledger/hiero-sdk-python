@@ -14,41 +14,48 @@ from hiero_sdk_python.query.fee_estimate_query import FeeEstimateQuery
 
 @pytest.mark.integration
 def test_can_execute_fee_estimation_query(env):
+    """
+    Integration test that verifies a fee estimation query executes successfully and returns a non-null result.
+    """
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_initial_balance(1)
     query = FeeEstimateQuery().set_transaction(tx)
     result = query.execute(env.client)
 
-    print(result)
     assert result is not None
 
 
 @pytest.mark.integration
 def test_can_execute_fee_estimation_query2(env):
+    """Integration test that verifies a state-mode fee estimation query
+    executes successfully and returns a non-null result.
+    """
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_initial_balance(1)
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
     result = query.execute(env.client)
 
-    print(result)
     print(type(result.total))
     assert result is not None
 
 
 @pytest.mark.integration
 def test__fee_estimation_query_chunk_tx_can_execute(env):
-
+    """Integration test that verifies a state-mode fee estimation query executes
+    successfully for a chunked file append transaction and returns a non-null result.
+    """
     tx = FileAppendTransaction().set_file_id(FileId(0, 0, 2)).set_chunk_size(10).set_contents("s" * 33)  # 4 chunks
 
     tx.freeze_with(env.client)
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
     result = query.execute(env.client)
 
-    print(result)
     assert result is not None
 
 
 @pytest.mark.integration
 def test_can_execute_fee_estimation_query_chunk_tx(env):
-
+    """Integration test that verifies a state-mode fee estimation query executes successfully
+    for a chunked topic message submit transaction and returns a non-null result.
+    """
     tx = (
         TopicMessageSubmitTransaction().set_topic_id(TopicId(0, 0, 2)).set_chunk_size(10).set_message("s" * 20)
     )  # 2 chunks
@@ -60,5 +67,4 @@ def test_can_execute_fee_estimation_query_chunk_tx(env):
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
     result = query.execute(env.client)
 
-    print(result)
     assert result is not None
