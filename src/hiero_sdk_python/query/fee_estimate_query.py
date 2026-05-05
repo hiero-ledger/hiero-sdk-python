@@ -10,6 +10,7 @@ from __future__ import annotations
 import logging
 import time
 from typing import TYPE_CHECKING
+from urllib.parse import urlencode
 
 import requests
 
@@ -142,7 +143,14 @@ class FeeEstimateQuery:
         return self._execute_single(client, url, mode)
 
     def _build_url(self, client: Client, mode: FeeEstimateMode) -> str:
-        return f"{client.network.get_mirror_rest_url()}/network/fees?mode={mode.name}"
+        base = f"{client.network.get_mirror_rest_url()}/network/fees"
+
+        query = {
+            "mode": mode.name,
+            "high_volume_throttle": self._high_volume_throttle,
+        }
+
+        return f"{base}?{urlencode(query)}"
 
     def _ensure_frozen(self, tx: Transaction, client) -> None:
         """Ensure the transaction is frozen before serialization."""
@@ -207,6 +215,8 @@ class FeeEstimateQuery:
         # Save original state to restore later
         original_id = self._transaction.transaction_id
         original_index = getattr(self._transaction, "_current_chunk_index", 0)
+        original_bodies = dict(self._transaction._transaction_body_bytes)
+        original_signatures = dict(self._transaction._signature_map)
 
         total_node_base = 0
         total_service_base = 0
@@ -248,6 +258,9 @@ class FeeEstimateQuery:
             self._transaction.transaction_id = original_id
             self._transaction._current_chunk_index = original_index
             self._transaction._transaction_body_bytes.clear()
+            self._transaction._transaction_body_bytes.update(original_bodies)
+            self._transaction._signature_map.clear()
+            self._transaction._signature_map.update(original_signatures)
 
         return FeeEstimateResponse(
             mode=mode,
