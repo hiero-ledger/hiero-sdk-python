@@ -59,6 +59,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      attestations: write
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -76,6 +77,13 @@ jobs:
         with:
           name: dist
           path: dist
+
+      - name: Generate build provenance attestations
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        with:
+          subject-path: |
+            dist/*.whl
+            dist/*.tar.gz
 
       - name: Sign release distributions with Sigstore
         uses: sigstore/gh-action-sigstore-python@04cffa1d795717b140764e8b640de88853c92acc # v3.3.0
@@ -98,6 +106,7 @@ jobs:
         with:
           packages-dir: publish-dist
           skip-existing: true
+          attestations: true
 
       - name: Upload signed assets to GitHub Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
