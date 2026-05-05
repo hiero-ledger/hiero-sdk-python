@@ -86,6 +86,16 @@ function getCurrentAssigneeMention(issue) {
     return login ? `@${login}` : 'someone';
 }
 
+async function getFreshIssue({ github, owner, repo, issueNumber }) {
+    const { data } = await github.rest.issues.get({
+        owner,
+        repo,
+        issue_number: issueNumber,
+    });
+
+    return data;
+}
+
 /**
  * Builds a comment explaining that the issue is already assigned.
  * Requester username is passed from main
@@ -361,7 +371,46 @@ module.exports = async ({ github, context }) => {
             return;
         }
 
-        console.log('[gfi-assign] Assigning issue to requester');
+        console.log('[gfi-assign] Checking current issue state before assignment');
+
+        let currentIssue;
+        try {
+            currentIssue = await getFreshIssue({
+                github,
+                owner,
+                repo,
+                issueNumber,
+            });
+        } catch (error) {
+            console.error('[gfi-assign] Failed to fetch current issue state before assignment:', {
+                message: error.message,
+                status: error.status,
+                owner,
+                repo,
+                issueNumber,
+                requesterUsername,
+            });
+            return;
+        }
+
+        if (!issueIsGoodFirstIssue(currentIssue)) {
+            console.log('[gfi-assign] Exit: current issue state is no longer a Good First Issue');
+            return;
+        }
+
+        if (currentIssue.assignees?.length > 0) {
+            console.log('[gfi-assign] Exit: current issue state is already assigned');
+
+            await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: issueNumber,
+                body: commentAlreadyAssigned(requesterUsername, currentIssue),
+            });
+
+            console.log('[gfi-assign] Posted already-assigned comment from current issue state');
+            return;
+        }
 
         // All validations passed and user has requested assignment on a GFI
         // Assign the issue to the requester
@@ -409,7 +458,7 @@ module.exports = async ({ github, context }) => {
                 if (planExists) {
                     console.log('[gfi-assign] CodeRabbit plan already exists, skipping');
                 } else {
-                    await triggerCodeRabbitPlan(github, owner, repo, issue);
+                    await triggerCodeRabbitPlan(github, owner, repo, currentIssue);
                     console.log('[gfi-assign] CodeRabbit plan chained successfully');
                 }
             } catch (error) {
