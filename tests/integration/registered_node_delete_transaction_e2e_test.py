@@ -4,13 +4,8 @@ Integration tests for RegisteredNodeDeleteTransaction (HIP-1137).
 
 from __future__ import annotations
 
-import pytest
-
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.block_node_api import BlockNodeApi
 from hiero_sdk_python.address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
-from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
 from hiero_sdk_python.nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
@@ -38,26 +33,17 @@ def _create_registered_node(client, admin_key):
     return receipt.registered_node_id
 
 
-@pytest.mark.skip(reason="HIP-1137 registered node support not yet available on local-node/solo")
-def test_registered_node_delete():
+def test_registered_node_delete(env):
     """Test creating then deleting a registered node."""
-    network = Network(network="solo")
-    client = Client(network)
-
-    original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
-    )
-    client.set_operator(AccountId(0, 0, 2), original_operator_key)
-
     admin_key = PrivateKey.generate_ed25519()
-    registered_node_id = _create_registered_node(client, admin_key)
+    registered_node_id = _create_registered_node(env.client, admin_key)
 
     receipt = (
         RegisteredNodeDeleteTransaction()
         .set_registered_node_id(registered_node_id)
-        .freeze_with(client)
+        .freeze_with(env.client)
         .sign(admin_key)
-        .execute(client)
+        .execute(env.client)
     )
 
     assert receipt.status == ResponseCode.SUCCESS, (
@@ -65,25 +51,16 @@ def test_registered_node_delete():
     )
 
 
-@pytest.mark.skip(reason="HIP-1137 registered node support not yet available on local-node/solo")
-def test_registered_node_delete_invalid_id():
-    """Test that deleting a nonexistent registered node fails."""
-    network = Network(network="solo")
-    client = Client(network)
-
-    original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
-    )
-    client.set_operator(AccountId(0, 0, 2), original_operator_key)
-
+def test_registered_node_delete_invalid_id(env):
+    """Test that deleting a nonexistent registered node fails at the network level."""
     admin_key = PrivateKey.generate_ed25519()
 
     receipt = (
         RegisteredNodeDeleteTransaction()
         .set_registered_node_id(999999999)
-        .freeze_with(client)
+        .freeze_with(env.client)
         .sign(admin_key)
-        .execute(client)
+        .execute(env.client)
     )
 
     assert receipt.status != ResponseCode.SUCCESS, "Delete of nonexistent node should fail"

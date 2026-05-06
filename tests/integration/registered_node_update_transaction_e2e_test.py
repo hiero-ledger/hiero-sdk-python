@@ -4,16 +4,12 @@ Integration tests for RegisteredNodeUpdateTransaction (HIP-1137).
 
 from __future__ import annotations
 
-import pytest
-
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.block_node_api import BlockNodeApi
 from hiero_sdk_python.address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
 from hiero_sdk_python.address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
-from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
+from hiero_sdk_python.nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
 from hiero_sdk_python.nodes.registered_node_update_transaction import RegisteredNodeUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 
@@ -39,79 +35,64 @@ def _create_registered_node(client, admin_key):
     return receipt.registered_node_id
 
 
-@pytest.mark.skip(reason="HIP-1137 registered node support not yet available on local-node/solo")
-def test_registered_node_update_description():
+def test_registered_node_update_description(env):
     """Test updating a registered node's description."""
-    network = Network(network="solo")
-    client = Client(network)
-
-    original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
-    )
-    client.set_operator(AccountId(0, 0, 2), original_operator_key)
-
     admin_key = PrivateKey.generate_ed25519()
-    registered_node_id = _create_registered_node(client, admin_key)
+    registered_node_id = _create_registered_node(env.client, admin_key)
 
-    receipt = (
-        RegisteredNodeUpdateTransaction()
-        .set_registered_node_id(registered_node_id)
-        .set_description("updated description")
-        .freeze_with(client)
-        .sign(admin_key)
-        .execute(client)
-    )
+    try:
+        receipt = (
+            RegisteredNodeUpdateTransaction()
+            .set_registered_node_id(registered_node_id)
+            .set_description("updated description")
+            .freeze_with(env.client)
+            .sign(admin_key)
+            .execute(env.client)
+        )
 
-    assert receipt.status == ResponseCode.SUCCESS, (
-        f"Registered node update failed with status {ResponseCode(receipt.status).name}"
-    )
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Registered node update failed with status {ResponseCode(receipt.status).name}"
+        )
+    finally:
+        # Cleanup
+        RegisteredNodeDeleteTransaction().set_registered_node_id(registered_node_id).freeze_with(env.client).sign(
+            admin_key
+        ).execute(env.client)
 
 
-@pytest.mark.skip(reason="HIP-1137 registered node support not yet available on local-node/solo")
-def test_registered_node_update_service_endpoints():
+def test_registered_node_update_service_endpoints(env):
     """Test replacing a registered node's service endpoints."""
-    network = Network(network="solo")
-    client = Client(network)
-
-    original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
-    )
-    client.set_operator(AccountId(0, 0, 2), original_operator_key)
-
     admin_key = PrivateKey.generate_ed25519()
-    registered_node_id = _create_registered_node(client, admin_key)
+    registered_node_id = _create_registered_node(env.client, admin_key)
 
-    new_endpoint = MirrorNodeServiceEndpoint(
-        domain_name="mirror.updated.com",
-        port=5600,
-        requires_tls=True,
-    )
+    try:
+        new_endpoint = MirrorNodeServiceEndpoint(
+            domain_name="mirror.updated.com",
+            port=5600,
+            requires_tls=True,
+        )
 
-    receipt = (
-        RegisteredNodeUpdateTransaction()
-        .set_registered_node_id(registered_node_id)
-        .set_service_endpoints([new_endpoint])
-        .freeze_with(client)
-        .sign(admin_key)
-        .execute(client)
-    )
+        receipt = (
+            RegisteredNodeUpdateTransaction()
+            .set_registered_node_id(registered_node_id)
+            .set_service_endpoints([new_endpoint])
+            .freeze_with(env.client)
+            .sign(admin_key)
+            .execute(env.client)
+        )
 
-    assert receipt.status == ResponseCode.SUCCESS, (
-        f"Registered node update failed with status {ResponseCode(receipt.status).name}"
-    )
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Registered node update failed with status {ResponseCode(receipt.status).name}"
+        )
+    finally:
+        # Cleanup
+        RegisteredNodeDeleteTransaction().set_registered_node_id(registered_node_id).freeze_with(env.client).sign(
+            admin_key
+        ).execute(env.client)
 
 
-@pytest.mark.skip(reason="HIP-1137 registered node support not yet available on local-node/solo")
-def test_registered_node_update_invalid_id():
-    """Test that updating a nonexistent registered node fails."""
-    network = Network(network="solo")
-    client = Client(network)
-
-    original_operator_key = PrivateKey.from_string_der(
-        "302e020100300506032b65700422042091132178e72057a1d7528025956fe39b0b847f200ab59b2fdd367017f3087137"
-    )
-    client.set_operator(AccountId(0, 0, 2), original_operator_key)
-
+def test_registered_node_update_invalid_id(env):
+    """Test that updating a nonexistent registered node fails at the network level."""
     admin_key = PrivateKey.generate_ed25519()
 
     # Use a very large ID that is unlikely to exist
@@ -119,9 +100,9 @@ def test_registered_node_update_invalid_id():
         RegisteredNodeUpdateTransaction()
         .set_registered_node_id(999999999)
         .set_description("should fail")
-        .freeze_with(client)
+        .freeze_with(env.client)
         .sign(admin_key)
-        .execute(client)
+        .execute(env.client)
     )
 
     assert receipt.status != ResponseCode.SUCCESS, "Update of nonexistent node should fail"
