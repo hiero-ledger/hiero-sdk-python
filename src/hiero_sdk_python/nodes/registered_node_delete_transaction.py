@@ -27,6 +27,12 @@ class RegisteredNodeDeleteTransaction(Transaction):
     def _build_proto_body(self) -> RegisteredNodeDeleteTransactionBody:
         if self.registered_node_id is None:
             raise ValueError("Missing required registered_node_id")
+        if (
+            not isinstance(self.registered_node_id, int)
+            or isinstance(self.registered_node_id, bool)
+            or self.registered_node_id <= 0
+        ):
+            raise ValueError("registered_node_id must be a positive integer")
 
         return RegisteredNodeDeleteTransactionBody(
             registered_node_id=self.registered_node_id,

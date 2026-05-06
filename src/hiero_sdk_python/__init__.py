@@ -248,11 +248,17 @@ __all__ = [
     "TokenInfoQuery",
     "AccountInfoQuery",
     # Address book
+    "BlockNodeApi",
+    "BlockNodeServiceEndpoint",
     "Endpoint",
+    "GeneralServiceEndpoint",
+    "MirrorNodeServiceEndpoint",
     "NodeAddress",
     "RegisteredNode",
     "RegisteredNodeAddressBook",
     "RegisteredNodeAddressBookQuery",
+    "RegisteredServiceEndpoint",
+    "RpcRelayServiceEndpoint",
     # Logger
     "Logger",
     "LogLevel",
@@ -296,6 +302,9 @@ __all__ = [
     "NodeCreateTransaction",
     "NodeUpdateTransaction",
     "NodeDeleteTransaction",
+    "RegisteredNodeCreateTransaction",
+    "RegisteredNodeUpdateTransaction",
+    "RegisteredNodeDeleteTransaction",
     # PRNG
     "PrngTransaction",
     # Custom Fees

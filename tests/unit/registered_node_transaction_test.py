@@ -75,6 +75,7 @@ class TestRegisteredNodeCreateTransaction:
         operator_id, _, node_account_id, _, _ = mock_account_ids
 
         tx = RegisteredNodeCreateTransaction()
+        tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.set_service_endpoints([_make_block_endpoint(), _make_mirror_endpoint()])
 
         tx.operator_account_id = operator_id
@@ -90,6 +91,7 @@ class TestRegisteredNodeCreateTransaction:
             endpoint_apis=[BlockNodeApi.PUBLISH, BlockNodeApi.SUBSCRIBE_STREAM, BlockNodeApi.STATE_PROOF],
         )
         tx = RegisteredNodeCreateTransaction()
+        tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.set_service_endpoints([ep])
         tx.operator_account_id = operator_id
         tx.node_account_id = node_account_id
@@ -99,6 +101,7 @@ class TestRegisteredNodeCreateTransaction:
 
     def test_builds_schedulable_body(self):
         tx = RegisteredNodeCreateTransaction()
+        tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.set_service_endpoints([_make_block_endpoint()])
         scheduled = tx.build_scheduled_body()
         assert scheduled.HasField("registeredNodeCreate")
@@ -123,6 +126,7 @@ class TestRegisteredNodeCreateTransaction:
     def test_fails_with_zero_endpoints(self, mock_account_ids):
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeCreateTransaction()
+        tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.operator_account_id = operator_id
         tx.node_account_id = node_account_id
 
@@ -133,6 +137,7 @@ class TestRegisteredNodeCreateTransaction:
         operator_id, _, node_account_id, _, _ = mock_account_ids
         endpoints = [_make_mirror_endpoint() for _ in range(51)]
         tx = RegisteredNodeCreateTransaction()
+        tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.set_service_endpoints(endpoints)
         tx.operator_account_id = operator_id
         tx.node_account_id = node_account_id
@@ -143,6 +148,7 @@ class TestRegisteredNodeCreateTransaction:
     def test_fails_with_long_description(self, mock_account_ids):
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeCreateTransaction()
+        tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.set_description("x" * 101)
         tx.set_service_endpoints([_make_block_endpoint()])
         tx.operator_account_id = operator_id
