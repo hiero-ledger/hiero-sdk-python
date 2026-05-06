@@ -39,7 +39,12 @@ def create_key(key_type: str, use_private: bool) -> PrivateKey | PublicKey:
     Returns:
         The created key (PrivateKey or PublicKey)
     """
-    private_key = PrivateKey.generate_ed25519() if key_type == "ed25519" else PrivateKey.generate("ecdsa")
+    if key_type == "ed25519":
+        private_key = PrivateKey.generate_ed25519()
+    elif key_type == "ecdsa":
+        private_key = PrivateKey.generate("ecdsa")
+    else:
+        raise ValueError(f"Unsupported key_type: {key_type!r}")
     return private_key if use_private else private_key.public_key()
 
 
@@ -60,9 +65,32 @@ def verify_key_in_proto(proto_key, expected_public_key: PublicKey, key_type: str
     """Verify the proto key matches expected public key."""
     if key_type == "ed25519":
         assert proto_key.ed25519 == expected_public_key.to_bytes_raw()
-    else:  # ecdsa
+    elif key_type == "ecdsa":  # ecdsa
         assert proto_key.HasField("ECDSA_secp256k1")
         assert proto_key.ECDSA_secp256k1 == expected_public_key.to_bytes_raw()
+    else:
+        raise ValueError(f"Unsupported key_type: {key_type!r}")
+
+
+@pytest.mark.parametrize(
+    "key_type,use_private",
+    [
+        ("ed25519", True),
+        ("ed25519", False),
+        ("ecdsa", True),
+        ("ecdsa", False),
+    ],
+)
+def test_topic_update_setters_return_self(key_type, use_private, topic_id):
+    """Fluent setters must return self for the Key-typed API."""
+    key = create_key(key_type, use_private)
+    tx = TopicUpdateTransaction()
+
+    assert tx.set_topic_id(topic_id) is tx
+    assert tx.set_admin_key(key) is tx
+    assert tx.set_submit_key(key) is tx
+    assert tx.set_fee_schedule_key(key) is tx
+    assert tx.set_fee_exempt_keys([key]) is tx
 
 
 @pytest.mark.parametrize(

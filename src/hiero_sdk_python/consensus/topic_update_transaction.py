@@ -51,6 +51,9 @@ class TopicUpdateTransaction(Transaction):
             auto_renew_period (Duration): The auto-renew period for the topic.
             auto_renew_account (AccountId): The account ID for auto-renewal.
             expiration_time (Timestamp): The expiration time of the topic.
+            custom_fees (list[CustomFixedFee]): A list of custom fees to set for the topic.
+            fee_schedule_key (Key): The fee schedule key for the topic.
+            fee_exempt_keys (list[Key]): A list of fee exempt keys for the topic
         """
         super().__init__()
         self.topic_id: TopicId | None = topic_id
@@ -95,10 +98,10 @@ class TopicUpdateTransaction(Transaction):
 
     def set_admin_key(self, key: Key) -> TopicUpdateTransaction:
         """
-        Sets the public admin key for the topic.
+        Sets the admin key for the topic.
 
         Args:
-            Key: The admin key to set.
+            key: The admin key to set.
 
         Returns:
             TopicUpdateTransaction: Returns the instance for method chaining.
@@ -109,10 +112,10 @@ class TopicUpdateTransaction(Transaction):
 
     def set_submit_key(self, key: Key) -> TopicUpdateTransaction:
         """
-        Sets the public submit key for the topic.
+        Sets the submit key for the topic.
 
         Args:
-            Key: The submit key to set.
+            key: The submit key to set.
 
         Returns:
             TopicUpdateTransaction: Returns the instance for method chaining.
