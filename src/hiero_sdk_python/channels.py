@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from collections import namedtuple
 from importlib.metadata import PackageNotFoundError, version
 
