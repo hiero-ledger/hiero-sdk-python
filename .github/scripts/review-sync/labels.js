@@ -137,7 +137,7 @@ async function countApprovals(github, owner, repo, prNumber) {
 
     const permission = await getPermissionLevel(github, owner, repo, username);
 
-    if (permission === 'admin' || permission === 'write') {
+    if (permission === 'admin' || permission === 'maintain' || permission === 'write') {
       writeApproval++;
     } else {
       // read, none, or any unexpected value → soft approval
@@ -205,16 +205,16 @@ async function syncLabel(github, owner, repo, pr, dryRun) {
     `→ ${correctLabel.name}`
   );
 
-  // Check if the correct label is already present
-  if (currentLabels.includes(correctLabel.name)) {
-    console.log(`    ✓ Already has "${correctLabel.name}". No change needed.`);
-    return false;
-  }
-
   // Determine which stale queue labels to remove
   const staleLabels = currentLabels.filter(
     (name) => ALL_QUEUE_LABEL_NAMES.includes(name) && name !== correctLabel.name
   );
+
+  // Check if the correct label is already present AND there are no stale labels to remove
+  if (currentLabels.includes(correctLabel.name) && staleLabels.length === 0) {
+    console.log(`    ✓ Already has "${correctLabel.name}". No change needed.`);
+    return false;
+  }
 
   if (dryRun) {
     console.log(`    [DRY RUN] Would add "${correctLabel.name}".`);
