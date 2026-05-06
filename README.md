@@ -60,6 +60,7 @@ print(f"Balance: {balance.hbars} HBAR")
 ### For SDK Users
 
 - **[Running Examples](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_users/running_examples.md)** - Complete guide to all SDK operations with code examples
+- **[Error Handling](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_users/error_handling.md)** - Guide to handling PrecheckError, ReceiptStatusError, and MaxAttemptsError
 - **[Examples Directory](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/examples)** - Ready-to-run example scripts
 
 ### For SDK Developers

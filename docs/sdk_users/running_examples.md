@@ -2169,6 +2169,15 @@ This guide covers:
 - `Transaction.from_bytes()` for deserialization
 - Use cases for offline signing, HSM integration, transaction storage, and batch processing
 
+### Error Handling
+
+For guidance on catching and inspecting SDK exceptions, see [Error Handling](error_handling.md).
+
+This guide covers:
+- `PrecheckError` for pre-consensus validation failures
+- `ReceiptStatusError` for non-`SUCCESS` receipt statuses
+- `MaxAttemptsError` for exhausted retries or request timeouts
+
 ### PRNG Transaction
 
 #### Pythonic Syntax:
