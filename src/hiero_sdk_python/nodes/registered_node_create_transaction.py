@@ -48,13 +48,7 @@ class RegisteredNodeCreateTransaction(Transaction):
     def _build_proto_body(self) -> RegisteredNodeCreateTransactionBody:
         if self.admin_key is None:
             raise ValueError("admin_key is required")
-        if not self.service_endpoints:
-            raise ValueError("service_endpoints must have at least 1 entry")
-        if len(self.service_endpoints) > 50:
-            raise ValueError("service_endpoints must have at most 50 entries")
-        for ep in self.service_endpoints:
-            if not isinstance(ep, RegisteredServiceEndpoint):
-                raise TypeError("service_endpoints must contain RegisteredServiceEndpoint instances")
+        self._validate_service_endpoints()
         if self.description is not None and len(self.description.encode("utf-8")) > 100:
             raise ValueError("description must be 100 UTF-8 bytes or fewer")
 
@@ -63,6 +57,15 @@ class RegisteredNodeCreateTransaction(Transaction):
             description=self.description or "",
             service_endpoint=[ep._to_proto() for ep in self.service_endpoints],
         )
+
+    def _validate_service_endpoints(self) -> None:
+        if not self.service_endpoints:
+            raise ValueError("service_endpoints must have at least 1 entry")
+        if len(self.service_endpoints) > 50:
+            raise ValueError("service_endpoints must have at most 50 entries")
+        for ep in self.service_endpoints:
+            if not isinstance(ep, RegisteredServiceEndpoint):
+                raise TypeError("service_endpoints must contain RegisteredServiceEndpoint instances")
 
     def build_transaction_body(self) -> TransactionBody:
         body = self._build_proto_body()
