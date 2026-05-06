@@ -9,8 +9,14 @@ from .account.account_records_query import AccountRecordsQuery
 from .account.account_update_transaction import AccountUpdateTransaction
 
 # Address book
+from .address_book.block_node_api import BlockNodeApi
+from .address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
 from .address_book.endpoint import Endpoint
+from .address_book.general_service_endpoint import GeneralServiceEndpoint
+from .address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
 from .address_book.node_address import NodeAddress
+from .address_book.registered_service_endpoint import RegisteredServiceEndpoint
+from .address_book.rpc_relay_service_endpoint import RpcRelayServiceEndpoint
 
 # Client and Network
 from .client.client import Client
