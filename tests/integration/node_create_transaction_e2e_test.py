@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.client.client import Client
@@ -42,7 +43,13 @@ def test_node_create_transaction_can_execute():
     client.set_operator(AccountId(0, 0, 2), original_operator_key)
 
     # The account of the new node
-    account_id = AccountId(0, 0, 4)
+    account_id = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .freeze_with(client)
+        .execute(client)
+        .account_id
+    )
 
     # Description of the new node
     description = "test"
