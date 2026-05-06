@@ -6,7 +6,9 @@ import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTransaction
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
@@ -26,7 +28,153 @@ from tests.unit.mock_server import mock_hedera_servers
 pytestmark = pytest.mark.unit
 
 
-# This test uses fixtures (mock_account_ids, topic_id) as parameters
+def create_key(key_type: str, use_private: bool) -> PrivateKey | PublicKey:
+    """
+    Create a key based on type and whether to use private or public.
+
+    Args:
+        key_type: "ed25519" or "ecdsa"
+        use_private: True for PrivateKey, False for PublicKey
+
+    Returns:
+        The created key (PrivateKey or PublicKey)
+    """
+    private_key = PrivateKey.generate_ed25519() if key_type == "ed25519" else PrivateKey.generate("ecdsa")
+    return private_key if use_private else private_key.public_key()
+
+
+def get_expected_public_key(key: Key) -> PublicKey:
+    """
+    Get the public key from either PrivateKey or PublicKey.
+
+    Args:
+        key: PrivateKey or PublicKey
+
+    Returns:
+        PublicKey
+    """
+    return key if isinstance(key, PublicKey) else key.public_key()
+
+
+def verify_key_in_proto(proto_key, expected_public_key: PublicKey, key_type: str) -> None:
+    """Verify the proto key matches expected public key."""
+    if key_type == "ed25519":
+        assert proto_key.ed25519 == expected_public_key.to_bytes_raw()
+    else:  # ecdsa
+        assert proto_key.HasField("ECDSA_secp256k1")
+        assert proto_key.ECDSA_secp256k1 == expected_public_key.to_bytes_raw()
+
+
+@pytest.mark.parametrize(
+    "key_type,use_private",
+    [
+        ("ed25519", True),
+        ("ed25519", False),
+        ("ecdsa", True),
+        ("ecdsa", False),
+    ],
+)
+def test_build_topic_update_transaction_body_with_all_key_types(mock_account_ids, topic_id, key_type, use_private):
+    """Test building a TopicUpdateTransaction body with different key types."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    admin_key = create_key(key_type, use_private)
+    submit_key = create_key(key_type, use_private)
+    fee_schedule_key = create_key(key_type, use_private)
+    fee_exempt_keys = [
+        create_key(key_type, use_private),
+        create_key(key_type, use_private),
+    ]
+
+    expected_admin_public = get_expected_public_key(admin_key)
+    expected_submit_public = get_expected_public_key(submit_key)
+    expected_fee_schedule_public = get_expected_public_key(fee_schedule_key)
+    expected_fee_exempt_publics = [get_expected_public_key(key) for key in fee_exempt_keys]
+
+    tx = TopicUpdateTransaction(
+        topic_id=topic_id,
+        memo="Updated Memo",
+        admin_key=admin_key,
+        submit_key=submit_key,
+        custom_fees=[CustomFixedFee(1000, fee_collector_account_id=AccountId(0, 0, 9876))],
+        fee_schedule_key=fee_schedule_key,
+        fee_exempt_keys=fee_exempt_keys,
+    )
+
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.node_account_id = node_account_id
+
+    transaction_body = tx.build_transaction_body()
+
+    assert transaction_body.consensusUpdateTopic.topicID.topicNum == 1234
+    assert transaction_body.consensusUpdateTopic.memo.value == "Updated Memo"
+    verify_key_in_proto(transaction_body.consensusUpdateTopic.adminKey, expected_admin_public, key_type)
+    verify_key_in_proto(transaction_body.consensusUpdateTopic.submitKey, expected_submit_public, key_type)
+    verify_key_in_proto(transaction_body.consensusUpdateTopic.fee_schedule_key, expected_fee_schedule_public, key_type)
+    assert len(transaction_body.consensusUpdateTopic.fee_exempt_key_list.keys) == 2
+    verify_key_in_proto(
+        transaction_body.consensusUpdateTopic.fee_exempt_key_list.keys[0], expected_fee_exempt_publics[0], key_type
+    )
+    verify_key_in_proto(
+        transaction_body.consensusUpdateTopic.fee_exempt_key_list.keys[1], expected_fee_exempt_publics[1], key_type
+    )
+    assert len(transaction_body.consensusUpdateTopic.custom_fees.fees) == 1
+
+
+@pytest.mark.parametrize(
+    "key_type,use_private",
+    [
+        ("ed25519", True),
+        ("ed25519", False),
+        ("ecdsa", True),
+        ("ecdsa", False),
+    ],
+)
+def test_build_scheduled_topic_update_body_with_all_key_types(topic_id, key_type, use_private):
+    """Test building scheduled body for TopicUpdateTransaction with different key types."""
+    admin_key = create_key(key_type, use_private)
+    submit_key = create_key(key_type, use_private)
+    fee_schedule_key = create_key(key_type, use_private)
+    fee_exempt_keys = [
+        create_key(key_type, use_private),
+        create_key(key_type, use_private),
+    ]
+
+    expected_admin_public = get_expected_public_key(admin_key)
+    expected_submit_public = get_expected_public_key(submit_key)
+    expected_fee_schedule_public = get_expected_public_key(fee_schedule_key)
+    expected_fee_exempt_publics = [get_expected_public_key(key) for key in fee_exempt_keys]
+
+    tx = TopicUpdateTransaction()
+    tx.set_topic_id(topic_id)
+    tx.set_memo("Scheduled Topic Update")
+    tx.set_admin_key(admin_key)
+    tx.set_submit_key(submit_key)
+    tx.set_auto_renew_period(Duration(8000000))
+    tx.set_auto_renew_account(AccountId(0, 0, 9876))
+    tx.set_custom_fees([CustomFixedFee(1000, fee_collector_account_id=AccountId(0, 0, 9876))])
+    tx.set_fee_schedule_key(fee_schedule_key)
+    tx.set_fee_exempt_keys(fee_exempt_keys)
+
+    schedulable_body = tx.build_scheduled_body()
+
+    assert isinstance(schedulable_body, SchedulableTransactionBody)
+    assert schedulable_body.HasField("consensusUpdateTopic")
+    assert schedulable_body.consensusUpdateTopic.topicID.topicNum == 1234
+    assert schedulable_body.consensusUpdateTopic.memo.value == "Scheduled Topic Update"
+    verify_key_in_proto(schedulable_body.consensusUpdateTopic.adminKey, expected_admin_public, key_type)
+    verify_key_in_proto(schedulable_body.consensusUpdateTopic.submitKey, expected_submit_public, key_type)
+    verify_key_in_proto(schedulable_body.consensusUpdateTopic.fee_schedule_key, expected_fee_schedule_public, key_type)
+    assert len(schedulable_body.consensusUpdateTopic.fee_exempt_key_list.keys) == 2
+    verify_key_in_proto(
+        schedulable_body.consensusUpdateTopic.fee_exempt_key_list.keys[0], expected_fee_exempt_publics[0], key_type
+    )
+    verify_key_in_proto(
+        schedulable_body.consensusUpdateTopic.fee_exempt_key_list.keys[1], expected_fee_exempt_publics[1], key_type
+    )
+    assert len(schedulable_body.consensusUpdateTopic.custom_fees.fees) == 1
+
+
 def test_build_topic_update_transaction_body(mock_account_ids, topic_id):
     """Test building a TopicUpdateTransaction body with valid topic ID and memo."""
     _, _, node_account_id, _, _ = mock_account_ids
