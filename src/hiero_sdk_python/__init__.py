@@ -76,6 +76,9 @@ from .logger.logger import Logger
 from .nodes.node_create_transaction import NodeCreateTransaction
 from .nodes.node_delete_transaction import NodeDeleteTransaction
 from .nodes.node_update_transaction import NodeUpdateTransaction
+from .nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
+from .nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
+from .nodes.registered_node_update_transaction import RegisteredNodeUpdateTransaction
 
 # PRNG
 from .prng_transaction import PrngTransaction
