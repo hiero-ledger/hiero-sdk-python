@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0
+//
 // .github/scripts/review-sync/index.js
 //
 // Entry point for the Review Queue Label Sync cron job.
@@ -5,55 +7,15 @@
 // Responsibilities:
 //   1. Rate-limit guard — abort if remaining calls < 200
 //   2. Fetch all open non-draft PRs (paginated)
-//   3. Ensure the three queue labels exist in the repo
-//   4. Sync the correct label on every PR via labels.js
+//   3. Ensure the four queue labels exist in the repo
+//   4. Sync the correct label on every PR via helpers
 //   5. Print a summary of what changed
 //
 // Phase 1 of 4 — label sync only.
 
-const { QUEUE_LABELS, syncLabel } = require('./labels.js');
-
-const RATE_LIMIT_FLOOR = 200;
-
-/**
- * Ensure a single label exists in the repo.
- * Silently handles 422 (label already exists).
- *
- * Note: checks existence only. If a label already exists with the wrong
- * colour or description, it will not be corrected in Phase 1.
- */
-async function ensureLabel(github, owner, repo, label, dryRun) {
-  try {
-    await github.rest.issues.getLabel({ owner, repo, name: label.name });
-    console.log(`  Label "${label.name}" already exists. Skipping creation.`);
-  } catch (error) {
-    if (error.status === 404) {
-      if (dryRun) {
-        console.log(`  [DRY RUN] Would create label "${label.name}" (${label.color}).`);
-        return;
-      }
-      try {
-        await github.rest.issues.createLabel({
-          owner,
-          repo,
-          name: label.name,
-          color: label.color,
-          description: label.description,
-        });
-        console.log(`  Created label "${label.name}" (#${label.color}).`);
-      } catch (createError) {
-        // 422 = label already exists (race condition or concurrent run)
-        if (createError.status === 422) {
-          console.log(`  Label "${label.name}" already exists (422). Skipping.`);
-        } else {
-          throw createError;
-        }
-      }
-    } else {
-      throw error;
-    }
-  }
-}
+const helpers = require('./helpers');
+const { QUEUE_LABELS, RATE_LIMIT_FLOOR } = helpers.constants;
+const { ensureLabel, syncLabel } = helpers.labels;
 
 module.exports = async ({ github, context, core }) => {
   const dryRun = (process.env.DRY_RUN || 'false').toLowerCase() === 'true';
