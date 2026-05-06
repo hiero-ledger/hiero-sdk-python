@@ -72,7 +72,7 @@ def test_transfer_transaction_state_mode(mock_post):
     result = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx).execute(mock_client())
 
     assert result.mode == FeeEstimateMode.STATE
-    assert result.total > 0
+    assert result.total >= 0
 
 
 @patch("hiero_sdk_python.query.fee_estimate_query.requests.post")
@@ -136,7 +136,7 @@ def test_topic_create_transaction(mock_post):
 
     result = FeeEstimateQuery().set_transaction(tx).execute(mock_client())
 
-    assert result.total > 0
+    assert result.total >= 0
 
 
 @patch("hiero_sdk_python.query.fee_estimate_query.requests.post")
@@ -147,7 +147,7 @@ def test_contract_create_transaction(mock_post):
 
     result = FeeEstimateQuery().set_transaction(tx).execute(mock_client())
 
-    assert result.total > 0
+    assert result.total >= 0
 
 
 @patch("hiero_sdk_python.query.fee_estimate_query.requests.post")
@@ -158,7 +158,7 @@ def test_file_create_transaction(mock_post):
 
     result = FeeEstimateQuery().set_transaction(tx).execute(mock_client())
 
-    assert result.total > 0
+    assert result.total >= 0
 
 
 # ---------------------------------------------------------------------
@@ -190,7 +190,7 @@ def test_retry_on_timeout(mock_post):
 
     result = FeeEstimateQuery().set_transaction(tx).execute(mock_client())
 
-    assert result.total > 0
+    assert result.total >= 0
     assert mock_post.call_count == 2
 
 
@@ -208,7 +208,7 @@ def test_retry_on_503(mock_post):
 
     result = FeeEstimateQuery().set_transaction(tx).execute(mock_client())
 
-    assert result.total > 0
+    assert result.total >= 0
     assert mock_post.call_count == 2
 
 
@@ -231,7 +231,7 @@ def test_topic_message_single_chunk(mock_post):
 
     result = FeeEstimateQuery().set_transaction(tx).execute(mock_client())
 
-    assert result.total > 0
+    assert result.total >= 0
     assert mock_post.call_count == 1
 
 

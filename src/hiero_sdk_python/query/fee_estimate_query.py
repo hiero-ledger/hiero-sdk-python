@@ -128,13 +128,6 @@ class FeeEstimateQuery:
         if "localhost:5551" in url or "127.0.0.1:5551" in url:
             url = url.replace(":5551", ":8084")
 
-        try:
-            self._transaction.freeze_with(client)
-        except (RuntimeError, ValueError) as e:
-            # Ignore if it's already frozen
-            if "already frozen" not in str(e).lower():
-                raise
-
         self._ensure_frozen(self._transaction, client)
 
         if self._is_chunked():
@@ -154,20 +147,8 @@ class FeeEstimateQuery:
 
     def _ensure_frozen(self, tx: Transaction, client) -> None:
         """Ensure the transaction is frozen before serialization."""
-        try:
-            tx._require_frozen()  # pylint: disable=protected-access
-        except (RuntimeError, ValueError):  # fallback
-            if hasattr(tx, "freeze_with"):
-                tx.freeze_with(client)
-            else:
-                tx.freeze()
-
-    def _serialize(self, tx: Transaction, client) -> bytes:
-        """Serialize transaction to protobuf bytes."""
-        if not getattr(tx, "_transaction_body_bytes", None):
-            tx.freeze_with(client)
-
-        return tx.to_bytes()
+        if not tx._transaction_body_bytes:
+            tx.freeze_with(client) if hasattr(tx, "freeze_with") else tx.freeze()
 
     def _post(self, url: str, payload: bytes) -> dict:
         """POST with retry for transient failures."""
@@ -203,8 +184,8 @@ class FeeEstimateQuery:
 
         raise RuntimeError("Unreachable")
 
-    def _execute_single(self, client, url: str, mode: FeeEstimateMode) -> FeeEstimateResponse:
-        data = self._post(url, self._serialize(self._transaction, client))
+    def _execute_single(self, url: str, mode: FeeEstimateMode) -> FeeEstimateResponse:
+        data = self._post(url, self._transaction.to_bytes())
         return self._to_response(data, mode)
 
     def _execute_chunked(self, client, url: str, mode: FeeEstimateMode) -> FeeEstimateResponse:
@@ -225,8 +206,8 @@ class FeeEstimateQuery:
         node_extras: list[FeeExtra] = []
         service_extras: list[FeeExtra] = []
 
-        final_multiplier = 1
-        final_hvm = 1
+        final_multiplier = 0
+        final_hvm = 0
 
         try:
             for i, chunk_tx_id in enumerate(self._transaction._transaction_ids):
