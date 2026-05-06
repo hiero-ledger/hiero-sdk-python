@@ -12,7 +12,10 @@ from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services.node_update_pb2 import NodeUpdateTransactionBody
+from hiero_sdk_python.hapi.services.node_update_pb2 import (
+    AssociatedRegisteredNodeList,
+    NodeUpdateTransactionBody,
+)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -81,6 +84,7 @@ class NodeUpdateTransaction(Transaction):
         self.admin_key: PublicKey | None = node_update_params.admin_key
         self.decline_reward: bool | None = node_update_params.decline_reward
         self.grpc_web_proxy_endpoint: Endpoint | None = node_update_params.grpc_web_proxy_endpoint
+        self.associated_registered_nodes: list[int] | None = None
 
     def set_node_id(self, node_id: int | None) -> NodeUpdateTransaction:
         """
@@ -232,6 +236,56 @@ class NodeUpdateTransaction(Transaction):
         self.grpc_web_proxy_endpoint = grpc_web_proxy_endpoint
         return self
 
+    def set_associated_registered_nodes(self, registered_node_ids: list[int]) -> NodeUpdateTransaction:
+        """
+        Sets the associated registered node IDs for this node update transaction.
+
+        Args:
+            registered_node_ids (list[int]): The registered node IDs to associate.
+
+        Returns:
+            NodeUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes = registered_node_ids
+        return self
+
+    def add_associated_registered_node(self, registered_node_id: int) -> NodeUpdateTransaction:
+        """
+        Adds an associated registered node ID to this node update transaction.
+
+        Args:
+            registered_node_id (int): The registered node ID to add.
+
+        Returns:
+            NodeUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        if self.associated_registered_nodes is None:
+            self.associated_registered_nodes = []
+        self.associated_registered_nodes.append(registered_node_id)
+        return self
+
+    def clear_associated_registered_nodes(self) -> NodeUpdateTransaction:
+        """
+        Clears all associated registered node IDs, which will remove existing
+        associations when the transaction is submitted.
+
+        Returns:
+            NodeUpdateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes = []
+        return self
+
+    @staticmethod
+    def _validate_associated_registered_nodes(ids: list[int]) -> None:
+        if len(ids) > 20:
+            raise ValueError("associated_registered_nodes must have at most 20 entries")
+        for node_id in ids:
+            if not isinstance(node_id, int) or isinstance(node_id, bool) or node_id <= 0:
+                raise ValueError("Each associated registered node ID must be a positive integer")
+
     def _convert_to_proto(self, obj: Any | None) -> Any:
         """Convert object to proto if it exists, otherwise return None."""
         return obj._to_proto() if obj else None
@@ -247,7 +301,10 @@ class NodeUpdateTransaction(Transaction):
         Returns:
             NodeUpdateTransactionBody: The protobuf body for this transaction.
         """
-        return NodeUpdateTransactionBody(
+        if self.associated_registered_nodes is not None:
+            self._validate_associated_registered_nodes(self.associated_registered_nodes)
+
+        body = NodeUpdateTransactionBody(
             node_id=self.node_id,
             account_id=self._convert_to_proto(self.account_id),
             description=(StringValue(value=self.description) if self.description is not None else None),
@@ -263,6 +320,15 @@ class NodeUpdateTransaction(Transaction):
             decline_reward=(BoolValue(value=self.decline_reward) if self.decline_reward is not None else None),
             grpc_proxy_endpoint=self._convert_to_proto(self.grpc_web_proxy_endpoint),
         )
+
+        if self.associated_registered_nodes is not None:
+            body.associated_registered_node_list.CopyFrom(
+                AssociatedRegisteredNodeList(
+                    associated_registered_node=self.associated_registered_nodes,
+                )
+            )
+
+        return body
 
     def build_transaction_body(self) -> TransactionBody:
         """
@@ -302,3 +368,16 @@ class NodeUpdateTransaction(Transaction):
             _Method: An object containing the transaction function to update a node.
         """
         return _Method(transaction_func=channel.address_book.updateNode, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+
+        if transaction_body.HasField("nodeUpdate"):
+            pb = transaction_body.nodeUpdate
+            if pb.HasField("associated_registered_node_list"):
+                transaction.associated_registered_nodes = list(
+                    pb.associated_registered_node_list.associated_registered_node
+                )
+
+        return transaction
