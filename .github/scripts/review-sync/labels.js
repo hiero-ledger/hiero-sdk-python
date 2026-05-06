@@ -177,12 +177,14 @@ function determineLabel(approvals) {
  * Sync the queue label on a single PR.
  *
  * Order of operations (non-negotiable):
- *   1. Check if the correct label is already present → skip if yes
- *   2. ADD the correct label first
- *   3. THEN remove any stale queue labels
+ *   1. Compute stale queue labels on the PR
+ *   2. Skip only if correct label is already present AND no stale labels exist
+ *   3. ADD the correct label first
+ *   4. THEN remove any stale queue labels
  *
  * This ensures a PR never has zero queue labels, even if the process
- * crashes mid-run.
+ * crashes mid-run. Stale labels are always cleaned up, even when the
+ * correct label was already present.
  *
  * @param {object}  github - Octokit instance
  * @param {string}  owner  - Repository owner
