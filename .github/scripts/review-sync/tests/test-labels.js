@@ -39,16 +39,24 @@ const unitTests = [
     },
   },
   {
-    name: 'determineLabel: 1 maintainer → ready-to-merge',
+    name: 'determineLabel: 1 maintainer alone → queue:maintainers (NOT ready-to-merge, needs 2 reviews)',
     test: () => {
+      // Sophie's edge case: maintainer approves first, only 1 total review
       const r = determineLabel({ maintainerApproval: 1, writeApproval: 0, softApproval: 0, anyApproval: 1 });
+      return r.name === 'queue:maintainers';
+    },
+  },
+  {
+    name: 'determineLabel: 1 maintainer + 1 write → ready-to-merge (2 reviews satisfied)',
+    test: () => {
+      const r = determineLabel({ maintainerApproval: 1, writeApproval: 1, softApproval: 0, anyApproval: 2 });
       return r.name === 'ready-to-merge';
     },
   },
   {
-    name: 'determineLabel: 1 maintainer + 1 write → ready-to-merge',
+    name: 'determineLabel: 1 maintainer + 1 soft → ready-to-merge (2 reviews satisfied)',
     test: () => {
-      const r = determineLabel({ maintainerApproval: 1, writeApproval: 1, softApproval: 0, anyApproval: 2 });
+      const r = determineLabel({ maintainerApproval: 1, writeApproval: 0, softApproval: 1, anyApproval: 2 });
       return r.name === 'ready-to-merge';
     },
   },
@@ -103,8 +111,14 @@ const unitTests = [
     name: 'syncLabel: stale label → adds correct, removes stale',
     test: async () => {
       const mock = createMockGithub({
-        roles: { sophie: { role_name: 'maintain', permission: 'write' } },
-        reviews: [{ user: { login: 'sophie' }, state: 'APPROVED', submitted_at: '2026-01-01T00:00:00Z' }],
+        roles: {
+          sophie: { role_name: 'maintain', permission: 'write' },
+          bob: { role_name: 'write', permission: 'write' },
+        },
+        reviews: [
+          { user: { login: 'sophie' }, state: 'APPROVED', submitted_at: '2026-01-01T00:00:00Z' },
+          { user: { login: 'bob' }, state: 'APPROVED', submitted_at: '2026-01-02T00:00:00Z' },
+        ],
       });
       const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:junior-committer' }] }, false);
       return changed === true && mock.calls.labelsAdded.includes('ready-to-merge') && mock.calls.labelsRemoved.includes('queue:junior-committer');
