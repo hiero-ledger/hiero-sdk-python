@@ -111,6 +111,12 @@ async function getFreshIssue(github, owner, repo, issueNumber) {
   return data;
 }
 
+function buildAlreadyAssignedComment({ commenter, issue, repo }) {
+  const currentAssignee = issue.assignees?.[0]?.login ?? "another contributor";
+
+  return `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "${BEGINNER_LABEL}" issues [here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3A%22${encodeURIComponent(BEGINNER_LABEL)}%22+no%3Aassignee).`;
+}
+
 module.exports = async ({ github, context }) => {
   try {
     const { payload } = context;
@@ -272,12 +278,11 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
       // --- ASSIGNMENT LOGIC ---
       if (issue.assignees && issue.assignees.length > 0) {
         try{
-          const currentAssignee = issue.assignees[0]?.login ?? "another contributor";
           await github.rest.issues.createComment({
             owner: repo.owner.login,
             repo: repo.name,
             issue_number: issue.number,
-            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "${BEGINNER_LABEL}" issues [here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3A%22${encodeURIComponent(BEGINNER_LABEL)}%22+no%3Aassignee).`,
+            body: buildAlreadyAssignedComment({ commenter, issue, repo }),
           });
         } catch (error) {
           console.error("[Beginner Bot] Failed to post already-assigned message:", {
@@ -366,12 +371,11 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
 
       if (currentIssue.assignees && currentIssue.assignees.length > 0) {
         try{
-          const currentAssignee = currentIssue.assignees[0]?.login ?? "another contributor";
           await github.rest.issues.createComment({
             owner: repo.owner.login,
             repo: repo.name,
             issue_number: issue.number,
-            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "${BEGINNER_LABEL}" issues [here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3A%22${encodeURIComponent(BEGINNER_LABEL)}%22+no%3Aassignee).`,
+            body: buildAlreadyAssignedComment({ commenter, issue: currentIssue, repo }),
           });
         } catch (error) {
           console.error("[Beginner Bot] Failed to post already-assigned message:", {
