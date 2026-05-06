@@ -31,17 +31,26 @@ class RegisteredServiceEndpoint:
             raise ValueError("Exactly one of ip_address or domain_name must be provided, not both")
         if ip_address is None and domain_name is None:
             raise ValueError("Exactly one of ip_address or domain_name must be provided")
-        if ip_address is not None and (not isinstance(ip_address, bytes) or len(ip_address) not in (4, 16)):
+        if ip_address is not None:
+            RegisteredServiceEndpoint._validate_ip_address(ip_address)
+        else:
+            RegisteredServiceEndpoint._validate_domain_name(domain_name)
+
+    @staticmethod
+    def _validate_ip_address(ip_address: bytes) -> None:
+        if not isinstance(ip_address, bytes) or len(ip_address) not in (4, 16):
             raise ValueError("ip_address must be 4 bytes (IPv4) or 16 bytes (IPv6)")
-        if domain_name is not None:
-            if not isinstance(domain_name, str):
-                raise ValueError("domain_name must be a string")
-            try:
-                domain_name.encode("ascii")
-            except UnicodeEncodeError as err:
-                raise ValueError("domain_name must be ASCII") from err
-            if len(domain_name) > 250:
-                raise ValueError("domain_name must be 250 characters or fewer")
+
+    @staticmethod
+    def _validate_domain_name(domain_name: str) -> None:
+        if not isinstance(domain_name, str):
+            raise ValueError("domain_name must be a string")
+        try:
+            domain_name.encode("ascii")
+        except UnicodeEncodeError as err:
+            raise ValueError("domain_name must be ASCII") from err
+        if len(domain_name) > 250:
+            raise ValueError("domain_name must be 250 characters or fewer")
 
     @staticmethod
     def _validate_port(port: int) -> None:

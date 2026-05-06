@@ -56,24 +56,10 @@ class RegisteredNodeUpdateTransaction(Transaction):
         return self
 
     def _build_proto_body(self) -> RegisteredNodeUpdateTransactionBody:
-        if self.registered_node_id is None:
-            raise ValueError("Missing required registered_node_id")
-        if (
-            not isinstance(self.registered_node_id, int)
-            or isinstance(self.registered_node_id, bool)
-            or self.registered_node_id <= 0
-        ):
-            raise ValueError("registered_node_id must be a positive integer")
+        self._validate_registered_node_id()
         if self.description is not None and len(self.description.encode("utf-8")) > 100:
             raise ValueError("description must be 100 UTF-8 bytes or fewer")
-        if self.service_endpoints is not None:
-            if len(self.service_endpoints) == 0:
-                raise ValueError("service_endpoints must have at least 1 entry when provided")
-            if len(self.service_endpoints) > 50:
-                raise ValueError("service_endpoints must have at most 50 entries")
-            for ep in self.service_endpoints:
-                if not isinstance(ep, RegisteredServiceEndpoint):
-                    raise TypeError("service_endpoints must contain RegisteredServiceEndpoint instances")
+        self._validate_service_endpoints()
 
         body = RegisteredNodeUpdateTransactionBody(
             registered_node_id=self.registered_node_id,
@@ -84,6 +70,27 @@ class RegisteredNodeUpdateTransaction(Transaction):
             for ep in self.service_endpoints:
                 body.service_endpoint.append(ep._to_proto())
         return body
+
+    def _validate_registered_node_id(self) -> None:
+        if self.registered_node_id is None:
+            raise ValueError("Missing required registered_node_id")
+        if (
+            not isinstance(self.registered_node_id, int)
+            or isinstance(self.registered_node_id, bool)
+            or self.registered_node_id <= 0
+        ):
+            raise ValueError("registered_node_id must be a positive integer")
+
+    def _validate_service_endpoints(self) -> None:
+        if self.service_endpoints is None:
+            return
+        if len(self.service_endpoints) == 0:
+            raise ValueError("service_endpoints must have at least 1 entry when provided")
+        if len(self.service_endpoints) > 50:
+            raise ValueError("service_endpoints must have at most 50 entries")
+        for ep in self.service_endpoints:
+            if not isinstance(ep, RegisteredServiceEndpoint):
+                raise TypeError("service_endpoints must contain RegisteredServiceEndpoint instances")
 
     def build_transaction_body(self) -> TransactionBody:
         body = self._build_proto_body()
