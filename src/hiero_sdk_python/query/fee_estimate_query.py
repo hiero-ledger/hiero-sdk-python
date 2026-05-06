@@ -133,7 +133,7 @@ class FeeEstimateQuery:
         if self._is_chunked():
             return self._execute_chunked(client, url, mode)
 
-        return self._execute_single(client, url, mode)
+        return self._execute_single(url, mode)
 
     def _build_url(self, client: Client, mode: FeeEstimateMode) -> str:
         base = f"{client.network.get_mirror_rest_url()}/network/fees"
