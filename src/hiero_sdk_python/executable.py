@@ -464,7 +464,7 @@ class _Executable(ABC):
                 logger.trace("Executing gRPC call", "requestId", self._get_request_id())
                 response = _execute_method(method, proto_request, self._grpc_deadline)
 
-            except Exception as e:
+            except (ValueError, grpc.RpcError) as e:
                 if not self._should_retry_exponentially(e):
                     raise e
 
@@ -584,4 +584,4 @@ def _execute_method(method, proto_request, timeout: float):
         return method.transaction(proto_request, timeout=timeout)
     if method.query is not None:
         return method.query(proto_request, timeout=timeout)
-    raise Exception("No method to execute")
+    raise ValueError("No method to execute: transaction and query are both None")
