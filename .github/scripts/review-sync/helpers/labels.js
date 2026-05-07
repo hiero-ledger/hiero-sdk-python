@@ -63,7 +63,7 @@ async function ensureLabel(github, owner, repo, label, dryRun) {
  *   else                                           → queue:junior-committer (no approvals yet)
  *
  * Note: status: ready-to-merge requires BOTH a maintainer approval AND at least 2
- * total core reviews (maintainer or write). This prevents a single maintainer approval 
+ * total core reviews (maintainer or write). This prevents a single maintainer approval
  * + a soft approval from marking a PR as ready when branch protection requires 2+ core reviews.
  *
  * @param {{ maintainerApproval: number, writeApproval: number, softApproval: number, anyApproval: number }} approvals
