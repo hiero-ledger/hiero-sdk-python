@@ -62,7 +62,7 @@ function buildRecommendationComment(username, issues, completedDisplayName, unlo
   } = homeRepo;
 
   const hasRepoUrl = Boolean(repoUrl);
-  
+
   return [
     CONFIG.commentMarker,
     '',
@@ -82,7 +82,7 @@ function buildRecommendationComment(username, issues, completedDisplayName, unlo
     ] : []),
 
     '',
-    'Happy coding! 🚀', 
+    'Happy coding! 🚀',
     `_— ${botSignature}_`,
   ].join('\n');
 }
