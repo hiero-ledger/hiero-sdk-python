@@ -178,6 +178,8 @@ def test_invalid_argument_error(mock_post):
     with pytest.raises(RuntimeError):
         FeeEstimateQuery().set_transaction(tx).execute(mock_client())
 
+    assert mock_post.call_count == 1, "HTTP 400 (INVALID_ARGUMENT) must not be retried"
+
 
 @patch("hiero_sdk_python.query.fee_estimate_query.requests.post")
 def test_retry_on_timeout(mock_post):

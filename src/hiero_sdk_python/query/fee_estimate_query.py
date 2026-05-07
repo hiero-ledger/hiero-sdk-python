@@ -56,6 +56,8 @@ class FeeEstimateQuery:
 
     def set_mode(self, mode: FeeEstimateMode) -> FeeEstimateQuery:
         """Set the estimation mode (STATE or INTRINSIC)."""
+        if not isinstance(mode, FeeEstimateMode):
+            raise TypeError("mode must be a FeeEstimateMode")
         self._mode = mode
         return self
 
