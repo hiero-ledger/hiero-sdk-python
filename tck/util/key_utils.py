@@ -32,17 +32,17 @@ def get_key_from_string(key_string: str) -> Key:
 
     try:
         return Key.from_bytes(key_bytes)
-    except Exception:
+    except (ValueError, TypeError):
         pass
 
     try:
         return PublicKey.from_string_der(key_string)
-    except Exception:
+    except (ValueError, TypeError):
         pass
 
     try:
         return PrivateKey.from_string_der(key_string)
-    except Exception:
+    except (ValueError, TypeError):
         pass
 
     raise ValueError("Invalid key string")
