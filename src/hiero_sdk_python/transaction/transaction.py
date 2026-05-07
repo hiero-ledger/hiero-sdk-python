@@ -712,19 +712,19 @@ class Transaction(_Executable):
         try:
             transaction_proto = transaction_pb2.Transaction()
             transaction_proto.ParseFromString(transaction_bytes)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             raise ValueError(f"Failed to parse transaction bytes: {e}") from e
 
         try:
             signed_transaction = transaction_contents_pb2.SignedTransaction()
             signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             raise ValueError(f"Failed to parse signed transaction: {e}") from e
 
         try:
             transaction_body = transaction_pb2.TransactionBody()
             transaction_body.ParseFromString(signed_transaction.bodyBytes)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             raise ValueError(f"Failed to parse transaction body: {e}") from e
 
         transaction_type = transaction_body.WhichOneof("data")
