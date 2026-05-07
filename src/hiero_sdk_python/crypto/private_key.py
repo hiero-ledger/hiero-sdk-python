@@ -173,7 +173,7 @@ class PrivateKey(Key):
         """
         try:
             return ed25519.Ed25519PrivateKey.from_private_bytes(key_bytes)
-        except Exception:
+        except (ValueError, TypeError, AttributeError):
             return None
 
     @staticmethod
@@ -187,7 +187,7 @@ class PrivateKey(Key):
             if private_int == 0:
                 return None
             return ec.derive_private_key(private_int, ec.SECP256K1())
-        except Exception:
+        except (ValueError, TypeError):
             return None
 
     @staticmethod
@@ -211,7 +211,7 @@ class PrivateKey(Key):
             if isinstance(private_key, ec.EllipticCurvePrivateKey) and isinstance(private_key.curve, ec.SECP256K1):
                 return private_key
             return None
-        except Exception:
+        except (ValueError, TypeError):
             return None
 
     @classmethod
