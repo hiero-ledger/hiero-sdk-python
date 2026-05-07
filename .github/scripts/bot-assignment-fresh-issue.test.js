@@ -6,7 +6,7 @@ const assert = require('node:assert/strict');
 const runGfiAssignBot = require('./bot-gfi-assign-on-comment.js');
 const runBeginnerAssignBot = require('./bot-beginner-assign-on-comment.js');
 
-function createContext({ labelName, payloadAssignees = [], freshLabels, freshAssignees = [] }) {
+function createContext({ labelName, payloadAssignees = [], freshLabels, freshAssignees = [], freshState = 'open' }) {
   const labels = [{ name: labelName }];
 
   return {
@@ -35,6 +35,7 @@ function createContext({ labelName, payloadAssignees = [], freshLabels, freshAss
     freshIssue: {
       number: 123,
       title: 'Example issue',
+      state: freshState,
       labels: freshLabels ?? labels,
       assignees: freshAssignees,
     },
@@ -119,6 +120,20 @@ describe('assignment bots use fresh issue state before assigning', () => {
     assert.equal(calls.comments.length, 0);
   });
 
+  it('GFI bot exits when the fresh issue is closed before assignment', async () => {
+    const context = createContext({
+      labelName: 'Good First Issue',
+      payloadAssignees: [],
+      freshState: 'closed',
+    });
+    const { github, calls } = createGithubMock(context);
+
+    await runGfiAssignBot({ github, context });
+
+    assert.equal(calls.assignees.length, 0);
+    assert.equal(calls.comments.length, 0);
+  });
+
   it('beginner bot does not assign when webhook payload is stale but issue is now assigned', async () => {
     const context = createContext({
       labelName: 'skill: beginner',
@@ -155,6 +170,20 @@ describe('assignment bots use fresh issue state before assigning', () => {
       labelName: 'skill: beginner',
       payloadAssignees: [],
       freshLabels: [{ name: 'help wanted' }],
+    });
+    const { github, calls } = createGithubMock(context);
+
+    await runBeginnerAssignBot({ github, context });
+
+    assert.equal(calls.assignees.length, 0);
+    assert.equal(calls.comments.length, 0);
+  });
+
+  it('beginner bot exits when the fresh issue is closed before assignment', async () => {
+    const context = createContext({
+      labelName: 'skill: beginner',
+      payloadAssignees: [],
+      freshState: 'closed',
     });
     const { github, calls } = createGithubMock(context);
 

@@ -369,6 +369,11 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
         return;
       }
 
+      if (currentIssue.state !== "open") {
+        console.log(`[Beginner Bot] Issue #${issue.number} is '${currentIssue.state}'. Exiting.`);
+        return;
+      }
+
       if (currentIssue.assignees && currentIssue.assignees.length > 0) {
         try{
           await github.rest.issues.createComment({

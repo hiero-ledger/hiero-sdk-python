@@ -398,6 +398,14 @@ module.exports = async ({ github, context }) => {
             return;
         }
 
+        if (currentIssue.state !== 'open') {
+            console.log('[gfi-assign] Exit: current issue state is not open', {
+                issueNumber,
+                state: currentIssue.state,
+            });
+            return;
+        }
+
         if (currentIssue.assignees?.length > 0) {
             console.log('[gfi-assign] Exit: current issue state is already assigned');
 
