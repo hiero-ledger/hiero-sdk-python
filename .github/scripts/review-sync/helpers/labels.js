@@ -162,6 +162,7 @@ async function syncLabel(github, owner, repo, pr, dryRun) {
       } else {
         const message = error instanceof Error ? error.message : String(error);
         console.error(`    ✗ Failed to remove "${stale}": ${message}`);
+        throw error; // Re-throw to prevent silently leaving PR in a broken multi-label state
       }
     }
   }
