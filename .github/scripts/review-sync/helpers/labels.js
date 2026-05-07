@@ -57,14 +57,14 @@ async function ensureLabel(github, owner, repo, label, dryRun) {
  * Determine the correct queue label for a PR based on approval counts.
  *
  * Phase 1 logic (4-stage pipeline):
- *   maintainerApproval >= 1 AND anyApproval >= 2  → ready-to-merge      (CODEOWNERS + min reviews)
+ *   maintainerApproval >= 1 AND anyApproval >= 2  → status: ready-to-merge      (CODEOWNERS + min reviews)
  *   writeApproval >= 1 OR maintainerApproval >= 1 → queue:maintainers   (senior review present, needs more)
  *   anyApproval >= 1                               → queue:committers    (has any approval, needs committer)
  *   else                                           → queue:junior-committer (no approvals yet)
  *
- * Note: ready-to-merge requires BOTH a maintainer approval AND at least 2
+ * Note: status: ready-to-merge requires BOTH a maintainer approval AND at least 2
  * total reviews. This prevents a single maintainer approval from marking
- * a PR as ready-to-merge when branch protection requires 2+ reviews.
+ * a PR as status: ready-to-merge when branch protection requires 2+ reviews.
  *
  * @param {{ maintainerApproval: number, writeApproval: number, softApproval: number, anyApproval: number }} approvals
  * @returns {object} The correct QUEUE_LABELS entry

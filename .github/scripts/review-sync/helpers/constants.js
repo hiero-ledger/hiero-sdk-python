@@ -33,9 +33,9 @@ const QUEUE_LABELS = {
     description: 'PR awaiting maintainer final review',
   },
   MERGE: {
-    name: 'ready-to-merge',
+    name: 'status: ready-to-merge',
     color: '0e8a16',
-    description: 'PR approved by maintainer and ready to merge',
+    description: 'PR has 1+ maintainer and 2+ total approvals, ready to merge',
   },
 };
 

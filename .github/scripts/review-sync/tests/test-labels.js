@@ -32,14 +32,14 @@ const unitTests = [
     },
   },
   {
-    name: 'determineLabel: 2 write + 0 maintainer → queue:maintainers (NOT ready-to-merge)',
+    name: 'determineLabel: 2 write + 0 maintainer → queue:maintainers (NOT status: ready-to-merge)',
     test: () => {
       const r = determineLabel({ maintainerApproval: 0, writeApproval: 2, softApproval: 0, anyApproval: 2 });
       return r.name === 'queue:maintainers';
     },
   },
   {
-    name: 'determineLabel: 1 maintainer alone → queue:maintainers (NOT ready-to-merge, needs 2 reviews)',
+    name: 'determineLabel: 1 maintainer alone → queue:maintainers (NOT status: ready-to-merge, needs 2 reviews)',
     test: () => {
       // Sophie's edge case: maintainer approves first, only 1 total review
       const r = determineLabel({ maintainerApproval: 1, writeApproval: 0, softApproval: 0, anyApproval: 1 });
@@ -47,17 +47,17 @@ const unitTests = [
     },
   },
   {
-    name: 'determineLabel: 1 maintainer + 1 write → ready-to-merge (2 reviews satisfied)',
+    name: 'determineLabel: 1 maintainer + 1 write → status: ready-to-merge (2 reviews satisfied)',
     test: () => {
       const r = determineLabel({ maintainerApproval: 1, writeApproval: 1, softApproval: 0, anyApproval: 2 });
-      return r.name === 'ready-to-merge';
+      return r.name === 'status: ready-to-merge';
     },
   },
   {
-    name: 'determineLabel: 1 maintainer + 1 soft → ready-to-merge (2 reviews satisfied)',
+    name: 'determineLabel: 1 maintainer + 1 soft → status: ready-to-merge (2 reviews satisfied)',
     test: () => {
       const r = determineLabel({ maintainerApproval: 1, writeApproval: 0, softApproval: 1, anyApproval: 2 });
-      return r.name === 'ready-to-merge';
+      return r.name === 'status: ready-to-merge';
     },
   },
   {
@@ -121,7 +121,7 @@ const unitTests = [
         ],
       });
       const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:junior-committer' }] }, false);
-      return changed === true && mock.calls.labelsAdded.includes('ready-to-merge') && mock.calls.labelsRemoved.includes('queue:junior-committer');
+      return changed === true && mock.calls.labelsAdded.includes('status: ready-to-merge') && mock.calls.labelsRemoved.includes('queue:junior-committer');
     },
   },
   {
