@@ -1,14 +1,14 @@
 """
-Demonstrates the full lifecycle of a registered node on the Hedera network (HIP-1137).
+Demonstrates the full lifecycle of a registered node on the Hedera network.
 
 This example shows how to:
 1. Create a registered node with BlockNodeServiceEndpoint and multiple endpoint APIs
 2. Update the registered node's description and service endpoints
 3. Delete the registered node
 
-NOTE: This is a privileged transaction that requires HIP-1137 support on the network.
-Regular developers do not have the required permissions to manage registered nodes
-on testnet or mainnet as this operation requires special authorization.
+NOTE: This is a privileged transaction. Regular developers do not have the required
+permissions to manage registered nodes on testnet or mainnet as this operation
+requires special authorization.
 
 This example is provided to demonstrate the API for educational purposes or for use
 in private network deployments where you have the necessary administrative privileges.

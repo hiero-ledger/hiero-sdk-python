@@ -1,4 +1,4 @@
-"""Phase 6 hardening tests — validation, status codes, retry, exports."""
+"""Hardening tests for registered node validation, status codes, retry, and exports."""
 
 from __future__ import annotations
 
@@ -33,12 +33,12 @@ def _make_key():
 
 
 # ---------------------------------------------------------------------------
-# HIP-1137 status codes in ResponseCode enum
+# Registered node status codes in ResponseCode enum
 # ---------------------------------------------------------------------------
 
 
-class TestHip1137StatusCodes:
-    """Verify all HIP-1137 status codes are present in the SDK ResponseCode enum."""
+class TestRegisteredNodeStatusCodes:
+    """Verify all registered node status codes are present in the SDK ResponseCode enum."""
 
     @pytest.mark.parametrize(
         "name,value",
@@ -63,7 +63,7 @@ class TestHip1137StatusCodes:
         [529, 530, 531, 532, 533, 534, 535],
     )
     def test_status_codes_are_not_retryable(self, value):
-        """HIP-1137 statuses must NOT be in the retryable set."""
+        """Registered node statuses must NOT be in the retryable set."""
         # The SDK retry classifier only retries these 4 statuses
         retryable = {
             ResponseCode.PLATFORM_TRANSACTION_NOT_CREATED,
@@ -264,7 +264,7 @@ class TestAssociatedRegisteredNodesNonInt:
 
 
 class TestPublicImports:
-    """All intended HIP-1137 public classes must be importable from the package."""
+    """All registered node public classes must be importable from the package."""
 
     @pytest.mark.parametrize(
         "name",

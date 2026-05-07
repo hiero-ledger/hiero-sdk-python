@@ -1,4 +1,4 @@
-"""Tests for HIP-1137 associated registered nodes on NodeCreate/NodeUpdate transactions."""
+"""Tests for associated registered nodes on NodeCreate/NodeUpdate transactions."""
 
 from __future__ import annotations
 

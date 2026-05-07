@@ -1,5 +1,5 @@
 """
-Integration tests for associated_registered_nodes on NodeCreate/NodeUpdate (HIP-1137).
+Integration tests for associated_registered_nodes on NodeCreate/NodeUpdate.
 """
 
 from __future__ import annotations
@@ -89,7 +89,7 @@ def _create_registered_node(client, admin_key):
     return receipt.registered_node_id
 
 
-@pytest.mark.skip(reason="HIP-1137 registered node support not yet available on local-node/solo")
+@pytest.mark.skip(reason="Registered node support not yet available on local-node/solo")
 def test_node_create_with_associated_registered_nodes():
     """Test NodeCreateTransaction with associated_registered_nodes."""
     client = _setup_client()
@@ -103,7 +103,7 @@ def test_node_create_with_associated_registered_nodes():
     assert node_id is not None
 
 
-@pytest.mark.skip(reason="HIP-1137 registered node support not yet available on local-node/solo")
+@pytest.mark.skip(reason="Registered node support not yet available on local-node/solo")
 def test_node_update_set_associated_registered_nodes():
     """Test NodeUpdateTransaction replacing associated_registered_nodes."""
     client = _setup_client()
@@ -128,7 +128,7 @@ def test_node_update_set_associated_registered_nodes():
     assert receipt.status == ResponseCode.SUCCESS, f"Node update failed: {ResponseCode(receipt.status).name}"
 
 
-@pytest.mark.skip(reason="HIP-1137 registered node support not yet available on local-node/solo")
+@pytest.mark.skip(reason="Registered node support not yet available on local-node/solo")
 def test_node_update_clear_associated_registered_nodes():
     """Test NodeUpdateTransaction clearing associated_registered_nodes with empty list."""
     client = _setup_client()

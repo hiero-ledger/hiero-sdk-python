@@ -245,7 +245,7 @@ class TestRegisteredNodeAddressBookQuery:
 
     def test_execute_raises_not_implemented(self):
         q = RegisteredNodeAddressBookQuery()
-        with pytest.raises(NotImplementedError, match="HIP-1137 mirror node API support"):
+        with pytest.raises(NotImplementedError, match="mirror node API support"):
             q.execute()
 
     def test_error_message_is_clear(self):

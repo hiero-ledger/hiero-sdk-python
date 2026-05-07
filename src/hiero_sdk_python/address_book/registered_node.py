@@ -1,4 +1,4 @@
-"""Read-side model for a HIP-1137 registered node."""
+"""Read-side model for a registered node."""
 
 from __future__ import annotations
 

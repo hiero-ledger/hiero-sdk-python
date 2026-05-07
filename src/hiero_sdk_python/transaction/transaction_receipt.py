@@ -181,7 +181,7 @@ class TransactionReceipt:
     @property
     def registered_node_id(self) -> int | None:
         """
-        Returns the registered node ID associated with this receipt (HIP-1137).
+        Returns the registered node ID associated with this receipt.
 
         Returns:
             int or None: The registered node ID if present; otherwise, None.

@@ -1,4 +1,4 @@
-"""Skeleton query for fetching the registered-node address book (HIP-1137)."""
+"""Skeleton query for fetching the registered-node address book."""
 
 from __future__ import annotations
 
@@ -40,6 +40,5 @@ class RegisteredNodeAddressBookQuery:
                 registered-node queries is not yet available in this SDK.
         """
         raise NotImplementedError(
-            "RegisteredNodeAddressBookQuery requires HIP-1137 mirror node API support, "
-            "which is not yet available in this SDK."
+            "RegisteredNodeAddressBookQuery requires mirror node API support, which is not yet available in this SDK."
         )

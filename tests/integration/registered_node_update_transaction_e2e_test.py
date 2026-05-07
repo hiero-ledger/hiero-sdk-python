@@ -1,5 +1,5 @@
 """
-Integration tests for RegisteredNodeUpdateTransaction (HIP-1137).
+Integration tests for RegisteredNodeUpdateTransaction.
 """
 
 from __future__ import annotations

@@ -15,7 +15,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 
 
 class RegisteredNodeCreateTransaction(Transaction):
-    """Creates a new registered node on the network (HIP-1137)."""
+    """Creates a new registered node on the network."""
 
     def __init__(self):
         super().__init__()

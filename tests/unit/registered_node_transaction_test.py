@@ -1,4 +1,4 @@
-"""Tests for HIP-1137 registered node transactions."""
+"""Tests for registered node transactions."""
 
 from __future__ import annotations
 

@@ -13,7 +13,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 
 
 class RegisteredNodeDeleteTransaction(Transaction):
-    """Deletes an existing registered node from the network (HIP-1137)."""
+    """Deletes an existing registered node from the network."""
 
     def __init__(self, registered_node_id: int | None = None):
         super().__init__()

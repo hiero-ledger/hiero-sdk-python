@@ -1,4 +1,4 @@
-"""Read-side container for a collection of HIP-1137 registered nodes."""
+"""Read-side container for a collection of registered nodes."""
 
 from __future__ import annotations
 

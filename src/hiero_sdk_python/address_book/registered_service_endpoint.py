@@ -6,7 +6,7 @@ from hiero_sdk_python.hapi.services.registered_service_endpoint_pb2 import (
 
 
 class RegisteredServiceEndpoint:
-    """Base SDK model for a HIP-1137 registered service endpoint."""
+    """Base SDK model for a registered service endpoint."""
 
     def __init__(
         self,

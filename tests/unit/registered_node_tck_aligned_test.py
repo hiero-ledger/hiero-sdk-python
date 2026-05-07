@@ -1,5 +1,5 @@
 """
-TCK-aligned unit tests for HIP-1137 registered node transactions.
+TCK-aligned unit tests for registered node transactions.
 
 These tests mirror the structure expected by the Hedera TCK (Technology
 Compatibility Kit) for registered node operations. When TCK handlers are
@@ -7,7 +7,7 @@ added for registered nodes, these tests document the expected behaviour.
 
 TODO: Add TCK JSON-RPC handlers (tck/handlers/registered_node.py) and
       corresponding param/response dataclasses once the TCK specification
-      for HIP-1137 is finalized.
+      for registered nodes is finalized.
 """
 
 from __future__ import annotations
