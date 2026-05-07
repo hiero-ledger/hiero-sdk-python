@@ -105,7 +105,7 @@ class PublicKey(Key):
         # 2) Delegate to ed25519 cryptography library for curve-point validation
         try:
             ed_pub = ed25519.Ed25519PublicKey.from_public_bytes(pub)
-        except Exception as e:
+        except ValueError as e:
             # Error raised if bytes do not form a valid Ed25519 public point
             raise ValueError(f"Invalid Ed25519 public key bytes: {e}") from e
         # 3) Return the validated public key
@@ -177,7 +177,7 @@ class PublicKey(Key):
         """
         try:
             maybe_pub = serialization.load_der_public_key(der_bytes)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             raise ValueError(f"Could not parse DER public key: {e}") from e
 
         # If its Ed25519, delegate to cryptography Ed25519 library for point decoding and validation
