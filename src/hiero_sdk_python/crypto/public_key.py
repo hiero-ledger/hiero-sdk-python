@@ -140,7 +140,7 @@ class PublicKey(Key):
         # 2) Delegate to cryptography ec library for point decoding and validation
         try:
             ec_pub = ec.EllipticCurvePublicKey.from_encoded_point(ec.SECP256K1(), pub)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             # Raised if bytes do not correspond to a valid curve point
             raise ValueError(f"Invalid ECDSA public key bytes: {e}") from e
 

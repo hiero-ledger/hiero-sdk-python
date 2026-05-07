@@ -101,7 +101,7 @@ class TransactionId:
             valid_start = timestamp_pb2.Timestamp(seconds=int(seconds_str), nanos=int(nanos_str))
 
             return cls(account_id, valid_start, scheduled=scheduled)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             if isinstance(e, ValueError) and "suffix" in str(e):
                 raise e
             raise ValueError(f"Invalid TransactionId string format: {original_string}") from e
