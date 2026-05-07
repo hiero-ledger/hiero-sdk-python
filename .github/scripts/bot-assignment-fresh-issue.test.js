@@ -6,7 +6,9 @@ const assert = require('node:assert/strict');
 const runGfiAssignBot = require('./bot-gfi-assign-on-comment.js');
 const runBeginnerAssignBot = require('./bot-beginner-assign-on-comment.js');
 
-function createContext({ labelName, payloadAssignees = [], freshAssignees = [] }) {
+function createContext({ labelName, payloadAssignees = [], freshLabels, freshAssignees = [] }) {
+  const labels = [{ name: labelName }];
+
   return {
     repo: {
       owner: 'hiero-ledger',
@@ -19,7 +21,7 @@ function createContext({ labelName, payloadAssignees = [], freshAssignees = [] }
       },
       issue: {
         number: 123,
-        labels: [{ name: labelName }],
+        labels,
         assignees: payloadAssignees,
       },
       comment: {
@@ -33,13 +35,13 @@ function createContext({ labelName, payloadAssignees = [], freshAssignees = [] }
     freshIssue: {
       number: 123,
       title: 'Example issue',
-      labels: [{ name: labelName }],
+      labels: freshLabels ?? labels,
       assignees: freshAssignees,
     },
   };
 }
 
-function createGithubMock(context) {
+function createGithubMock(context, { freshIssueError } = {}) {
   const calls = {
     comments: [],
     assignees: [],
@@ -48,7 +50,12 @@ function createGithubMock(context) {
   const github = {
     rest: {
       issues: {
-        get: async () => ({ data: context.freshIssue }),
+        get: async () => {
+          if (freshIssueError) {
+            throw freshIssueError;
+          }
+          return { data: context.freshIssue };
+        },
         createComment: async (params) => {
           calls.comments.push(params);
           return { data: {} };
@@ -83,6 +90,35 @@ describe('assignment bots use fresh issue state before assigning', () => {
     assert.match(calls.comments[0].body, /@current-assignee/);
   });
 
+  it('GFI bot exits safely when fresh issue fetch fails before assignment', async () => {
+    const context = createContext({
+      labelName: 'Good First Issue',
+      payloadAssignees: [],
+    });
+    const { github, calls } = createGithubMock(context, {
+      freshIssueError: Object.assign(new Error('GitHub API unavailable'), { status: 503 }),
+    });
+
+    await runGfiAssignBot({ github, context });
+
+    assert.equal(calls.assignees.length, 0);
+    assert.equal(calls.comments.length, 0);
+  });
+
+  it('GFI bot exits when the fresh issue is no longer a Good First Issue', async () => {
+    const context = createContext({
+      labelName: 'Good First Issue',
+      payloadAssignees: [],
+      freshLabels: [{ name: 'help wanted' }],
+    });
+    const { github, calls } = createGithubMock(context);
+
+    await runGfiAssignBot({ github, context });
+
+    assert.equal(calls.assignees.length, 0);
+    assert.equal(calls.comments.length, 0);
+  });
+
   it('beginner bot does not assign when webhook payload is stale but issue is now assigned', async () => {
     const context = createContext({
       labelName: 'skill: beginner',
@@ -97,5 +133,34 @@ describe('assignment bots use fresh issue state before assigning', () => {
     assert.equal(calls.comments.length, 1);
     assert.match(calls.comments[0].body, /already assigned/i);
     assert.match(calls.comments[0].body, /@current-assignee/);
+  });
+
+  it('beginner bot exits safely when fresh issue fetch fails before assignment', async () => {
+    const context = createContext({
+      labelName: 'skill: beginner',
+      payloadAssignees: [],
+    });
+    const { github, calls } = createGithubMock(context, {
+      freshIssueError: Object.assign(new Error('GitHub API unavailable'), { status: 503 }),
+    });
+
+    await runBeginnerAssignBot({ github, context });
+
+    assert.equal(calls.assignees.length, 0);
+    assert.equal(calls.comments.length, 0);
+  });
+
+  it('beginner bot exits when the fresh issue no longer has the beginner label', async () => {
+    const context = createContext({
+      labelName: 'skill: beginner',
+      payloadAssignees: [],
+      freshLabels: [{ name: 'help wanted' }],
+    });
+    const { github, calls } = createGithubMock(context);
+
+    await runBeginnerAssignBot({ github, context });
+
+    assert.equal(calls.assignees.length, 0);
+    assert.equal(calls.comments.length, 0);
   });
 });
