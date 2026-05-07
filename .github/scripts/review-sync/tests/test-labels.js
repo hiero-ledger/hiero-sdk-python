@@ -54,10 +54,10 @@ const unitTests = [
     },
   },
   {
-    name: 'determineLabel: 1 maintainer + 1 soft → status: ready-to-merge (2 reviews satisfied)',
+    name: 'determineLabel: 1 maintainer + 1 soft → queue:maintainers (soft approvals do not count as core review)',
     test: () => {
       const r = determineLabel({ maintainerApproval: 1, writeApproval: 0, softApproval: 1, anyApproval: 2 });
-      return r.name === 'status: ready-to-merge';
+      return r.name === 'queue:maintainers';
     },
   },
   {

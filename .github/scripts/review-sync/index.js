@@ -88,4 +88,8 @@ module.exports = async ({ github, context, core }) => {
   console.log(`  Labels changed: ${changed}`);
   console.log(`  Labels already correct: ${skipped}`);
   console.log(`  Errors: ${errors}`);
+
+  if (errors > 0) {
+    process.exitCode = 1;
+  }
 };
