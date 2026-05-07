@@ -21,6 +21,9 @@ class BlockNodeServiceEndpoint(RegisteredServiceEndpoint):
         super().__init__(ip_address=ip_address, domain_name=domain_name, port=port, requires_tls=requires_tls)
         if endpoint_apis is None or len(endpoint_apis) == 0:
             raise ValueError("endpoint_apis must be non-empty")
+        for api in endpoint_apis:
+            if isinstance(api, bool):
+                raise TypeError("endpoint_apis values must be BlockNodeApi, not bool")
         self.endpoint_apis: list[BlockNodeApi] = [BlockNodeApi(api) for api in endpoint_apis]
 
     def _set_endpoint_type(self, proto: RegisteredServiceEndpointProto) -> None:
@@ -38,6 +41,8 @@ class BlockNodeServiceEndpoint(RegisteredServiceEndpoint):
         requires_tls: bool,
     ) -> BlockNodeServiceEndpoint:
         apis = [BlockNodeApi(v) for v in proto.block_node.endpoint_api]
+        if not apis:
+            apis = [BlockNodeApi.OTHER]
         return cls(
             ip_address=ip_address,
             domain_name=domain_name,
