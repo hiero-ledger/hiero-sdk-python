@@ -14,8 +14,11 @@ permissions:
 
 jobs:
   request-triage:
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'Good First Issue') || contains(github.event.pull_request.labels.*.name, 'skill: beginner') || contains(github.event.pull_request.labels.*.name, 'beginner') }}
-    runs-on: [self-hosted,hl-sdk-py-lin-md]
+    if: >
+      contains(github.event.pull_request.labels.*.name, 'Good First Issue') ||
+      contains(github.event.pull_request.labels.*.name, 'skill: beginner') ||
+      contains(github.event.pull_request.labels.*.name, 'beginner')
+    runs-on: [self-hosted, hl-sdk-py-lin-md]
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -29,15 +32,15 @@ jobs:
           script: |
             const tag = "<!-- triage -->";
             const { data: comments } = await github.rest.issues.listComments({
-                                         owner: context.repo.owner,
-                                         repo: context.repo.repo,
-                                         issue_number: context.payload.pull_request.number
-                                    });
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
             if (!comments.some(c => c.body?.includes(tag))) {
-                await github.rest.issues.createComment({
-                 owner: context.repo.owner,
-                  repo: context.repo.repo,
-                   issue_number: context.payload.pull_request.number,
-             body: `${tag} Requesting triage review from: @hiero-ledger/hiero-sdk-python-triage`
-               });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `${tag} Requesting triage review from: @hiero-ledger/hiero-sdk-python-triage`
+              });
             }
