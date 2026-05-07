@@ -14,7 +14,7 @@ const RATE_LIMIT_FLOOR = 200;
  * The four mutually exclusive queue labels managed by this bot.
  *
  * Flow:
- *   queue:junior-committer → queue:committers → queue:maintainers → ready-to-merge
+ *   queue:junior-committer → queue:committers → queue:maintainers → status: ready-to-merge
  */
 const QUEUE_LABELS = {
   JUNIOR: {
