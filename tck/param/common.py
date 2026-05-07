@@ -35,7 +35,7 @@ class CommonTransactionParams:
         if self.transactionId is not None:
             try:
                 transaction.set_transaction_id(TransactionId.from_string(self.transactionId))
-            except Exception:
+            except (ValueError, TypeError):
                 transaction.set_transaction_id(TransactionId.generate(AccountId.from_string(self.transactionId)))
 
         # TODO add a max_transaction_fee sdk missing func

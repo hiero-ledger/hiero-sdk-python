@@ -7,6 +7,7 @@ import os
 from dataclasses import dataclass, field
 
 from flask import Flask, jsonify, request
+from werkzeug.exceptions import BadRequest
 
 from tck.errors import JsonRpcError
 from tck.handlers import safe_dispatch
@@ -48,7 +49,7 @@ def json_rpc_endpoint():
 
     try:
         request_json = request.get_json(force=True)
-    except Exception:
+    except (BadRequest, TypeError):
         error = JsonRpcError.parse_error()
         return jsonify(build_json_rpc_error_response(error, None))
 
