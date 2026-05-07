@@ -64,19 +64,15 @@ def registered_node_lifecycle():
         endpoint_apis=[BlockNodeApi.STATUS, BlockNodeApi.SUBSCRIBE_STREAM],
     )
 
-    try:
-        receipt = (
-            RegisteredNodeCreateTransaction()
-            .set_admin_key(admin_key.public_key())
-            .set_description("Example block node")
-            .set_service_endpoints([block_endpoint])
-            .freeze_with(client)
-            .sign(admin_key)
-            .execute(client)
-        )
-    except Exception as e:
-        print(f"Registered node creation failed: {e}")
-        sys.exit(1)
+    receipt = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(admin_key.public_key())
+        .set_description("Example block node")
+        .set_service_endpoints([block_endpoint])
+        .freeze_with(client)
+        .sign(admin_key)
+        .execute(client)
+    )
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"Registered node creation failed: {ResponseCode(receipt.status).name}")
@@ -94,19 +90,15 @@ def registered_node_lifecycle():
         requires_tls=True,
     )
 
-    try:
-        receipt = (
-            RegisteredNodeUpdateTransaction()
-            .set_registered_node_id(registered_node_id)
-            .set_description("Updated block + mirror node")
-            .set_service_endpoints([block_endpoint, mirror_endpoint])
-            .freeze_with(client)
-            .sign(admin_key)
-            .execute(client)
-        )
-    except Exception as e:
-        print(f"Registered node update failed: {e}")
-        sys.exit(1)
+    receipt = (
+        RegisteredNodeUpdateTransaction()
+        .set_registered_node_id(registered_node_id)
+        .set_description("Updated block + mirror node")
+        .set_service_endpoints([block_endpoint, mirror_endpoint])
+        .freeze_with(client)
+        .sign(admin_key)
+        .execute(client)
+    )
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"Registered node update failed: {ResponseCode(receipt.status).name}")
@@ -117,17 +109,13 @@ def registered_node_lifecycle():
     # ── Step 3: Delete the registered node ──────────────────────────
     print("\n--- Deleting registered node ---")
 
-    try:
-        receipt = (
-            RegisteredNodeDeleteTransaction()
-            .set_registered_node_id(registered_node_id)
-            .freeze_with(client)
-            .sign(admin_key)
-            .execute(client)
-        )
-    except Exception as e:
-        print(f"Registered node deletion failed: {e}")
-        sys.exit(1)
+    receipt = (
+        RegisteredNodeDeleteTransaction()
+        .set_registered_node_id(registered_node_id)
+        .freeze_with(client)
+        .sign(admin_key)
+        .execute(client)
+    )
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"Registered node deletion failed: {ResponseCode(receipt.status).name}")
