@@ -28,6 +28,11 @@ const CONFIG = {
       owner: 'hiero-ledger',
       repo:  'hiero-sdk-python',
       isHome: true,
+      repositoryUrl: 'https://github.com/hiero-ledger/hiero-sdk-python',
+        communityLinks: {
+          discord: 'https://discord.com/invite/hyperledger',
+        },
+      botSignature: 'Hiero Python SDK Team',
       labels: {
         gfi:          GOOD_FIRST_ISSUE_LABEL,
         beginner:     BEGINNER_LABEL,
@@ -47,7 +52,6 @@ const CONFIG = {
     },
   ],
 
-  repositoryUrl: 'https://github.com/hiero-ledger/hiero-sdk-python',
   maxRecommendations: 5,
   fetchPerPage:       50,
   commentMarker:      '<!-- hiero-next-issue-bot -->',

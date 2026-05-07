@@ -53,8 +53,16 @@ function buildMilestoneBlock(unlockedLevelKey) {
  * @returns {string} Fully rendered comment body.
  */
 function buildRecommendationComment(username, issues, completedDisplayName, unlockedLevelKey = null) {
-  const repoUrl = CONFIG.repositoryUrl ?? '';
+  const homeRepo = CONFIG.repos.find(r => r.isHome) || {};
+
+  const {
+    repositoryUrl: repoUrl = '',
+    communityLinks = {},
+    botSignature = 'Hiero Team',
+  } = homeRepo;
+
   const hasRepoUrl = Boolean(repoUrl);
+  
   return [
     CONFIG.commentMarker,
     '',
@@ -68,11 +76,14 @@ function buildRecommendationComment(username, issues, completedDisplayName, unlo
     '🌟 **Stay connected:**',
     `- ⭐ [Star this repository](${repoUrl})`,
     `- 👀 [Watch for new issues](${repoUrl}/watchers)`,
-    `- 💬 [Join us on Discord](${repoUrl}/blob/main/docs/discord.md)`,
-    ]:[]),
+    ...(communityLinks?.discord
+      ? [`- 💬 [Join us on Discord](${communityLinks.discord})`]
+      : []),
+    ] : []),
+
     '',
-    'Happy coding! 🚀',
-    '_— Hiero Python SDK Team_',
+    'Happy coding! 🚀', 
+    `_— ${botSignature}_`,
   ].join('\n');
 }
 
