@@ -294,11 +294,4 @@ class FeeEstimateQuery:
         ]
 
     def _is_chunked(self) -> bool:
-        from hiero_sdk_python.consensus.topic_message_submit_transaction import (
-            TopicMessageSubmitTransaction,
-        )
-        from hiero_sdk_python.file.file_append_transaction import (
-            FileAppendTransaction,
-        )
-
-        return isinstance(self._transaction, (TopicMessageSubmitTransaction | FileAppendTransaction))
+        return self._transaction.get_required_chunks() > 1
