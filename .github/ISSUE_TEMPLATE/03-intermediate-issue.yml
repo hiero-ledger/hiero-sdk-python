@@ -1,6 +1,6 @@
 name: Intermediate Issue Template
 description: Create a well-documented issue for contributors ready to own larger tasks independently
-labels: ["intermediate"]
+labels: ["skill: intermediate"]
 assignees: []
 body:
   - type: markdown
@@ -248,7 +248,7 @@ body:
         **Project references:**
         - [Project structure](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/training/setup/project_structure.md)
         - [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
-        - [Browse closed intermediate PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3Aintermediate) — see how others did it
+        - [Browse closed intermediate PRs](https://github.com/hiero-ledger/hiero-sdk-python/pulls?q=is%3Apr+is%3Amerged+label%3A%22skill%3A+intermediate%22) — see how others did it
         - [Pylance guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/pylance.md)
 
         **Protobuf references:**

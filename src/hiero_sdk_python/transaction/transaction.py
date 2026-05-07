@@ -192,8 +192,12 @@ class Transaction(_Executable):
             # We initialize the signature map for this body_bytes if it doesn't exist yet
             self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap())
 
-            # Append the signature pair to the signature map for this transaction body
-            self._signature_map[body_bytes].sigPair.append(sig_pair)
+            # deduplication check
+            already_signed = any(sp.pubKeyPrefix == public_key_bytes for sp in self._signature_map[body_bytes].sigPair)
+
+            # append only if not already signed
+            if not already_signed:
+                self._signature_map[body_bytes].sigPair.append(sig_pair)
 
         return self
 

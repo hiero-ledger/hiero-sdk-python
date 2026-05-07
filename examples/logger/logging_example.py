@@ -19,11 +19,9 @@ from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
-    AccountId,
     Client,
     Logger,
     LogLevel,
-    Network,
     PrivateKey,
 )
 
@@ -31,29 +29,16 @@ from hiero_sdk_python import (
 load_dotenv()
 
 
-def setup_client():
+def setup_client() -> Client:
     """
-    Set up and configure the Hiero client with network and operator credentials.
+    Setup Client.
 
     Returns:
         Client: Configured Hiero client ready for use
     """
-    # Retrieving network type from environment variable HEDERA_NETWORK
-    network_name = os.getenv("HEDERA_NETWORK", "testnet")
-
-    # Network setup
-    network = Network(network_name)
-    print(f"Connecting to Hedera {network_name} network!")
-    client = Client(network)
-
-    # Retrieving operator credentials from environment variables
-    operator_id = AccountId.from_string(os.getenv("OPERATOR_ID", ""))
-    operator_key = PrivateKey.from_string(os.getenv("OPERATOR_KEY", ""))
-
-    # Setting the client operator ID and key
-    client.set_operator(operator_id, operator_key)
+    client = Client.from_env()
+    print(f"Network: {client.network.network}")
     print(f"Client set up with operator id {client.operator_account_id}")
-
     return client
 
 
