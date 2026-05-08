@@ -4,13 +4,35 @@
 
 const { CONFIG } = require('../config');
 
+/**
+ * Escapes user-controlled issue titles before inserting them into Markdown.
+ *
+ * Prevents broken formatting and accidental mentions in bot comments.
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function escapeMarkdownText(text) {
+  return String(text)
+    .replace(/\\/g, '\\\\')
+    .replace(/\[/g, '\\[')
+    .replace(/\]/g, '\\]')
+    .replace(/\(/g, '\\(')
+    .replace(/\)/g, '\\)')
+    .replace(/`/g, '\\`')
+    .replace(/\*/g, '\\*')
+    .replace(/_/g, '\\_')
+    .replace(/@/g, '@\u200B');
+}
+
 function buildIssueListBlock(issues = []) {
   if (issues.length > 0) {
     return [
       'Here are some issues you might want to explore next:',
       '',
       ...issues.map(i => {
-        const title = i?.title ?? 'Untitled issue';
+        const rawTitle = i?.title ?? 'Untitled issue';
+        const title = escapeMarkdownText(rawTitle);
         const url   = i?.html_url ?? '#';
         return `- [${title}](${url})`;
       }),
