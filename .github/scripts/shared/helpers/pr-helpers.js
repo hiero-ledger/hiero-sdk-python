@@ -33,10 +33,23 @@ function extractLinkedIssueNumber(prBody) {
  */
 async function alreadyCommented(github, owner, repo, prNumber) {
   try {
-    const { data } = await github.rest.issues.listComments({
-      owner, repo, issue_number: prNumber, per_page: 100,
-    });
-    return data.some(c => c.body?.includes(CONFIG.commentMarker));
+    for await (const page of github.paginate.iterator(
+      github.rest.issues.listComments,
+      {
+        owner,
+        repo,
+        issue_number: prNumber,
+        per_page: 100,
+      },
+    )) {
+      const found = page.data.some(comment =>
+        comment.body?.includes(CONFIG.commentMarker),
+      );
+
+      if (found) return true;
+    }
+
+    return false;
   } catch {
     return false;
   }
