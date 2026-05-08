@@ -29,19 +29,30 @@ function validateRepoLabels(repos) {
     }
   }
 }
+const LEVEL_KEYS = {
+  GFI: 'gfi',
+  BEGINNER: 'beginner',
+  INTERMEDIATE: 'intermediate',
+  ADVANCED: 'advanced',
+};
 
 const CONFIG = {
   // Internal canonical keys — never used as label strings directly.
   // GFI is index 0 and is entry-only: never recommended after first completion.
-  skillHierarchy: ['gfi', 'beginner', 'intermediate', 'advanced'],
+  skillHierarchy: [
+  LEVEL_KEYS.GFI,
+  LEVEL_KEYS.BEGINNER,
+  LEVEL_KEYS.INTERMEDIATE,
+  LEVEL_KEYS.ADVANCED,
+  ],
 
   // requiredLevel: canonical key the contributor must have completed N times
   // requiredCount: completions needed (0 = no prerequisite)
   skillPrerequisites: {
-    gfi:          { requiredLevel: null,           requiredCount: 0, displayName: 'Good First Issue' },
-    beginner:     { requiredLevel: 'gfi',          requiredCount: 1, displayName: 'Beginner'         },
-    intermediate: { requiredLevel: 'beginner',     requiredCount: 3, displayName: 'Intermediate'     },
-    advanced:     { requiredLevel: 'intermediate', requiredCount: 3, displayName: 'Advanced'         },
+    [LEVEL_KEYS.GFI]:          { requiredLevel: null,           requiredCount: 0, displayName: 'Good First Issue' },
+    [LEVEL_KEYS.BEGINNER]:     { requiredLevel: 'LEVEL_KEYS.GFI',          requiredCount: 1, displayName: 'Beginner'         },
+    [LEVEL_KEYS.INTERMEDIATE]: { requiredLevel: 'LEVEL_KEYS.BEGINNER',     requiredCount: 3, displayName: 'Intermediate'     },
+    [LEVEL_KEYS.ADVANCED]:     { requiredLevel: 'LEVEL_KEYS.INTERMEDIATE', requiredCount: 3, displayName: 'Advanced'         },
   },
 
   // Repos tried in order for each fallback step.
@@ -84,4 +95,5 @@ validateRepoLabels(CONFIG.repos);
 
 module.exports = {
   CONFIG,
+  LEVEL_KEYS,
 };

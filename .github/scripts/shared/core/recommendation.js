@@ -2,7 +2,7 @@
 // Core recommendation logic
 // ---------------------------------------------------------------------------
 
-const { CONFIG } = require('../config');
+const { CONFIG, LEVEL_KEYS } = require('../config');
 const { filterIssuesByLevel } = require('../helpers/utils');
 const { fetchIssuesBatch } = require('../api/github-api');
 const {
@@ -22,7 +22,7 @@ function computeLevelStepIndices(completedLevelKey, eligibleLevelKey) {
   const h            = CONFIG.skillHierarchy;
   const completedIdx = h.indexOf(completedLevelKey);
   const eligibleIdx  = h.indexOf(eligibleLevelKey);
-  const beginnerIdx  = h.indexOf('beginner');
+  const beginnerIdx  = h.indexOf(LEVEL_KEYS.BEGINNER);
 
   const levelUp   = completedIdx + 1 <= eligibleIdx ? completedIdx + 1 : null;
   const same      = completedIdx;
