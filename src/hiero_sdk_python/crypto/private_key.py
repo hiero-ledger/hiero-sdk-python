@@ -199,7 +199,7 @@ class PrivateKey(Key):
         # Try to parse the key as a legacy ECDSA key first
         try:
             return PrivateKey._parse_legacy_ecdsa_der_key(key_bytes)
-        except Exception:
+        except (ValueError, TypeError):
             pass
 
         try:
@@ -249,7 +249,7 @@ class PrivateKey(Key):
         try:
             private_key = PrivateKey._parse_legacy_ecdsa_der_key(der_data)
             return cls(private_key)
-        except Exception:
+        except (ValueError, TypeError):
             pass
 
         try:
