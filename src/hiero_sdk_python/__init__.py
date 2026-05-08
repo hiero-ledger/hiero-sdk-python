@@ -77,6 +77,9 @@ from .prng_transaction import PrngTransaction
 # Queries
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.account_info_query import AccountInfoQuery
+
+# Fee Estimate
+from .query.fee_estimate_query import FeeEstimateQuery
 from .query.token_info_query import TokenInfoQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
 from .query.topic_info_query import TopicInfoQuery
@@ -248,6 +251,8 @@ __all__ = [
     "Timestamp",
     "Duration",
     "StakingInfo",
+    # Fee Estimate
+    "FeeEstimateQuery",
     # File
     "FileCreateTransaction",
     "FileAppendTransaction",
