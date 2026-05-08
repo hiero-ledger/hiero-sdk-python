@@ -34,12 +34,29 @@ def test_constructor():
     assert query.account_id == account_id
 
 
-def test_execute_fails_with_missing_account_id(mock_client):
-    """Test request creation with missing Account ID."""
+def test_execute_fails_with_missing_account_id():
+    """Test request execution with missing Account ID throws PrecheckError."""
+    from hiero_sdk_python.exceptions import PrecheckError
+
     query = AccountInfoQuery()
 
-    with pytest.raises(ValueError, match=r"Account ID must be set before making the request\."):
-        query.execute(mock_client)
+    response_sequences = [
+        [
+            response_pb2.Response(
+                cryptoGetInfo=crypto_get_info_pb2.CryptoGetInfoResponse(
+                    header=response_header_pb2.ResponseHeader(
+                        nodeTransactionPrecheckCode=ResponseCode.INVALID_ACCOUNT_ID,
+                        responseType=ResponseType.ANSWER_ONLY,
+                        cost=0,
+                    )
+                )
+            )
+        ]
+    ]
+    with mock_hedera_servers(response_sequences) as client:
+        with pytest.raises(PrecheckError) as exc_info:
+            query.execute(client)
+        assert exc_info.value.status == ResponseCode.INVALID_ACCOUNT_ID
 
 
 def test_get_method():

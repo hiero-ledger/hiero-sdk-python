@@ -12,6 +12,7 @@ import grpc
 from dotenv import load_dotenv
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.channels import _UserAgentInterceptor
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
@@ -199,6 +200,8 @@ class Client:
             self.mirror_channel = grpc.secure_channel(mirror_address, grpc.ssl_channel_credentials())
         else:
             self.mirror_channel = grpc.insecure_channel(mirror_address)
+
+        self.mirror_channel = grpc.intercept_channel(self.mirror_channel, _UserAgentInterceptor())
         self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self.mirror_channel)
 
     def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> None:
