@@ -48,6 +48,13 @@ from .Duration import Duration
 # Errors
 from .exceptions import PrecheckError, ReceiptStatusError
 
+# Fee
+from .fees.fee_estimate import FeeEstimate
+from .fees.fee_estimate_mode import FeeEstimateMode
+from .fees.fee_estimate_response import FeeEstimateResponse
+from .fees.fee_extra import FeeExtra
+from .fees.network_fee import NetworkFee
+
 # File
 from .file.file_append_transaction import FileAppendTransaction
 from .file.file_contents_query import FileContentsQuery
@@ -77,6 +84,7 @@ from .prng_transaction import PrngTransaction
 # Queries
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.account_info_query import AccountInfoQuery
+from .query.fee_estimate_query import FeeEstimateQuery
 from .query.token_info_query import TokenInfoQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
 from .query.topic_info_query import TopicInfoQuery
@@ -227,6 +235,7 @@ __all__ = [
     "TopicDeleteTransaction",
     "TopicId",
     # Queries
+    "FeeEstimateQuery",
     "TopicInfoQuery",
     "TopicMessageQuery",
     "TransactionGetReceiptQuery",
@@ -257,6 +266,12 @@ __all__ = [
     "FileContentsQuery",
     "FileUpdateTransaction",
     "FileDeleteTransaction",
+    # Fee
+    "FeeEstimateMode",
+    "FeeEstimate",
+    "FeeEstimateResponse",
+    "FeeExtra",
+    "NetworkFee",
     # Contract
     "ContractCreateTransaction",
     "ContractCallQuery",
