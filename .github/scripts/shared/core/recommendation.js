@@ -43,7 +43,7 @@ function buildFallbackChain(completedLevelKey, eligibleLevelKey) {
     .flatMap(i => {
       const levelKey = CONFIG.skillHierarchy[i];
       // Hard block: GFI is entry-only and must never appear in recommendations.
-      if (levelKey === 'gfi') return [];
+      if (levelKey === LEVEL_KEYS.GFI) return [];
       return CONFIG.repos.map(repoConfig => ({ levelKey, repoConfig }));
     });
 }

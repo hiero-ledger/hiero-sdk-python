@@ -12,7 +12,7 @@ const { CONFIG } = require('../config');
  * @returns {string|null} Label string or null if not defined.
  */
 function repoLabelFor(repoConfig, levelKey) {
-  return repoConfig.labels[levelKey] ?? null;
+  return repoConfig?.labels[levelKey] ?? null;
 }
 
 function hasLabel(issue, labelName) {

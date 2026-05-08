@@ -82,6 +82,8 @@ test('adjustEligibilityForCurrentPR does not downgrade higher eligibility', () =
 test('fallback chain includes repos for eligible levels only', () => {
   const chain = buildFallbackChain('intermediate', 'advanced');
 
+  assert.ok(chain.length > 0, 'expected non-empty fallback chain');
+
   const validLevels = new Set(CONFIG.skillHierarchy);
 
   for (const entry of chain) {

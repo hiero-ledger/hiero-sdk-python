@@ -150,6 +150,8 @@ function adjustEligibilityForCurrentPR(completedKey, eligibleKey) {
   const completedIdx = h.indexOf(completedKey);
   const eligibleIdx = h.indexOf(eligibleKey);
 
+  if (completedIdx === -1 || eligibleIdx === -1) return eligibleKey;
+
   return eligibleIdx <= completedIdx
     ? h[Math.min(completedIdx + 1, h.length - 1)]
     : eligibleKey;

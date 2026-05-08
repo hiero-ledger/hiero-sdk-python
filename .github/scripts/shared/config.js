@@ -50,9 +50,9 @@ const CONFIG = {
   // requiredCount: completions needed (0 = no prerequisite)
   skillPrerequisites: {
     [LEVEL_KEYS.GFI]:          { requiredLevel: null,           requiredCount: 0, displayName: 'Good First Issue' },
-    [LEVEL_KEYS.BEGINNER]:     { requiredLevel: 'LEVEL_KEYS.GFI',          requiredCount: 1, displayName: 'Beginner'         },
-    [LEVEL_KEYS.INTERMEDIATE]: { requiredLevel: 'LEVEL_KEYS.BEGINNER',     requiredCount: 3, displayName: 'Intermediate'     },
-    [LEVEL_KEYS.ADVANCED]:     { requiredLevel: 'LEVEL_KEYS.INTERMEDIATE', requiredCount: 3, displayName: 'Advanced'         },
+    [LEVEL_KEYS.BEGINNER]:     { requiredLevel: LEVEL_KEYS.GFI,          requiredCount: 1, displayName: 'Beginner'         },
+    [LEVEL_KEYS.INTERMEDIATE]: { requiredLevel: LEVEL_KEYS.BEGINNER,     requiredCount: 3, displayName: 'Intermediate'     },
+    [LEVEL_KEYS.ADVANCED]:     { requiredLevel: LEVEL_KEYS.INTERMEDIATE, requiredCount: 3, displayName: 'Advanced'         },
   },
 
   // Repos tried in order for each fallback step.

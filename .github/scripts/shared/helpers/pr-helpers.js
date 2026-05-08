@@ -14,8 +14,11 @@ const { CONFIG } = require('../config');
  * @returns {number|null} Linked issue number, or null if none found.
  */
 function extractLinkedIssueNumber(prBody) {
+  if (typeof prBody !== 'string') {
+    return null;
+  }
   const safe  = prBody.length > 50000 ? prBody.substring(0, 50000) : prBody;
-  const regex = /(fixes|closes|resolves|fix|close|resolve):?\s*(?:[\w-]+\/[\w-]+)?#(\d+)/gi;
+  const regex = /\b(fixes|closes|resolves|fix|close|resolve)\b:?\s*(?:[\w-]+\/[\w-]+)?#(\d+)/gi;
   const match = regex.exec(safe);
   return match ? parseInt(match[2], 10) : null;
 }
