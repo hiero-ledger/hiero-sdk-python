@@ -7,6 +7,29 @@ const {
   ADVANCED_LABEL,
 } = require('./labels');
 
+const { isSafeLabel } = require('./helpers/validation');
+
+/**
+ * Validates configured repository label strings.
+ *
+ * Labels are interpolated into GitHub search queries, so invalid or unsafe
+ * values should fail fast during module initialization.
+ *
+ * @param {Array<object>} repos
+ */
+
+function validateRepoLabels(repos) {
+  for (const repo of repos) {
+    for (const [level, label] of Object.entries(repo.labels ?? {})) {
+      if (!isSafeLabel(label)) {
+        throw new Error(
+          `Unsafe label configured for ${repo.owner}/${repo.repo} (${level}): "${label}"`
+        );
+      }
+    }
+  }
+}
+
 const CONFIG = {
   // Internal canonical keys — never used as label strings directly.
   // GFI is index 0 and is entry-only: never recommended after first completion.
@@ -56,6 +79,8 @@ const CONFIG = {
   fetchPerPage:       50,
   commentMarker:      '<!-- hiero-next-issue-bot -->',
 };
+
+validateRepoLabels(CONFIG.repos);
 
 module.exports = {
   CONFIG,
