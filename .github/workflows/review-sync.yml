@@ -23,7 +23,7 @@ on:
         type: string
 
 permissions:
-  pull-requests: read
+  pull-requests: write
   issues: write
   contents: read
 
