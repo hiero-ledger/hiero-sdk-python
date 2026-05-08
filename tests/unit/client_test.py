@@ -527,3 +527,39 @@ def test_get_node_account_ids_raises_when_no_nodes():
         client.get_node_account_ids()
 
     client.close()
+
+
+def test_for_network_creates_client_from_public_node_mapping():
+    """Test Client.for_network creates a client from address -> account ID mappings."""
+    client = Client.for_network(
+        {
+            "127.0.0.1:50211": AccountId(0, 0, 3),
+            "127.0.0.1:50212": "0.0.4",
+        },
+        mirror_address="localhost:5600",
+        ledger_id=b"\x03",
+    )
+
+    assert isinstance(client, Client)
+    assert client.network.network == "custom"
+    assert client.network.get_mirror_address() == "localhost:5600"
+    assert client.network.ledger_id == b"\x03"
+    assert [node._account_id for node in client.network.nodes] == [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+    assert client.operator is None
+
+    client.close()
+
+
+def test_for_network_preserves_custom_network_name():
+    """Test Client.for_network stores caller-provided logical network name."""
+    client = Client.for_network(
+        [("node-a.example.com:50211", "0.0.7")],
+        network="private-testnet",
+        mirror_address="mirror.example.com:443",
+    )
+
+    assert client.network.network == "private-testnet"
+    assert client.network.get_mirror_address() == "mirror.example.com:443"
+    assert client.get_node_account_ids() == [AccountId(0, 0, 7)]
+
+    client.close()
