@@ -15,4 +15,5 @@ module.exports = {
   permissions: require('./permissions'),
   reviews: require('./reviews'),
   labels: require('./labels'),
+  status: require('./status'),
 };
