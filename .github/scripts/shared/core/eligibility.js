@@ -167,7 +167,7 @@ function getNextLevelInfo(currentLevelKey) {
  *   observed completed count === requiredCount
  *
  * Uses a capped query (requiredCount + 1) for efficiency.
- * 
+ *
  * @param {import('@actions/github').GitHub} github
  * @param {object} homeRepo
  * @param {string} username
