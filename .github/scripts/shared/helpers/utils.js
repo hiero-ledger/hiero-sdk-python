@@ -25,12 +25,16 @@ function hasLabel(issue, labelName) {
 /**
  * Filters issues by a specific skill level and caps the result size.
  */
-function filterIssuesByLevel(issues, levelKey, repoConfig) {
+function filterIssuesByLevel(issues, levelKey, repoConfig, excludeIssueNumber = null) {
   const labelString = repoLabelFor(repoConfig, levelKey);
   if (!labelString) return [];
 
   return issues
-    .filter(issue => hasLabel(issue, labelString))
+    .filter(issue =>
+      hasLabel(issue, labelString) &&
+      issue.pull_request == null &&
+      issue.number !== excludeIssueNumber
+    )
     .slice(0, CONFIG.maxRecommendations);
 }
 

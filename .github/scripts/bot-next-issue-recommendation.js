@@ -55,28 +55,28 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  const issueNumber = extractLinkedIssueNumber(prBody);
-  if (!issueNumber) {
+  const linkedIssueNumber = extractLinkedIssueNumber(prBody);
+  if (!linkedIssueNumber) {
     core.info('No linked issue found in PR body, skipping');
     return;
   }
 
-  core.info(`Linked issue: #${issueNumber}`);
+  core.info(`Linked issue: #${linkedIssueNumber}`);
 
   let issue;
   try {
     const { data } = await github.rest.issues.get({
-      owner, repo, issue_number: issueNumber,
+      owner, repo, issue_number: linkedIssueNumber,
     });
     issue = data;
   } catch (error) {
-    core.warning(`Could not fetch issue #${issueNumber}: ${error.message}`);
+    core.warning(`Could not fetch issue #${linkedIssueNumber}: ${error.message}`);
     return;
   }
 
   const completedLevelKey = getHighestSkillLevelKey(issue, homeRepo);
   if (!completedLevelKey) {
-    core.info(`Issue #${issueNumber} has no recognised skill level label, skipping`);
+    core.info(`Issue #${linkedIssueNumber} has no recognised skill level label, skipping`);
     return;
   }
 
@@ -86,7 +86,7 @@ module.exports = async ({ github, context, core }) => {
 
   let result;
   try {
-    result = await getRecommendedIssues(github, homeRepo, username, completedLevelKey, core);
+    result = await getRecommendedIssues(github, homeRepo, username, completedLevelKey, linkedIssueNumber, core);
   } catch (error) {
     core.error(`Error generating recommendations: ${error.message}`);
     return;

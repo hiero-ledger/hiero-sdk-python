@@ -89,7 +89,7 @@ async function prefetchIssues(github, core) {
  * @param {object} core            - @actions/core logger.
  * @returns {Promise<{ issues: Array, fromRepo: string|null, unlockedLevelKey: string|null }>}
  */
-async function getRecommendedIssues(github, homeRepo, username, completedLevelKey, core) {
+async function getRecommendedIssues(github, homeRepo, username, completedLevelKey, linkedIssueNumber, core) {
   const [eligibleLevelKey, unlockedLevelKey] = await Promise.all([
     resolveEligibleLevel(github, homeRepo, username),
     detectUnlockedLevel(github, homeRepo, username, completedLevelKey),
@@ -108,7 +108,7 @@ async function getRecommendedIssues(github, homeRepo, username, completedLevelKe
     // Skip if the fetch failed (null) or the repo is missing from the cache (undefined).
     if (issues == null) continue;
 
-    const picked = filterIssuesByLevel(issues, levelKey, repoConfig);
+    const picked = filterIssuesByLevel(issues, levelKey, repoConfig, linkedIssueNumber);
     if (picked.length > 0) {
       core.info(`Recommending ${levelKey} issues from ${repoKey}`);
       return { issues: picked, fromRepo: repoKey, unlockedLevelKey };
