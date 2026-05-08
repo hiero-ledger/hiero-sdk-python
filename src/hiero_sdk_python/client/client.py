@@ -20,7 +20,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.logger.logger import Logger, LogLevel
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
-from .network import Network
+from .network import Network, NetworkNodesInput
 
 
 DEFAULT_MAX_QUERY_PAYMENT = Hbar(1)
@@ -151,6 +151,42 @@ class Client:
             Client: A Client instance configured for previewnet.
         """
         return cls(Network("previewnet"))
+
+    @classmethod
+    def for_network(
+        cls,
+        nodes: NetworkNodesInput,
+        *,
+        mirror_address: str | None = None,
+        network: str = "custom",
+        ledger_id: bytes | None = None,
+    ) -> Client:
+        """Create a client configured with caller-provided consensus nodes.
+
+        ``nodes`` may be a mapping of ``address -> account_id`` or a sequence
+        containing ``(address, account_id)`` tuples and/or pre-built internal
+        ``_Node`` objects. Account IDs may be ``AccountId`` instances or
+        ``shard.realm.num`` strings. This avoids requiring SDK users to import
+        private ``_Node`` internals when connecting to Solo, local, or private
+        networks.
+
+        Args:
+            nodes: Consensus node configuration for this client.
+            mirror_address: Optional mirror gRPC address used for subscriptions.
+            network: Logical network name stored on the client.
+            ledger_id: Optional ledger ID for checksum-aware entity IDs.
+
+        Returns:
+            Client: A Client instance configured for the supplied network.
+        """
+        return cls(
+            Network.from_nodes(
+                nodes,
+                network=network,
+                mirror_address=mirror_address,
+                ledger_id=ledger_id,
+            )
+        )
 
     def _init_mirror_stub(self) -> None:
         """
