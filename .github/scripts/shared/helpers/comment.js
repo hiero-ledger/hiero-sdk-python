@@ -4,6 +4,8 @@
 
 const { CONFIG } = require('../config');
 
+const MARKDOWN_ESCAPE_REGEX = /[[\]()`*_\\]/g;
+
 /**
  * Escapes user-controlled issue titles before inserting them into Markdown.
  *
@@ -14,14 +16,7 @@ const { CONFIG } = require('../config');
  */
 function escapeMarkdownText(text) {
   return String(text)
-    .replace(/\\/g, '\\\\')
-    .replace(/\[/g, '\\[')
-    .replace(/\]/g, '\\]')
-    .replace(/\(/g, '\\(')
-    .replace(/\)/g, '\\)')
-    .replace(/`/g, '\\`')
-    .replace(/\*/g, '\\*')
-    .replace(/_/g, '\\_')
+    .replace(MARKDOWN_ESCAPE_REGEX, '\\$&')
     .replace(/@/g, '@\u200B');
 }
 
