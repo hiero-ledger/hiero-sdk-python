@@ -26,8 +26,8 @@ async function countClosedIssuesByAssignee(github, owner, repo, username, labelS
       per_page: Math.min(cap, 100),
     });
     return data.items.length;
-  } catch {
-    return null;
+  } catch (err) {
+    console.warn(`[github-api] countClosedIssuesByAssignee failed for ${username} in ${owner}/${repo}: ${err.message}`);
   }
 }
 
@@ -57,8 +57,8 @@ async function fetchIssuesBatch(github, repoConfig) {
     });
 
     return data.items ?? [];
-  } catch {
-    return null;
+  } catch (err) {
+    console.warn(`[github-api] fetchIssuesBatch failed for ${repoConfig.owner}/${repoConfig.repo}: ${err.message}`);
   }
 }
 
