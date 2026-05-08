@@ -50,8 +50,15 @@ module.exports = async ({ github, context, core }) => {
   core.info(`Processing PR #${prNumber} by @${username}`);
 
   const { owner, repo } = homeRepo;
-  if (await alreadyCommented(github, owner, repo, prNumber)) {
-    core.info('Recommendation already posted, skipping');
+  try {
+      if (await alreadyCommented(github, owner, repo, prNumber)) {
+        core.info('Recommendation already posted, skipping');
+      return;
+    }
+  } catch (error) {
+    core.warning(
+      `Could not verify existing recommendation comment on PR #${prNumber}: ${error.message}; skipping to avoid duplicate post`,
+    );
     return;
   }
 
