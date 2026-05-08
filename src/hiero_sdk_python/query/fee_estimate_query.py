@@ -67,6 +67,10 @@ class FeeEstimateQuery:
 
     def set_transaction(self, transaction: Transaction) -> FeeEstimateQuery:
         """Attach the transaction to estimate."""
+        from hiero_sdk_python.transaction.transaction import Transaction
+
+        if not isinstance(transaction, Transaction):
+            raise TypeError(f"transaction must be an instance of Transaction, got {type(transaction).__name__}")
         self._transaction = transaction
         return self
 

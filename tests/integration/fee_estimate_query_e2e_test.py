@@ -33,7 +33,6 @@ def test_can_execute_fee_estimation_query2(env):
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
     result = query.execute(env.client)
 
-    print(type(result.total))
     assert result is not None
 
 
