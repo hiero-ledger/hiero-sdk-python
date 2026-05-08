@@ -160,13 +160,14 @@ function getNextLevelInfo(currentLevelKey) {
 }
 
 /**
- * Detects if the contributor just unlocked the next level.
+ * Detects whether the contributor appears to have just unlocked
+ * the next level based on current GitHub issue search results.
  *
  * Trigger condition:
- *   completed count === requiredCount
+ *   observed completed count === requiredCount
  *
  * Uses a capped query (requiredCount + 1) for efficiency.
- *
+ * 
  * @param {import('@actions/github').GitHub} github
  * @param {object} homeRepo
  * @param {string} username
