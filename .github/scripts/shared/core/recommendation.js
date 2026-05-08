@@ -87,9 +87,10 @@ async function prefetchIssues(github, core) {
  * @param {string} username        - GitHub login of the contributor.
  * @param {string} completedLevelKey - Canonical key of the level just completed.
  * @param {object} core            - @actions/core logger.
+ * @param {{ owner: string, repo: string, issueNumber: number } | null} linkedIssue - Linked issue identity to exclude from recommendations.
  * @returns {Promise<{ issues: Array, fromRepo: string|null, unlockedLevelKey: string|null }>}
  */
-async function getRecommendedIssues(github, homeRepo, username, completedLevelKey, linkedIssueNumber, core) {
+async function getRecommendedIssues(github, homeRepo, username, completedLevelKey, linkedIssue, core) {
   const [eligibleLevelKey, unlockedLevelKey] = await Promise.all([
     resolveEligibleLevel(github, homeRepo, username),
     detectUnlockedLevel(github, homeRepo, username, completedLevelKey),
@@ -108,7 +109,7 @@ async function getRecommendedIssues(github, homeRepo, username, completedLevelKe
     // Skip if the fetch failed (null) or the repo is missing from the cache (undefined).
     if (issues == null) continue;
 
-    const picked = filterIssuesByLevel(issues, levelKey, repoConfig, linkedIssueNumber);
+    const picked = filterIssuesByLevel(issues, levelKey, repoConfig, linkedIssue);
     if (picked.length > 0) {
       core.info(`Recommending ${levelKey} issues from ${repoKey}`);
       return { issues: picked, fromRepo: repoKey, unlockedLevelKey };

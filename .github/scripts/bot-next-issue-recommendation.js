@@ -86,7 +86,18 @@ module.exports = async ({ github, context, core }) => {
 
   let result;
   try {
-    result = await getRecommendedIssues(github, homeRepo, username, completedLevelKey, linkedIssueNumber, core);
+    result = await getRecommendedIssues(
+      github,
+      homeRepo,
+      username,
+      completedLevelKey,
+      {
+        owner,
+        repo,
+        issueNumber: linkedIssueNumber
+      },
+      core,
+    );
   } catch (error) {
     core.error(`Error generating recommendations: ${error.message}`);
     return;

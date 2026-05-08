@@ -25,16 +25,24 @@ function hasLabel(issue, labelName) {
 /**
  * Filters issues by a specific skill level and caps the result size.
  */
-function filterIssuesByLevel(issues, levelKey, repoConfig, excludeIssueNumber = null) {
+function filterIssuesByLevel(issues, levelKey, repoConfig, excludeIssue = null) {
   const labelString = repoLabelFor(repoConfig, levelKey);
   if (!labelString) return [];
 
   return issues
-    .filter(issue =>
-      hasLabel(issue, labelString) &&
-      issue.pull_request == null &&
-      issue.number !== excludeIssueNumber
-    )
+    .filter(issue => {
+      const isExcluded =
+        excludeIssue &&
+        repoConfig.owner === excludeIssue.owner &&
+        repoConfig.repo === excludeIssue.repo &&
+        issue.number === excludeIssue.issueNumber;
+
+      return (
+        hasLabel(issue, labelString) &&
+        issue.pull_request == null &&
+        !isExcluded
+      );
+    })
     .slice(0, CONFIG.maxRecommendations);
 }
 
