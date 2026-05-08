@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import secrets
 import time
-from typing import Any
+from collections.abc import Mapping, Sequence
+from typing import Any, TypeAlias
 
 import requests
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
 from hiero_sdk_python.node import _Node
+
+
+NodeAccountIdInput: TypeAlias = AccountId | str
+NodeInput: TypeAlias = _Node | tuple[str, NodeAccountIdInput]
+NetworkNodesInput: TypeAlias = Mapping[str, NodeAccountIdInput] | Sequence[NodeInput]
 
 
 class Network:
@@ -74,7 +80,7 @@ class Network:
     def __init__(
         self,
         network: str = "testnet",
-        nodes: list[_Node] | None = None,
+        nodes: NetworkNodesInput | None = None,
         mirror_address: str | None = None,
         ledger_id: bytes | None = None,
     ) -> None:
@@ -122,7 +128,91 @@ class Network:
         self._node_index: int = secrets.randbelow(len(self._healthy_nodes))
         self.current_node: _Node = self._healthy_nodes[self._node_index]
 
-    def _set_network_nodes(self, nodes: list[_Node] | None = None):
+    @classmethod
+    def from_nodes(
+        cls,
+        nodes: NetworkNodesInput,
+        *,
+        network: str = "custom",
+        mirror_address: str | None = None,
+        ledger_id: bytes | None = None,
+    ) -> Network:
+        """Create a network from caller-provided consensus node addresses.
+
+        This public constructor is intended for private networks, local Solo
+        deployments, and tests where SDK users already know the consensus node
+        account IDs and host:port pairs. ``nodes`` may be either a mapping of
+        ``address -> account_id`` or a sequence containing ``(address, account_id)``
+        tuples and/or pre-built internal ``_Node`` objects. Account IDs may be
+        provided as ``AccountId`` objects or ``shard.realm.num`` strings.
+
+        Args:
+            nodes: Node configuration to use instead of fetching from a mirror node.
+            network: Logical network name to store on the Network instance.
+            mirror_address: Optional mirror gRPC address used for topic subscriptions.
+            ledger_id: Optional ledger ID for checksum-aware entity IDs.
+
+        Returns:
+            Network: A configured custom Network instance.
+
+        Raises:
+            TypeError: If nodes is not a supported mapping or sequence.
+            ValueError: If no nodes are supplied or a node entry is malformed.
+        """
+        normalized_nodes = cls._normalize_nodes(nodes)
+        return cls(
+            network=network,
+            nodes=normalized_nodes,
+            mirror_address=mirror_address,
+            ledger_id=ledger_id,
+        )
+
+    @staticmethod
+    def _normalize_nodes(nodes: NetworkNodesInput) -> list[_Node]:
+        """Normalize public node configuration into internal ``_Node`` objects."""
+        if isinstance(nodes, Mapping):
+            node_items = list(nodes.items())
+        elif isinstance(nodes, Sequence) and not isinstance(nodes, (str, bytes, bytearray)):
+            node_items = list(nodes)
+        else:
+            raise TypeError("nodes must be a mapping or sequence of node definitions")
+
+        if not node_items:
+            raise ValueError("nodes must contain at least one node")
+
+        return [Network._normalize_node(node) for node in node_items]
+
+    @staticmethod
+    def _normalize_node(node: NodeInput | tuple[str, NodeAccountIdInput]) -> _Node:
+        """Normalize one public node definition into an internal ``_Node``."""
+        if isinstance(node, _Node):
+            return node
+
+        if not isinstance(node, tuple) or len(node) != 2:
+            raise ValueError("node entries must be _Node instances or (address, account_id) tuples")
+
+        address, account_id = node
+        if not isinstance(address, str) or not address.strip():
+            raise ValueError("node address must be a non-empty string")
+
+        return _Node(
+            Network._normalize_account_id(account_id),
+            address.strip(),
+            None,
+        )
+
+    @staticmethod
+    def _normalize_account_id(account_id: NodeAccountIdInput) -> AccountId:
+        """Normalize a public node account ID value into an ``AccountId``."""
+        if isinstance(account_id, AccountId):
+            return account_id
+
+        if isinstance(account_id, str):
+            return AccountId.from_string(account_id.strip())
+
+        raise TypeError("node account_id must be an AccountId or string")
+
+    def _set_network_nodes(self, nodes: NetworkNodesInput | None = None):
         """Configure the consensus nodes used by this network."""
         final_nodes = self._resolve_nodes(nodes)
 
@@ -140,9 +230,9 @@ class Network:
                 continue
             self._healthy_nodes.append(node)
 
-    def _resolve_nodes(self, nodes: list[_Node] | None) -> list[_Node]:
+    def _resolve_nodes(self, nodes: NetworkNodesInput | None) -> list[_Node]:
         if nodes:
-            return nodes
+            return self._normalize_nodes(nodes)
 
         if self.network in ("solo", "localhost", "local"):
             return self._fetch_nodes_from_default_nodes()
