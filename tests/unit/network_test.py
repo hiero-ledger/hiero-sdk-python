@@ -449,3 +449,100 @@ def test_resolve_nodes_fallback_to_default(monkeypatch):
     assert all(isinstance(n, _Node) for n in resolved_nodes)
     assert len(resolved_nodes) == expected_count
     assert resolved_nodes[0]._account_id == network.DEFAULT_NODES[network_name][0][1]
+
+
+def test_from_nodes_accepts_address_account_mapping():
+    """Test custom network creation from a public address -> account ID mapping."""
+    network = Network.from_nodes(
+        {
+            "127.0.0.1:50211": AccountId(0, 0, 3),
+            "127.0.0.2:50211": "0.0.4",
+        },
+        mirror_address="localhost:5600",
+        ledger_id=b"\x03",
+    )
+
+    assert network.network == "custom"
+    assert network.get_mirror_address() == "localhost:5600"
+    assert network.ledger_id == b"\x03"
+    assert [node._account_id for node in network.nodes] == [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+    assert [str(node._address) for node in network.nodes] == ["127.0.0.1:50211", "127.0.0.2:50211"]
+    assert not network.is_transport_security()
+
+
+def test_from_nodes_accepts_tuple_sequence_and_network_name():
+    """Test custom network creation from a sequence of tuple node definitions."""
+    network = Network.from_nodes(
+        [
+            ("node-a.example.com:50211", "0.0.7"),
+            ("node-b.example.com:50211", AccountId(0, 0, 8)),
+        ],
+        network="private-testnet",
+        mirror_address="mirror.example.com:443",
+    )
+
+    assert network.network == "private-testnet"
+    assert network.get_mirror_address() == "mirror.example.com:443"
+    assert [node._account_id for node in network.nodes] == [AccountId(0, 0, 7), AccountId(0, 0, 8)]
+    assert [str(node._address) for node in network.nodes] == [
+        "node-a.example.com:50211",
+        "node-b.example.com:50211",
+    ]
+
+
+def test_from_nodes_accepts_prebuilt_node_instances():
+    """Test custom network creation can still accept internal _Node objects."""
+    node = _Node(AccountId(0, 0, 9), "127.0.0.1:50211", None)
+
+    network = Network.from_nodes([node], network="solo")
+
+    assert network.nodes == [node]
+    assert network.current_node == node
+
+
+@pytest.mark.parametrize("nodes", [{}, []])
+def test_from_nodes_rejects_empty_custom_network(nodes):
+    """Test custom networks must include at least one node."""
+    with pytest.raises(ValueError, match="nodes must contain at least one node"):
+        Network.from_nodes(nodes)
+
+
+@pytest.mark.parametrize("nodes", [None, "127.0.0.1:50211", b"127.0.0.1:50211", 123, object()])
+def test_from_nodes_rejects_invalid_collection_type(nodes):
+    """Test custom networks validate the top-level nodes collection type."""
+    with pytest.raises(TypeError, match="nodes must be a mapping or sequence of node definitions"):
+        Network.from_nodes(nodes)
+
+
+@pytest.mark.parametrize(
+    "node_entry",
+    [
+        ("127.0.0.1:50211",),
+        ("127.0.0.1:50211", "0.0.3", "extra"),
+        ["127.0.0.1:50211", "0.0.3"],
+        object(),
+    ],
+)
+def test_from_nodes_rejects_malformed_node_entries(node_entry):
+    """Test custom networks validate each node entry shape."""
+    with pytest.raises(ValueError, match="node entries must be _Node instances or"):
+        Network.from_nodes([node_entry])
+
+
+@pytest.mark.parametrize("address", ["", "   ", None, 123])
+def test_from_nodes_rejects_invalid_node_address(address):
+    """Test custom networks require non-empty string node addresses."""
+    with pytest.raises(ValueError, match="node address must be a non-empty string"):
+        Network.from_nodes([(address, "0.0.3")])
+
+
+def test_from_nodes_rejects_invalid_account_id_type():
+    """Test custom networks reject account IDs that are not strings or AccountId objects."""
+    with pytest.raises(TypeError, match="node account_id must be an AccountId or string"):
+        Network.from_nodes([("127.0.0.1:50211", 3)])
+
+
+def test_from_nodes_rejects_invalid_account_id_string():
+    """Test custom networks surface AccountId parsing errors for malformed account strings."""
+    with pytest.raises(ValueError, match="Invalid account ID"):
+        Network.from_nodes([("127.0.0.1:50211", "not-an-account")])
