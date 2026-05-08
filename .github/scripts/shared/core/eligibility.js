@@ -59,75 +59,96 @@ async function passesNormalCheck(github, homeRepo, username, prereq) {
 /**
  * Determines whether a contributor is eligible for a single candidate level.
  *
- * Two checks are tried in order:
+ * Checks are evaluated in order:
  *   1. Floor level (no prerequisite) — always eligible.
- *   2. Bypass — has already closed ≥1 issue at this level or higher.
- *   3. Normal — has met the prerequisite count at the previous level.
+ *   2. Bypass — contributor already completed ≥1 issue at this level or higher.
+ *   3. Normal progression — contributor met prerequisite count requirements.
  *
- * Returns null on API failure so the caller can conservatively skip the candidate.
+ * API failures are treated conservatively as ineligible.
  *
  * @param {import('@actions/github').GitHub} github
- * @param {object} homeRepo  - Home repo entry from CONFIG.repos.
- * @param {string} username  - GitHub login of the contributor.
- * @param {string} candidate - Canonical level key being evaluated.
- * @returns {Promise<boolean>} True if eligible, false otherwise (API failures treated as false).
+ * @param {object} homeRepo
+ * @param {string} username
+ * @param {string} candidate - Canonical level key being evaluated
+ * @returns {Promise<boolean>}
  */
 async function isEligibleFor(github, homeRepo, username, candidate) {
   const prereq = CONFIG.skillPrerequisites[candidate];
 
-  // Floor level (gfi) has no prerequisite — always eligible as a floor.
+  // Entry-level floor (gfi) is always eligible.
   if (!prereq?.requiredLevel) return true;
 
-  const bypass = await passesBypassCheck(github, homeRepo, username, candidate);
+  const bypass = await passesBypassCheck(
+    github,
+    homeRepo,
+    username,
+    candidate,
+  );
+
   if (bypass) return true;
 
-  // null (API failure) is treated as false — caller skips conservatively.
-  const normal = await passesNormalCheck(github, homeRepo, username, prereq);
+  // API failures are treated conservatively as false.
+  const normal = await passesNormalCheck(
+    github,
+    homeRepo,
+    username,
+    prereq,
+  );
+
   return normal === true;
 }
 
 /**
- * Determines the highest skill level a contributor is eligible for,
- * based solely on their *historical* closed issues (excludes this PR).
+ * Resolves the highest level the contributor is historically eligible for.
  *
- * Walks the hierarchy from highest to lowest and returns the first
- * level for which the contributor is eligible. The result acts as a
- * ceiling — recommendations will not exceed this level.
+ * Historical eligibility intentionally excludes the current PR being processed.
+ * The result acts as an eligibility ceiling for recommendations.
  *
- * The caller is responsible for adjusting this ceiling to account for
- * the current PR's completion (see adjustEligibilityForCurrentPR).
+ * The caller is responsible for projecting the current PR completion
+ * via adjustEligibilityForCurrentPR().
  *
  * @param {import('@actions/github').GitHub} github
- * @param {object} homeRepo - Home repo entry from CONFIG.repos.
- * @param {string} username - GitHub login of the contributor.
- * @returns {Promise<string>} Canonical level key of the eligibility ceiling.
+ * @param {object} homeRepo
+ * @param {string} username
+ * @returns {Promise<string>} Canonical level key
  */
 async function resolveEligibleLevel(github, homeRepo, username) {
   for (const candidate of [...CONFIG.skillHierarchy].reverse()) {
-    const eligible = await isEligibleFor(github, homeRepo, username, candidate);
-    // false includes API failures (treated conservatively as ineligible)
+    const eligible = await isEligibleFor(
+      github,
+      homeRepo,
+      username,
+      candidate,
+    );
+
+    // false includes API failures (treated conservatively)
     if (eligible === true) return candidate;
   }
+
   return CONFIG.skillHierarchy[0];
 }
 
 /**
- * Adjusts the historical eligibility ceiling to include the current PR's completion.
+ * Projects the contributor's eligibility ceiling after including
+ * the current PR completion.
  *
- * resolveEligibleLevel is intentionally blind to the PR being processed.
- * Without this adjustment, a contributor completing their very first GFI
- * would have an eligibility ceiling of 'gfi' and never see beginner issues.
+ * resolveEligibleLevel() intentionally ignores the current PR.
+ * Without this adjustment, contributors completing their first GFI
+ * would never receive beginner recommendations.
  *
- * Logic: if the ceiling is at or below the completed level, bump it one step up.
+ * Logic:
+ *   if eligible ceiling <= completed level
+ *   => bump ceiling one level upward
  *
- * @param {string} completedKey - Canonical key of the level just completed.
- * @param {string} eligibleKey  - Historical ceiling from resolveEligibleLevel.
- * @returns {string} Adjusted ceiling key.
+ * @param {string} completedKey - Level completed by current PR
+ * @param {string} eligibleKey  - Historical eligibility ceiling
+ * @returns {string} Adjusted eligibility ceiling
  */
 function adjustEligibilityForCurrentPR(completedKey, eligibleKey) {
-  const h           = CONFIG.skillHierarchy;
+  const h = CONFIG.skillHierarchy;
+
   const completedIdx = h.indexOf(completedKey);
-  const eligibleIdx  = h.indexOf(eligibleKey);
+  const eligibleIdx = h.indexOf(eligibleKey);
 
   return eligibleIdx <= completedIdx
     ? h[Math.min(completedIdx + 1, h.length - 1)]
@@ -135,7 +156,7 @@ function adjustEligibilityForCurrentPR(completedKey, eligibleKey) {
 }
 
 /**
- * Computes next level metadata for unlock detection.
+ * Computes metadata about the next progression level.
  *
  * Ensures:
  *   - current level exists
@@ -147,6 +168,7 @@ function adjustEligibilityForCurrentPR(completedKey, eligibleKey) {
  */
 function getNextLevelInfo(currentLevelKey) {
   const hierarchy = CONFIG.skillHierarchy;
+
   const currentIndex = hierarchy.indexOf(currentLevelKey);
   if (currentIndex === -1) return null;
 
@@ -154,19 +176,31 @@ function getNextLevelInfo(currentLevelKey) {
   if (!nextKey) return null;
 
   const nextPrereq = CONFIG.skillPrerequisites[nextKey];
-  if (!nextPrereq || nextPrereq.requiredLevel !== currentLevelKey) return null;
+
+  if (
+    !nextPrereq ||
+    nextPrereq.requiredLevel !== currentLevelKey
+  ) {
+    return null;
+  }
 
   return { nextKey, nextPrereq };
 }
 
 /**
- * Detects whether the contributor appears to have just unlocked
- * the next level based on current GitHub issue search results.
+ * Detects whether the current PR completion unlocks the next level.
  *
- * Trigger condition:
- *   observed completed count === requiredCount
+ * GitHub search indexing may lag behind workflow execution, so counts are
+ * treated as historical state and the current PR completion is projected
+ * locally via +1.
  *
- * Uses a capped query (requiredCount + 1) for efficiency.
+ * Example:
+ *   intermediate requires 3 beginner completions
+ *   historical beginner count = 2
+ *   current PR completes another beginner issue
+ *   projected count = 3 => unlock intermediate
+ *
+ * Uses a capped query for efficiency.
  *
  * @param {import('@actions/github').GitHub} github
  * @param {object} homeRepo
@@ -174,24 +208,33 @@ function getNextLevelInfo(currentLevelKey) {
  * @param {string} currentLevelKey
  * @returns {Promise<string|null>} unlocked level key
  */
-async function detectUnlockedLevel(github, homeRepo, username, currentLevelKey) {
+async function detectUnlockedLevel(
+  github,
+  homeRepo,
+  username,
+  currentLevelKey,
+) {
   const next = getNextLevelInfo(currentLevelKey);
   if (!next) return null;
 
   const { nextKey, nextPrereq } = next;
 
-  const count = await countClosedIssuesByAssignee(
+  const historicalCount = await countClosedIssuesByAssignee(
     github,
     homeRepo.owner,
     homeRepo.repo,
     username,
     repoLabelFor(homeRepo, currentLevelKey),
-    nextPrereq.requiredCount + 1,
+    nextPrereq.requiredCount,
   );
 
-  if (count === null) return null;
+  if (historicalCount === null) return null;
 
-  return count === nextPrereq.requiredCount ? nextKey : null;
+  const projectedCount = historicalCount + 1;
+
+  return projectedCount === nextPrereq.requiredCount
+    ? nextKey
+    : null;
 }
 
 module.exports = {
