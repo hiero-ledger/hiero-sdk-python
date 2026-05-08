@@ -50,6 +50,14 @@ test('buildFallbackChain expands levels across repos in priority order', () => {
 
   // First recommendation should be intermediate in home repo
   assert.equal(chain[0].levelKey, 'intermediate');
+  assert.equal(chain[0].repoConfig.isHome, true);
+
+  // Level transitions should follow level-up -> same -> level-down ordering
+  // (without gfi). Collect distinct levels in chain order.
+  const distinctLevels = chain
+    .map(e => e.levelKey)
+    .filter((lvl, i, arr) => i === 0 || arr[i - 1] !== lvl);
+  assert.deepEqual(distinctLevels, ['intermediate', 'beginner']);
 
   // Ensure no gfi recommendations exist
   const hasGfi = chain.some(entry => entry.levelKey === 'gfi');
