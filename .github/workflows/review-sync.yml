@@ -26,6 +26,7 @@ permissions:
   pull-requests: write
   issues: write
   contents: read
+  checks: read
 
 concurrency:
   group: ${{ github.workflow }}

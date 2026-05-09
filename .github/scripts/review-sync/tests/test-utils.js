@@ -97,6 +97,7 @@ function createMockGithub(options = {}) {
     roles = {},
     reviews = [],
     existingLabels = {},
+    checkRuns = [],
   } = options;
 
   const calls = {
@@ -122,6 +123,9 @@ function createMockGithub(options = {}) {
       },
       pulls: {
         listReviews: async () => ({ data: reviews }),
+      },
+      checks: {
+        listForRef: async () => ({ data: { check_runs: checkRuns } }),
       },
       issues: {
         getLabel: async ({ name }) => {

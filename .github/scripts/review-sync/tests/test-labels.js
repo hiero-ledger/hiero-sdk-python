@@ -13,58 +13,68 @@ const unitTests = [
   {
     name: 'determineLabel: 0 approvals → queue:junior-committer',
     test: () => {
-      const r = determineLabel({ maintainerApproval: 0, writeApproval: 0, softApproval: 0, anyApproval: 0 });
+      const r = determineLabel({ maintainerApprovals: 0, coreApprovals: 0, softApprovals: 0, anyApproval: 0 });
       return r.name === 'queue:junior-committer';
     },
   },
   {
     name: 'determineLabel: 1 soft approval → queue:committers',
     test: () => {
-      const r = determineLabel({ maintainerApproval: 0, writeApproval: 0, softApproval: 1, anyApproval: 1 });
+      const r = determineLabel({ maintainerApprovals: 0, coreApprovals: 0, softApprovals: 1, anyApproval: 1 });
       return r.name === 'queue:committers';
     },
   },
   {
     name: 'determineLabel: 1 write approval → queue:maintainers',
     test: () => {
-      const r = determineLabel({ maintainerApproval: 0, writeApproval: 1, softApproval: 0, anyApproval: 1 });
+      const r = determineLabel({ maintainerApprovals: 0, coreApprovals: 1, softApprovals: 0, anyApproval: 1 });
       return r.name === 'queue:maintainers';
     },
   },
   {
     name: 'determineLabel: 2 write + 0 maintainer → queue:maintainers (NOT status: ready-to-merge)',
     test: () => {
-      const r = determineLabel({ maintainerApproval: 0, writeApproval: 2, softApproval: 0, anyApproval: 2 });
+      const r = determineLabel({ maintainerApprovals: 0, coreApprovals: 2, softApprovals: 0, anyApproval: 2 });
       return r.name === 'queue:maintainers';
     },
   },
   {
-    name: 'determineLabel: 1 maintainer alone → queue:maintainers (NOT status: ready-to-merge, needs 2 reviews)',
+    name: 'determineLabel: 1 maintainer alone → queue:committers (maintainer reviewed, needs committer next)',
     test: () => {
       // Sophie's edge case: maintainer approves first, only 1 total review
-      const r = determineLabel({ maintainerApproval: 1, writeApproval: 0, softApproval: 0, anyApproval: 1 });
-      return r.name === 'queue:maintainers';
+      // Note: maintainer counts as both maintainer and core
+      const r = determineLabel({ maintainerApprovals: 1, coreApprovals: 1, softApprovals: 0, anyApproval: 1 });
+      return r.name === 'queue:committers';
     },
   },
   {
     name: 'determineLabel: 1 maintainer + 1 write → status: ready-to-merge (2 reviews satisfied)',
     test: () => {
-      const r = determineLabel({ maintainerApproval: 1, writeApproval: 1, softApproval: 0, anyApproval: 2 });
+      // Total: 1 maintainer, 2 core
+      const r = determineLabel({ maintainerApprovals: 1, coreApprovals: 2, softApprovals: 0, anyApproval: 2 });
       return r.name === 'status: ready-to-merge';
     },
   },
   {
-    name: 'determineLabel: 1 maintainer + 1 soft → queue:maintainers (soft approvals do not count as core review)',
+    name: 'determineLabel: 1 maintainer + 1 soft → queue:committers (soft does not count as core, needs committer)',
     test: () => {
-      const r = determineLabel({ maintainerApproval: 1, writeApproval: 0, softApproval: 1, anyApproval: 2 });
-      return r.name === 'queue:maintainers';
+      const r = determineLabel({ maintainerApprovals: 1, coreApprovals: 1, softApprovals: 1, anyApproval: 2 });
+      return r.name === 'queue:committers';
     },
   },
   {
     name: 'determineLabel: 3 soft, 0 write → queue:committers',
     test: () => {
-      const r = determineLabel({ maintainerApproval: 0, writeApproval: 0, softApproval: 3, anyApproval: 3 });
+      const r = determineLabel({ maintainerApprovals: 0, coreApprovals: 0, softApprovals: 3, anyApproval: 3 });
       return r.name === 'queue:committers';
+    },
+  },
+  {
+    name: 'determineLabel: fully approved but ciFailing=true → queue:junior-committer',
+    test: () => {
+      // Passes fully approved PR state, but explicitly passes true for the ciFailing argument
+      const r = determineLabel({ maintainerApprovals: 1, coreApprovals: 2, softApprovals: 0, anyApproval: 2 }, true);
+      return r.name === 'queue:junior-committer';
     },
   },
   {
@@ -95,7 +105,7 @@ const unitTests = [
     name: 'syncLabel: no approvals, no labels → adds junior-committer',
     test: async () => {
       const mock = createMockGithub({ roles: {}, reviews: [] });
-      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [] }, false);
+      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [], head: { sha: '123' }, user: { type: 'User' } }, false);
       return changed === true && mock.calls.labelsAdded[0] === 'queue:junior-committer';
     },
   },
@@ -103,7 +113,7 @@ const unitTests = [
     name: 'syncLabel: already correct, no stale → returns false',
     test: async () => {
       const mock = createMockGithub({ roles: {}, reviews: [] });
-      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:junior-committer' }] }, false);
+      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:junior-committer' }], head: { sha: '123' }, user: { type: 'Bot' } }, false);
       return changed === false && mock.calls.labelsAdded.length === 0;
     },
   },
@@ -120,7 +130,7 @@ const unitTests = [
           { user: { login: 'bob' }, state: 'APPROVED', submitted_at: '2026-01-02T00:00:00Z' },
         ],
       });
-      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:junior-committer' }] }, false);
+      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:junior-committer' }], head: { sha: '123' }, user: { type: 'User' } }, false);
       return changed === true && mock.calls.labelsAdded.includes('status: ready-to-merge') && mock.calls.labelsRemoved.includes('queue:junior-committer');
     },
   },
@@ -128,7 +138,7 @@ const unitTests = [
     name: 'syncLabel: dry run logs but does not modify',
     test: async () => {
       const mock = createMockGithub({ roles: {}, reviews: [] });
-      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:committers' }] }, true);
+      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:committers' }], head: { sha: '123' }, user: { type: 'User' } }, true);
       return changed === true && mock.calls.labelsAdded.length === 0;
     },
   },
@@ -136,9 +146,28 @@ const unitTests = [
     name: 'syncLabel: correct + stale present → cleans up stale',
     test: async () => {
       const mock = createMockGithub({ roles: {}, reviews: [] });
-      const pr = { number: 1, labels: [{ name: 'queue:junior-committer' }, { name: 'queue:committers' }] };
+      const pr = { number: 1, labels: [{ name: 'queue:junior-committer' }, { name: 'queue:committers' }], head: { sha: '123' }, user: { type: 'User' } };
       const changed = await syncLabel(mock, 'o', 'r', pr, false);
       return changed === true && mock.calls.labelsRemoved.includes('queue:committers');
+    },
+  },
+  {
+    name: 'syncLabel: bot PR does NOT receive community review label',
+    test: async () => {
+      const mock = createMockGithub({ roles: {}, reviews: [] });
+      const pr = { number: 1, labels: [{ name: 'queue:junior-committer' }], head: { sha: '123' }, user: { type: 'Bot' } };
+      const changed = await syncLabel(mock, 'o', 'r', pr, false);
+      // Already has junior-committer, and being a Bot means it shouldn't add community review
+      return changed === false && mock.calls.labelsAdded.length === 0;
+    },
+  },
+  {
+    name: 'syncLabel: human PR receives community review label if missing',
+    test: async () => {
+      const mock = createMockGithub({ roles: {}, reviews: [] });
+      const pr = { number: 1, labels: [{ name: 'queue:junior-committer' }], head: { sha: '123' }, user: { type: 'User' } };
+      const changed = await syncLabel(mock, 'o', 'r', pr, false);
+      return changed === true && mock.calls.labelsAdded.includes('open to community review');
     },
   },
 ];
