@@ -6,7 +6,7 @@
 // Run with: node .github/scripts/review-sync/tests/test-permissions.js
 
 const { runTestSuite, createMockGithub } = require('./test-utils');
-const { getPermissionLevel, countApprovals } = require('../helpers/permissions');
+const { getPermissionLevel, countApprovals, clearPermissionCache } = require('../helpers/permissions');
 
 // =============================================================================
 // UNIT TESTS
@@ -79,7 +79,7 @@ const unitTests = [
   // countApprovals
   // ---------------------------------------------------------------------------
   {
-    name: 'countApprovals: maintain counted as maintainerApproval, write as writeApproval',
+    name: 'countApprovals: maintain counted as maintainerApprovals and coreApprovals, write as coreApprovals',
     test: async () => {
       const mock = createMockGithub({
         roles: {
@@ -93,15 +93,15 @@ const unitTests = [
       });
       const result = await countApprovals(mock, 'owner', 'repo', 1);
       return (
-        result.maintainerApproval === 1 &&
-        result.writeApproval === 1 &&
-        result.softApproval === 0 &&
+        result.maintainerApprovals === 1 &&
+        result.coreApprovals === 2 &&
+        result.softApprovals === 0 &&
         result.anyApproval === 2
       );
     },
   },
   {
-    name: 'countApprovals: admin counted as maintainerApproval',
+    name: 'countApprovals: admin counted as maintainerApprovals and coreApprovals',
     test: async () => {
       const mock = createMockGithub({
         roles: {
@@ -112,11 +112,11 @@ const unitTests = [
         ],
       });
       const result = await countApprovals(mock, 'owner', 'repo', 1);
-      return result.maintainerApproval === 1 && result.anyApproval === 1;
+      return result.maintainerApprovals === 1 && result.coreApprovals === 1 && result.anyApproval === 1;
     },
   },
   {
-    name: 'countApprovals: external contributor counted as softApproval',
+    name: 'countApprovals: external contributor counted as softApprovals',
     test: async () => {
       const mock = createMockGithub({
         roles: {},
@@ -126,9 +126,9 @@ const unitTests = [
       });
       const result = await countApprovals(mock, 'owner', 'repo', 1);
       return (
-        result.maintainerApproval === 0 &&
-        result.writeApproval === 0 &&
-        result.softApproval === 1 &&
+        result.maintainerApprovals === 0 &&
+        result.coreApprovals === 0 &&
+        result.softApprovals === 1 &&
         result.anyApproval === 1
       );
     },
@@ -154,9 +154,9 @@ const unitTests = [
       const mock = createMockGithub({ roles: {}, reviews: [] });
       const result = await countApprovals(mock, 'owner', 'repo', 1);
       return (
-        result.maintainerApproval === 0 &&
-        result.writeApproval === 0 &&
-        result.softApproval === 0 &&
+        result.maintainerApprovals === 0 &&
+        result.coreApprovals === 0 &&
+        result.softApprovals === 0 &&
         result.anyApproval === 0
       );
     },
@@ -177,9 +177,9 @@ const unitTests = [
       });
       const result = await countApprovals(mock, 'owner', 'repo', 1);
       return (
-        result.maintainerApproval === 1 &&
-        result.writeApproval === 1 &&
-        result.softApproval === 1 &&
+        result.maintainerApprovals === 1 &&
+        result.coreApprovals === 2 &&
+        result.softApprovals === 1 &&
         result.anyApproval === 3
       );
     },
@@ -197,7 +197,7 @@ const unitTests = [
         ],
       });
       const result = await countApprovals(mock, 'owner', 'repo', 1);
-      return result.maintainerApproval === 0 && result.anyApproval === 0;
+      return result.maintainerApprovals === 0 && result.anyApproval === 0;
     },
   },
 ];
@@ -212,6 +212,7 @@ async function runUnitTests() {
   let passed = 0;
   let failed = 0;
   for (const test of unitTests) {
+    clearPermissionCache();
     try {
       const result = await Promise.resolve(test.test());
       if (result) {
