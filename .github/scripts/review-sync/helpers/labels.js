@@ -55,18 +55,36 @@ async function ensureLabel(github, owner, repo, label, dryRun) {
 
 /**
  * Check if the latest CI runs for a given commit have any failures.
- * Returns true if any check run conclusion is 'failure' or 'timed_out'.
+ * 
+ * We intentionally treat the following as failures:
+ * - 'failure', 'timed_out' (explicit test failures)
+ * - 'startup_failure' (e.g., invalid workflow YAML)
+ * - 'action_required' (e.g., waiting for maintainer approval for first-time contributors)
+ * 
+ * We intentionally EXCLUDE 'cancelled':
+ * When a developer pushes a new commit, GitHub automatically cancels the currently 
+ * running workflows. If we treated 'cancelled' as a failure, every re-push would 
+ * instantly demote the PR to queue:junior-committer, frustrating contributors.
+ * 
+ * @returns {boolean} true if any check run conclusion is a blocking failure.
  */
 async function hasCIFailures(github, owner, repo, sha) {
   try {
-    const { data } = await github.rest.checks.listForRef({
+    // We MUST use paginate, otherwise it silently truncates at 30 runs.
+    // Matrix builds often exceed 30 checks.
+    const checkRuns = await github.paginate(github.rest.checks.listForRef, {
       owner,
       repo,
       ref: sha,
       filter: 'latest'
     });
-    return data.check_runs.some(
-      run => run.conclusion === 'failure' || run.conclusion === 'timed_out'
+
+    return checkRuns.some(
+      run => 
+        run.conclusion === 'failure' || 
+        run.conclusion === 'timed_out' ||
+        run.conclusion === 'startup_failure' ||
+        run.conclusion === 'action_required'
     );
   } catch (error) {
     // Fail securely: do not assume CI is passing if we cannot verify it.

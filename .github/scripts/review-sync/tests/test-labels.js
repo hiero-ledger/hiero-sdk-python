@@ -7,7 +7,7 @@
 
 const { runTestSuite, createMockGithub } = require('./test-utils');
 const { determineLabel, ensureLabel, syncLabel } = require('../helpers/labels');
-const { QUEUE_LABELS } = require('../helpers/constants');
+const { QUEUE_LABELS, COMMUNITY_REVIEW } = require('../helpers/constants');
 
 const unitTests = [
   {
@@ -167,7 +167,7 @@ const unitTests = [
       const mock = createMockGithub({ roles: {}, reviews: [] });
       const pr = { number: 1, labels: [{ name: 'queue:junior-committer' }], head: { sha: '123' }, user: { type: 'User' } };
       const changed = await syncLabel(mock, 'o', 'r', pr, false);
-      return changed === true && mock.calls.labelsAdded.includes('open to community review');
+      return changed === true && mock.calls.labelsAdded.includes(COMMUNITY_REVIEW.name);
     },
   },
 ];

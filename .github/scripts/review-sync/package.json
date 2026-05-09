@@ -2,6 +2,7 @@
   "name": "review-sync",
   "version": "1.0.0",
   "description": "Automated PR review queue label sync scripts and tests",
+  "private": true,
   "main": "index.js",
   "scripts": {
     "test": "node tests/test-labels.js && node tests/test-permissions.js && node tests/test-reviews.js"
