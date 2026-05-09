@@ -920,7 +920,7 @@ class Transaction(_Executable):
             int: Number of chunks required.
         """
         return 1
-    
+
     @property
     def size(self) -> int:
         """Returns the total transaction size in bytes after protobuf encoding"""

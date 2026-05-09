@@ -23,7 +23,6 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 from tests.unit.mock_server import mock_hedera_servers
@@ -184,22 +183,6 @@ def test_multiple_keys_still_work():
         key2.public_key().to_bytes_raw(),
     }
     assert pubkey_prefixes == expected_prefixes, "Signatures should match key1 and key2 exactly"
-@pytest.fixture
-def file_id():
-    """Returns a file_is for test."""
-    return FileId.from_string("0.0.1")
-
-
-@pytest.fixture
-def account_id():
-    """Returns an account_id for test."""
-    return AccountId.from_string("0.0.9")
-
-
-@pytest.fixture
-def transaction_id():
-    """Returns a transaction_id for test."""
-    return TransactionId.from_string("0.0.9@1770911831.331000137")
 
 
 def test_same_size_for_identical_transactions(transaction_id, account_id):
@@ -355,7 +338,7 @@ def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, acco
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 3
-    assert tx._current_index == 0
+    assert tx._current_chunk_index == 0
 
 
 def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, account_id, transaction_id):
