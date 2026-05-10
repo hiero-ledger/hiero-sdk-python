@@ -10,6 +10,9 @@ on:
       - '.github/scripts/review-sync/**'
       - '.github/workflows/test-review-sync.yml'
 
+permissions:
+  contents: read
+
 jobs:
   test:
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false
