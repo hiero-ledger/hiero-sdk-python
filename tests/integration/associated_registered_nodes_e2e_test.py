@@ -85,7 +85,9 @@ def _create_registered_node(client, admin_key):
         .sign(admin_key)
         .execute(client)
     )
-    assert receipt.status == ResponseCode.SUCCESS
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Helper: registered node creation failed: {ResponseCode(receipt.status).name}"
+    )
     return receipt.registered_node_id
 
 

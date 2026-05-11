@@ -13,6 +13,7 @@ from hiero_sdk_python.address_book.mirror_node_service_endpoint import MirrorNod
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
 from hiero_sdk_python.nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
 from hiero_sdk_python.nodes.registered_node_update_transaction import RegisteredNodeUpdateTransaction
@@ -52,7 +53,9 @@ def _create_registered_node(client, admin_key):
         .sign(admin_key)
         .execute(client)
     )
-    assert receipt.status == ResponseCode.SUCCESS
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Helper: registered node creation failed: {ResponseCode(receipt.status).name}"
+    )
     return receipt.registered_node_id
 
 
@@ -116,14 +119,17 @@ def test_registered_node_update_invalid_id(admin_client):
     """Test that updating a nonexistent registered node fails at the network level."""
     admin_key = PrivateKey.generate_ed25519()
 
-    # Use a very large ID that is unlikely to exist
-    receipt = (
-        RegisteredNodeUpdateTransaction()
-        .set_registered_node_id(999999999)
-        .set_description("should fail")
-        .freeze_with(admin_client)
-        .sign(admin_key)
-        .execute(admin_client)
-    )
-
-    assert receipt.status != ResponseCode.SUCCESS, "Update of nonexistent node should fail"
+    try:
+        receipt = (
+            RegisteredNodeUpdateTransaction()
+            .set_registered_node_id(999999999)
+            .set_description("should fail")
+            .freeze_with(admin_client)
+            .sign(admin_key)
+            .execute(admin_client)
+        )
+        assert receipt.status == ResponseCode.INVALID_REGISTERED_NODE_ID, (
+            f"Expected INVALID_REGISTERED_NODE_ID but got {ResponseCode(receipt.status).name}"
+        )
+    except PrecheckError:
+        pass  # Also acceptable: network rejects at precheck
