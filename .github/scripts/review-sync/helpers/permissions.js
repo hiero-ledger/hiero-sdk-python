@@ -11,7 +11,7 @@
 //
 //   We MUST use role_name to distinguish maintainers from committers.
 //   If we used permission, Sophie (Maintain role per MAINTAINERS.md) would
-//   appear as 'write', and maintainerApproval would always be 0.
+//   appear as 'write', and maintainerApprovals would always be 0.
 //   PRs would be permanently stuck at queue:maintainers.
 //
 //   Phase 3 will replace this with team membership checks
@@ -19,10 +19,13 @@
 
 const { getLatestReviewStates } = require('./reviews');
 
+const permissionCache = new Map();
+
 /**
  * Check the repository role for a given user.
  *
  * Uses role_name (not legacy permission) to correctly detect the maintain role.
+ * Results are cached in memory to avoid redundant API calls during the cron run.
  *
  * @param {object} github   - Octokit instance
  * @param {string} owner    - Repository owner
@@ -31,6 +34,12 @@ const { getLatestReviewStates } = require('./reviews');
  * @returns {string} 'admin' | 'maintain' | 'write' | 'triage' | 'read' | 'none'
  */
 async function getPermissionLevel(github, owner, repo, username) {
+  const cacheKey = `${owner}/${repo}/${username}`;
+
+  if (permissionCache.has(cacheKey)) {
+    return permissionCache.get(cacheKey);
+  }
+
   try {
     const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
       owner,
@@ -40,10 +49,13 @@ async function getPermissionLevel(github, owner, repo, username) {
     // CRITICAL: Use role_name, NOT permission.
     // The legacy 'permission' field maps maintain → write, triage → read.
     // role_name correctly returns: admin | maintain | write | triage | read
-    return data.role_name || data.permission || 'none';
+    const role = data.role_name || data.permission || 'none';
+    permissionCache.set(cacheKey, role);
+    return role;
   } catch (error) {
     if (error.status === 404) {
       // External contributor — not a collaborator
+      permissionCache.set(cacheKey, 'none');
       return 'none';
     }
     // Log unexpected errors but don't crash the run
@@ -57,22 +69,22 @@ async function getPermissionLevel(github, owner, repo, username) {
  * Count approvals on a PR, split by permission level.
  *
  * Returns three counters:
- *   - maintainerApproval: admin or maintain (maps to CODEOWNERS maintainer teams)
- *   - writeApproval: write (committers)
- *   - softApproval: triage, read, none, external contributors
+ *   - maintainerApprovals: admin or maintain (maps to CODEOWNERS maintainer teams)
+ *   - coreApprovals: write (committers) and maintainers
+ *   - softApprovals: triage, read, none, external contributors
  *
  * @param {object} github   - Octokit instance
  * @param {string} owner    - Repository owner
  * @param {string} repo     - Repository name
  * @param {number} prNumber - Pull request number
- * @returns {{ maintainerApproval: number, writeApproval: number, softApproval: number, anyApproval: number }}
+ * @param {{ maintainerApprovals: number, coreApprovals: number, softApprovals: number, anyApproval: number }}
  */
 async function countApprovals(github, owner, repo, prNumber) {
   const latestStates = await getLatestReviewStates(github, owner, repo, prNumber);
 
-  let maintainerApproval = 0;
-  let writeApproval = 0;
-  let softApproval = 0;
+  let maintainerApprovals = 0; // only maintainers
+  let coreApprovals = 0; // anyone with write permission
+  let softApprovals = 0;
 
   for (const [username, state] of latestStates) {
     if (state !== 'APPROVED') continue;
@@ -80,21 +92,26 @@ async function countApprovals(github, owner, repo, prNumber) {
     const role = await getPermissionLevel(github, owner, repo, username);
 
     if (role === 'admin' || role === 'maintain') {
-      maintainerApproval++;
+      maintainerApprovals++;
+      coreApprovals++; // Maintainers also count as core
     } else if (role === 'write') {
-      writeApproval++;
+      coreApprovals++; // Committers count as core
     } else {
       // triage, read, none, or any unexpected value → soft approval
-      softApproval++;
+      softApprovals++;
     }
   }
 
   return {
-    maintainerApproval,
-    writeApproval,
-    softApproval,
-    anyApproval: maintainerApproval + writeApproval + softApproval,
+    maintainerApprovals,
+    coreApprovals,
+    softApprovals,
+    anyApproval: coreApprovals + softApprovals,
   };
 }
 
-module.exports = { getPermissionLevel, countApprovals };
+function clearPermissionCache() {
+  permissionCache.clear();
+}
+
+module.exports = { getPermissionLevel, countApprovals, clearPermissionCache };

@@ -97,6 +97,7 @@ function createMockGithub(options = {}) {
     roles = {},
     reviews = [],
     existingLabels = {},
+    checkRuns = [],
   } = options;
 
   const calls = {
@@ -122,6 +123,9 @@ function createMockGithub(options = {}) {
       },
       pulls: {
         listReviews: async () => ({ data: reviews }),
+      },
+      checks: {
+        listForRef: async () => ({ data: { check_runs: checkRuns } }),
       },
       issues: {
         getLabel: async ({ name }) => {
@@ -152,6 +156,8 @@ function createMockGithub(options = {}) {
     },
     paginate: async (fn, opts) => {
       const result = await fn(opts);
+      // github.paginate automatically unwraps the array from the response data
+      if (result.data && result.data.check_runs) return result.data.check_runs;
       return result.data || result || [];
     },
   };
