@@ -278,14 +278,6 @@ class NodeUpdateTransaction(Transaction):
         self.associated_registered_nodes = []
         return self
 
-    @staticmethod
-    def _validate_associated_registered_nodes(ids: list[int]) -> None:
-        if len(ids) > 20:
-            raise ValueError("associated_registered_nodes must have at most 20 entries")
-        for node_id in ids:
-            if not isinstance(node_id, int) or isinstance(node_id, bool) or node_id <= 0:
-                raise ValueError("Each associated registered node ID must be a positive integer")
-
     def _convert_to_proto(self, obj: Any | None) -> Any:
         """Convert object to proto if it exists, otherwise return None."""
         return obj._to_proto() if obj else None
@@ -301,9 +293,6 @@ class NodeUpdateTransaction(Transaction):
         Returns:
             NodeUpdateTransactionBody: The protobuf body for this transaction.
         """
-        if self.associated_registered_nodes is not None:
-            self._validate_associated_registered_nodes(self.associated_registered_nodes)
-
         body = NodeUpdateTransactionBody(
             node_id=self.node_id,
             account_id=self._convert_to_proto(self.account_id),

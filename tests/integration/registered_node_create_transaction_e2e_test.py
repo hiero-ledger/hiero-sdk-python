@@ -107,15 +107,16 @@ def test_registered_node_create_with_mixed_endpoints(admin_client):
 
 
 def test_registered_node_create_fails_without_endpoints(admin_client):
-    """Test that creating a registered node with no endpoints fails (client-side validation)."""
+    """Test that creating a registered node with no endpoints fails at the network level."""
     admin_key = PrivateKey.generate_ed25519()
 
-    with pytest.raises(ValueError, match="at least 1"):
-        (
-            RegisteredNodeCreateTransaction()
-            .set_admin_key(admin_key.public_key())
-            .set_description("no endpoints")
-            .freeze_with(admin_client)
-            .sign(admin_key)
-            .execute(admin_client)
-        )
+    receipt = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(admin_key.public_key())
+        .set_description("no endpoints")
+        .freeze_with(admin_client)
+        .sign(admin_key)
+        .execute(admin_client)
+    )
+
+    assert receipt.status != ResponseCode.SUCCESS, "Create without endpoints should fail"

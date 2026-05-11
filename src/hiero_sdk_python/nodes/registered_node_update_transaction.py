@@ -27,16 +27,40 @@ class RegisteredNodeUpdateTransaction(Transaction):
         self.service_endpoints: list[RegisteredServiceEndpoint] | None = None
 
     def set_registered_node_id(self, registered_node_id: int | None) -> RegisteredNodeUpdateTransaction:
+        """Sets the registered node ID to update.
+
+        Args:
+            registered_node_id: The ID of the registered node to update.
+
+        Returns:
+            RegisteredNodeUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.registered_node_id = registered_node_id
         return self
 
     def set_admin_key(self, admin_key: PublicKey | None) -> RegisteredNodeUpdateTransaction:
+        """Sets the new admin key for the registered node.
+
+        Args:
+            admin_key: The new admin key, or None to leave unchanged.
+
+        Returns:
+            RegisteredNodeUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.admin_key = admin_key
         return self
 
     def set_description(self, description: str | None) -> RegisteredNodeUpdateTransaction:
+        """Sets the new description for the registered node.
+
+        Args:
+            description: The new description, or None to leave unchanged.
+
+        Returns:
+            RegisteredNodeUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.description = description
         return self
@@ -44,11 +68,27 @@ class RegisteredNodeUpdateTransaction(Transaction):
     def set_service_endpoints(
         self, service_endpoints: list[RegisteredServiceEndpoint] | None
     ) -> RegisteredNodeUpdateTransaction:
+        """Sets the new service endpoints for the registered node.
+
+        Args:
+            service_endpoints: The new service endpoints, or None to leave unchanged.
+
+        Returns:
+            RegisteredNodeUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.service_endpoints = service_endpoints
         return self
 
     def add_service_endpoint(self, endpoint: RegisteredServiceEndpoint) -> RegisteredNodeUpdateTransaction:
+        """Adds a service endpoint to the registered node.
+
+        Args:
+            endpoint: The service endpoint to add.
+
+        Returns:
+            RegisteredNodeUpdateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         if self.service_endpoints is None:
             self.service_endpoints = []
@@ -56,11 +96,6 @@ class RegisteredNodeUpdateTransaction(Transaction):
         return self
 
     def _build_proto_body(self) -> RegisteredNodeUpdateTransactionBody:
-        self._validate_registered_node_id()
-        if self.description is not None and len(self.description.encode("utf-8")) > 100:
-            raise ValueError("description must be 100 UTF-8 bytes or fewer")
-        self._validate_service_endpoints()
-
         body = RegisteredNodeUpdateTransactionBody(
             registered_node_id=self.registered_node_id,
             admin_key=self.admin_key._to_proto() if self.admin_key else None,
@@ -70,27 +105,6 @@ class RegisteredNodeUpdateTransaction(Transaction):
             for ep in self.service_endpoints:
                 body.service_endpoint.append(ep._to_proto())
         return body
-
-    def _validate_registered_node_id(self) -> None:
-        if self.registered_node_id is None:
-            raise ValueError("Missing required registered_node_id")
-        if (
-            not isinstance(self.registered_node_id, int)
-            or isinstance(self.registered_node_id, bool)
-            or self.registered_node_id <= 0
-        ):
-            raise ValueError("registered_node_id must be a positive integer")
-
-    def _validate_service_endpoints(self) -> None:
-        if self.service_endpoints is None:
-            return
-        if len(self.service_endpoints) == 0:
-            raise ValueError("service_endpoints must have at least 1 entry when provided")
-        if len(self.service_endpoints) > 50:
-            raise ValueError("service_endpoints must have at most 50 entries")
-        for ep in self.service_endpoints:
-            if not isinstance(ep, RegisteredServiceEndpoint):
-                raise TypeError("service_endpoints must contain RegisteredServiceEndpoint instances")
 
     def build_transaction_body(self) -> TransactionBody:
         body = self._build_proto_body()

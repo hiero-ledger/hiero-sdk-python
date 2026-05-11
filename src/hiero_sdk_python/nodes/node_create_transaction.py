@@ -240,14 +240,6 @@ class NodeCreateTransaction(Transaction):
         self.associated_registered_nodes.append(registered_node_id)
         return self
 
-    @staticmethod
-    def _validate_associated_registered_nodes(ids: list[int]) -> None:
-        if len(ids) > 20:
-            raise ValueError("associated_registered_nodes must have at most 20 entries")
-        for node_id in ids:
-            if not isinstance(node_id, int) or isinstance(node_id, bool) or node_id <= 0:
-                raise ValueError("Each associated registered node ID must be a positive integer")
-
     def _build_proto_body(self) -> NodeCreateTransactionBody:
         """
         Returns the protobuf body for the node create transaction.
@@ -255,8 +247,6 @@ class NodeCreateTransaction(Transaction):
         Returns:
             NodeCreateTransactionBody: The protobuf body for this transaction.
         """
-        self._validate_associated_registered_nodes(self.associated_registered_nodes)
-
         return NodeCreateTransactionBody(
             account_id=self.account_id._to_proto() if self.account_id else None,
             description=self.description,

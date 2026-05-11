@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from dataclasses import dataclass, field
 
 from hiero_sdk_python.address_book.registered_node import RegisteredNode
 
 
+@dataclass(frozen=True)
 class RegisteredNodeAddressBook:
     """Immutable container of :class:`RegisteredNode` entries.
 
@@ -15,21 +17,19 @@ class RegisteredNodeAddressBook:
     the role of the legacy ``NodeAddressBook`` model.
     """
 
-    def __init__(self, nodes: tuple[RegisteredNode, ...] = ()) -> None:
-        self._nodes = tuple(nodes)
+    nodes: tuple[RegisteredNode, ...] = field(default_factory=tuple)
 
-    @property
-    def nodes(self) -> tuple[RegisteredNode, ...]:
-        return self._nodes
+    def __post_init__(self):
+        object.__setattr__(self, "nodes", tuple(self.nodes))
 
     def __len__(self) -> int:
-        return len(self._nodes)
+        return len(self.nodes)
 
     def __iter__(self) -> Iterator[RegisteredNode]:
-        return iter(self._nodes)
+        return iter(self.nodes)
 
     def __getitem__(self, index: int) -> RegisteredNode:
-        return self._nodes[index]
+        return self.nodes[index]
 
     def __repr__(self) -> str:
-        return f"RegisteredNodeAddressBook(nodes={len(self._nodes)})"
+        return f"RegisteredNodeAddressBook(nodes={len(self.nodes)})"

@@ -156,25 +156,26 @@ class TestEndpointValidationEdgeCases:
 
 
 class TestRegisteredNodeCreateTransactionValidation:
-    def test_missing_admin_key_fails(self):
-        tx = RegisteredNodeCreateTransaction()
-        tx.set_service_endpoints([_mirror_ep()])
-        with pytest.raises(ValueError, match="admin_key is required"):
-            tx._build_proto_body()
-
-    def test_invalid_endpoint_object_fails(self):
-        tx = RegisteredNodeCreateTransaction()
-        tx.admin_key = _make_key()
-        tx.service_endpoints = ["not an endpoint"]
-        with pytest.raises(TypeError, match="RegisteredServiceEndpoint"):
-            tx._build_proto_body()
-
     def test_valid_build_succeeds(self):
         tx = RegisteredNodeCreateTransaction()
         tx.admin_key = _make_key()
         tx.set_service_endpoints([_mirror_ep()])
         body = tx._build_proto_body()
         assert body.HasField("admin_key")
+
+    def test_build_without_admin_key_succeeds(self):
+        """admin_key is no longer validated client-side; the node handles it."""
+        tx = RegisteredNodeCreateTransaction()
+        tx.set_service_endpoints([_mirror_ep()])
+        body = tx._build_proto_body()
+        assert not body.HasField("admin_key")
+
+    def test_build_without_endpoints_succeeds(self):
+        """service_endpoints are no longer validated client-side; the node handles it."""
+        tx = RegisteredNodeCreateTransaction()
+        tx.admin_key = _make_key()
+        body = tx._build_proto_body()
+        assert len(body.service_endpoint) == 0
 
 
 # ---------------------------------------------------------------------------
@@ -183,31 +184,18 @@ class TestRegisteredNodeCreateTransactionValidation:
 
 
 class TestRegisteredNodeUpdateTransactionValidation:
-    def test_registered_node_id_zero_fails(self):
-        tx = RegisteredNodeUpdateTransaction()
-        tx.registered_node_id = 0
-        with pytest.raises(ValueError, match="positive integer"):
-            tx._build_proto_body()
-
-    def test_registered_node_id_negative_fails(self):
-        tx = RegisteredNodeUpdateTransaction()
-        tx.registered_node_id = -5
-        with pytest.raises(ValueError, match="positive integer"):
-            tx._build_proto_body()
-
-    def test_empty_service_endpoints_fails(self):
+    def test_build_with_valid_id_succeeds(self):
         tx = RegisteredNodeUpdateTransaction()
         tx.registered_node_id = 1
-        tx.service_endpoints = []
-        with pytest.raises(ValueError, match="at least 1 entry"):
-            tx._build_proto_body()
+        body = tx._build_proto_body()
+        assert body.registered_node_id == 1
 
-    def test_invalid_endpoint_object_fails(self):
+    def test_build_with_endpoints_succeeds(self):
         tx = RegisteredNodeUpdateTransaction()
         tx.registered_node_id = 1
-        tx.service_endpoints = [42]
-        with pytest.raises(TypeError, match="RegisteredServiceEndpoint"):
-            tx._build_proto_body()
+        tx.service_endpoints = [_mirror_ep()]
+        body = tx._build_proto_body()
+        assert len(body.service_endpoint) == 1
 
 
 # ---------------------------------------------------------------------------
@@ -241,21 +229,21 @@ class TestRegisteredNodeDeleteTransactionValidation:
 
 
 class TestAssociatedRegisteredNodesNonInt:
-    def test_node_create_rejects_string_id(self):
+    def test_node_create_accepts_any_values(self):
+        """Validation is now delegated to the consensus node."""
         from hiero_sdk_python.nodes.node_create_transaction import NodeCreateTransaction
 
         tx = NodeCreateTransaction()
         tx.set_associated_registered_nodes(["abc"])
-        with pytest.raises(ValueError, match="positive integer"):
-            tx._validate_associated_registered_nodes(tx.associated_registered_nodes)
+        assert tx.associated_registered_nodes == ["abc"]
 
-    def test_node_update_rejects_float_id(self):
+    def test_node_update_accepts_any_values(self):
+        """Validation is now delegated to the consensus node."""
         from hiero_sdk_python.nodes.node_update_transaction import NodeUpdateTransaction
 
         tx = NodeUpdateTransaction()
         tx.set_associated_registered_nodes([1.5])
-        with pytest.raises(ValueError, match="positive integer"):
-            tx._validate_associated_registered_nodes(tx.associated_registered_nodes)
+        assert tx.associated_registered_nodes == [1.5]
 
 
 # ---------------------------------------------------------------------------

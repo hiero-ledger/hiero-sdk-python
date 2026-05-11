@@ -70,33 +70,6 @@ class TestNodeCreateAssociatedRegisteredNodes:
         assert isinstance(restored, NodeCreateTransaction)
         assert list(restored.associated_registered_nodes) == [7, 8, 9]
 
-    def test_fails_more_than_20_ids(self, mock_account_ids):
-        operator_id, _, node_account_id, _, _ = mock_account_ids
-        tx = NodeCreateTransaction()
-        tx.set_associated_registered_nodes(list(range(1, 22)))
-        tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
-        with pytest.raises(ValueError, match="at most 20"):
-            tx.build_transaction_body()
-
-    def test_fails_id_zero(self, mock_account_ids):
-        operator_id, _, node_account_id, _, _ = mock_account_ids
-        tx = NodeCreateTransaction()
-        tx.set_associated_registered_nodes([0])
-        tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
-        with pytest.raises(ValueError, match="positive integer"):
-            tx.build_transaction_body()
-
-    def test_fails_id_negative(self, mock_account_ids):
-        operator_id, _, node_account_id, _, _ = mock_account_ids
-        tx = NodeCreateTransaction()
-        tx.set_associated_registered_nodes([-1])
-        tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
-        with pytest.raises(ValueError, match="positive integer"):
-            tx.build_transaction_body()
-
     def test_preserves_behavior_when_unset(self, mock_account_ids):
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = NodeCreateTransaction()
@@ -196,36 +169,6 @@ class TestNodeUpdateAssociatedRegisteredNodes:
         restored = Transaction.from_bytes(tx.to_bytes())
         assert isinstance(restored, NodeUpdateTransaction)
         assert restored.associated_registered_nodes is None
-
-    def test_fails_more_than_20_ids(self, mock_account_ids):
-        operator_id, _, node_account_id, _, _ = mock_account_ids
-        tx = NodeUpdateTransaction()
-        tx.node_id = 1
-        tx.set_associated_registered_nodes(list(range(1, 22)))
-        tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
-        with pytest.raises(ValueError, match="at most 20"):
-            tx.build_transaction_body()
-
-    def test_fails_id_zero(self, mock_account_ids):
-        operator_id, _, node_account_id, _, _ = mock_account_ids
-        tx = NodeUpdateTransaction()
-        tx.node_id = 1
-        tx.set_associated_registered_nodes([0])
-        tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
-        with pytest.raises(ValueError, match="positive integer"):
-            tx.build_transaction_body()
-
-    def test_fails_id_negative(self, mock_account_ids):
-        operator_id, _, node_account_id, _, _ = mock_account_ids
-        tx = NodeUpdateTransaction()
-        tx.node_id = 1
-        tx.set_associated_registered_nodes([-5])
-        tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
-        with pytest.raises(ValueError, match="positive integer"):
-            tx.build_transaction_body()
 
     def test_preserves_existing_behavior(self, mock_account_ids):
         """Existing fields still work when associated_registered_nodes is not used."""

@@ -123,17 +123,18 @@ class TestRegisteredNodeCreateTransaction:
         assert isinstance(restored.service_endpoints[0], BlockNodeServiceEndpoint)
         assert isinstance(restored.service_endpoints[1], MirrorNodeServiceEndpoint)
 
-    def test_fails_with_zero_endpoints(self, mock_account_ids):
+    def test_builds_without_endpoints(self, mock_account_ids):
+        """Building without endpoints succeeds; validation is delegated to consensus node."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeCreateTransaction()
         tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.operator_account_id = operator_id
         tx.node_account_id = node_account_id
+        body = tx.build_transaction_body()
+        assert len(body.registeredNodeCreate.service_endpoint) == 0
 
-        with pytest.raises(ValueError, match="at least 1"):
-            tx.build_transaction_body()
-
-    def test_fails_with_more_than_50_endpoints(self, mock_account_ids):
+    def test_builds_with_many_endpoints(self, mock_account_ids):
+        """Building with many endpoints succeeds; validation is delegated to consensus node."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         endpoints = [_make_mirror_endpoint() for _ in range(51)]
         tx = RegisteredNodeCreateTransaction()
@@ -141,11 +142,11 @@ class TestRegisteredNodeCreateTransaction:
         tx.set_service_endpoints(endpoints)
         tx.operator_account_id = operator_id
         tx.node_account_id = node_account_id
+        body = tx.build_transaction_body()
+        assert len(body.registeredNodeCreate.service_endpoint) == 51
 
-        with pytest.raises(ValueError, match="at most 50"):
-            tx.build_transaction_body()
-
-    def test_fails_with_long_description(self, mock_account_ids):
+    def test_builds_with_long_description(self, mock_account_ids):
+        """Building with long description succeeds; validation is delegated to consensus node."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeCreateTransaction()
         tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
@@ -153,9 +154,8 @@ class TestRegisteredNodeCreateTransaction:
         tx.set_service_endpoints([_make_block_endpoint()])
         tx.operator_account_id = operator_id
         tx.node_account_id = node_account_id
-
-        with pytest.raises(ValueError, match="100 UTF-8 bytes"):
-            tx.build_transaction_body()
+        body = tx.build_transaction_body()
+        assert body.registeredNodeCreate.description == "x" * 101
 
     def test_add_service_endpoint(self):
         tx = RegisteredNodeCreateTransaction()
@@ -244,36 +244,36 @@ class TestRegisteredNodeUpdateTransaction:
         assert len(restored.service_endpoints) == 1
         assert isinstance(restored.service_endpoints[0], MirrorNodeServiceEndpoint)
 
-    def test_fails_when_registered_node_id_missing(self, mock_account_ids):
+    def test_builds_without_registered_node_id(self, mock_account_ids):
+        """Building without registered_node_id succeeds; validation is delegated to consensus node."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeUpdateTransaction()
         tx.operator_account_id = operator_id
         tx.node_account_id = node_account_id
+        body = tx.build_transaction_body()
+        assert body.registeredNodeUpdate.registered_node_id == 0
 
-        with pytest.raises(ValueError, match="registered_node_id"):
-            tx.build_transaction_body()
-
-    def test_fails_when_endpoints_empty(self, mock_account_ids):
+    def test_builds_with_empty_endpoints(self, mock_account_ids):
+        """Building with empty endpoints succeeds; validation is delegated to consensus node."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(1)
         tx.set_service_endpoints([])
         tx.operator_account_id = operator_id
         tx.node_account_id = node_account_id
+        body = tx.build_transaction_body()
+        assert len(body.registeredNodeUpdate.service_endpoint) == 0
 
-        with pytest.raises(ValueError, match="at least 1"):
-            tx.build_transaction_body()
-
-    def test_fails_when_endpoints_exceed_50(self, mock_account_ids):
+    def test_builds_with_many_endpoints(self, mock_account_ids):
+        """Building with many endpoints succeeds; validation is delegated to consensus node."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(1)
         tx.set_service_endpoints([_make_mirror_endpoint() for _ in range(51)])
         tx.operator_account_id = operator_id
         tx.node_account_id = node_account_id
-
-        with pytest.raises(ValueError, match="at most 50"):
-            tx.build_transaction_body()
+        body = tx.build_transaction_body()
+        assert len(body.registeredNodeUpdate.service_endpoint) == 51
 
 
 # ---------------------------------------------------------------------------

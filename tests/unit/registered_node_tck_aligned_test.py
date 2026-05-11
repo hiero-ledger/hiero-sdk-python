@@ -87,8 +87,8 @@ class TestTckRegisteredNodeCreate:
         body = tx._build_proto_body()
         assert len(body.service_endpoint) == 4
 
-    def test_create_requires_admin_key(self):
-        """TCK: createRegisteredNode without adminKey should raise."""
+    def test_create_without_admin_key_builds(self):
+        """TCK: createRegisteredNode without adminKey should build (node validates)."""
         ep = BlockNodeServiceEndpoint(
             domain_name="block.tck.example.com",
             port=443,
@@ -97,16 +97,16 @@ class TestTckRegisteredNodeCreate:
         )
         tx = RegisteredNodeCreateTransaction()
         tx.set_service_endpoints([ep])
-        with pytest.raises(ValueError, match="admin_key is required"):
-            tx._build_proto_body()
+        body = tx._build_proto_body()
+        assert not body.HasField("admin_key")
 
-    def test_create_requires_at_least_one_endpoint(self):
-        """TCK: createRegisteredNode with empty endpoints should raise."""
+    def test_create_without_endpoints_builds(self):
+        """TCK: createRegisteredNode with empty endpoints should build (node validates)."""
         admin_key = PrivateKey.generate_ed25519().public_key()
         tx = RegisteredNodeCreateTransaction()
         tx.set_admin_key(admin_key)
-        with pytest.raises(ValueError, match="at least 1"):
-            tx._build_proto_body()
+        body = tx._build_proto_body()
+        assert len(body.service_endpoint) == 0
 
     def test_create_description_optional(self):
         """TCK: createRegisteredNode without description sets empty string."""
@@ -162,15 +162,15 @@ class TestTckRegisteredNodeUpdate:
         body = tx._build_proto_body()
         assert body.admin_key is not None
 
-    def test_update_invalid_id_zero(self):
-        """TCK: updateRegisteredNode with id=0 should raise on build."""
+    def test_update_id_zero_builds(self):
+        """TCK: updateRegisteredNode with id=0 should build (node validates)."""
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(0)
-        with pytest.raises(ValueError):
-            tx._build_proto_body()
+        body = tx._build_proto_body()
+        assert body.registered_node_id == 0
 
-    def test_update_invalid_id_negative(self):
-        """TCK: updateRegisteredNode with negative id should raise on build."""
+    def test_update_id_negative_raises_from_protobuf(self):
+        """TCK: updateRegisteredNode with negative id raises from protobuf serialization."""
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(-1)
         with pytest.raises(ValueError):

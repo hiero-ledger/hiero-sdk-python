@@ -98,13 +98,9 @@ class RegisteredServiceEndpoint:
         if endpoint_type == "block_node":
             return BlockNodeServiceEndpoint._from_proto_inner(proto, ip_address, domain_name, port, requires_tls)
         if endpoint_type == "mirror_node":
-            return MirrorNodeServiceEndpoint(
-                ip_address=ip_address, domain_name=domain_name, port=port, requires_tls=requires_tls
-            )
+            return MirrorNodeServiceEndpoint._from_proto_inner(proto, ip_address, domain_name, port, requires_tls)
         if endpoint_type == "rpc_relay":
-            return RpcRelayServiceEndpoint(
-                ip_address=ip_address, domain_name=domain_name, port=port, requires_tls=requires_tls
-            )
+            return RpcRelayServiceEndpoint._from_proto_inner(proto, ip_address, domain_name, port, requires_tls)
         if endpoint_type == "general_service":
             return GeneralServiceEndpoint._from_proto_inner(proto, ip_address, domain_name, port, requires_tls)
-        return cls(ip_address=ip_address, domain_name=domain_name, port=port, requires_tls=requires_tls)
+        raise ValueError(f"Unknown endpoint_type: {endpoint_type!r}")
