@@ -13,6 +13,7 @@ from hiero_sdk_python.address_book.mirror_node_service_endpoint import MirrorNod
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
 from hiero_sdk_python.nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
 from hiero_sdk_python.response_code import ResponseCode
@@ -110,13 +111,12 @@ def test_registered_node_create_fails_without_endpoints(admin_client):
     """Test that creating a registered node with no endpoints fails at the network level."""
     admin_key = PrivateKey.generate_ed25519()
 
-    receipt = (
-        RegisteredNodeCreateTransaction()
-        .set_admin_key(admin_key.public_key())
-        .set_description("no endpoints")
-        .freeze_with(admin_client)
-        .sign(admin_key)
-        .execute(admin_client)
-    )
-
-    assert receipt.status != ResponseCode.SUCCESS, "Create without endpoints should fail"
+    with pytest.raises(PrecheckError):
+        (
+            RegisteredNodeCreateTransaction()
+            .set_admin_key(admin_key.public_key())
+            .set_description("no endpoints")
+            .freeze_with(admin_client)
+            .sign(admin_key)
+            .execute(admin_client)
+        )
