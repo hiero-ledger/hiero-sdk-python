@@ -4,8 +4,8 @@ from dataclasses import dataclass
 
 from tck.param.base import BaseTransactionParams
 from tck.util.param_utils import (
-    non_empty_string_list,
     non_empty_string_or_none,
+    non_empty_string_list,
     parse_common_transaction_params,
     parse_session_id,
     to_bool,
@@ -80,7 +80,7 @@ class CreateTopicParams(BaseTransactionParams):
             adminKey=non_empty_string_or_none(params.get("adminKey")),
             submitKey=non_empty_string_or_none(params.get("submitKey")),
             autoRenewPeriod=to_int(params.get("autoRenewPeriod")),
-            autoRenewAccountId=params.get("autoRenewAccountId"),
+            autoRenewAccountId=non_empty_string_or_none(params.get("autoRenewAccountId")),
             feeScheduleKey=non_empty_string_or_none(params.get("feeScheduleKey")),
             feeExemptKeys=non_empty_string_list(fee_exempt_keys),
             customFees=(

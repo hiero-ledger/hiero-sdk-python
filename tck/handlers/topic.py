@@ -43,22 +43,22 @@ def _build_create_topic_transaction(params: CreateTopicParams) -> TopicCreateTra
     if params.memo is not None:
         transaction.set_memo(params.memo)
 
-    if params.adminKey:
+    if params.adminKey is not None:
         transaction.set_admin_key(get_key_from_string(params.adminKey))
 
-    if params.submitKey:
+    if params.submitKey is not None:
         transaction.set_submit_key(get_key_from_string(params.submitKey))
 
     if params.autoRenewPeriod is not None:
         transaction.set_auto_renew_period(params.autoRenewPeriod)
 
-    if params.autoRenewAccountId:
-        transaction.set_auto_renew_account(params.autoRenewAccountId)
+    if params.autoRenewAccountId is not None:
+        transaction.set_auto_renew_account(AccountId.from_string(params.autoRenewAccountId))
 
-    if params.feeScheduleKey:
+    if params.feeScheduleKey is not None:
         transaction.set_fee_schedule_key(get_key_from_string(params.feeScheduleKey))
 
-    if params.feeExemptKeys:
+    if params.feeExemptKeys is not None:
         transaction.set_fee_exempt_keys([get_key_from_string(key) for key in params.feeExemptKeys])
 
     if params.customFees is not None:
@@ -73,9 +73,11 @@ def create_topic(params: CreateTopicParams) -> CreateTopicResponse:
 
     transaction = _build_create_topic_transaction(params)
 
+    if params.autoRenewAccountId is None and client is not None and client.operator_account_id is not None:
+        transaction.set_auto_renew_account(client.operator_account_id)
+
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
-
 
     response = transaction.execute(client, wait_for_receipt=False)
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
