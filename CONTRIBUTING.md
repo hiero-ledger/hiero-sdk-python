@@ -32,7 +32,7 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 3. Follow [Setup Guide](docs/sdk_developers/training/setup)
 4. Follow [Workflow Guide](docs/sdk_developers/workflow.md)
 5. GPG and DCO sign commits [Quickstart Signing](docs/sdk_developers/training/workflow/07_signing_requirements.md)
-6. Submit a PR [Quickstart Submit PR](docs/sdk_developers/training/workflow/11_submit_pull_request.md)
+6. Submit a PR [Quickstart Submit PR](docs/sdk_developers/training/workflow/10_submit_pull_request.md)
 
 **Detailed Docs:**
 
@@ -102,7 +102,7 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 | [Setup](docs/sdk_developers/setup.md) | Fork, clone, install, configure |
 | [Workflow](docs/sdk_developers/workflow.md) | Branching, committing, PRs |
 | [Signing](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md) | GPG + DCO commit signing |
-| [Checklist](docs/sdk_developers/checklist.md) | Pre-submission checklist |
+| [Checklist](docs/sdk_developers/testing.md#testing-checklist-for-contributors) | Pre-submission checklist |
 | [Rebasing](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/rebasing.md) | Keeping branch updated |
 | [Merge Conflicts](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md) | Resolving conflicts |
 | [Types](docs/sdk_developers/types.md) | Python type hints |

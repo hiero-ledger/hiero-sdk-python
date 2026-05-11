@@ -1,0 +1,59 @@
+# Automated PR review queue label sync.
+# Runs on a 30-minute schedule to classify every open non-draft PR into one of
+# four review stages based on the number and permission level of approvals:
+#   queue:junior-committer → queue:committers → queue:maintainers → ready-to-merge
+#
+# Phase 1 of 4 — label sync only.  No assignments, no comments, no routing.
+#
+# Old step:/reviewer: labels are intentionally left untouched and will coexist
+# with the new queue: labels until a future cleanup PR removes them.
+# Bot-authored PRs (e.g. Dependabot) are included and will receive labels.
+
+name: Review Queue Label Sync
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'If true, log label changes without applying them. Default true for manual runs.'
+        required: false
+        default: 'true'
+        type: string
+
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+  checks: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: hl-sdk-py-lin-md
+    env:
+      DRY_RUN: ${{ inputs.dry_run || 'false' }}
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout scripts
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          sparse-checkout: |
+            .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Run review sync
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fn = require('./.github/scripts/review-sync/index.js');
+            await fn({ github, context, core });

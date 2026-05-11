@@ -250,9 +250,10 @@ def test_integration_scheduled_topic_message_submit_transaction_can_execute_with
         .set_topic_id(topic_id)
         .set_message("Hello, Python SDK!")
         .add_custom_fee_limit(topic_message_submit_fee_limit)
-        .schedule()
     )
     tx.transaction_fee = Hbar(2).to_tinybars()
+    tx = tx.schedule()
+
     receipt = tx.execute(env.client)
 
     assert receipt.status == ResponseCode.SUCCESS, (

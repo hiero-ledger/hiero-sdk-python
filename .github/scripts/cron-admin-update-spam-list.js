@@ -8,6 +8,12 @@
  */
 
 const fs = require('fs').promises;
+const { LABEL_AUTOMATED } = require('./labels.js');
+const { GOOD_FIRST_ISSUE_LABEL, isSafeLabel } = require('./shared/labels.js');
+
+if (!isSafeLabel(GOOD_FIRST_ISSUE_LABEL)) {
+  throw new Error(`Invalid GOOD_FIRST_ISSUE_LABEL: ${GOOD_FIRST_ISSUE_LABEL}`);
+}
 
 const SPAM_LIST_PATH = '.github/spam-list.txt';
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
@@ -145,7 +151,7 @@ module.exports = async ({github, context, core}) => {
       },
       {
         name:  'rehabilitated PRs',
-        query: `repo:${owner}/${repo} is:pr is:merged label:"Good First Issue"`,
+        query: `repo:${owner}/${repo} is:pr is:merged label:"${GOOD_FIRST_ISSUE_LABEL}"`,
         process: async (pr) => {
          if (!pr.user?.login) {
             console.log(`Skipping PR #${pr.number}: user account unavailable`);
@@ -229,7 +235,7 @@ module.exports = async ({github, context, core}) => {
           repo,
           title,
           body,
-          labels: [LABEL_SPAM_LIST_UPDATE, 'automated']
+          labels: [LABEL_SPAM_LIST_UPDATE, LABEL_AUTOMATED]
         });
         console.log('Issue created successfully');
       }

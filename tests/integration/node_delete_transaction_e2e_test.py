@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.client.client import Client
@@ -39,7 +40,14 @@ def test_node_delete_transaction_can_execute():
     )
     client.set_operator(AccountId(0, 0, 2), original_operator_key)
 
-    account_id = AccountId(0, 0, 4)  # This is the account of the node
+    # This is the account of the node
+    account_id = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .freeze_with(client)
+        .execute(client)
+        .account_id
+    )
 
     # Endpoints for the node
     endpoint = Endpoint(domain_name="test.com", port=123)

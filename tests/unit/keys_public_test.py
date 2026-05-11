@@ -329,6 +329,91 @@ def test_from_bytes_invalid():
 
 
 # ------------------------------------------------------------------------------
+# Test: DER helper encoders and compressed DER export
+# ------------------------------------------------------------------------------
+def test_encode_der_length_short_and_long_forms():
+    assert PublicKey._encode_der_length(0) == b"\x00"
+    assert PublicKey._encode_der_length(0x7F) == b"\x7f"
+    assert PublicKey._encode_der_length(0x80) == b"\x81\x80"
+    assert PublicKey._encode_der_length(0x0100) == b"\x82\x01\x00"
+    assert PublicKey._encode_der_length(0x1000000) == b"\x84\x01\x00\x00\x00"
+
+
+def test_encode_der_length_negative_raises():
+    with pytest.raises(ValueError, match="non-negative"):
+        PublicKey._encode_der_length(-1)
+
+
+def test_encode_der_oid_known_values():
+    # id-ecPublicKey
+    assert PublicKey._encode_der_oid("1.2.840.10045.2.1") == bytes.fromhex("06072a8648ce3d0201")
+    # secp256k1
+    assert PublicKey._encode_der_oid("1.3.132.0.10") == bytes.fromhex("06052b8104000a")
+
+
+def test_encode_der_oid_combined_root_multibyte():
+    # "2.999" -> 2*40 + 999 = 1079, encoded as VLQ: 0x88 0x37
+    result = PublicKey._encode_der_oid("2.999.1")
+    assert result == bytes.fromhex("0603883701")
+    assert result[0] == 0x06  # OID tag
+    assert result[1] == 0x03  # Length of OID content
+
+
+def test_encode_der_oid_invalid_components_raise():
+    for oid in ("1", "3.1.1", "1.40.1", "9.999.1"):
+        with pytest.raises(ValueError, match=f"Invalid OID structure for '{oid}'"):
+            PublicKey._encode_der_oid(oid)
+
+    with pytest.raises(ValueError, match="non-negative"):
+        PublicKey._encode_der_oid("1.2.-1")
+
+    with pytest.raises(ValueError, match="invalid literal for int()"):
+        PublicKey._encode_der_oid("1.999bit")
+    with pytest.raises(ValueError):
+        PublicKey._encode_der_oid("")
+    with pytest.raises(ValueError):
+        PublicKey._encode_der_oid("...")
+
+
+def test_encode_der_sequence_and_bit_string():
+    assert PublicKey._encode_der_sequence(b"\x01\x02") == b"\x30\x02\x01\x02"
+    assert PublicKey._encode_der_bit_string(b"\xaa\xbb") == b"\x03\x03\x00\xaa\xbb"
+
+
+def test_to_bytes_der_ecdsa_compressed_structure_and_roundtrip(ecdsa_keypair):
+    _, pub = ecdsa_keypair
+    public_key = PublicKey(pub)
+
+    der = public_key.to_bytes_der_ecdsa_compressed()
+    compressed_point = public_key.to_bytes_ecdsa(compressed=True)
+
+    # Fixed SPKI prefix for secp256k1 compressed-point encoding.
+    expected_prefix = bytes.fromhex("3036301006072a8648ce3d020106052b8104000a032200")
+    assert der.startswith(expected_prefix)
+    assert der[len(expected_prefix) :] == compressed_point
+
+    # Ensure produced DER is parseable and preserves the same public key bytes.
+    loaded = PublicKey.from_der(der)
+    assert loaded.is_ecdsa()
+    assert loaded.to_bytes_ecdsa(compressed=True) == compressed_point
+
+
+def test_to_bytes_der_ecdsa_compressed_rejects_ed25519(ed25519_keypair):
+    _, pub = ed25519_keypair
+    public_key = PublicKey(pub)
+
+    with pytest.raises(ValueError, match="only supported for ECDSA"):
+        public_key.to_bytes_der_ecdsa_compressed()
+
+
+def test_encode_vlq_values():
+    assert PublicKey._encode_vlq(0) == b"\x00"
+    assert PublicKey._encode_vlq(127) == b"\x7f"
+    assert PublicKey._encode_vlq(128) == b"\x81\x00"
+    assert PublicKey._encode_vlq(0x4000) == b"\x81\x80\x00"
+
+
+# ------------------------------------------------------------------------------
 # Test: from_string_xxx
 # ------------------------------------------------------------------------------
 def test_from_string_ed25519(ed25519_keypair):

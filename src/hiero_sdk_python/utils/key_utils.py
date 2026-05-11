@@ -7,43 +7,30 @@ Utility functions and type definitions for working with cryptographic keys.
 
 from __future__ import annotations
 
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.hapi.services import basic_types_pb2
-
-
-# Type alias for keys that can be either PrivateKey or PublicKey
-Key = PrivateKey | PublicKey
 
 
 def key_to_proto(key: Key | None) -> basic_types_pb2.Key | None:
     """
-    Helper function to convert a key (PrivateKey or PublicKey) to protobuf Key format.
+    Helper function to convert an SDK key to protobuf Key format.
 
-    This function handles the conversion of SDK key types to protobuf format:
-    - If a PrivateKey is provided, its corresponding public key is extracted and converted.
-    - If a PublicKey is provided, it is converted directly to protobuf.
-    - If None is provided, None is returned.
+    This function handles any concrete subclass of Key by delegating to its
+    to_proto_key() implementation. If None is provided, None is returned.
 
     Args:
-        key (Optional[Key]): The key to convert (PrivateKey or PublicKey), or None
+        key (Optional[Key]): The key to convert, or None
 
     Returns:
         basic_types_pb2.Key (Optional): The protobuf key or None if key is None
 
     Raises:
-        TypeError: If the provided key is not a PrivateKey, PublicKey, or None.
+        TypeError: If the provided key is not a Key instance or None.
     """
-    if not key:
+    if key is None:
         return None
 
-    # If it's a PrivateKey, get the public key first, then convert to proto
-    if isinstance(key, PrivateKey):
-        return key.public_key()._to_proto()
+    if isinstance(key, Key):
+        return key.to_proto_key()
 
-    # If it's a PublicKey, convert directly to proto
-    if isinstance(key, PublicKey):
-        return key._to_proto()
-
-    # Safety net: This will fail if a non-key is passed
-    raise TypeError("Key must be of type PrivateKey or PublicKey")
+    raise TypeError("Key must be of type PrivateKey or PublicKey, or another SDK Key implementation")

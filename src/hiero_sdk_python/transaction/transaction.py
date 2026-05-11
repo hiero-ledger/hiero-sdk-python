@@ -5,17 +5,19 @@ from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_contents_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.fee_estimate_query import FeeEstimateQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
-from hiero_sdk_python.utils.key_utils import Key, key_to_proto
+from hiero_sdk_python.utils.key_utils import key_to_proto
 
 
 if TYPE_CHECKING:
@@ -191,8 +193,12 @@ class Transaction(_Executable):
             # We initialize the signature map for this body_bytes if it doesn't exist yet
             self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap())
 
-            # Append the signature pair to the signature map for this transaction body
-            self._signature_map[body_bytes].sigPair.append(sig_pair)
+            # deduplication check
+            already_signed = any(sp.pubKeyPrefix == public_key_bytes for sp in self._signature_map[body_bytes].sigPair)
+
+            # append only if not already signed
+            if not already_signed:
+                self._signature_map[body_bytes].sigPair.append(sig_pair)
 
         return self
 
@@ -894,3 +900,24 @@ class Transaction(_Executable):
         self.freeze_with(client)
         self.sign(client.operator_private_key)
         return self
+
+    def estimate_fee(self) -> FeeEstimateQuery:
+        """
+        Creates a FeeEstimateQuery for this transaction.
+
+        Returns:
+            FeeEstimateQuery: A query configured to estimate fees for this transaction.
+        """
+
+        query = FeeEstimateQuery()
+        query.set_transaction(self)
+        return query
+
+    def get_required_chunks(self):
+        """
+        Returns the number of chunks required for the current message.
+
+        Returns:
+            int: Number of chunks required.
+        """
+        return 1
