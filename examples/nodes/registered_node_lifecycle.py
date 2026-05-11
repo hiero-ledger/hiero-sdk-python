@@ -22,6 +22,7 @@ from hiero_sdk_python import AccountId, Client, Network, PrivateKey
 from hiero_sdk_python.address_book.block_node_api import BlockNodeApi
 from hiero_sdk_python.address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
 from hiero_sdk_python.address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
 from hiero_sdk_python.nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
 from hiero_sdk_python.nodes.registered_node_update_transaction import RegisteredNodeUpdateTransaction
@@ -74,7 +75,7 @@ def registered_node_lifecycle():
             .sign(admin_key)
             .execute(client)
         )
-    except Exception as e:
+    except (PrecheckError, ValueError) as e:
         print(f"Registered node creation failed: {e}")
         sys.exit(1)
 
@@ -104,7 +105,7 @@ def registered_node_lifecycle():
             .sign(admin_key)
             .execute(client)
         )
-    except Exception as e:
+    except (PrecheckError, ValueError) as e:
         print(f"Registered node update failed: {e}")
         sys.exit(1)
 
@@ -125,7 +126,7 @@ def registered_node_lifecycle():
             .sign(admin_key)
             .execute(client)
         )
-    except Exception as e:
+    except (PrecheckError, ValueError) as e:
         print(f"Registered node deletion failed: {e}")
         sys.exit(1)
 
