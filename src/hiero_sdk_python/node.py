@@ -9,7 +9,7 @@ import grpc
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.node_address import NodeAddress
-from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.channels import _Channel, _UserAgentInterceptor
 from hiero_sdk_python.managed_node_address import _ManagedNodeAddress
 
 
@@ -126,6 +126,7 @@ class _Node:
             if self._root_certificates:
                 # Use the certificate that is provided
                 self._node_pem_cert = self._root_certificates
+
             else:
                 # Fetch pem_cert for the node
                 self._node_pem_cert = self._fetch_server_certificate_pem()
@@ -146,6 +147,8 @@ class _Node:
             channel = grpc.secure_channel(str(self._address), credentials, options=options)
         else:
             channel = grpc.insecure_channel(str(self._address))
+
+        channel = grpc.intercept_channel(channel, _UserAgentInterceptor())
 
         self._channel = _Channel(channel)
 

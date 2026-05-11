@@ -8,6 +8,7 @@ from hiero_sdk_python.account.account_create_transaction import AccountCreateTra
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -96,6 +97,7 @@ def test_batch_transaction_can_execute_large_batch(env):
 
         batch_tx.add_inner_transaction(transfer_tx)
 
+    batch_tx.transaction_fee = Hbar.from_hbars(10)
     batch_tx.freeze_with(env.client)
     batch_tx.sign(batch_key)
 
