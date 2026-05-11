@@ -4,8 +4,8 @@ from dataclasses import dataclass
 
 from tck.param.base import BaseTransactionParams
 from tck.util.param_utils import (
-    non_empty_string_or_none,
     non_empty_string_list,
+    non_empty_string_or_none,
     parse_common_transaction_params,
     parse_session_id,
     to_bool,
