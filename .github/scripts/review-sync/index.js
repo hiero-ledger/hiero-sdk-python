@@ -14,7 +14,7 @@
 // Phase 1 of 4 — label sync only.
 
 const helpers = require('./helpers');
-const { QUEUE_LABELS, RATE_LIMIT_FLOOR } = helpers.constants;
+const { QUEUE_LABELS, RATE_LIMIT_FLOOR, COMMUNITY_REVIEW } = helpers.constants;
 const { ensureLabel, syncLabel } = helpers.labels;
 
 module.exports = async ({ github, context, core }) => {
@@ -55,11 +55,12 @@ module.exports = async ({ github, context, core }) => {
     return;
   }
 
-  // ── 3. Ensure queue labels exist ─────────────────────────────────────────
-  console.log('\n--- Ensuring Queue Labels Exist ---');
+  // ── 3. Ensure labels exist ───────────────────────────────────────────────
+  console.log('\n--- Ensuring Labels Exist ---');
   for (const label of Object.values(QUEUE_LABELS)) {
     await ensureLabel(github, owner, repo, label, dryRun);
   }
+  await ensureLabel(github, owner, repo, COMMUNITY_REVIEW, dryRun);
 
   // ── 4. Sync label on each PR ─────────────────────────────────────────────
   console.log('\n--- Syncing Labels ---');
@@ -90,6 +91,6 @@ module.exports = async ({ github, context, core }) => {
   console.log(`  Errors: ${errors}`);
 
   if (errors > 0) {
-    process.exitCode = 1;
+    core.setFailed(`Review sync completed with ${errors} error(s). Check logs above.`);
   }
 };

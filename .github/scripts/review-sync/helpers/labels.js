@@ -10,7 +10,7 @@
 //   - syncLabel() adds the correct label FIRST, then removes stale ones
 //     (crash-safe: PR never has zero queue labels)
 
-const { QUEUE_LABELS, ALL_QUEUE_LABEL_NAMES } = require('./constants');
+const { QUEUE_LABELS, ALL_QUEUE_LABEL_NAMES, COMMUNITY_REVIEW } = require('./constants');
 const { countApprovals } = require('./permissions');
 
 /**
@@ -54,26 +54,81 @@ async function ensureLabel(github, owner, repo, label, dryRun) {
 }
 
 /**
+ * Check if the latest CI runs for a given commit have any failures.
+ *
+ * We intentionally treat the following as failures:
+ * - 'failure', 'timed_out' (explicit test failures)
+ * - 'startup_failure' (e.g., invalid workflow YAML)
+ * - 'action_required' (e.g., waiting for maintainer approval for first-time contributors)
+ *
+ * We intentionally EXCLUDE 'cancelled':
+ * When a developer pushes a new commit, GitHub automatically cancels the currently
+ * running workflows. If we treated 'cancelled' as a failure, every re-push would
+ * instantly demote the PR to queue:junior-committer, frustrating contributors.
+ *
+ * @returns {boolean} true if any check run conclusion is a blocking failure.
+ */
+async function hasCIFailures(github, owner, repo, sha) {
+  try {
+    // We MUST use paginate, otherwise it silently truncates at 30 runs.
+    // Matrix builds often exceed 30 checks.
+    const checkRuns = await github.paginate(github.rest.checks.listForRef, {
+      owner,
+      repo,
+      ref: sha,
+      filter: 'latest'
+    });
+
+    return checkRuns.some(
+      run =>
+        run.conclusion === 'failure' ||
+        run.conclusion === 'timed_out' ||
+        run.conclusion === 'startup_failure' ||
+        run.conclusion === 'action_required'
+    );
+  } catch (error) {
+    // Fail securely: do not assume CI is passing if we cannot verify it.
+    // Throwing ensures this PR skips sync and the workflow registers an error.
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`    ✗ Failed to fetch CI checks for ${sha}: ${message}`);
+    throw error;
+  }
+}
+
+/**
  * Determine the correct queue label for a PR based on approval counts.
  *
- * Phase 1 logic (4-stage pipeline):
- *   maintainerApproval >= 1 AND (maintainerApproval + writeApproval) >= 2  → status: ready-to-merge      (CODEOWNERS + min core reviews)
- *   writeApproval >= 1 OR maintainerApproval >= 1 → queue:maintainers   (senior review present, needs more)
- *   anyApproval >= 1                               → queue:committers    (has any approval, needs committer)
- *   else                                           → queue:junior-committer (no approvals yet)
+ * Phase 1 logic (5-stage pipeline):
+ *   ciFailing                                        → queue:junior-committer (CI broken, block promotion)
+ *   maintainerApprovals >= 1 AND coreApprovals >= 2  → status: ready-to-merge (CODEOWNERS + min core reviews)
+ *   maintainerApprovals >= 1 (but coreApprovals < 2) → queue:committers      (maintainer already in, need committer next)
+ *   coreApprovals >= 1 (no maintainer yet)            → queue:maintainers     (committer reviewed, needs maintainer)
+ *   anyApproval >= 1                                 → queue:committers      (has soft approval, needs committer)
+ *   else                                             → queue:junior-committer (no approvals yet)
  *
- * Note: status: ready-to-merge requires BOTH a maintainer approval AND at least 2
- * total core reviews (maintainer or write). This prevents a single maintainer approval
+ * Note: When a maintainer "jumps in early" before triage/committers, the PR should
+ * route to queue:committers (not queue:maintainers) to attract a committer review
+ * rather than a second maintainer. This prevents wasting maintainer bandwidth.
+ *
+ * status: ready-to-merge requires BOTH a maintainer approval AND at least 2
+ * total core reviews (maintainer or committer). This prevents a single maintainer approval
  * + a soft approval from marking a PR as ready when branch protection requires 2+ core reviews.
  *
- * @param {{ maintainerApproval: number, writeApproval: number, softApproval: number, anyApproval: number }} approvals
+ * @param {{ maintainerApprovals: number, coreApprovals: number, softApprovals: number, anyApproval: number }} approvals
+ * @param {boolean} ciFailing - If true, automatically demotes PR to queue:junior-committer
  * @returns {object} The correct QUEUE_LABELS entry
  */
-function determineLabel(approvals) {
-  if (approvals.maintainerApproval >= 1 && (approvals.maintainerApproval + approvals.writeApproval) >= 2) {
+function determineLabel(approvals, ciFailing = false) {
+  if (ciFailing) {
+    return QUEUE_LABELS.JUNIOR;
+  }
+  if (approvals.maintainerApprovals >= 1 && approvals.coreApprovals >= 2) {
     return QUEUE_LABELS.MERGE;
   }
-  if (approvals.writeApproval >= 1 || approvals.maintainerApproval >= 1) {
+  if (approvals.maintainerApprovals >= 1) {
+    return QUEUE_LABELS.COMMITTERS;
+  }
+  if (approvals.coreApprovals >= 1) {
     return QUEUE_LABELS.MAINTAINERS;
   }
   if (approvals.anyApproval >= 1) {
@@ -106,15 +161,16 @@ async function syncLabel(github, owner, repo, pr, dryRun) {
   const prNumber = pr.number;
   const currentLabels = (pr.labels || []).map((l) => l.name);
 
-  // Count approvals and determine the correct label
+  // Count approvals and check CI status
   const approvals = await countApprovals(github, owner, repo, prNumber);
-  const correctLabel = determineLabel(approvals);
+  const ciFailing = await hasCIFailures(github, owner, repo, pr.head.sha);
+  const correctLabel = determineLabel(approvals, ciFailing);
 
   console.log(
-    `  PR #${prNumber}: maintainerApproval=${approvals.maintainerApproval}, ` +
-    `writeApproval=${approvals.writeApproval}, ` +
-    `softApproval=${approvals.softApproval}, anyApproval=${approvals.anyApproval} ` +
-    `→ ${correctLabel.name}`
+    `  PR #${prNumber}: maintainerApprovals=${approvals.maintainerApprovals}, ` +
+    `coreApprovals=${approvals.coreApprovals}, ` +
+    `softApprovals=${approvals.softApprovals}, anyApproval=${approvals.anyApproval}, ` +
+    `ciFailing=${ciFailing} → ${correctLabel.name}`
   );
 
   // Determine which stale queue labels to remove
@@ -122,28 +178,43 @@ async function syncLabel(github, owner, repo, pr, dryRun) {
     (name) => ALL_QUEUE_LABEL_NAMES.includes(name) && name !== correctLabel.name
   );
 
-  // Check if the correct label is already present AND there are no stale labels to remove
-  if (currentLabels.includes(correctLabel.name) && staleLabels.length === 0) {
-    console.log(`    ✓ Already has "${correctLabel.name}". No change needed.`);
+  const isHuman = pr.user && pr.user.type !== 'Bot';
+  const needsCommunityReview = isHuman && !currentLabels.includes(COMMUNITY_REVIEW.name);
+
+  // Check if the correct labels are already present AND there are no stale labels to remove
+  if (currentLabels.includes(correctLabel.name) && staleLabels.length === 0 && !needsCommunityReview) {
+    console.log(`    ✓ Already has "${correctLabel.name}"${isHuman ? ` and "${COMMUNITY_REVIEW.name}"` : ''}. No change needed.`);
     return false;
   }
 
+  const labelsToAdd = [];
+  if (!currentLabels.includes(correctLabel.name)) {
+    labelsToAdd.push(correctLabel.name);
+  }
+  if (needsCommunityReview) {
+    labelsToAdd.push(COMMUNITY_REVIEW.name);
+  }
+
   if (dryRun) {
-    console.log(`    [DRY RUN] Would add "${correctLabel.name}".`);
+    if (labelsToAdd.length > 0) {
+      console.log(`    [DRY RUN] Would add: ${labelsToAdd.join(', ')}.`);
+    }
     if (staleLabels.length > 0) {
       console.log(`    [DRY RUN] Would remove: ${staleLabels.join(', ')}.`);
     }
     return true;
   }
 
-  // Step 1: ADD the correct label FIRST (crash-safe: PR always has at least one label)
-  await github.rest.issues.addLabels({
-    owner,
-    repo,
-    issue_number: prNumber,
-    labels: [correctLabel.name],
-  });
-  console.log(`    + Added "${correctLabel.name}".`);
+  // Step 1: ADD the correct labels FIRST (crash-safe: PR always has at least one label)
+  if (labelsToAdd.length > 0) {
+    await github.rest.issues.addLabels({
+      owner,
+      repo,
+      issue_number: prNumber,
+      labels: labelsToAdd,
+    });
+    console.log(`    + Added: ${labelsToAdd.join(', ')}.`);
+  }
 
   // Step 2: THEN remove stale queue labels one by one
   for (const stale of staleLabels) {
@@ -170,4 +241,4 @@ async function syncLabel(github, owner, repo, pr, dryRun) {
   return true;
 }
 
-module.exports = { ensureLabel, determineLabel, syncLabel };
+module.exports = { ensureLabel, determineLabel, syncLabel, hasCIFailures };

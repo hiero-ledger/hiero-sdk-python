@@ -35,11 +35,20 @@ const QUEUE_LABELS = {
   MERGE: {
     name: 'status: ready-to-merge',
     color: '0e8a16',
-    description: 'PR has 1+ maintainer and 2+ total approvals, ready to merge',
+    description: 'PR has 1+ maintainer and 2+ core (committer/maintainer) approvals, ready to merge',
   },
 };
 
 /** All queue label names, used for cleanup operations. */
 const ALL_QUEUE_LABEL_NAMES = Object.values(QUEUE_LABELS).map((l) => l.name);
 
-module.exports = { RATE_LIMIT_FLOOR, QUEUE_LABELS, ALL_QUEUE_LABEL_NAMES };
+/**
+ * The permanent community review label appended to all open PRs.
+ */
+const COMMUNITY_REVIEW = {
+  name: 'open to community review',
+  color: '008672',
+  description: 'PR is open for community review and feedback',
+};
+
+module.exports = { RATE_LIMIT_FLOOR, QUEUE_LABELS, ALL_QUEUE_LABEL_NAMES, COMMUNITY_REVIEW };
