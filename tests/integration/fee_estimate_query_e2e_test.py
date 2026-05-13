@@ -22,8 +22,7 @@ _fee_estimation_error: Exception | None = None
 
 def wait_for_fee_estimation_service_ready(env):
     """
-    Blocks until the Mirror Node's FeeEstimationService is ready.
-    with a 10-minute timeout.
+    Wait until the FeeEstimationService is ready with a timeout.
     """
     global _fee_estimation_ready, _fee_estimation_error
 
