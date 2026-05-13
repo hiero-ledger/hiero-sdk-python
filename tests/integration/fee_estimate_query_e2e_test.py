@@ -73,7 +73,7 @@ def test_can_execute_fee_estimation_query(env):
     """
     wait_for_fee_estimation_service_ready(env)
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_initial_balance(1)
-    # wait_for_mirror_node_sync()
+
     query = FeeEstimateQuery().set_transaction(tx)
     result = query.execute(env.client)
 
@@ -87,7 +87,7 @@ def test_can_execute_fee_estimation_query2(env):
     """
     wait_for_fee_estimation_service_ready(env)
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_initial_balance(1)
-    # wait_for_mirror_node_sync()
+
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
     result = query.execute(env.client)
 
@@ -101,7 +101,6 @@ def test__fee_estimation_query_chunk_tx_can_execute(env):
     """
     wait_for_fee_estimation_service_ready(env)
     tx = FileAppendTransaction().set_file_id(FileId(0, 0, 2)).set_chunk_size(10).set_contents("s" * 33)  # 4 chunks
-    # wait_for_mirror_node_sync()
 
     tx.freeze_with(env.client)
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
@@ -119,7 +118,6 @@ def test_can_execute_fee_estimation_query_chunk_tx(env):
     tx = (
         TopicMessageSubmitTransaction().set_topic_id(TopicId(0, 0, 2)).set_chunk_size(10).set_message("s" * 20)
     )  # 2 chunks
-    # wait_for_mirror_node_sync()
 
     tx.freeze_with(env.client)
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
