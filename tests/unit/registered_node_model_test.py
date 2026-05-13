@@ -186,6 +186,95 @@ class TestRegisteredNode:
         assert "42" in r
         assert "hello" in r
 
+    def test_from_dict_minimal(self):
+        data = {"registered_node_id": 42}
+        node = RegisteredNode._from_dict(data)
+        assert node.registered_node_id == 42
+        assert node.admin_key is None
+        assert node.description is None
+        assert node.service_endpoints == ()
+
+    def test_from_dict_with_admin_key_ed25519(self):
+        pub = _make_key()
+        data = {
+            "registered_node_id": 1,
+            "admin_key": {"_type": "ED25519", "key": pub.to_string_raw()},
+        }
+        node = RegisteredNode._from_dict(data)
+        assert node.admin_key is not None
+
+    def test_from_dict_with_description(self):
+        data = {"registered_node_id": 5, "description": "test node"}
+        node = RegisteredNode._from_dict(data)
+        assert node.description == "test node"
+
+    def test_from_dict_with_mirror_endpoint(self):
+        data = {
+            "registered_node_id": 10,
+            "service_endpoints": [
+                {
+                    "domain_name": "mirror.example.com",
+                    "port": 5600,
+                    "requires_tls": True,
+                    "type": "MIRROR_NODE",
+                }
+            ],
+        }
+        node = RegisteredNode._from_dict(data)
+        assert len(node.service_endpoints) == 1
+        assert isinstance(node.service_endpoints[0], MirrorNodeServiceEndpoint)
+
+    def test_from_dict_with_block_endpoint(self):
+        data = {
+            "registered_node_id": 10,
+            "service_endpoints": [
+                {
+                    "domain_name": "block.example.com",
+                    "port": 443,
+                    "requires_tls": True,
+                    "type": "BLOCK_NODE",
+                    "block_node": {"endpoint_apis": ["PUBLISH", "SUBSCRIBE_STREAM"]},
+                }
+            ],
+        }
+        node = RegisteredNode._from_dict(data)
+        ep = node.service_endpoints[0]
+        assert isinstance(ep, BlockNodeServiceEndpoint)
+        assert BlockNodeApi.PUBLISH in ep.endpoint_apis
+
+    def test_from_dict_with_general_endpoint(self):
+        data = {
+            "registered_node_id": 10,
+            "service_endpoints": [
+                {
+                    "domain_name": "general.example.com",
+                    "port": 9000,
+                    "requires_tls": False,
+                    "type": "GENERAL_SERVICE",
+                    "general_service": {"description": "my service"},
+                }
+            ],
+        }
+        node = RegisteredNode._from_dict(data)
+        ep = node.service_endpoints[0]
+        assert isinstance(ep, GeneralServiceEndpoint)
+        assert ep.description == "my service"
+
+    def test_from_dict_with_rpc_relay_endpoint(self):
+        data = {
+            "registered_node_id": 10,
+            "service_endpoints": [
+                {
+                    "domain_name": "rpc.example.com",
+                    "port": 8545,
+                    "requires_tls": False,
+                    "type": "RPC_RELAY",
+                }
+            ],
+        }
+        node = RegisteredNode._from_dict(data)
+        assert isinstance(node.service_endpoints[0], RpcRelayServiceEndpoint)
+
 
 # ---------------------------------------------------------------------------
 # RegisteredNodeAddressBook
@@ -243,18 +332,10 @@ class TestRegisteredNodeAddressBookQuery:
         q = RegisteredNodeAddressBookQuery()
         assert q is not None
 
-    def test_execute_raises_not_implemented(self):
+    def test_execute_rejects_none_client(self):
         q = RegisteredNodeAddressBookQuery()
-        with pytest.raises(NotImplementedError, match="mirror node API support"):
-            q.execute()
-
-    def test_error_message_is_clear(self):
-        q = RegisteredNodeAddressBookQuery()
-        with pytest.raises(NotImplementedError) as exc_info:
-            q.execute()
-        msg = str(exc_info.value)
-        assert "RegisteredNodeAddressBookQuery" in msg
-        assert "not yet available" in msg
+        with pytest.raises(ValueError, match="client must not be None"):
+            q.execute(None)
 
     def test_set_max_registered_node_count(self):
         q = RegisteredNodeAddressBookQuery()
@@ -285,3 +366,72 @@ class TestRegisteredNodeAddressBookQuery:
         q = RegisteredNodeAddressBookQuery()
         with pytest.raises(ValueError, match="positive integer"):
             q.set_max_registered_node_count("10")
+
+    def test_set_registered_node_id(self):
+        q = RegisteredNodeAddressBookQuery()
+        result = q.set_registered_node_id(5)
+        assert result is q
+
+    def test_set_registered_node_id_rejects_negative(self):
+        q = RegisteredNodeAddressBookQuery()
+        with pytest.raises(ValueError, match="non-negative integer"):
+            q.set_registered_node_id(-1)
+
+    def test_set_registered_node_id_rejects_bool(self):
+        q = RegisteredNodeAddressBookQuery()
+        with pytest.raises(ValueError, match="non-negative integer"):
+            q.set_registered_node_id(True)
+
+    def test_set_limit(self):
+        q = RegisteredNodeAddressBookQuery()
+        result = q.set_limit(50)
+        assert result is q
+
+    def test_set_limit_rejects_zero(self):
+        q = RegisteredNodeAddressBookQuery()
+        with pytest.raises(ValueError, match="positive integer"):
+            q.set_limit(0)
+
+    def test_set_max_attempts(self):
+        q = RegisteredNodeAddressBookQuery()
+        result = q.set_max_attempts(5)
+        assert result is q
+
+    def test_set_max_attempts_rejects_zero(self):
+        q = RegisteredNodeAddressBookQuery()
+        with pytest.raises(ValueError, match="positive integer"):
+            q.set_max_attempts(0)
+
+    def test_set_max_backoff(self):
+        q = RegisteredNodeAddressBookQuery()
+        result = q.set_max_backoff(10.0)
+        assert result is q
+
+    def test_set_max_backoff_rejects_zero(self):
+        q = RegisteredNodeAddressBookQuery()
+        with pytest.raises(ValueError, match="positive number"):
+            q.set_max_backoff(0)
+
+    def test_build_initial_path_default(self):
+        q = RegisteredNodeAddressBookQuery()
+        path = q._build_initial_path()
+        assert "/api/v1/network/registered-nodes" in path
+        assert "limit=25" in path
+
+    def test_build_initial_path_with_node_id(self):
+        q = RegisteredNodeAddressBookQuery()
+        q.set_registered_node_id(7)
+        path = q._build_initial_path()
+        assert "registerednode.id=7" in path
+
+    def test_next_page_path_with_link(self):
+        data = {"links": {"next": "/api/v1/network/registered-nodes?limit=25&registerednode.id=gt:10"}}
+        assert RegisteredNodeAddressBookQuery._next_page_path(data) is not None
+
+    def test_next_page_path_without_link(self):
+        data = {"links": {"next": None}}
+        assert RegisteredNodeAddressBookQuery._next_page_path(data) is None
+
+    def test_next_page_path_no_links_key(self):
+        data = {}
+        assert RegisteredNodeAddressBookQuery._next_page_path(data) is None

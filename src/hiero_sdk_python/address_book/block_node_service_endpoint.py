@@ -47,3 +47,12 @@ class BlockNodeServiceEndpoint(RegisteredServiceEndpoint):
             requires_tls=requires_tls,
             endpoint_apis=apis,
         )
+
+    @classmethod
+    def _from_dict_inner(cls, type_data: dict, **base_kwargs) -> BlockNodeServiceEndpoint:
+        """Build from the ``block_node`` sub-dict of a mirror-node JSON endpoint."""
+        raw_apis = type_data.get("endpoint_apis") or []
+        apis = [BlockNodeApi[a.upper()] if isinstance(a, str) else BlockNodeApi(a) for a in raw_apis]
+        if not apis:
+            apis = [BlockNodeApi.OTHER]
+        return cls(endpoint_apis=apis, **base_kwargs)

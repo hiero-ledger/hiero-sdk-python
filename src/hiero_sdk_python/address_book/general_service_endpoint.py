@@ -45,3 +45,9 @@ class GeneralServiceEndpoint(RegisteredServiceEndpoint):
             requires_tls=requires_tls,
             description=desc,
         )
+
+    @classmethod
+    def _from_dict_inner(cls, type_data: dict, **base_kwargs) -> GeneralServiceEndpoint:
+        """Build from the ``general_service`` sub-dict of a mirror-node JSON endpoint."""
+        desc = type_data.get("description") or None
+        return cls(description=desc, **base_kwargs)

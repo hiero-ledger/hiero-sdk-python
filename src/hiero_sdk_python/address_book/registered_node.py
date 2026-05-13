@@ -61,3 +61,29 @@ class RegisteredNode:
 
     def __repr__(self) -> str:
         return f"RegisteredNode(registered_node_id={self.registered_node_id}, description={self.description!r})"
+
+    @classmethod
+    def _from_dict(cls, data: dict) -> RegisteredNode:
+        """Create a RegisteredNode from a mirror-node JSON dict."""
+        admin_key: PublicKey | None = None
+        admin_key_data = data.get("admin_key")
+        if admin_key_data and isinstance(admin_key_data, dict):
+            key_type = (admin_key_data.get("_type") or "").upper()
+            key_hex = admin_key_data.get("key", "")
+            if key_type == "ED25519":
+                admin_key = PublicKey.from_string_ed25519(key_hex)
+            elif key_type == "ECDSA_SECP256K1":
+                admin_key = PublicKey.from_string_ecdsa(key_hex)
+            elif key_hex:
+                admin_key = PublicKey.from_string(key_hex)
+
+        description: str | None = data.get("description") or None
+
+        endpoints = tuple(RegisteredServiceEndpoint._from_dict(ep) for ep in data.get("service_endpoints", []))
+
+        return cls(
+            registered_node_id=data["registered_node_id"],
+            admin_key=admin_key,
+            description=description,
+            service_endpoints=endpoints,
+        )

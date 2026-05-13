@@ -104,3 +104,37 @@ class RegisteredServiceEndpoint:
         if endpoint_type == "general_service":
             return GeneralServiceEndpoint._from_proto_inner(proto, ip_address, domain_name, port, requires_tls)
         raise ValueError(f"Unknown endpoint_type: {endpoint_type!r}")
+
+    @classmethod
+    def _from_dict(cls, data: dict) -> RegisteredServiceEndpoint:
+        """Deserialize from a mirror-node JSON dict, returning the appropriate subclass."""
+        from hiero_sdk_python.address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
+        from hiero_sdk_python.address_book.general_service_endpoint import GeneralServiceEndpoint
+        from hiero_sdk_python.address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
+        from hiero_sdk_python.address_book.rpc_relay_service_endpoint import RpcRelayServiceEndpoint
+
+        ip_address: bytes | None = None
+        domain_name: str | None = data.get("domain_name") or None
+
+        raw_ip = data.get("ip_address")
+        if raw_ip:
+            import ipaddress as _ipaddress
+
+            ip_address = _ipaddress.ip_address(raw_ip).packed
+
+        port = data.get("port", 0)
+        requires_tls = data.get("requires_tls", False)
+
+        ep_type = (data.get("type") or "").upper()
+
+        base_kwargs = dict(ip_address=ip_address, domain_name=domain_name, port=port, requires_tls=requires_tls)
+
+        if ep_type == "BLOCK_NODE":
+            return BlockNodeServiceEndpoint._from_dict_inner(data.get("block_node", {}), **base_kwargs)
+        if ep_type == "MIRROR_NODE":
+            return MirrorNodeServiceEndpoint(**base_kwargs)
+        if ep_type == "RPC_RELAY":
+            return RpcRelayServiceEndpoint(**base_kwargs)
+        if ep_type == "GENERAL_SERVICE":
+            return GeneralServiceEndpoint._from_dict_inner(data.get("general_service", {}), **base_kwargs)
+        raise ValueError(f"Unknown endpoint type from mirror node: {ep_type!r}")
