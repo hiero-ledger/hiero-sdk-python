@@ -270,3 +270,18 @@ class TestRegisteredNodeAddressBookQuery:
         q = RegisteredNodeAddressBookQuery()
         with pytest.raises(ValueError, match="positive integer"):
             q.set_max_registered_node_count(-1)
+
+    def test_set_max_registered_node_count_rejects_bool(self):
+        q = RegisteredNodeAddressBookQuery()
+        with pytest.raises(ValueError, match="positive integer"):
+            q.set_max_registered_node_count(True)
+
+    def test_set_max_registered_node_count_rejects_float(self):
+        q = RegisteredNodeAddressBookQuery()
+        with pytest.raises(ValueError, match="positive integer"):
+            q.set_max_registered_node_count(1.0)
+
+    def test_set_max_registered_node_count_rejects_string(self):
+        q = RegisteredNodeAddressBookQuery()
+        with pytest.raises(ValueError, match="positive integer"):
+            q.set_max_registered_node_count("10")

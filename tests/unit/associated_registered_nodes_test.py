@@ -58,7 +58,8 @@ class TestNodeCreateAssociatedRegisteredNodes:
     def test_set_replaces_list(self):
         tx = NodeCreateTransaction()
         tx.add_associated_registered_node(1)
-        tx.set_associated_registered_nodes([5, 6])
+        result = tx.set_associated_registered_nodes([5, 6])
+        assert result is tx
         assert tx.associated_registered_nodes == [5, 6]
 
     def test_from_bytes_round_trip(self):
@@ -138,7 +139,8 @@ class TestNodeUpdateAssociatedRegisteredNodes:
     def test_set_replaces_list(self):
         tx = NodeUpdateTransaction()
         tx.add_associated_registered_node(1)
-        tx.set_associated_registered_nodes([100, 200])
+        result = tx.set_associated_registered_nodes([100, 200])
+        assert result is tx
         assert tx.associated_registered_nodes == [100, 200]
 
     def test_from_bytes_round_trip_non_empty(self):
