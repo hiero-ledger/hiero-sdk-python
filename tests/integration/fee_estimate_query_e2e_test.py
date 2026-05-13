@@ -20,10 +20,9 @@ _fee_estimation_ready = False
 _fee_estimation_error: Exception | None = None
 
 
+# Wait until the mirror_node FeeEstimationService can return a good mock query.
 def wait_for_fee_estimation_service_ready(env):
-    """
-    Wait until the FeeEstimationService is ready with a timeout.
-    """
+    """Wait until the FeeEstimationService is ready."""
     global _fee_estimation_ready, _fee_estimation_error
 
     if _fee_estimation_ready:
@@ -64,6 +63,11 @@ def wait_for_fee_estimation_service_ready(env):
     raise _fee_estimation_error
 
 
+def wait_for_sync():
+    """Additional wait to ensure the mirror_node sync."""
+    time.sleep(2.0)
+
+
 @pytest.mark.integration
 def test_can_execute_fee_estimation_query(env):
     """
@@ -71,6 +75,7 @@ def test_can_execute_fee_estimation_query(env):
     """
     wait_for_fee_estimation_service_ready(env)
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_initial_balance(1)
+    wait_for_sync()
 
     query = FeeEstimateQuery().set_transaction(tx)
     result = query.execute(env.client)
@@ -85,6 +90,7 @@ def test_can_execute_fee_estimation_query2(env):
     """
     wait_for_fee_estimation_service_ready(env)
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_initial_balance(1)
+    wait_for_sync()
 
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
     result = query.execute(env.client)
@@ -99,8 +105,9 @@ def test__fee_estimation_query_chunk_tx_can_execute(env):
     """
     wait_for_fee_estimation_service_ready(env)
     tx = FileAppendTransaction().set_file_id(FileId(0, 0, 2)).set_chunk_size(10).set_contents("s" * 33)  # 4 chunks
-
     tx.freeze_with(env.client)
+    wait_for_sync()
+
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
     result = query.execute(env.client)
 
@@ -116,8 +123,9 @@ def test_can_execute_fee_estimation_query_chunk_tx(env):
     tx = (
         TopicMessageSubmitTransaction().set_topic_id(TopicId(0, 0, 2)).set_chunk_size(10).set_message("s" * 20)
     )  # 2 chunks
-
     tx.freeze_with(env.client)
+    wait_for_sync()
+
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
     result = query.execute(env.client)
 
