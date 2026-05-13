@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 import time
 
 import pytest
@@ -33,13 +32,13 @@ def wait_for_fee_estimation_service_ready(env):
     if _fee_estimation_error:
         raise _fee_estimation_error
 
-    deadline = datetime.datetime.now() + datetime.timedelta(seconds=600.0)
     attempts = 0
     last_error = None
 
-    print("Waiting for FeeEstimationService to get ready")
+    print("Waiting for FeeEstimationService to get ready...")
 
-    while datetime.datetime.now() < deadline:
+    deadline = time.monotonic() + 600.0
+    while time.monotonic() < deadline:
         attempts += 1
         try:
             probe = (
@@ -48,7 +47,7 @@ def wait_for_fee_estimation_service_ready(env):
                 .add_hbar_transfer(env.operator_id, Hbar(1))
             )
 
-            (FeeEstimateQuery().set_mode(FeeEstimateMode.INTRINSIC).set_transaction(probe).execute(env.client))
+            FeeEstimateQuery().set_mode(FeeEstimateMode.INTRINSIC).set_transaction(probe).execute(env.client)
 
             _fee_estimation_ready = True
 
