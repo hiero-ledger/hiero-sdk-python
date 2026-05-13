@@ -183,4 +183,3 @@ for attempt in range(3):
 - [examples/errors/precheck_error.py](../../examples/errors/precheck_error.py) — runnable `PrecheckError` example
 - [examples/errors/receipt_status_error.py](../../examples/errors/receipt_status_error.py) — runnable `ReceiptStatusError` example
 - [examples/errors/max_attempts_error.py](../../examples/errors/max_attempts_error.py) — runnable `MaxAttemptsError` example
-- [receipt_status_error.md](../sdk_developers/training/receipt_status_error.md) — internal training doc on receipt status errors
