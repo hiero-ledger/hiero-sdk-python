@@ -116,7 +116,7 @@ def handle_sdk_errors(func):
             logger.error(f"MaxAttemptsError (method: {func.__name__})")
             raise JsonRpcError.hiero_error(message=str(e)) from e
 
-        except Exception as e:
+        except (ValueError, TypeError, KeyError, OSError, IOError, RuntimeError) as e:
             logger.exception("Unhandled error in RPC handler")
             raise JsonRpcError.internal_error(message="Internal error") from e
 
