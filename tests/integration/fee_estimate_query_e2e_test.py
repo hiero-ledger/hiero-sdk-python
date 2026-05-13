@@ -38,13 +38,13 @@ def wait_for_fee_estimation_service_ready(env):
     if _fee_estimation_error:
         raise _fee_estimation_error
 
-    deadline = datetime.now() + datetime.timedelta(seconds=600.0)
+    deadline = datetime.datetime.now() + datetime.timedelta(seconds=600.0)
     attempts = 0
     last_error = None
 
     print("Waiting for FeeEstimationService to get ready")
 
-    while datetime.now() < deadline:
+    while datetime.datetime.now() < deadline:
         attempts += 1
         try:
             probe = (
@@ -76,7 +76,7 @@ def test_can_execute_fee_estimation_query(env):
     """
     Integration test that verifies a fee estimation query executes successfully and returns a non-null result.
     """
-    wait_for_fee_estimation_service_ready()
+    wait_for_fee_estimation_service_ready(env)
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_initial_balance(1)
     wait_for_mirror_node_sync()
     query = FeeEstimateQuery().set_transaction(tx)
@@ -90,7 +90,7 @@ def test_can_execute_fee_estimation_query2(env):
     """Integration test that verifies a state-mode fee estimation query
     executes successfully and returns a non-null result.
     """
-    wait_for_fee_estimation_service_ready()
+    wait_for_fee_estimation_service_ready(env)
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_initial_balance(1)
     wait_for_mirror_node_sync()
     query = FeeEstimateQuery().set_mode(FeeEstimateMode.STATE).set_transaction(tx)
@@ -104,7 +104,7 @@ def test__fee_estimation_query_chunk_tx_can_execute(env):
     """Integration test that verifies a state-mode fee estimation query executes
     successfully for a chunked file append transaction and returns a non-null result.
     """
-    wait_for_fee_estimation_service_ready()
+    wait_for_fee_estimation_service_ready(env)
     tx = FileAppendTransaction().set_file_id(FileId(0, 0, 2)).set_chunk_size(10).set_contents("s" * 33)  # 4 chunks
     wait_for_mirror_node_sync()
 
@@ -120,7 +120,7 @@ def test_can_execute_fee_estimation_query_chunk_tx(env):
     """Integration test that verifies a state-mode fee estimation query executes successfully
     for a chunked topic message submit transaction and returns a non-null result.
     """
-    wait_for_fee_estimation_service_ready()
+    wait_for_fee_estimation_service_ready(env)
     tx = (
         TopicMessageSubmitTransaction().set_topic_id(TopicId(0, 0, 2)).set_chunk_size(10).set_message("s" * 20)
     )  # 2 chunks
