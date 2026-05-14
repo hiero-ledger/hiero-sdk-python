@@ -200,7 +200,7 @@ def test_registered_node_create_with_general_endpoint(admin_client):
     assert receipt.registered_node_id is not None, "registered_node_id should not be None"
     assert receipt.registered_node_id > 0, "registered_node_id should be positive"
 
-    # Cleanup
+    # Cleanup or delete the registered node
     RegisteredNodeDeleteTransaction().set_registered_node_id(receipt.registered_node_id).freeze_with(admin_client).sign(
         admin_key
     ).execute(admin_client)
