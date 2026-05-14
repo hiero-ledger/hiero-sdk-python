@@ -1,9 +1,8 @@
 """
-
 Example demonstrating topic message submit chunked transaction.
 
-uv run examples/consensus/topic_message_submit_chunked.py
-python examples/consensus/topic_message_submit_chunked.py
+uv run examples/consensus/topic_message_submit_chunked_transaction.py
+python examples/consensus/topic_message_submit_chunked_transaction.py
 """
 
 import sys
