@@ -9,7 +9,9 @@ import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.block_node_api import BlockNodeApi
 from hiero_sdk_python.address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
+from hiero_sdk_python.address_book.general_service_endpoint import GeneralServiceEndpoint
 from hiero_sdk_python.address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
+from hiero_sdk_python.address_book.rpc_relay_service_endpoint import RpcRelayServiceEndpoint
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -100,6 +102,103 @@ def test_registered_node_create_with_mixed_endpoints(admin_client):
         f"Registered node create failed with status {ResponseCode(receipt.status).name}"
     )
     assert receipt.registered_node_id is not None
+
+    # Cleanup
+    RegisteredNodeDeleteTransaction().set_registered_node_id(receipt.registered_node_id).freeze_with(admin_client).sign(
+        admin_key
+    ).execute(admin_client)
+
+
+def test_registered_node_create_with_mirror_endpoint(admin_client):
+    """Test creating a registered node with a MirrorNodeServiceEndpoint."""
+    admin_key = PrivateKey.generate_ed25519()
+
+    mirror_endpoint = MirrorNodeServiceEndpoint(
+        domain_name="mirror.example.com",
+        port=5600,
+        requires_tls=True,
+    )
+
+    receipt = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(admin_key.public_key())
+        .set_description("mirror node endpoint")
+        .set_service_endpoints([mirror_endpoint])
+        .freeze_with(admin_client)
+        .sign(admin_key)
+        .execute(admin_client)
+    )
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Registered node create failed with status {ResponseCode(receipt.status).name}"
+    )
+    assert receipt.registered_node_id is not None, "registered_node_id should not be None"
+    assert receipt.registered_node_id > 0, "registered_node_id should be positive"
+
+    # Cleanup
+    RegisteredNodeDeleteTransaction().set_registered_node_id(receipt.registered_node_id).freeze_with(admin_client).sign(
+        admin_key
+    ).execute(admin_client)
+
+
+def test_registered_node_create_with_rpc_relay_endpoint(admin_client):
+    """Test creating a registered node with an RpcRelayServiceEndpoint."""
+    admin_key = PrivateKey.generate_ed25519()
+
+    rpc_endpoint = RpcRelayServiceEndpoint(
+        domain_name="rpc.example.com",
+        port=8545,
+        requires_tls=True,
+    )
+
+    receipt = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(admin_key.public_key())
+        .set_description("rpc relay endpoint")
+        .set_service_endpoints([rpc_endpoint])
+        .freeze_with(admin_client)
+        .sign(admin_key)
+        .execute(admin_client)
+    )
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Registered node create failed with status {ResponseCode(receipt.status).name}"
+    )
+    assert receipt.registered_node_id is not None, "registered_node_id should not be None"
+    assert receipt.registered_node_id > 0, "registered_node_id should be positive"
+
+    # Cleanup
+    RegisteredNodeDeleteTransaction().set_registered_node_id(receipt.registered_node_id).freeze_with(admin_client).sign(
+        admin_key
+    ).execute(admin_client)
+
+
+def test_registered_node_create_with_general_endpoint(admin_client):
+    """Test creating a registered node with a GeneralServiceEndpoint with a description."""
+    admin_key = PrivateKey.generate_ed25519()
+
+    general_endpoint = GeneralServiceEndpoint(
+        domain_name="general.example.com",
+        port=8080,
+        requires_tls=False,
+        description="general purpose service",
+    )
+
+    receipt = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(admin_key.public_key())
+        .set_description("general service endpoint")
+        .set_service_endpoints([general_endpoint])
+        .freeze_with(admin_client)
+        .sign(admin_key)
+        .execute(admin_client)
+    )
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Registered node create failed with status {ResponseCode(receipt.status).name}"
+    )
+    assert receipt.registered_node_id is not None, "registered_node_id should not be None"
+    assert receipt.registered_node_id > 0, "registered_node_id should be positive"
 
     # Cleanup
     RegisteredNodeDeleteTransaction().set_registered_node_id(receipt.registered_node_id).freeze_with(admin_client).sign(

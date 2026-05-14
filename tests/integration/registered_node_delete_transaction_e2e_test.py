@@ -88,3 +88,33 @@ def test_registered_node_delete_invalid_id(admin_client):
     assert receipt.status == ResponseCode.INVALID_REGISTERED_NODE_ID, (
         f"Expected INVALID_REGISTERED_NODE_ID but got {ResponseCode(receipt.status).name}"
     )
+
+
+def test_registered_node_delete_already_deleted(admin_client):
+    """Test that deleting a registered node that was already deleted fails with INVALID_REGISTERED_NODE_ID."""
+    admin_key = PrivateKey.generate_ed25519()
+    registered_node_id = _create_registered_node(admin_client, admin_key)
+
+    # First delete should succeed
+    receipt = (
+        RegisteredNodeDeleteTransaction()
+        .set_registered_node_id(registered_node_id)
+        .freeze_with(admin_client)
+        .sign(admin_key)
+        .execute(admin_client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"First delete failed with status {ResponseCode(receipt.status).name}"
+    )
+
+    # Second delete of the same node should fail
+    receipt = (
+        RegisteredNodeDeleteTransaction()
+        .set_registered_node_id(registered_node_id)
+        .freeze_with(admin_client)
+        .sign(admin_key)
+        .execute(admin_client)
+    )
+    assert receipt.status == ResponseCode.INVALID_REGISTERED_NODE_ID, (
+        f"Expected INVALID_REGISTERED_NODE_ID but got {ResponseCode(receipt.status).name}"
+    )

@@ -82,7 +82,7 @@ def test_registered_node_update_description(admin_client):
         )
 
         # Allow mirror node to sync
-        time.sleep(2)
+        time.sleep(5)
 
         # Query the registered node to verify the description was updated
         address_book = RegisteredNodeAddressBookQuery().set_registered_node_id(registered_node_id).execute(admin_client)
@@ -146,3 +146,107 @@ def test_registered_node_update_invalid_id(admin_client):
         )
     except PrecheckError:
         pass  # Also acceptable: network rejects at precheck
+
+
+def test_registered_node_update_admin_key_both_sign(admin_client):
+    """Test updating admin key when both old and new keys sign succeeds."""
+    old_admin_key = PrivateKey.generate_ed25519()
+    new_admin_key = PrivateKey.generate_ed25519()
+    registered_node_id = _create_registered_node(admin_client, old_admin_key)
+
+    try:
+        receipt = (
+            RegisteredNodeUpdateTransaction()
+            .set_registered_node_id(registered_node_id)
+            .set_admin_key(new_admin_key.public_key())
+            .freeze_with(admin_client)
+            .sign(old_admin_key)
+            .sign(new_admin_key)
+            .execute(admin_client)
+        )
+
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Registered node update admin key failed with status {ResponseCode(receipt.status).name}"
+        )
+    finally:
+        # Cleanup: must sign with the new admin key now
+        RegisteredNodeDeleteTransaction().set_registered_node_id(registered_node_id).freeze_with(admin_client).sign(
+            new_admin_key
+        ).execute(admin_client)
+
+
+def test_registered_node_update_admin_key_only_old_signs(admin_client):
+    """Test updating admin key when only old key signs fails with INVALID_SIGNATURE."""
+    old_admin_key = PrivateKey.generate_ed25519()
+    new_admin_key = PrivateKey.generate_ed25519()
+    registered_node_id = _create_registered_node(admin_client, old_admin_key)
+
+    try:
+        receipt = (
+            RegisteredNodeUpdateTransaction()
+            .set_registered_node_id(registered_node_id)
+            .set_admin_key(new_admin_key.public_key())
+            .freeze_with(admin_client)
+            .sign(old_admin_key)
+            .execute(admin_client)
+        )
+        assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
+            f"Expected INVALID_SIGNATURE but got {ResponseCode(receipt.status).name}"
+        )
+    except PrecheckError:
+        pass  # Also acceptable: network rejects at precheck
+    finally:
+        # Cleanup: admin key was not changed, so old key still works
+        RegisteredNodeDeleteTransaction().set_registered_node_id(registered_node_id).freeze_with(admin_client).sign(
+            old_admin_key
+        ).execute(admin_client)
+
+
+def test_registered_node_update_ip_to_domain_endpoint(admin_client):
+    """Test updating a registered node from an IP address endpoint to a domain name endpoint."""
+    admin_key = PrivateKey.generate_ed25519()
+
+    # Create registered node with an IP address endpoint
+    ip_endpoint = BlockNodeServiceEndpoint(
+        ip_address=bytes([10, 0, 0, 1]),
+        port=443,
+        requires_tls=True,
+        endpoint_apis=[BlockNodeApi.STATUS],
+    )
+    receipt = (
+        RegisteredNodeCreateTransaction()
+        .set_admin_key(admin_key.public_key())
+        .set_description("ip endpoint node")
+        .set_service_endpoints([ip_endpoint])
+        .freeze_with(admin_client)
+        .sign(admin_key)
+        .execute(admin_client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS
+    registered_node_id = receipt.registered_node_id
+
+    try:
+        # Update to a domain name endpoint
+        domain_endpoint = BlockNodeServiceEndpoint(
+            domain_name="block.updated.com",
+            port=443,
+            requires_tls=True,
+            endpoint_apis=[BlockNodeApi.STATUS],
+        )
+        receipt = (
+            RegisteredNodeUpdateTransaction()
+            .set_registered_node_id(registered_node_id)
+            .set_service_endpoints([domain_endpoint])
+            .freeze_with(admin_client)
+            .sign(admin_key)
+            .execute(admin_client)
+        )
+
+        assert receipt.status == ResponseCode.SUCCESS, (
+            f"Registered node update IP to domain failed with status {ResponseCode(receipt.status).name}"
+        )
+    finally:
+        # Cleanup
+        RegisteredNodeDeleteTransaction().set_registered_node_id(registered_node_id).freeze_with(admin_client).sign(
+            admin_key
+        ).execute(admin_client)
