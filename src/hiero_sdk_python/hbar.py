@@ -216,6 +216,43 @@ class Hbar:
             return NotImplemented
         return self._amount_in_tinybar >= other._amount_in_tinybar
 
+    def __add__(self, other: object) -> Hbar:
+        """
+        Return a new Hbar representing the sum of this and another Hbar.
+
+        Args:
+            other (Hbar): The Hbar to add.
+
+        Returns:
+            Hbar: A new Hbar instance with the combined tinybar amount.
+        """
+        if not isinstance(other, Hbar):
+            return NotImplemented
+        return Hbar.from_tinybars(self._amount_in_tinybar + other._amount_in_tinybar)
+
+    def __sub__(self, other: object) -> Hbar:
+        """
+        Return a new Hbar representing the difference of this and another Hbar.
+
+        Args:
+            other (Hbar): The Hbar to subtract.
+
+        Returns:
+            Hbar: A new Hbar instance with the resulting tinybar amount.
+        """
+        if not isinstance(other, Hbar):
+            return NotImplemented
+        return Hbar.from_tinybars(self._amount_in_tinybar - other._amount_in_tinybar)
+
+    def __abs__(self) -> Hbar:
+        """
+        Return a new Hbar representing the absolute value of this Hbar.
+
+        Returns:
+            Hbar: A new Hbar instance with the absolute tinybar amount.
+        """
+        return Hbar.from_tinybars(abs(self._amount_in_tinybar))
+
 
 Hbar.ZERO = Hbar(0)
 Hbar.MAX = Hbar(50_000_000_000)

@@ -332,3 +332,55 @@ def test_from_tinybars_invalid_type_param(invalid_tinybars):
     """Test from_tinybar method raises error if the type is not int."""
     with pytest.raises(TypeError, match=re.escape("tinybars must be an int.")):
         Hbar.from_tinybars(invalid_tinybars)
+
+
+# Arithmetic operator tests for issue #2274
+# ---------------------------------------------------------------------------
+
+
+def test_add_two_hbars():
+    """Test that two Hbar values can be added using the + operator."""
+    assert Hbar(10) + Hbar(5) == Hbar(15)
+    assert (Hbar(10) + Hbar(5)).to_tinybars() == Hbar(15).to_tinybars()
+
+
+def test_sub_two_hbars():
+    """Test that two Hbar values can be subtracted using the - operator."""
+    assert Hbar(10) - Hbar(5) == Hbar(5)
+    assert (Hbar(10) - Hbar(5)).to_tinybars() == Hbar(5).to_tinybars()
+
+
+def test_abs_hbar():
+    """Test that abs() returns the absolute value of an Hbar."""
+    assert abs(Hbar(-3)) == Hbar(3)
+    assert abs(Hbar(3)) == Hbar(3)
+
+
+def test_add_non_hbar_raises_type_error():
+    """Test that adding a non-Hbar type raises TypeError."""
+    with pytest.raises(TypeError):
+        _ = Hbar(1) + 5
+
+    with pytest.raises(TypeError):
+        _ = Hbar(1) + "5"
+
+
+def test_sub_non_hbar_raises_type_error():
+    """Test that subtracting a non-Hbar type raises TypeError."""
+    with pytest.raises(TypeError):
+        _ = Hbar(1) - 5
+
+    with pytest.raises(TypeError):
+        _ = Hbar(1) - "5"
+
+
+def test_add_hbar_zero():
+    """Test that adding Hbar.ZERO returns the same value."""
+    assert Hbar(5) + Hbar.ZERO == Hbar(5)
+
+
+def test_sub_resulting_in_negative():
+    """Test that subtraction can produce a negative Hbar."""
+    result = Hbar(5) - Hbar(10)
+    assert result == Hbar(-5)
+    assert result.to_tinybars() == Hbar(-5).to_tinybars()
