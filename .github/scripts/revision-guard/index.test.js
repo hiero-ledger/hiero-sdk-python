@@ -116,7 +116,7 @@ describe('revision-guard index', () => {
     assert.equal(github.removedLabels.length, 0);
   });
 
-  it('uses configurable managed labels', async () => {
+  it('uses configurable managed labels and still removes defaults', async () => {
     process.env.REVISION_GUARD_MANAGED_LABELS = 'custom: one, custom: two';
     const handler = freshRequire();
     const github = createGithubMock();
@@ -136,6 +136,9 @@ describe('revision-guard index', () => {
 
     await handler({ github, context, core: { info() {} } });
 
-    assert.deepEqual(github.removedLabels, ['custom: one', 'custom: two']);
+    // Draft conversion must also fire for configurable-label scenarios.
+    assert.deepEqual(github.graphqlCalls, [{ pullRequestId: 'PR_node_45' }]);
+    // Custom labels AND the matching default (queue:committers) must both be removed.
+    assert.deepEqual(github.removedLabels, ['queue:committers', 'custom: one', 'custom: two']);
   });
 });

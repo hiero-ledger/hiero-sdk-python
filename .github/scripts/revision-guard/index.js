@@ -7,10 +7,21 @@ const {
 } = require('./helpers');
 
 module.exports = async function revisionGuard({ github, context, core }) {
-  const reviewState = context.payload.review?.state;
-  const pr = context.payload.pull_request;
+  const payload = context?.payload;
+  const repo = context?.repo;
+  const reviewState = payload?.review?.state;
+  const pr = payload?.pull_request;
 
-  if (!pr || reviewState !== 'changes_requested') {
+  if (
+    !payload ||
+    !repo?.owner ||
+    !repo?.repo ||
+    !pr ||
+    typeof pr.number !== 'number' ||
+    !pr.node_id ||
+    reviewState !== 'changes_requested'
+  ) {
+    core?.info?.('Skipping revision guard due to missing or non-matching payload data.');
     return;
   }
 
@@ -34,8 +45,8 @@ module.exports = async function revisionGuard({ github, context, core }) {
   }
 
   await removeManagedLabels(github, {
-    owner: context.repo.owner,
-    repo: context.repo.repo,
+    owner: repo.owner,
+    repo: repo.repo,
     issueNumber: pr.number,
     labels: labelsToRemove,
   });

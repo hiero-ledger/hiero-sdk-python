@@ -27,6 +27,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          # Use trusted base commit, not PR head/merge ref, to prevent fork PRs
+          # from executing untrusted changes with a write-scoped token.
+          ref: ${{ github.event.pull_request.base.sha }}
           sparse-checkout: .github/scripts
 
       - name: Handle changes requested
