@@ -317,7 +317,7 @@ class NodeCreateTransaction(Transaction):
                 transaction.grpc_certificate_hash = pb.grpc_certificate_hash
             if pb.HasField("admin_key"):
                 transaction.admin_key = PublicKey._from_proto(pb.admin_key)
-            if pb.HasField("decline_reward"):
+            if pb.decline_reward:
                 transaction.decline_reward = pb.decline_reward
             if pb.HasField("grpc_proxy_endpoint"):
                 transaction.grpc_web_proxy_endpoint = Endpoint._from_proto(pb.grpc_proxy_endpoint)
