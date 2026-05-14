@@ -12,7 +12,6 @@ from hiero_sdk_python.address_book.block_node_service_endpoint import BlockNodeS
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
 from hiero_sdk_python.nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
 from hiero_sdk_python.response_code import ResponseCode
@@ -79,16 +78,13 @@ def test_registered_node_delete_invalid_id(admin_client):
     """Test that deleting a nonexistent registered node fails at the network level."""
     admin_key = PrivateKey.generate_ed25519()
 
-    try:
-        receipt = (
-            RegisteredNodeDeleteTransaction()
-            .set_registered_node_id(999999999)
-            .freeze_with(admin_client)
-            .sign(admin_key)
-            .execute(admin_client)
-        )
-        assert receipt.status == ResponseCode.INVALID_REGISTERED_NODE_ID, (
-            f"Expected INVALID_REGISTERED_NODE_ID but got {ResponseCode(receipt.status).name}"
-        )
-    except PrecheckError:
-        pass  # Also acceptable: network rejects at precheck
+    receipt = (
+        RegisteredNodeDeleteTransaction()
+        .set_registered_node_id(999999999)
+        .freeze_with(admin_client)
+        .sign(admin_key)
+        .execute(admin_client)
+    )
+    assert receipt.status == ResponseCode.INVALID_REGISTERED_NODE_ID, (
+        f"Expected INVALID_REGISTERED_NODE_ID but got {ResponseCode(receipt.status).name}"
+    )

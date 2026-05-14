@@ -132,9 +132,9 @@ class RegisteredServiceEndpoint:
         if ep_type == "BLOCK_NODE":
             return BlockNodeServiceEndpoint._from_dict_inner(data.get("block_node", {}), **base_kwargs)
         if ep_type == "MIRROR_NODE":
-            return MirrorNodeServiceEndpoint(**base_kwargs)
+            return MirrorNodeServiceEndpoint._from_dict_inner(data.get("mirror_node", {}), **base_kwargs)
         if ep_type == "RPC_RELAY":
-            return RpcRelayServiceEndpoint(**base_kwargs)
+            return RpcRelayServiceEndpoint._from_dict_inner(data.get("rpc_relay", {}), **base_kwargs)
         if ep_type == "GENERAL_SERVICE":
             return GeneralServiceEndpoint._from_dict_inner(data.get("general_service", {}), **base_kwargs)
         raise ValueError(f"Unknown endpoint type from mirror node: {ep_type!r}")

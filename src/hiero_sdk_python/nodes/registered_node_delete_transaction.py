@@ -20,6 +20,14 @@ class RegisteredNodeDeleteTransaction(Transaction):
         self.registered_node_id: int | None = registered_node_id
 
     def set_registered_node_id(self, registered_node_id: int | None) -> RegisteredNodeDeleteTransaction:
+        """Sets the ID of the registered node to delete.
+
+        Args:
+            registered_node_id: The registered node ID, or None to clear.
+
+        Returns:
+            RegisteredNodeDeleteTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.registered_node_id = registered_node_id
         return self

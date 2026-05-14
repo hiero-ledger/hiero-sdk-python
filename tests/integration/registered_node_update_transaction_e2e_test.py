@@ -4,12 +4,15 @@ Integration tests for RegisteredNodeUpdateTransaction.
 
 from __future__ import annotations
 
+import time
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.block_node_api import BlockNodeApi
 from hiero_sdk_python.address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
 from hiero_sdk_python.address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
+from hiero_sdk_python.address_book.registered_node_address_book_query import RegisteredNodeAddressBookQuery
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -76,6 +79,16 @@ def test_registered_node_update_description(admin_client):
 
         assert receipt.status == ResponseCode.SUCCESS, (
             f"Registered node update failed with status {ResponseCode(receipt.status).name}"
+        )
+
+        # Allow mirror node to sync
+        time.sleep(2)
+
+        # Query the registered node to verify the description was updated
+        address_book = RegisteredNodeAddressBookQuery().set_registered_node_id(registered_node_id).execute(admin_client)
+        assert len(address_book.nodes) == 1, "Expected exactly one registered node"
+        assert address_book.nodes[0].description == "updated description", (
+            f"Expected 'updated description' but got {address_book.nodes[0].description!r}"
         )
     finally:
         # Cleanup

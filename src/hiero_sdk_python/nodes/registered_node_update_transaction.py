@@ -6,7 +6,7 @@ from google.protobuf.wrappers_pb2 import StringValue
 
 from hiero_sdk_python.address_book.registered_service_endpoint import RegisteredServiceEndpoint
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.registered_node_update_pb2 import RegisteredNodeUpdateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -22,7 +22,7 @@ class RegisteredNodeUpdateTransaction(Transaction):
     def __init__(self):
         super().__init__()
         self.registered_node_id: int | None = None
-        self.admin_key: PublicKey | None = None
+        self.admin_key: Key | None = None
         self.description: str | None = None
         self.service_endpoints: list[RegisteredServiceEndpoint] | None = None
 
@@ -39,7 +39,7 @@ class RegisteredNodeUpdateTransaction(Transaction):
         self.registered_node_id = registered_node_id
         return self
 
-    def set_admin_key(self, admin_key: PublicKey | None) -> RegisteredNodeUpdateTransaction:
+    def set_admin_key(self, admin_key: Key | None) -> RegisteredNodeUpdateTransaction:
         """Sets the new admin key for the registered node.
 
         Args:
@@ -98,7 +98,7 @@ class RegisteredNodeUpdateTransaction(Transaction):
     def _build_proto_body(self) -> RegisteredNodeUpdateTransactionBody:
         body = RegisteredNodeUpdateTransactionBody(
             registered_node_id=self.registered_node_id,
-            admin_key=self.admin_key._to_proto() if self.admin_key else None,
+            admin_key=self.admin_key.to_proto_key() if self.admin_key else None,
             description=(StringValue(value=self.description) if self.description is not None else None),
         )
         if self.service_endpoints is not None:
@@ -129,7 +129,7 @@ class RegisteredNodeUpdateTransaction(Transaction):
             pb = transaction_body.registeredNodeUpdate
             transaction.registered_node_id = pb.registered_node_id
             if pb.HasField("admin_key"):
-                transaction.admin_key = PublicKey._from_proto(pb.admin_key)
+                transaction.admin_key = Key.from_proto_key(pb.admin_key)
             if pb.HasField("description"):
                 transaction.description = pb.description.value
             if pb.service_endpoint:

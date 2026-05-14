@@ -305,6 +305,22 @@ class NodeCreateTransaction(Transaction):
 
         if transaction_body.HasField("nodeCreate"):
             pb = transaction_body.nodeCreate
+            if pb.HasField("account_id"):
+                transaction.account_id = AccountId._from_proto(pb.account_id)
+            if pb.description:
+                transaction.description = pb.description
+            transaction.gossip_endpoints = [Endpoint._from_proto(ep) for ep in pb.gossip_endpoint]
+            transaction.service_endpoints = [Endpoint._from_proto(ep) for ep in pb.service_endpoint]
+            if pb.gossip_ca_certificate:
+                transaction.gossip_ca_certificate = pb.gossip_ca_certificate
+            if pb.grpc_certificate_hash:
+                transaction.grpc_certificate_hash = pb.grpc_certificate_hash
+            if pb.HasField("admin_key"):
+                transaction.admin_key = PublicKey._from_proto(pb.admin_key)
+            if pb.HasField("decline_reward"):
+                transaction.decline_reward = pb.decline_reward
+            if pb.HasField("grpc_proxy_endpoint"):
+                transaction.grpc_web_proxy_endpoint = Endpoint._from_proto(pb.grpc_proxy_endpoint)
             transaction.associated_registered_nodes = list(pb.associated_registered_node)
 
         return transaction

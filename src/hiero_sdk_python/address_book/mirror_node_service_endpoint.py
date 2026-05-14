@@ -28,3 +28,8 @@ class MirrorNodeServiceEndpoint(RegisteredServiceEndpoint):
             port=port,
             requires_tls=requires_tls,
         )
+
+    @classmethod
+    def _from_dict_inner(cls, _type_data: dict, **base_kwargs) -> MirrorNodeServiceEndpoint:
+        """Build from the ``mirror_node`` sub-dict of a mirror-node JSON endpoint."""
+        return cls(**base_kwargs)

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from hiero_sdk_python.address_book.registered_service_endpoint import RegisteredServiceEndpoint
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.registered_node_create_pb2 import RegisteredNodeCreateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -19,16 +19,32 @@ class RegisteredNodeCreateTransaction(Transaction):
 
     def __init__(self):
         super().__init__()
-        self.admin_key: PublicKey | None = None
+        self.admin_key: Key | None = None
         self.description: str | None = None
         self.service_endpoints: list[RegisteredServiceEndpoint] = []
 
-    def set_admin_key(self, admin_key: PublicKey | None) -> RegisteredNodeCreateTransaction:
+    def set_admin_key(self, admin_key: Key | None) -> RegisteredNodeCreateTransaction:
+        """Sets the admin key for the registered node.
+
+        Args:
+            admin_key: The admin key, or None to clear.
+
+        Returns:
+            RegisteredNodeCreateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.admin_key = admin_key
         return self
 
     def set_description(self, description: str | None) -> RegisteredNodeCreateTransaction:
+        """Sets the description for the registered node.
+
+        Args:
+            description: The description, or None to clear.
+
+        Returns:
+            RegisteredNodeCreateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.description = description
         return self
@@ -36,18 +52,34 @@ class RegisteredNodeCreateTransaction(Transaction):
     def set_service_endpoints(
         self, service_endpoints: list[RegisteredServiceEndpoint]
     ) -> RegisteredNodeCreateTransaction:
+        """Sets the service endpoints for the registered node.
+
+        Args:
+            service_endpoints: The list of service endpoints.
+
+        Returns:
+            RegisteredNodeCreateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.service_endpoints = service_endpoints
         return self
 
     def add_service_endpoint(self, endpoint: RegisteredServiceEndpoint) -> RegisteredNodeCreateTransaction:
+        """Adds a service endpoint to the registered node.
+
+        Args:
+            endpoint: The service endpoint to add.
+
+        Returns:
+            RegisteredNodeCreateTransaction: This transaction instance.
+        """
         self._require_not_frozen()
         self.service_endpoints.append(endpoint)
         return self
 
     def _build_proto_body(self) -> RegisteredNodeCreateTransactionBody:
         return RegisteredNodeCreateTransactionBody(
-            admin_key=self.admin_key._to_proto() if self.admin_key else None,
+            admin_key=self.admin_key.to_proto_key() if self.admin_key else None,
             description=self.description or "",
             service_endpoint=[ep._to_proto() for ep in self.service_endpoints],
         )
@@ -74,7 +106,7 @@ class RegisteredNodeCreateTransaction(Transaction):
         if transaction_body.HasField("registeredNodeCreate"):
             pb = transaction_body.registeredNodeCreate
             if pb.HasField("admin_key"):
-                transaction.admin_key = PublicKey._from_proto(pb.admin_key)
+                transaction.admin_key = Key.from_proto_key(pb.admin_key)
             if pb.description:
                 transaction.description = pb.description
             transaction.service_endpoints = [RegisteredServiceEndpoint._from_proto(ep) for ep in pb.service_endpoint]

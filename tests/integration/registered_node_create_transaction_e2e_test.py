@@ -120,3 +120,22 @@ def test_registered_node_create_fails_without_endpoints(admin_client):
             .sign(admin_key)
             .execute(admin_client)
         )
+
+
+def test_registered_node_create_fails_without_admin_key(admin_client):
+    """Test that creating a registered node without an admin key fails at the network level."""
+    block_endpoint = BlockNodeServiceEndpoint(
+        domain_name="block.example.com",
+        port=443,
+        requires_tls=True,
+        endpoint_apis=[BlockNodeApi.STATUS],
+    )
+
+    with pytest.raises(PrecheckError):
+        (
+            RegisteredNodeCreateTransaction()
+            .set_description("no admin key")
+            .set_service_endpoints([block_endpoint])
+            .freeze_with(admin_client)
+            .execute(admin_client)
+        )

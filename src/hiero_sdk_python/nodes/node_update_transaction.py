@@ -364,6 +364,23 @@ class NodeUpdateTransaction(Transaction):
 
         if transaction_body.HasField("nodeUpdate"):
             pb = transaction_body.nodeUpdate
+            transaction.node_id = pb.node_id
+            if pb.HasField("account_id"):
+                transaction.account_id = AccountId._from_proto(pb.account_id)
+            if pb.HasField("description"):
+                transaction.description = pb.description.value
+            transaction.gossip_endpoints = [Endpoint._from_proto(ep) for ep in pb.gossip_endpoint]
+            transaction.service_endpoints = [Endpoint._from_proto(ep) for ep in pb.service_endpoint]
+            if pb.HasField("gossip_ca_certificate"):
+                transaction.gossip_ca_certificate = pb.gossip_ca_certificate.value
+            if pb.HasField("grpc_certificate_hash"):
+                transaction.grpc_certificate_hash = pb.grpc_certificate_hash.value
+            if pb.HasField("admin_key"):
+                transaction.admin_key = PublicKey._from_proto(pb.admin_key)
+            if pb.HasField("decline_reward"):
+                transaction.decline_reward = pb.decline_reward.value
+            if pb.HasField("grpc_proxy_endpoint"):
+                transaction.grpc_web_proxy_endpoint = Endpoint._from_proto(pb.grpc_proxy_endpoint)
             if pb.HasField("associated_registered_node_list"):
                 transaction.associated_registered_nodes = list(
                     pb.associated_registered_node_list.associated_registered_node
