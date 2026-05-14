@@ -19,9 +19,7 @@ class BlockNodeServiceEndpoint(RegisteredServiceEndpoint):
         endpoint_apis: list[BlockNodeApi] | None = None,
     ) -> None:
         super().__init__(ip_address=ip_address, domain_name=domain_name, port=port, requires_tls=requires_tls)
-        if endpoint_apis is None or len(endpoint_apis) == 0:
-            raise ValueError("endpoint_apis must be non-empty")
-        self.endpoint_apis: list[BlockNodeApi] = [BlockNodeApi(api) for api in endpoint_apis]
+        self.endpoint_apis: list[BlockNodeApi] = [BlockNodeApi(api) for api in (endpoint_apis or [])]
 
     def _set_endpoint_type(self, proto: RegisteredServiceEndpointProto) -> None:
         block_node = proto.block_node
@@ -49,10 +47,8 @@ class BlockNodeServiceEndpoint(RegisteredServiceEndpoint):
         )
 
     @classmethod
-    def _from_dict_inner(cls, type_data: dict, **base_kwargs) -> BlockNodeServiceEndpoint | None:
+    def _from_dict_inner(cls, type_data: dict, **base_kwargs) -> BlockNodeServiceEndpoint:
         """Build from the ``block_node`` sub-dict of a mirror-node JSON endpoint."""
         raw_apis = type_data.get("endpoint_apis") or []
         apis = [BlockNodeApi[a.upper()] if isinstance(a, str) else BlockNodeApi(a) for a in raw_apis]
-        if not apis:
-            return None
         return cls(endpoint_apis=apis, **base_kwargs)

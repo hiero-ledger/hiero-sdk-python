@@ -78,21 +78,21 @@ class TestBlockNodeServiceEndpoint:
         assert isinstance(restored, BlockNodeServiceEndpoint)
         assert restored.endpoint_apis == apis
 
-    def test_empty_endpoint_apis_raises(self):
-        with pytest.raises(ValueError, match="endpoint_apis must be non-empty"):
-            BlockNodeServiceEndpoint(
-                ip_address=b"\x7f\x00\x00\x01",
-                port=80,
-                endpoint_apis=[],
-            )
+    def test_empty_endpoint_apis_allowed(self):
+        ep = BlockNodeServiceEndpoint(
+            ip_address=b"\x7f\x00\x00\x01",
+            port=80,
+            endpoint_apis=[],
+        )
+        assert ep.endpoint_apis == []
 
-    def test_none_endpoint_apis_raises(self):
-        with pytest.raises(ValueError, match="endpoint_apis must be non-empty"):
-            BlockNodeServiceEndpoint(
-                ip_address=b"\x7f\x00\x00\x01",
-                port=80,
-                endpoint_apis=None,
-            )
+    def test_none_endpoint_apis_defaults_to_empty(self):
+        ep = BlockNodeServiceEndpoint(
+            ip_address=b"\x7f\x00\x00\x01",
+            port=80,
+            endpoint_apis=None,
+        )
+        assert ep.endpoint_apis == []
 
 
 # --- MirrorNodeServiceEndpoint ---
