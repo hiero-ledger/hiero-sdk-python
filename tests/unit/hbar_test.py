@@ -340,19 +340,25 @@ def test_from_tinybars_invalid_type_param(invalid_tinybars):
 
 def test_add_two_hbars():
     """Test that two Hbar values can be added using the + operator."""
-    assert Hbar(10) + Hbar(5) == Hbar(15)
+    result = Hbar(10) + Hbar(5)
+    assert isinstance(result, Hbar)
+    assert result == Hbar(15)
     assert (Hbar(10) + Hbar(5)).to_tinybars() == Hbar(15).to_tinybars()
 
 
 def test_sub_two_hbars():
     """Test that two Hbar values can be subtracted using the - operator."""
-    assert Hbar(10) - Hbar(5) == Hbar(5)
+    result = Hbar(10) - Hbar(5)
+    assert isinstance(result, Hbar)
+    assert result == Hbar(5)
     assert (Hbar(10) - Hbar(5)).to_tinybars() == Hbar(5).to_tinybars()
 
 
 def test_abs_hbar():
     """Test that abs() returns the absolute value of an Hbar."""
-    assert abs(Hbar(-3)) == Hbar(3)
+    result = abs(Hbar(-3))
+    assert isinstance(result, Hbar)
+    assert result == Hbar(3)
     assert abs(Hbar(3)) == Hbar(3)
 
 
@@ -374,6 +380,24 @@ def test_sub_non_hbar_raises_type_error():
         _ = Hbar(1) - "5"
 
 
+def test_reversed_add_non_hbar_raises_type_error():
+    """Test that adding Hbar to a non-Hbar type (reversed) raises TypeError."""
+    with pytest.raises(TypeError):
+        _ = 5 + Hbar(1)
+
+    with pytest.raises(TypeError):
+        _ = "5" + Hbar(1)
+
+
+def test_reversed_sub_non_hbar_raises_type_error():
+    """Test that subtracting Hbar from a non-Hbar type (reversed) raises TypeError."""
+    with pytest.raises(TypeError):
+        _ = 5 - Hbar(1)
+
+    with pytest.raises(TypeError):
+        _ = "5" - Hbar(1)
+
+
 def test_add_hbar_zero():
     """Test that adding Hbar.ZERO returns the same value."""
     assert Hbar(5) + Hbar.ZERO == Hbar(5)
@@ -382,5 +406,34 @@ def test_add_hbar_zero():
 def test_sub_resulting_in_negative():
     """Test that subtraction can produce a negative Hbar."""
     result = Hbar(5) - Hbar(10)
+    assert isinstance(result, Hbar)
     assert result == Hbar(-5)
     assert result.to_tinybars() == Hbar(-5).to_tinybars()
+
+
+def test_abs_hbar_zero():
+    """Test that abs(Hbar.ZERO) returns Hbar.ZERO."""
+    result = abs(Hbar.ZERO)
+    assert isinstance(result, Hbar)
+    assert result == Hbar.ZERO
+
+
+def test_chained_addition():
+    """Test that addition operations can be chained."""
+    result = Hbar(1) + Hbar(2) + Hbar(3)
+    assert isinstance(result, Hbar)
+    assert result == Hbar(6)
+
+
+def test_chained_subtraction():
+    """Test that subtraction operations can be chained."""
+    result = Hbar(10) - Hbar(3) - Hbar(2)
+    assert isinstance(result, Hbar)
+    assert result == Hbar(5)
+
+
+def test_mixed_arithmetic_operations():
+    """Test that arithmetic operations can be mixed and chained."""
+    result = abs(Hbar(-5) + Hbar(2))
+    assert isinstance(result, Hbar)
+    assert result == Hbar(3)
