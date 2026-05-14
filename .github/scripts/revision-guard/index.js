@@ -35,8 +35,13 @@ module.exports = async function revisionGuard({ github, context, core }) {
     return;
   }
 
-  await convertToDraft(github, pr.node_id);
-  core?.info?.(`Converted PR #${pr.number} to draft.`);
+  try {
+    await convertToDraft(github, pr.node_id);
+    core?.info?.(`Converted PR #${pr.number} to draft.`);
+  } catch (error) {
+    core?.error?.(`Failed to convert PR #${pr.number} to draft: ${error.message}`);
+    throw error;
+  }
 
   const labelsToRemove = getPresentManagedLabels(pr.labels);
   if (labelsToRemove.length === 0) {
@@ -44,13 +49,21 @@ module.exports = async function revisionGuard({ github, context, core }) {
     return;
   }
 
-  await removeManagedLabels(github, {
-    owner: repo.owner,
-    repo: repo.repo,
-    issueNumber: pr.number,
-    labels: labelsToRemove,
-  });
-  core?.info?.(
-    `Removed managed labels from PR #${pr.number}: ${labelsToRemove.join(', ')}.`
-  );
+  try {
+    await removeManagedLabels(github, {
+      owner: repo.owner,
+      repo: repo.repo,
+      issueNumber: pr.number,
+      labels: labelsToRemove,
+    });
+    core?.info?.(
+      `Removed managed labels from PR #${pr.number}: ${labelsToRemove.join(', ')}.`
+    );
+  } catch (error) {
+    core?.error?.(
+      `Failed to remove labels from PR #${pr.number}: ${error.message}. ` +
+      `Labels to remove: ${labelsToRemove.join(', ')}.`
+    );
+    // Don't re-throw; draft conversion succeeded and is the primary goal
+  }
 };
