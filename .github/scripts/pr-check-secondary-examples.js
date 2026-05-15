@@ -21,17 +21,23 @@ function getChangedExamples() {
     if (!base) return [];
     const remoteRef = `refs/remotes/origin/${base}`;
     try {
-        execSync(`git fetch --no-tags origin +refs/heads/${base}:${remoteRef}`, { encoding: "utf-8", stdio: "pipe" });
-        execSync(`git rev-parse --verify ${remoteRef}`, { encoding: "utf-8", stdio: "pipe" });
-        const diff = execSync(
-            `git diff --name-only ${remoteRef}...HEAD`,
-            { encoding: "utf-8" }
-        ).trim();
-        return diff
-            ? diff.split("\n").filter(f => f.startsWith("examples/") && f.endsWith(".py") && !f.endsWith("__init__.py"))
+        const fetch = spawnSync("git", ["fetch", "--no-tags", "origin", `+refs/heads/${base}:${remoteRef}`], { encoding: "utf-8", stdio: "pipe" });
+        if (fetch.status !== 0) {
+            console.warn(`⚠️ Unable to fetch base branch '${base}'; falling back to running the full example set.`);
+            return [];
+        }
+        const verify = spawnSync("git", ["rev-parse", "--verify", remoteRef], { encoding: "utf-8", stdio: "pipe" });
+        if (verify.status !== 0) {
+            console.warn(`⚠️ Unable to verify ref '${remoteRef}'; falling back to running the full example set.`);
+            return [];
+        }
+        const diff = spawnSync("git", ["diff", "--name-only", `${remoteRef}...HEAD`], { encoding: "utf-8", stdio: "pipe" });
+        if (diff.status !== 0) return [];
+        return diff.stdout.trim()
+            ? diff.stdout.trim().split("\n").filter(f => f.startsWith("examples/") && f.endsWith(".py") && !f.endsWith("__init__.py"))
             : [];
     } catch (error) {
-        console.warn(`⚠️ Unable to determine changed examples from base branch '${base}'; falling back to running the full example set.`, error);
+        console.warn(`⚠️ Unexpected error detecting changed examples; falling back to running the full example set.`, error);
         return [];
     }
 }

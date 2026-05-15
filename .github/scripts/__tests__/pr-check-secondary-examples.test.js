@@ -76,47 +76,54 @@ describe("getChangedExamples", () => {
 
     test("returns only changed example .py files", () => {
         process.env.GITHUB_BASE_REF = "main";
-        execSync
-            .mockReturnValueOnce("") // git fetch
-            .mockReturnValueOnce("") // git rev-parse --verify
-            .mockReturnValueOnce("examples/a.py\nsrc/foo.py\nexamples/b.py\nREADME.md\n");
+        spawnSync
+            .mockReturnValueOnce({ status: 0, stdout: "" })                                                            // git fetch
+            .mockReturnValueOnce({ status: 0, stdout: "" })                                                            // git rev-parse --verify
+            .mockReturnValueOnce({ status: 0, stdout: "examples/a.py\nsrc/foo.py\nexamples/b.py\nREADME.md\n" });    // git diff
 
         expect(getChangedExamples()).toEqual(["examples/a.py", "examples/b.py"]);
     });
 
     test("filters out non-.py files under examples/", () => {
         process.env.GITHUB_BASE_REF = "main";
-        execSync
-            .mockReturnValueOnce("")
-            .mockReturnValueOnce("")
-            .mockReturnValueOnce("examples/a.py\nexamples/data.json\nexamples/b.py\n");
+        spawnSync
+            .mockReturnValueOnce({ status: 0, stdout: "" })
+            .mockReturnValueOnce({ status: 0, stdout: "" })
+            .mockReturnValueOnce({ status: 0, stdout: "examples/a.py\nexamples/data.json\nexamples/b.py\n" });
 
         expect(getChangedExamples()).toEqual(["examples/a.py", "examples/b.py"]);
     });
 
     test("excludes __init__.py from changed examples", () => {
         process.env.GITHUB_BASE_REF = "main";
-        execSync
-            .mockReturnValueOnce("")
-            .mockReturnValueOnce("")
-            .mockReturnValueOnce("examples/a.py\nexamples/__init__.py\nexamples/b.py\n");
+        spawnSync
+            .mockReturnValueOnce({ status: 0, stdout: "" })
+            .mockReturnValueOnce({ status: 0, stdout: "" })
+            .mockReturnValueOnce({ status: 0, stdout: "examples/a.py\nexamples/__init__.py\nexamples/b.py\n" });
 
         expect(getChangedExamples()).toEqual(["examples/a.py", "examples/b.py"]);
     });
 
     test("returns empty array when diff is empty", () => {
         process.env.GITHUB_BASE_REF = "main";
-        execSync
-            .mockReturnValueOnce("")
-            .mockReturnValueOnce("")
-            .mockReturnValueOnce("");
+        spawnSync
+            .mockReturnValueOnce({ status: 0, stdout: "" })
+            .mockReturnValueOnce({ status: 0, stdout: "" })
+            .mockReturnValueOnce({ status: 0, stdout: "" });
 
         expect(getChangedExamples()).toEqual([]);
     });
 
-    test("returns empty array when execSync throws", () => {
+    test("returns empty array when fetch fails", () => {
         process.env.GITHUB_BASE_REF = "main";
-        execSync.mockImplementationOnce(() => { throw new Error("git failed"); });
+        spawnSync.mockReturnValueOnce({ status: 1, stdout: "" });
+
+        expect(getChangedExamples()).toEqual([]);
+    });
+
+    test("returns empty array when spawnSync throws", () => {
+        process.env.GITHUB_BASE_REF = "main";
+        spawnSync.mockImplementationOnce(() => { throw new Error("git not found"); });
 
         expect(getChangedExamples()).toEqual([]);
     });
