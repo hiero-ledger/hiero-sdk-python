@@ -78,6 +78,7 @@ describe("getChangedExamples", () => {
         process.env.GITHUB_BASE_REF = "main";
         execSync
             .mockReturnValueOnce("") // git fetch
+            .mockReturnValueOnce("") // git rev-parse --verify
             .mockReturnValueOnce("examples/a.py\nsrc/foo.py\nexamples/b.py\nREADME.md\n");
 
         expect(getChangedExamples()).toEqual(["examples/a.py", "examples/b.py"]);
@@ -87,7 +88,18 @@ describe("getChangedExamples", () => {
         process.env.GITHUB_BASE_REF = "main";
         execSync
             .mockReturnValueOnce("")
+            .mockReturnValueOnce("")
             .mockReturnValueOnce("examples/a.py\nexamples/data.json\nexamples/b.py\n");
+
+        expect(getChangedExamples()).toEqual(["examples/a.py", "examples/b.py"]);
+    });
+
+    test("excludes __init__.py from changed examples", () => {
+        process.env.GITHUB_BASE_REF = "main";
+        execSync
+            .mockReturnValueOnce("")
+            .mockReturnValueOnce("")
+            .mockReturnValueOnce("examples/a.py\nexamples/__init__.py\nexamples/b.py\n");
 
         expect(getChangedExamples()).toEqual(["examples/a.py", "examples/b.py"]);
     });
@@ -95,6 +107,7 @@ describe("getChangedExamples", () => {
     test("returns empty array when diff is empty", () => {
         process.env.GITHUB_BASE_REF = "main";
         execSync
+            .mockReturnValueOnce("")
             .mockReturnValueOnce("")
             .mockReturnValueOnce("");
 

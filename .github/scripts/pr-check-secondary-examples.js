@@ -19,16 +19,19 @@ function getAllExamples() {
 function getChangedExamples() {
     const base = process.env.GITHUB_BASE_REF;
     if (!base) return [];
+    const remoteRef = `refs/remotes/origin/${base}`;
     try {
-        execSync(`git fetch origin ${base}`, { encoding: "utf-8" });
+        execSync(`git fetch --no-tags origin +refs/heads/${base}:${remoteRef}`, { encoding: "utf-8", stdio: "pipe" });
+        execSync(`git rev-parse --verify ${remoteRef}`, { encoding: "utf-8", stdio: "pipe" });
         const diff = execSync(
-            `git diff --name-only origin/${base}...HEAD`,
+            `git diff --name-only ${remoteRef}...HEAD`,
             { encoding: "utf-8" }
         ).trim();
         return diff
-            ? diff.split("\n").filter(f => f.startsWith("examples/") && f.endsWith(".py"))
+            ? diff.split("\n").filter(f => f.startsWith("examples/") && f.endsWith(".py") && !f.endsWith("__init__.py"))
             : [];
-    } catch {
+    } catch (error) {
+        console.warn(`⚠️ Unable to determine changed examples from base branch '${base}'; falling back to running the full example set.`, error);
         return [];
     }
 }
