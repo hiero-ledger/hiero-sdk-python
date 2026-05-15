@@ -1,8 +1,8 @@
-// A script to  closes pull requests without a linked issue after 12 hours automatically.
+// A script to  closes pull requests without a linked issue after 24 hours automatically.
 
 // dryRun env var: any case-insensitive 'true' value will enable dry-run
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
-const hoursBeforeClose = parseInt(process.env.HOURS_BEFORE_CLOSE || '12', 10);
+const hoursBeforeClose = parseInt(process.env.HOURS_BEFORE_CLOSE || '24', 10);
 const requireAuthorAssigned = (process.env.REQUIRE_AUTHOR_ASSIGNED || 'true').toLowerCase() === 'true';
 
 const getHoursOpen = (pr) =>

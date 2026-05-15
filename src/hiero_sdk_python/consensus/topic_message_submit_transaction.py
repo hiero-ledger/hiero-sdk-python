@@ -49,7 +49,7 @@ class TopicMessageSubmitTransaction(Transaction):
         self.chunk_size: int = chunk_size or 1024
         self.max_chunks: int = max_chunks or 20
 
-        self._current_index = 0
+        self._current_chunk_index = 0
         self._total_chunks = self.get_required_chunks()
         self._initial_transaction_id: TransactionId | None = None
         self._transaction_ids: list[TransactionId] = []
@@ -192,7 +192,7 @@ class TopicMessageSubmitTransaction(Transaction):
 
         content = self.message.encode("utf-8")
 
-        start_index = self._current_index * self.chunk_size
+        start_index = self._current_chunk_index * self.chunk_size
         end_index = min(start_index + self.chunk_size, len(content))
         chunk_content = content[start_index:end_index]
 
@@ -206,7 +206,7 @@ class TopicMessageSubmitTransaction(Transaction):
                 consensus_submit_message_pb2.ConsensusMessageChunkInfo(
                     initialTransactionID=self._initial_transaction_id._to_proto(),
                     total=self._total_chunks,
-                    number=self._current_index + 1,
+                    number=self._current_chunk_index + 1,
                 )
             )
 
@@ -253,8 +253,7 @@ class TopicMessageSubmitTransaction(Transaction):
         if self._transaction_body_bytes:
             return self
 
-        if self.transaction_id is None:
-            self.transaction_id = client.generate_transaction_id()
+        self._resolve_transaction_id(client)
 
         if not self._transaction_ids:
             base_timestamp = self.transaction_id.valid_start
@@ -266,8 +265,10 @@ class TopicMessageSubmitTransaction(Transaction):
 
                     chunk_transaction_id = self.transaction_id
                 else:
+                    next_nanos = base_timestamp.nanos + i
+
                     chunk_valid_start = timestamp_pb2.Timestamp(
-                        seconds=base_timestamp.seconds, nanos=base_timestamp.nanos + i
+                        seconds=base_timestamp.seconds + next_nanos // 1_000_000_000, nanos=next_nanos % 1_000_000_000
                     )
                     chunk_transaction_id = TransactionId(
                         account_id=self.transaction_id.account_id, valid_start=chunk_valid_start
@@ -371,7 +372,7 @@ class TopicMessageSubmitTransaction(Transaction):
         responses = []
 
         for chunk_index in range(self.get_required_chunks()):
-            self._current_index = chunk_index
+            self._current_chunk_index = chunk_index
 
             if self._transaction_ids and chunk_index < len(self._transaction_ids):
                 self.transaction_id = self._transaction_ids[chunk_index]
@@ -404,3 +405,24 @@ class TopicMessageSubmitTransaction(Transaction):
 
         super().sign(private_key)
         return self
+
+    @property
+    def body_size_all_chunks(self) -> list[int]:
+        """Returns an array of body sizes for transactions with multiple chunks."""
+        self._require_frozen()
+        sizes = []
+
+        original_index = self._current_chunk_index
+        original_transaction_id = self.transaction_id
+
+        try:
+            for i, transaction_id in enumerate(self._transaction_ids):
+                self._current_chunk_index = i
+                self.transaction_id = transaction_id
+
+                sizes.append(self.body_size)
+        finally:
+            self._current_chunk_index = original_index
+            self.transaction_id = original_transaction_id
+
+        return sizes

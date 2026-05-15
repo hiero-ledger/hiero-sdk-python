@@ -1,5 +1,6 @@
 // Script to notify the team when a Good First Issue Candidate is created.
 
+const { GOOD_FIRST_ISSUE_CANDIDATE_LABEL } = require('./shared/labels.js');
 const marker = '<!-- GFI Candidate Notification -->';
 const TEAM_ALIAS = '@hiero-ledger/hiero-sdk-good-first-issue-support';
 
@@ -53,7 +54,7 @@ module.exports = async ({ github, context }) => {
     }
 
     //  Only handle Good First Issue Candidate
-    if (label.name.toLowerCase() !== 'good first issue candidate') {
+    if (label.name.toLowerCase() !== GOOD_FIRST_ISSUE_CANDIDATE_LABEL.toLowerCase()) {
       return;
     }
 

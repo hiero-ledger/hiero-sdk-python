@@ -12,6 +12,7 @@ import grpc
 from dotenv import load_dotenv
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.channels import _UserAgentInterceptor
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
@@ -163,6 +164,8 @@ class Client:
             self.mirror_channel = grpc.secure_channel(mirror_address, grpc.ssl_channel_credentials())
         else:
             self.mirror_channel = grpc.insecure_channel(mirror_address)
+
+        self.mirror_channel = grpc.intercept_channel(self.mirror_channel, _UserAgentInterceptor())
         self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self.mirror_channel)
 
     def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> None:
@@ -200,11 +203,17 @@ class Client:
         Closes any open gRPC channels and frees resources.
         Call this when you are done using the Client to ensure a clean shutdown.
         """
+        # Close mirror channel
         if self.mirror_channel is not None:
             self.mirror_channel.close()
             self.mirror_channel = None
 
         self.mirror_stub = None
+
+        # Fix: Close all consensus node channels
+        if self.network and self.network.nodes:
+            for node in self.network.nodes:
+                node._close()
 
     def set_transport_security(self, enabled: bool) -> Client:
         """

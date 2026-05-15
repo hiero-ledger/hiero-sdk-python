@@ -84,16 +84,15 @@ def account_update_with_keylist():
     threshold_key = KeyList([threshold_key_1.public_key(), threshold_key_2.public_key()], threshold=2)
 
     print("\nRotating account key to a 2-of-2 threshold KeyList...")
-    key_list_receipt = (
-        AccountUpdateTransaction()
-        .set_account_id(account_id)
-        .set_key(threshold_key)
-        .freeze_with(client)
-        .sign(current_private_key)  # Sign with current key
-        .sign(threshold_key_1)  # First signature for threshold=2
-        .sign(threshold_key_2)  # Second signature for threshold=2
-        .execute(client)
-    )
+    tx = AccountUpdateTransaction().set_account_id(account_id).set_key(threshold_key)
+
+    tx.transaction_fee = Hbar.from_hbars(10)
+
+    tx.freeze_with(client)
+    tx.sign(current_private_key)  # Sign with current key
+    tx.sign(threshold_key_1)  # First signature for threshold=2
+    tx.sign(threshold_key_2)  # Second signature for threshold=2
+    key_list_receipt = tx.execute(client)
 
     if key_list_receipt.status != ResponseCode.SUCCESS:
         print(f"KeyList rotation failed with status: {ResponseCode(key_list_receipt.status).name}")

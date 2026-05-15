@@ -4,12 +4,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
+    timestamp_pb2,
     transaction_get_receipt_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
@@ -372,3 +374,30 @@ def test_file_append_execute_all_returns_receipt_without_validation(file_id):
         receipts = tx.execute_all(client)
 
         assert receipts[0].status == ResponseCode.INVALID_FILE_ID
+
+
+def test_chunk_transaction_id_nanosecond_overflow(file_id):
+    """Test that multi-chunk transaction IDs handle nanosecond overflow correctly."""
+    base_seconds = 1770911831
+    base_nanos = 999_999_999
+
+    start_timestamp = timestamp_pb2.Timestamp(seconds=base_seconds, nanos=base_nanos)
+    tx_id = TransactionId(account_id=AccountId(0, 0, 2), valid_start=start_timestamp)
+
+    tx = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_contents("a" * 20)
+        .set_chunk_size(10)
+        .set_transaction_id(tx_id)
+        .set_node_account_id(AccountId(0, 0, 3))
+        .freeze()
+    )
+
+    # First chunk is exactly equal initial ID
+    assert tx._transaction_ids[0].valid_start.seconds == base_seconds
+    assert tx._transaction_ids[0].valid_start.nanos == base_nanos
+
+    # Second chunk seconds=base_seconds + 1, nanos=0
+    assert tx._transaction_ids[1].valid_start.seconds == base_seconds + 1
+    assert tx._transaction_ids[1].valid_start.nanos == 0

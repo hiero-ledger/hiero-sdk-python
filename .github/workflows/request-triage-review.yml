@@ -14,12 +14,15 @@ permissions:
 
 jobs:
   request-triage:
-    if: ${{ contains(github.event.pull_request.labels.*.name, 'Good First Issue') || contains(github.event.pull_request.labels.*.name, 'beginner') }}
-    runs-on: [self-hosted,hl-sdk-py-lin-md]
+    if: >
+      contains(github.event.pull_request.labels.*.name, 'Good First Issue') ||
+      contains(github.event.pull_request.labels.*.name, 'skill: beginner') ||
+      contains(github.event.pull_request.labels.*.name, 'beginner')
+    runs-on: [self-hosted, hl-sdk-py-lin-md]
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
         with:
           egress-policy: audit
 
@@ -29,15 +32,15 @@ jobs:
           script: |
             const tag = "<!-- triage -->";
             const { data: comments } = await github.rest.issues.listComments({
-                                         owner: context.repo.owner,
-                                         repo: context.repo.repo,
-                                         issue_number: context.payload.pull_request.number
-                                    });
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number
+            });
             if (!comments.some(c => c.body?.includes(tag))) {
-                await github.rest.issues.createComment({
-                 owner: context.repo.owner,
-                  repo: context.repo.repo,
-                   issue_number: context.payload.pull_request.number,
-             body: `${tag} Requesting triage review from: @hiero-ledger/hiero-sdk-python-triage`
-               });
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.pull_request.number,
+                body: `${tag} Requesting triage review from: @hiero-ledger/hiero-sdk-python-triage`
+              });
             }

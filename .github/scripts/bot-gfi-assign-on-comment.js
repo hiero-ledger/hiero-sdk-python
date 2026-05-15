@@ -6,9 +6,9 @@
 
 const fs = require('fs'); // For spam list
 
-const GOOD_FIRST_ISSUE_LABEL = 'Good First Issue';
+const { GOOD_FIRST_ISSUE_LABEL } = require('./shared/labels.js');
 const UNASSIGNED_GFI_SEARCH_URL =
-    'https://github.com/hiero-ledger/hiero-sdk-python/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22Good%20First%20Issue%22%20no%3Aassignee';
+    `https://github.com/hiero-ledger/hiero-sdk-python/issues?q=${encodeURIComponent(`is:issue state:open label:"${GOOD_FIRST_ISSUE_LABEL}" no:assignee`)}`;
 
 const SPAM_LIST_PATH = '.github/spam-list.txt';
 
