@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from hiero_sdk_python.address_book.block_node_api import BlockNodeApi
@@ -435,3 +437,201 @@ class TestRegisteredNodeAddressBookQuery:
     def test_next_page_path_no_links_key(self):
         data = {}
         assert RegisteredNodeAddressBookQuery._next_page_path(data) is None
+
+
+# ---------------------------------------------------------------------------
+# RegisteredNode._from_dict edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestRegisteredNodeFromDictEdgeCases:
+    """Tests for RegisteredNode._from_dict with different key types."""
+
+    def test_from_dict_with_ecdsa_admin_key(self):
+        """Verify _from_dict handles ECDSA_SECP256K1 keys."""
+        pub = PrivateKey.generate_ecdsa().public_key()
+        data = {
+            "registered_node_id": 1,
+            "admin_key": {"_type": "ECDSA_SECP256K1", "key": pub.to_string_raw()},
+        }
+        node = RegisteredNode._from_dict(data)
+        assert node.admin_key is not None
+
+    def test_from_dict_with_generic_key_hex(self):
+        """Verify _from_dict handles a generic key hex without explicit _type."""
+        pub = PrivateKey.generate().public_key()
+        data = {
+            "registered_node_id": 2,
+            "admin_key": {"key": pub.to_string()},
+        }
+        node = RegisteredNode._from_dict(data)
+        assert node.admin_key is not None
+
+    def test_from_dict_empty_description_is_none(self):
+        """Verify _from_dict treats empty description as None."""
+        data = {"registered_node_id": 3, "description": ""}
+        node = RegisteredNode._from_dict(data)
+        assert node.description is None
+
+    def test_from_dict_with_ip_endpoint(self):
+        """Verify _from_dict handles endpoints with ip_address."""
+        data = {
+            "registered_node_id": 4,
+            "service_endpoints": [
+                {
+                    "ip_address": "127.0.0.1",
+                    "port": 443,
+                    "requires_tls": True,
+                    "type": "MIRROR_NODE",
+                }
+            ],
+        }
+        node = RegisteredNode._from_dict(data)
+        assert len(node.service_endpoints) == 1
+        assert node.service_endpoints[0].ip_address == b"\x7f\x00\x00\x01"
+
+
+# ---------------------------------------------------------------------------
+# RegisteredNodeAddressBookQuery execution with mocking
+# ---------------------------------------------------------------------------
+
+
+class TestRegisteredNodeAddressBookQueryExecution:
+    """Tests for query execution, URL building, and retry logic using mocks."""
+
+    def _make_client(self, rest_url="http://testnet.example.com/api/v1"):
+        """Create a mock client with a configurable mirror REST URL."""
+        client = MagicMock()
+        client.network.get_mirror_rest_url.return_value = rest_url
+        return client
+
+    def test_build_base_url_strips_api_v1(self):
+        """Verify _build_base_url strips /api/v1 suffix."""
+        q = RegisteredNodeAddressBookQuery()
+        client = self._make_client("http://mirror.example.com/api/v1")
+        assert q._build_base_url(client) == "http://mirror.example.com"
+
+    def test_build_base_url_localhost_port_replacement(self):
+        """Verify localhost:5551 is replaced with :8084."""
+        q = RegisteredNodeAddressBookQuery()
+        client = self._make_client("http://localhost:5551/api/v1")
+        assert ":8084" in q._build_base_url(client)
+        assert ":5551" not in q._build_base_url(client)
+
+    def test_build_base_url_127_port_replacement(self):
+        """Verify 127.0.0.1:5551 is replaced with :8084."""
+        q = RegisteredNodeAddressBookQuery()
+        client = self._make_client("http://127.0.0.1:5551/api/v1")
+        assert ":8084" in q._build_base_url(client)
+
+    @patch("hiero_sdk_python.address_book.registered_node_address_book_query.requests.get")
+    def test_execute_single_page(self, mock_get):
+        """Verify execute returns nodes from a single-page response."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "registered_nodes": [
+                {"registered_node_id": 1, "service_endpoints": []},
+                {"registered_node_id": 2, "service_endpoints": []},
+            ],
+            "links": {"next": None},
+        }
+        mock_get.return_value = mock_resp
+
+        q = RegisteredNodeAddressBookQuery()
+        client = self._make_client()
+        result = q.execute(client)
+
+        assert isinstance(result, RegisteredNodeAddressBook)
+        assert len(result) == 2
+        assert result[0].registered_node_id == 1
+
+    @patch("hiero_sdk_python.address_book.registered_node_address_book_query.requests.get")
+    def test_execute_with_pagination(self, mock_get):
+        """Verify execute follows pagination links."""
+        page1 = MagicMock()
+        page1.status_code = 200
+        page1.json.return_value = {
+            "registered_nodes": [{"registered_node_id": 1, "service_endpoints": []}],
+            "links": {"next": "/api/v1/network/registered-nodes?limit=1&registerednode.id=gt:1"},
+        }
+        page2 = MagicMock()
+        page2.status_code = 200
+        page2.json.return_value = {
+            "registered_nodes": [{"registered_node_id": 2, "service_endpoints": []}],
+            "links": {"next": None},
+        }
+        mock_get.side_effect = [page1, page2]
+
+        q = RegisteredNodeAddressBookQuery().set_limit(1)
+        result = q.execute(self._make_client())
+
+        assert len(result) == 2
+        assert mock_get.call_count == 2
+
+    @patch("hiero_sdk_python.address_book.registered_node_address_book_query.requests.get")
+    def test_execute_respects_max_count(self, mock_get):
+        """Verify execute stops when max_registered_node_count is reached."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        mock_resp.json.return_value = {
+            "registered_nodes": [
+                {"registered_node_id": 1, "service_endpoints": []},
+                {"registered_node_id": 2, "service_endpoints": []},
+                {"registered_node_id": 3, "service_endpoints": []},
+            ],
+            "links": {"next": "/api/v1/network/registered-nodes?limit=25&registerednode.id=gt:3"},
+        }
+        mock_get.return_value = mock_resp
+
+        q = RegisteredNodeAddressBookQuery().set_max_registered_node_count(2)
+        result = q.execute(self._make_client())
+
+        assert len(result) == 2
+
+    @patch("hiero_sdk_python.address_book.registered_node_address_book_query.requests.get")
+    def test_fetch_page_non_retryable_error(self, mock_get):
+        """Verify non-retryable HTTP errors raise immediately."""
+        mock_resp = MagicMock()
+        mock_resp.status_code = 404
+        mock_resp.text = "Not Found"
+        mock_get.return_value = mock_resp
+
+        q = RegisteredNodeAddressBookQuery().set_max_attempts(3)
+        with pytest.raises(RuntimeError, match="HTTP 404"):
+            q._fetch_page("http://example.com/api/v1/network/registered-nodes")
+        assert mock_get.call_count == 1
+
+    @patch("hiero_sdk_python.address_book.registered_node_address_book_query.time.sleep")
+    @patch("hiero_sdk_python.address_book.registered_node_address_book_query.requests.get")
+    def test_fetch_page_retries_on_503(self, mock_get, mock_sleep):
+        """Verify retryable HTTP errors are retried."""
+        fail_resp = MagicMock()
+        fail_resp.status_code = 503
+        fail_resp.text = "Service Unavailable"
+
+        ok_resp = MagicMock()
+        ok_resp.status_code = 200
+        ok_resp.json.return_value = {"registered_nodes": []}
+
+        mock_get.side_effect = [fail_resp, ok_resp]
+
+        q = RegisteredNodeAddressBookQuery().set_max_attempts(3)
+        result = q._fetch_page("http://example.com/test")
+
+        assert result == {"registered_nodes": []}
+        assert mock_get.call_count == 2
+        assert mock_sleep.call_count == 1
+
+    @patch("hiero_sdk_python.address_book.registered_node_address_book_query.time.sleep")
+    @patch("hiero_sdk_python.address_book.registered_node_address_book_query.requests.get")
+    def test_fetch_page_exhausts_retries(self, mock_get, _mock_sleep):
+        """Verify exhausting retries raises RuntimeError."""
+        import requests as req
+
+        mock_get.side_effect = req.ConnectionError("refused")
+
+        q = RegisteredNodeAddressBookQuery().set_max_attempts(2).set_max_backoff(0.1)
+        with pytest.raises(RuntimeError, match="Failed to fetch"):
+            q._fetch_page("http://example.com/test")
+        assert mock_get.call_count == 2

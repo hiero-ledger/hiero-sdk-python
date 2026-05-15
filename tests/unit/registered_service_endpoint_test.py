@@ -263,3 +263,156 @@ class TestAddressValidation:
     def test_port_above_65535_raises(self):
         with pytest.raises(ValueError, match="range 0 to 65535"):
             MirrorNodeServiceEndpoint(ip_address=b"\x7f\x00\x00\x01", port=65536)
+
+
+# --- Setter tests ---
+
+
+class TestRegisteredServiceEndpointSetters:
+    """Tests for set_* methods on RegisteredServiceEndpoint and subclasses."""
+
+    def test_set_ip_address_clears_domain(self):
+        """Verify set_ip_address replaces domain_name with ip_address."""
+        ep = MirrorNodeServiceEndpoint(domain_name="example.com", port=443)
+        result = ep.set_ip_address(b"\x7f\x00\x00\x01")
+        assert result is ep
+        assert ep.ip_address == b"\x7f\x00\x00\x01"
+        assert ep.domain_name is None
+
+    def test_set_domain_name_clears_ip(self):
+        """Verify set_domain_name replaces ip_address with domain_name."""
+        ep = MirrorNodeServiceEndpoint(ip_address=b"\x7f\x00\x00\x01", port=443)
+        result = ep.set_domain_name("example.com")
+        assert result is ep
+        assert ep.domain_name == "example.com"
+        assert ep.ip_address is None
+
+    def test_set_port(self):
+        """Verify set_port updates the port."""
+        ep = MirrorNodeServiceEndpoint(domain_name="example.com", port=80)
+        result = ep.set_port(443)
+        assert result is ep
+        assert ep.port == 443
+
+    def test_set_port_rejects_invalid(self):
+        """Verify set_port rejects an out-of-range port."""
+        ep = MirrorNodeServiceEndpoint(domain_name="example.com", port=80)
+        with pytest.raises(ValueError, match="range 0 to 65535"):
+            ep.set_port(70000)
+
+    def test_set_requires_tls(self):
+        """Verify set_requires_tls updates the flag."""
+        ep = MirrorNodeServiceEndpoint(domain_name="example.com", port=443, requires_tls=False)
+        result = ep.set_requires_tls(True)
+        assert result is ep
+        assert ep.requires_tls is True
+
+    def test_set_requires_tls_rejects_non_bool(self):
+        """Verify set_requires_tls rejects non-bool values."""
+        ep = MirrorNodeServiceEndpoint(domain_name="example.com", port=443)
+        with pytest.raises(ValueError, match="requires_tls must be a bool"):
+            ep.set_requires_tls("yes")
+
+    def test_set_ip_address_rejects_invalid(self):
+        """Verify set_ip_address rejects invalid byte lengths."""
+        ep = MirrorNodeServiceEndpoint(domain_name="example.com", port=80)
+        with pytest.raises(ValueError, match="ip_address"):
+            ep.set_ip_address(b"\x7f\x00")
+
+    def test_set_domain_name_rejects_non_ascii(self):
+        """Verify set_domain_name rejects non-ASCII strings."""
+        ep = MirrorNodeServiceEndpoint(ip_address=b"\x7f\x00\x00\x01", port=80)
+        with pytest.raises(ValueError, match="ASCII"):
+            ep.set_domain_name("münchen.de")
+
+    def test_set_endpoint_apis_on_block_node(self):
+        """Verify set_endpoint_apis replaces the API list on BlockNodeServiceEndpoint."""
+        ep = BlockNodeServiceEndpoint(
+            domain_name="block.example.com",
+            port=443,
+            endpoint_apis=[BlockNodeApi.OTHER],
+        )
+        result = ep.set_endpoint_apis([BlockNodeApi.PUBLISH, BlockNodeApi.STATUS])
+        assert result is ep
+        assert ep.endpoint_apis == [BlockNodeApi.PUBLISH, BlockNodeApi.STATUS]
+
+    def test_set_description_on_general_endpoint(self):
+        """Verify set_description updates the description on GeneralServiceEndpoint."""
+        ep = GeneralServiceEndpoint(
+            domain_name="general.example.com",
+            port=80,
+            description="old",
+        )
+        result = ep.set_description("new description")
+        assert result is ep
+        assert ep.description == "new description"
+
+    def test_set_description_none(self):
+        """Verify set_description accepts None."""
+        ep = GeneralServiceEndpoint(
+            domain_name="general.example.com",
+            port=80,
+            description="something",
+        )
+        ep.set_description(None)
+        assert ep.description is None
+
+    def test_set_description_rejects_too_long(self):
+        """Verify set_description rejects descriptions over 100 UTF-8 bytes."""
+        ep = GeneralServiceEndpoint(domain_name="general.example.com", port=80)
+        with pytest.raises(ValueError, match="100 UTF-8 bytes"):
+            ep.set_description("x" * 101)
+
+
+# --- _from_dict tests ---
+
+
+class TestFromDict:
+    """Tests for _from_dict deserialization from mirror-node JSON."""
+
+    def test_from_dict_ip_address_parsing(self):
+        """Verify _from_dict correctly parses IP address strings."""
+        data = {
+            "ip_address": "192.168.1.1",
+            "port": 443,
+            "requires_tls": True,
+            "type": "MIRROR_NODE",
+        }
+        ep = RegisteredServiceEndpoint._from_dict(data)
+        assert isinstance(ep, MirrorNodeServiceEndpoint)
+        assert ep.ip_address == b"\xc0\xa8\x01\x01"
+        assert ep.domain_name is None
+
+    def test_from_dict_unknown_type_raises(self):
+        """Verify _from_dict raises ValueError for unknown endpoint types."""
+        data = {
+            "domain_name": "example.com",
+            "port": 80,
+            "type": "UNKNOWN_TYPE",
+        }
+        with pytest.raises(ValueError, match="Unknown endpoint type"):
+            RegisteredServiceEndpoint._from_dict(data)
+
+    def test_from_dict_rpc_relay(self):
+        """Verify _from_dict correctly parses an RPC_RELAY endpoint."""
+        data = {
+            "domain_name": "relay.example.com",
+            "port": 7546,
+            "requires_tls": True,
+            "type": "RPC_RELAY",
+        }
+        ep = RegisteredServiceEndpoint._from_dict(data)
+        assert isinstance(ep, RpcRelayServiceEndpoint)
+        assert ep.domain_name == "relay.example.com"
+
+    def test_from_dict_general_service(self):
+        """Verify _from_dict correctly parses a GENERAL_SERVICE endpoint."""
+        data = {
+            "domain_name": "gen.example.com",
+            "port": 9000,
+            "type": "GENERAL_SERVICE",
+            "general_service": {"description": "my service"},
+        }
+        ep = RegisteredServiceEndpoint._from_dict(data)
+        assert isinstance(ep, GeneralServiceEndpoint)
+        assert ep.description == "my service"
