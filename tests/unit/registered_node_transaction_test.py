@@ -52,7 +52,10 @@ def _freeze(tx):
 
 
 class TestRegisteredNodeCreateTransaction:
+    """Tests for RegisteredNodeCreateTransaction serialization and round-trip."""
+
     def test_builds_proto_with_all_fields(self, mock_account_ids):
+        """Verify all fields are serialized into the protobuf body."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         key = PrivateKey.generate_ed25519().public_key()
 
@@ -72,6 +75,7 @@ class TestRegisteredNodeCreateTransaction:
         assert len(pb.service_endpoint) == 1
 
     def test_multiple_service_endpoints(self, mock_account_ids):
+        """Verify multiple service endpoints are serialized correctly."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
 
         tx = RegisteredNodeCreateTransaction()
@@ -84,6 +88,7 @@ class TestRegisteredNodeCreateTransaction:
         assert len(body.registeredNodeCreate.service_endpoint) == 2
 
     def test_block_endpoint_with_multiple_apis(self, mock_account_ids):
+        """Verify a block endpoint with multiple APIs is serialized correctly."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         ep = BlockNodeServiceEndpoint(
             ip_address=b"\x7f\x00\x00\x01",
@@ -100,6 +105,7 @@ class TestRegisteredNodeCreateTransaction:
         assert len(block_node.endpoint_api) == 3
 
     def test_builds_schedulable_body(self):
+        """Verify registeredNodeCreate is present in the schedulable body."""
         tx = RegisteredNodeCreateTransaction()
         tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.set_service_endpoints([_make_block_endpoint()])
@@ -107,6 +113,7 @@ class TestRegisteredNodeCreateTransaction:
         assert scheduled.HasField("registeredNodeCreate")
 
     def test_from_bytes_round_trip(self):
+        """Verify all fields survive serialization and deserialization."""
         key = PrivateKey.generate_ed25519().public_key()
         tx = RegisteredNodeCreateTransaction()
         tx.set_admin_key(key)
@@ -158,6 +165,7 @@ class TestRegisteredNodeCreateTransaction:
         assert body.registeredNodeCreate.description == "x" * 101
 
     def test_add_service_endpoint(self):
+        """Verify add_service_endpoint appends endpoints individually."""
         tx = RegisteredNodeCreateTransaction()
         tx.add_service_endpoint(_make_block_endpoint())
         tx.add_service_endpoint(_make_mirror_endpoint())
@@ -170,7 +178,10 @@ class TestRegisteredNodeCreateTransaction:
 
 
 class TestRegisteredNodeUpdateTransaction:
+    """Tests for RegisteredNodeUpdateTransaction serialization and round-trip."""
+
     def test_builds_proto_with_registered_node_id(self, mock_account_ids):
+        """Verify registered_node_id is serialized into the protobuf body."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(42)
@@ -181,6 +192,7 @@ class TestRegisteredNodeUpdateTransaction:
         assert body.registeredNodeUpdate.registered_node_id == 42
 
     def test_updates_admin_key(self, mock_account_ids):
+        """Verify admin_key update is serialized correctly."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         key = PrivateKey.generate_ed25519().public_key()
         tx = RegisteredNodeUpdateTransaction()
@@ -192,6 +204,7 @@ class TestRegisteredNodeUpdateTransaction:
         assert body.registeredNodeUpdate.admin_key == key._to_proto()
 
     def test_updates_description(self, mock_account_ids):
+        """Verify description update is serialized correctly."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(1)
@@ -202,6 +215,7 @@ class TestRegisteredNodeUpdateTransaction:
         assert body.registeredNodeUpdate.description.value == "updated desc"
 
     def test_replaces_endpoints_when_provided(self, mock_account_ids):
+        """Verify service endpoints replace existing ones when provided."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(1)
@@ -212,6 +226,7 @@ class TestRegisteredNodeUpdateTransaction:
         assert len(body.registeredNodeUpdate.service_endpoint) == 2
 
     def test_does_not_serialize_endpoints_when_unset(self, mock_account_ids):
+        """Verify no endpoints are serialized when none are set."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(1)
@@ -221,12 +236,14 @@ class TestRegisteredNodeUpdateTransaction:
         assert len(body.registeredNodeUpdate.service_endpoint) == 0
 
     def test_builds_schedulable_body(self):
+        """Verify registeredNodeUpdate is present in the schedulable body."""
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(1)
         scheduled = tx.build_scheduled_body()
         assert scheduled.HasField("registeredNodeUpdate")
 
     def test_from_bytes_round_trip(self):
+        """Verify all update fields survive serialization and deserialization."""
         key = PrivateKey.generate_ed25519().public_key()
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(99)
@@ -282,7 +299,10 @@ class TestRegisteredNodeUpdateTransaction:
 
 
 class TestRegisteredNodeDeleteTransaction:
+    """Tests for RegisteredNodeDeleteTransaction serialization and round-trip."""
+
     def test_builds_proto_with_registered_node_id(self, mock_account_ids):
+        """Verify registered_node_id is serialized into the protobuf body."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeDeleteTransaction()
         tx.set_registered_node_id(7)
@@ -293,6 +313,7 @@ class TestRegisteredNodeDeleteTransaction:
         assert body.registeredNodeDelete.registered_node_id == 7
 
     def test_builds_schedulable_body(self):
+        """Verify registeredNodeDelete is present in the schedulable body."""
         tx = RegisteredNodeDeleteTransaction()
         tx.set_registered_node_id(7)
         scheduled = tx.build_scheduled_body()
@@ -300,6 +321,7 @@ class TestRegisteredNodeDeleteTransaction:
         assert scheduled.registeredNodeDelete.registered_node_id == 7
 
     def test_from_bytes_round_trip(self):
+        """Verify registered_node_id survives round-trip serialization."""
         tx = RegisteredNodeDeleteTransaction()
         tx.set_registered_node_id(42)
 
@@ -310,6 +332,7 @@ class TestRegisteredNodeDeleteTransaction:
         assert restored.registered_node_id == 42
 
     def test_fails_when_registered_node_id_missing(self, mock_account_ids):
+        """Verify building without registered_node_id raises ValueError."""
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeDeleteTransaction()
         tx.operator_account_id = operator_id
@@ -325,12 +348,16 @@ class TestRegisteredNodeDeleteTransaction:
 
 
 class TestTransactionReceiptRegisteredNodeId:
+    """Tests for registered_node_id on TransactionReceipt."""
+
     def test_parses_when_present(self):
+        """Verify registered_node_id is parsed from the protobuf receipt."""
         proto = transaction_receipt_pb2.TransactionReceipt(registered_node_id=123)
         receipt = TransactionReceipt(proto)
         assert receipt.registered_node_id == 123
 
     def test_none_when_absent(self):
+        """Verify registered_node_id is None when not present in the receipt."""
         proto = transaction_receipt_pb2.TransactionReceipt()
         receipt = TransactionReceipt(proto)
         assert receipt.registered_node_id is None
@@ -342,14 +369,19 @@ class TestTransactionReceiptRegisteredNodeId:
 
 
 class TestTransactionDeserialization:
+    """Tests for transaction class resolution from protobuf field names."""
+
     def test_resolves_registered_node_create(self):
+        """Verify registeredNodeCreate maps to RegisteredNodeCreateTransaction."""
         cls = Transaction._get_transaction_class("registeredNodeCreate")
         assert cls is RegisteredNodeCreateTransaction
 
     def test_resolves_registered_node_update(self):
+        """Verify registeredNodeUpdate maps to RegisteredNodeUpdateTransaction."""
         cls = Transaction._get_transaction_class("registeredNodeUpdate")
         assert cls is RegisteredNodeUpdateTransaction
 
     def test_resolves_registered_node_delete(self):
+        """Verify registeredNodeDelete maps to RegisteredNodeDeleteTransaction."""
         cls = Transaction._get_transaction_class("registeredNodeDelete")
         assert cls is RegisteredNodeDeleteTransaction

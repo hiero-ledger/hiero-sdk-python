@@ -21,6 +21,11 @@ class BlockNodeServiceEndpoint(RegisteredServiceEndpoint):
         super().__init__(ip_address=ip_address, domain_name=domain_name, port=port, requires_tls=requires_tls)
         self.endpoint_apis: list[BlockNodeApi] = [BlockNodeApi(api) for api in (endpoint_apis or [])]
 
+    def set_endpoint_apis(self, endpoint_apis: list[BlockNodeApi]) -> BlockNodeServiceEndpoint:
+        """Set the list of block node endpoint APIs."""
+        self.endpoint_apis = [BlockNodeApi(api) for api in endpoint_apis]
+        return self
+
     def _set_endpoint_type(self, proto: RegisteredServiceEndpointProto) -> None:
         block_node = proto.block_node
         for api in self.endpoint_apis:

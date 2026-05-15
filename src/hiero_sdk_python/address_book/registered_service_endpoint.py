@@ -25,6 +25,33 @@ class RegisteredServiceEndpoint:
         self.port: int = port
         self.requires_tls: bool = requires_tls
 
+    def set_ip_address(self, ip_address: bytes) -> RegisteredServiceEndpoint:
+        """Set the IP address, clearing any existing domain name."""
+        self._validate_ip_address(ip_address)
+        self.ip_address = ip_address
+        self.domain_name = None
+        return self
+
+    def set_domain_name(self, domain_name: str) -> RegisteredServiceEndpoint:
+        """Set the domain name, clearing any existing IP address."""
+        self._validate_domain_name(domain_name)
+        self.domain_name = domain_name
+        self.ip_address = None
+        return self
+
+    def set_port(self, port: int) -> RegisteredServiceEndpoint:
+        """Set the port number."""
+        self._validate_port(port)
+        self.port = port
+        return self
+
+    def set_requires_tls(self, requires_tls: bool) -> RegisteredServiceEndpoint:
+        """Set whether TLS is required."""
+        if not isinstance(requires_tls, bool):
+            raise ValueError("requires_tls must be a bool")
+        self.requires_tls = requires_tls
+        return self
+
     @staticmethod
     def _validate_address(ip_address: bytes | None, domain_name: str | None) -> None:
         if ip_address is not None and domain_name is not None:

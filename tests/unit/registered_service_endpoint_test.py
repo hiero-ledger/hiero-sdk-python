@@ -20,6 +20,8 @@ pytestmark = pytest.mark.unit
 
 
 class TestBlockNodeApi:
+    """Tests for BlockNodeApi enum values."""
+
     def test_enum_values_match_protobuf(self):
         """BlockNodeApi numeric values must match generated protobuf enum."""
         proto_enum = RegisteredServiceEndpointProto.BlockNodeEndpoint.BlockNodeApi
@@ -34,7 +36,10 @@ class TestBlockNodeApi:
 
 
 class TestBlockNodeServiceEndpoint:
+    """Tests for BlockNodeServiceEndpoint serialization and round-trip."""
+
     def test_round_trip_ip_address(self):
+        """Verify round-trip with an IP address preserves all fields."""
         ep = BlockNodeServiceEndpoint(
             ip_address=b"\xc0\xa8\x01\x01",
             port=8080,
@@ -51,6 +56,7 @@ class TestBlockNodeServiceEndpoint:
         assert restored.endpoint_apis == [BlockNodeApi.PUBLISH]
 
     def test_round_trip_domain_name(self):
+        """Verify round-trip with a domain name preserves all fields."""
         ep = BlockNodeServiceEndpoint(
             domain_name="block.example.com",
             port=443,
@@ -66,6 +72,7 @@ class TestBlockNodeServiceEndpoint:
         assert restored.requires_tls is True
 
     def test_multiple_endpoint_apis(self):
+        """Verify multiple endpoint APIs survive round-trip serialization."""
         apis = [BlockNodeApi.PUBLISH, BlockNodeApi.SUBSCRIBE_STREAM, BlockNodeApi.STATE_PROOF]
         ep = BlockNodeServiceEndpoint(
             ip_address=b"\x7f\x00\x00\x01",
@@ -79,6 +86,7 @@ class TestBlockNodeServiceEndpoint:
         assert restored.endpoint_apis == apis
 
     def test_empty_endpoint_apis_allowed(self):
+        """Verify an empty endpoint_apis list is accepted."""
         ep = BlockNodeServiceEndpoint(
             ip_address=b"\x7f\x00\x00\x01",
             port=80,
@@ -87,6 +95,7 @@ class TestBlockNodeServiceEndpoint:
         assert ep.endpoint_apis == []
 
     def test_none_endpoint_apis_defaults_to_empty(self):
+        """Verify None endpoint_apis defaults to an empty list."""
         ep = BlockNodeServiceEndpoint(
             ip_address=b"\x7f\x00\x00\x01",
             port=80,
@@ -99,7 +108,10 @@ class TestBlockNodeServiceEndpoint:
 
 
 class TestMirrorNodeServiceEndpoint:
+    """Tests for MirrorNodeServiceEndpoint serialization and round-trip."""
+
     def test_round_trip(self):
+        """Verify round-trip preserves all fields."""
         ep = MirrorNodeServiceEndpoint(
             ip_address=b"\x0a\x00\x00\x01",
             port=5600,
@@ -117,7 +129,10 @@ class TestMirrorNodeServiceEndpoint:
 
 
 class TestRpcRelayServiceEndpoint:
+    """Tests for RpcRelayServiceEndpoint serialization and round-trip."""
+
     def test_round_trip(self):
+        """Verify round-trip preserves all fields."""
         ep = RpcRelayServiceEndpoint(
             domain_name="relay.example.com",
             port=7546,
@@ -135,7 +150,10 @@ class TestRpcRelayServiceEndpoint:
 
 
 class TestGeneralServiceEndpoint:
+    """Tests for GeneralServiceEndpoint serialization and round-trip."""
+
     def test_round_trip_with_description(self):
+        """Verify round-trip with a description preserves all fields."""
         ep = GeneralServiceEndpoint(
             ip_address=b"\xc0\xa8\x00\x01",
             port=3000,
@@ -150,6 +168,7 @@ class TestGeneralServiceEndpoint:
         assert restored.port == 3000
 
     def test_round_trip_without_description(self):
+        """Verify round-trip without a description preserves None."""
         ep = GeneralServiceEndpoint(
             domain_name="general.example.com",
             port=8080,
@@ -162,6 +181,7 @@ class TestGeneralServiceEndpoint:
         assert restored.description is None
 
     def test_description_too_long_raises(self):
+        """Verify a description exceeding 100 UTF-8 bytes raises ValueError."""
         # 101 UTF-8 bytes (e.g. 101 ASCII characters)
         long_desc = "x" * 101
         with pytest.raises(ValueError, match="100 UTF-8 bytes"):
@@ -172,6 +192,7 @@ class TestGeneralServiceEndpoint:
             )
 
     def test_multibyte_description_utf8_limit(self):
+        """Verify multi-byte characters are counted as UTF-8 bytes for the limit."""
         # Each emoji is 4 UTF-8 bytes, 26 emojis = 104 bytes > 100
         long_desc = "\U0001f600" * 26
         with pytest.raises(ValueError, match="100 UTF-8 bytes"):
@@ -186,7 +207,10 @@ class TestGeneralServiceEndpoint:
 
 
 class TestAddressValidation:
+    """Tests for ip_address vs domain_name address validation."""
+
     def test_ip_address_round_trip(self):
+        """Verify IP address is preserved and domain_name is None after round-trip."""
         ep = MirrorNodeServiceEndpoint(ip_address=b"\x7f\x00\x00\x01", port=443, requires_tls=True)
         proto = ep._to_proto()
         restored = RegisteredServiceEndpoint._from_proto(proto)
@@ -194,6 +218,7 @@ class TestAddressValidation:
         assert restored.domain_name is None
 
     def test_domain_name_round_trip(self):
+        """Verify domain name is preserved and ip_address is None after round-trip."""
         ep = MirrorNodeServiceEndpoint(domain_name="mirror.hedera.com", port=443, requires_tls=True)
         proto = ep._to_proto()
         restored = RegisteredServiceEndpoint._from_proto(proto)

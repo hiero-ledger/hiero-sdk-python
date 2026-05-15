@@ -22,6 +22,13 @@ class GeneralServiceEndpoint(RegisteredServiceEndpoint):
             raise ValueError("description must be 100 UTF-8 bytes or fewer")
         self.description: str | None = description
 
+    def set_description(self, description: str | None) -> GeneralServiceEndpoint:
+        """Set the description for this general service endpoint."""
+        if description is not None and len(description.encode("utf-8")) > 100:
+            raise ValueError("description must be 100 UTF-8 bytes or fewer")
+        self.description = description
+        return self
+
     def _set_endpoint_type(self, proto: RegisteredServiceEndpointProto) -> None:
         if self.description is not None:
             proto.general_service.description = self.description

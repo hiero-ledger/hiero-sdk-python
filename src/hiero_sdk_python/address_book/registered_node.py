@@ -35,7 +35,7 @@ class RegisteredNode:
         if proto.HasField("admin_key"):
             admin_key = PublicKey._from_proto(proto.admin_key)
 
-        description: str | None = proto.description if proto.description else None
+        description: str | None = proto.description or None
 
         endpoints = tuple(RegisteredServiceEndpoint._from_proto(ep) for ep in proto.service_endpoint)
 
