@@ -10,7 +10,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client, Operator
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
+from hiero_sdk_python.exceptions import MaxQueryPaymentExceededError, PrecheckError, ReceiptStatusError
 from hiero_sdk_python.executable import _Executable, _ExecutionState, _Method
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
@@ -133,6 +133,10 @@ class Query(_Executable):
 
         Args:
             client: The client instance to use for execution
+
+        Raises:
+            MaxQueryPaymentExceededError: If the network-quoted cost is higher than
+                ``max_query_payment`` (per-query) or ``client.default_max_query_payment``.
         """
         self.operator = self.operator or client.operator
 
@@ -147,10 +151,7 @@ class Query(_Executable):
             )
 
             if self.payment_amount > max_payment:
-                raise ValueError(
-                    f"Query cost ℏ{self.payment_amount.to_hbars()} HBAR "
-                    f"exceeds max set query payment: ℏ{max_payment.to_hbars()} HBAR"
-                )
+                raise MaxQueryPaymentExceededError(self.payment_amount, max_payment)
 
     def _make_request_header(self) -> query_header_pb2.QueryHeader:
         """

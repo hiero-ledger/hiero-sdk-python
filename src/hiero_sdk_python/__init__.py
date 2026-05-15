@@ -46,7 +46,7 @@ from .crypto.public_key import PublicKey
 from .Duration import Duration
 
 # Errors
-from .exceptions import PrecheckError, ReceiptStatusError
+from .exceptions import MaxAttemptsError, MaxQueryPaymentExceededError, PrecheckError, ReceiptStatusError
 
 # File
 from .file.file_append_transaction import FileAppendTransaction
@@ -293,6 +293,8 @@ __all__ = [
     "FreezeTransaction",
     "FreezeType",
     # Errors
-    "ReceiptStatusError",
+    "MaxAttemptsError",
+    "MaxQueryPaymentExceededError",
     "PrecheckError",
+    "ReceiptStatusError",
 ]

@@ -4,7 +4,9 @@ from unittest.mock import Mock
 
 import pytest
 
-from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError, ReceiptStatusError
+import hiero_sdk_python
+from hiero_sdk_python.exceptions import MaxAttemptsError, MaxQueryPaymentExceededError, PrecheckError, ReceiptStatusError
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 
 
@@ -123,3 +125,46 @@ def test_precheck_error_with_none_transaction_id():
     err_custom = PrecheckError(ResponseCode.INVALID_SIGNATURE, None, "Missing transaction context")
     assert err_custom.transaction_id is None
     assert str(err_custom) == "Missing transaction context"
+
+
+def test_max_query_payment_exceeded_error_attributes():
+    """MaxQueryPaymentExceededError should carry typed Hbar attributes and a clear message."""
+    cost = Hbar(5)
+    limit = Hbar(1)
+    err = MaxQueryPaymentExceededError(cost, limit)
+
+    assert err.query_cost == cost
+    assert err.max_query_payment == limit
+    assert "5.00000000" in str(err)
+    assert "1.00000000" in str(err)
+
+
+def test_max_query_payment_exceeded_error_is_value_error():
+    """MaxQueryPaymentExceededError must inherit from ValueError for backward compatibility."""
+    err = MaxQueryPaymentExceededError(Hbar(10), Hbar(2))
+    assert isinstance(err, ValueError)
+
+
+def test_max_query_payment_exceeded_error_repr():
+    """repr() should include both Hbar amounts for debugging."""
+    err = MaxQueryPaymentExceededError(Hbar(3), Hbar(1))
+    r = repr(err)
+    assert "MaxQueryPaymentExceededError" in r
+    assert "query_cost" in r
+    assert "max_query_payment" in r
+
+
+def test_max_attempts_error_exported_from_top_level():
+    """MaxAttemptsError must be importable directly from hiero_sdk_python."""
+    assert hasattr(hiero_sdk_python, "MaxAttemptsError")
+    cls = hiero_sdk_python.MaxAttemptsError
+    err = cls("timed out", "0.0.3")
+    assert isinstance(err, Exception)
+
+
+def test_max_query_payment_exceeded_error_exported_from_top_level():
+    """MaxQueryPaymentExceededError must be importable directly from hiero_sdk_python."""
+    assert hasattr(hiero_sdk_python, "MaxQueryPaymentExceededError")
+    cls = hiero_sdk_python.MaxQueryPaymentExceededError
+    err = cls(Hbar(5), Hbar(1))
+    assert isinstance(err, ValueError)
