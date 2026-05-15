@@ -465,7 +465,7 @@ def test_approved_token_transfer_accumulation(mock_account_ids):
     transfer_1 = transfer_tx.token_transfers[token_id_1][0]
     transfer_2 = transfer_tx.token_transfers[token_id_1][1]
     assert transfer_1.amount == 500
-    assert transfer_1.is_approved is False
+    assert transfer_1.is_approved is True
     assert transfer_1.expected_decimals is None
     assert transfer_2.amount == 300
     assert transfer_2.is_approved is False
@@ -483,6 +483,58 @@ def test_approved_token_transfer_accumulation(mock_account_ids):
     assert transfer_2.amount == 300  # unchanged
     assert transfer_2.is_approved is False  # unchanged
     assert transfer_2.expected_decimals is None  # unchanged
+
+
+def test_is_approved_updated_normal_then_approved(mock_account_ids):
+    """is_approved becomes True when an approved call follows a normal one (last-call-wins)."""
+    account_id_1, account_id_2, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_token_transfer(token_id_1, account_id_1, 500)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, -500)
+
+    transfer_1 = transfer_tx.token_transfers[token_id_1][0]
+    assert transfer_1.is_approved is False
+
+    transfer_tx.add_approved_token_transfer(token_id_1, account_id_1, 200)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, -200)
+
+    transfer_1 = transfer_tx.token_transfers[token_id_1][0]
+    assert transfer_1.amount == 700
+    assert transfer_1.is_approved is True
+
+
+def test_is_approved_updated_approved_then_normal(mock_account_ids):
+    """is_approved becomes False when a normal call follows an approved one (last-call-wins)."""
+    account_id_1, account_id_2, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_approved_token_transfer(token_id_1, account_id_1, 500)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, -500)
+
+    transfer_1 = transfer_tx.token_transfers[token_id_1][0]
+    assert transfer_1.is_approved is True
+
+    transfer_tx.add_token_transfer(token_id_1, account_id_1, 200)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, -200)
+
+    transfer_1 = transfer_tx.token_transfers[token_id_1][0]
+    assert transfer_1.amount == 700
+    assert transfer_1.is_approved is False
+
+
+def test_add_approved_token_transfer_no_decimals(mock_account_ids):
+    """add_approved_token_transfer (non-decimal variant) sets is_approved=True."""
+    account_id_1, account_id_2, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_approved_token_transfer(token_id_1, account_id_1, -1000)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, 1000)
+
+    transfer = transfer_tx.token_transfers[token_id_1][0]
+    assert transfer.amount == -1000
+    assert transfer.is_approved is True
+    assert transfer.expected_decimals is None
 
 
 def test_approved_token_transfer_validation(mock_account_ids):
