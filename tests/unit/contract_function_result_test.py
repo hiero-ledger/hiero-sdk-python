@@ -405,3 +405,17 @@ def test_to_proto(contract_function_result):
     assert proto.amount == contract_function_result.amount
     assert proto.functionParameters == contract_function_result.function_parameters
     assert proto.signer_nonce.value == contract_function_result.signer_nonce
+
+
+def test_to_proto_signer_nonce():
+    """Test _to_proto method with None and 0 signer_nonce."""
+    # Test with None
+    result_none = ContractFunctionResult(signer_nonce=None)
+    proto_none = result_none._to_proto()
+    assert not proto_none.HasField("signer_nonce")
+
+    # Test with 0
+    result_zero = ContractFunctionResult(signer_nonce=0)
+    proto_zero = result_zero._to_proto()
+    assert proto_zero.HasField("signer_nonce")
+    assert proto_zero.signer_nonce.value == 0
