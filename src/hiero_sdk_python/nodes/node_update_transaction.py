@@ -51,6 +51,7 @@ class NodeUpdateParams:
     admin_key: PublicKey | None = None
     decline_reward: bool | None = None
     grpc_web_proxy_endpoint: Endpoint | None = None
+    associated_registered_nodes: list[int] | None = None
 
 
 class NodeUpdateTransaction(Transaction):
@@ -84,7 +85,7 @@ class NodeUpdateTransaction(Transaction):
         self.admin_key: PublicKey | None = node_update_params.admin_key
         self.decline_reward: bool | None = node_update_params.decline_reward
         self.grpc_web_proxy_endpoint: Endpoint | None = node_update_params.grpc_web_proxy_endpoint
-        self.associated_registered_nodes: list[int] | None = None
+        self.associated_registered_nodes: list[int] | None = node_update_params.associated_registered_nodes
 
     def set_node_id(self, node_id: int | None) -> NodeUpdateTransaction:
         """

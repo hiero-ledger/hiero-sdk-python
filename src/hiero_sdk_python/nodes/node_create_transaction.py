@@ -76,7 +76,7 @@ class NodeCreateTransaction(Transaction):
         self.admin_key: PublicKey | None = node_create_params.admin_key
         self.decline_reward: bool | None = node_create_params.decline_reward
         self.grpc_web_proxy_endpoint: Endpoint | None = node_create_params.grpc_web_proxy_endpoint
-        self.associated_registered_nodes: list[int] = []
+        self.associated_registered_nodes: list[int] = node_create_params.associated_registered_nodes
 
     def set_account_id(self, account_id: AccountId | None) -> NodeCreateTransaction:
         """
