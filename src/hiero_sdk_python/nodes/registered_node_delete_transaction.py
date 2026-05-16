@@ -65,6 +65,7 @@ class RegisteredNodeDeleteTransaction(Transaction):
     def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
 
+        # Extract registered node fields if the body contains a registeredNodeDelete message
         if transaction_body.HasField("registeredNodeDelete"):
             pb = transaction_body.registeredNodeDelete
             transaction.registered_node_id = pb.registered_node_id
