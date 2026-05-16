@@ -41,8 +41,6 @@ class BlockNodeServiceEndpoint(RegisteredServiceEndpoint):
         requires_tls: bool,
     ) -> BlockNodeServiceEndpoint:
         apis = [BlockNodeApi(v) for v in proto.block_node.endpoint_api]
-        if not apis:
-            apis = [BlockNodeApi.OTHER]
         return cls(
             ip_address=ip_address,
             domain_name=domain_name,

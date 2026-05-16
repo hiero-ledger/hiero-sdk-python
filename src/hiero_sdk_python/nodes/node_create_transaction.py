@@ -43,6 +43,7 @@ class NodeCreateParams:
     admin_key: PublicKey | None = None
     decline_reward: bool | None = None
     grpc_web_proxy_endpoint: Endpoint | None = None
+    associated_registered_nodes: list[int] = field(default_factory=list)
 
 
 class NodeCreateTransaction(Transaction):
