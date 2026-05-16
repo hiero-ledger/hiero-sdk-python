@@ -15,7 +15,7 @@ class RegisteredServiceEndpoint:
         port: int = 0,
         requires_tls: bool = False,
     ) -> None:
-        self._validate_address(ip_address, domain_name)
+        self._validate_address_init(ip_address, domain_name)
         self._validate_port(port)
         if not isinstance(requires_tls, bool):
             raise ValueError("requires_tls must be a bool")
@@ -53,14 +53,20 @@ class RegisteredServiceEndpoint:
         return self
 
     @staticmethod
-    def _validate_address(ip_address: bytes | None, domain_name: str | None) -> None:
+    def _validate_address_init(ip_address: bytes | None, domain_name: str | None) -> None:
+        """Validate address arguments at construction time.
+
+        Allows both to be ``None`` so that the builder/setter pattern works::
+
+            endpoint = BlockNodeServiceEndpoint().set_domain_name("example.com")
+
+        Rejects providing *both* at the same time.
+        """
         if ip_address is not None and domain_name is not None:
             raise ValueError("Exactly one of ip_address or domain_name must be provided, not both")
-        if ip_address is None and domain_name is None:
-            raise ValueError("Exactly one of ip_address or domain_name must be provided")
         if ip_address is not None:
             RegisteredServiceEndpoint._validate_ip_address(ip_address)
-        else:
+        if domain_name is not None:
             RegisteredServiceEndpoint._validate_domain_name(domain_name)
 
     @staticmethod
@@ -87,6 +93,8 @@ class RegisteredServiceEndpoint:
             raise ValueError("port must be in range 0 to 65535")
 
     def _to_proto(self) -> RegisteredServiceEndpointProto:
+        if self.ip_address is None and self.domain_name is None:
+            raise ValueError("Exactly one of ip_address or domain_name must be set before serialization")
         proto = RegisteredServiceEndpointProto(
             port=self.port,
             requires_tls=self.requires_tls,

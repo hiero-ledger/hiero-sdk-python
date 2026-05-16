@@ -240,9 +240,13 @@ class TestAddressValidation:
                 port=80,
             )
 
-    def test_neither_ip_nor_domain_raises(self):
-        with pytest.raises(ValueError, match="Exactly one"):
-            MirrorNodeServiceEndpoint(port=80)
+    def test_neither_ip_nor_domain_allowed_for_builder_pattern(self):
+        """Constructor allows neither address for builder/setter pattern; _to_proto raises."""
+        ep = MirrorNodeServiceEndpoint(port=80)
+        assert ep.ip_address is None
+        assert ep.domain_name is None
+        with pytest.raises(ValueError, match="serialization"):
+            ep._to_proto()
 
     def test_invalid_ip_length_raises(self):
         with pytest.raises(ValueError, match="4 bytes.*or 16 bytes"):
