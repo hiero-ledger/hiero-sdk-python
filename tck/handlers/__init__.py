@@ -6,6 +6,7 @@ from . import (
     account,
     key,
     sdk,  # setup, reset
+    topic,
 )
 from .registry import (
     get_all_handlers,
@@ -18,7 +19,4 @@ __all__ = [
     "get_handler",
     "get_all_handlers",
     "safe_dispatch",
-    "account",
-    "key",
-    "sdk",
 ]
