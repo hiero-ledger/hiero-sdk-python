@@ -9,13 +9,19 @@ on:
     paths:
       - "examples/**"
       - "src/**"
-      - ".github/scripts/**"
+      - ".github/scripts/pr-check-secondary-examples.js"
+      - ".github/scripts/__tests__/pr-check-secondary-examples.test.js"
+      - ".github/scripts/jest.config.js"
+      - ".github/scripts/package.json"
       - ".github/workflows/pr-check-secondary-examples.yml"
   pull_request:
     paths:
       - "examples/**"
       - "src/**"
-      - ".github/scripts/**"
+      - ".github/scripts/pr-check-secondary-examples.js"
+      - ".github/scripts/__tests__/pr-check-secondary-examples.test.js"
+      - ".github/scripts/jest.config.js"
+      - ".github/scripts/package.json"
       - ".github/workflows/pr-check-secondary-examples.yml"
   workflow_dispatch:
 

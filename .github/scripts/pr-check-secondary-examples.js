@@ -74,9 +74,11 @@ function runAll(files) {
 
 // Split all examples into changed vs remaining
 function computeExecutionPlan(all, changed) {
+    const allSet = new Set(all);
     const changedSet = new Set(changed);
+    const validChanged = changed.filter(f => allSet.has(f));
     const remaining = all.filter(f => !changedSet.has(f));
-    return { changed, remaining };
+    return { changed: validChanged, remaining };
 }
 
 // -----------------------------

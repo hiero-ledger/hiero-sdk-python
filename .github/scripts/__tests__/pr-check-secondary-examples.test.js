@@ -157,6 +157,16 @@ describe("computeExecutionPlan", () => {
 
         expect(remaining).toEqual([]);
     });
+
+    test("excludes deleted/renamed files from phase-1 when not present in all", () => {
+        const all = ["examples/a.py", "examples/b.py"];
+        const changed = ["examples/b.py", "examples/deleted.py"];
+
+        const { changed: validChanged, remaining } = computeExecutionPlan(all, changed);
+
+        expect(validChanged).toEqual(["examples/b.py"]);
+        expect(remaining).toEqual(["examples/a.py"]);
+    });
 });
 
 // ---------------------------------------------------------------------------
