@@ -33,7 +33,7 @@ jobs:
       # Dependency versions are pinned to ensure reproducible builds.
       # These should be periodically reviewed and updated for ensuring smooth execution.
       - name: Install build, pdm-backend, and grpcio-tools
-        run: pip install build==1.4.2 pdm-backend==2.4.8 grpcio-tools==1.76.0
+        run: pip install build==1.5 pdm-backend==2.4.8 grpcio-tools==1.76.0
 
       - name: Generate Protobuf
         run: python generate_proto.py
