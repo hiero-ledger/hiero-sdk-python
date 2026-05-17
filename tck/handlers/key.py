@@ -10,6 +10,13 @@ from tck.response.key import KeyGenerationResponse
 from tck.util.key_utils import KeyType, get_key_from_string
 
 
+def _format_generated_public_key(public_key: PublicKey) -> str:
+    """Return DER-hex output expected by TCK for generated public keys."""
+    if public_key.is_ecdsa():
+        return public_key.to_string_der_ecdsa_compressed()
+    return public_key.to_string_der()
+
+
 @rpc_method("generateKey")
 def generate_key(params: KeyGenerationParams) -> KeyGenerationResponse:
     if params.fromKey and params.type not in {
@@ -62,7 +69,7 @@ def _handle_private_key(params: KeyGenerationParams, response: KeyGenerationResp
 
 def _handle_public_key(params: KeyGenerationParams, response: KeyGenerationResponse, is_list: bool) -> str:
     if params.fromKey:
-        return PrivateKey.from_string(params.fromKey).public_key().to_string_der()
+        return _format_generated_public_key(PrivateKey.from_string(params.fromKey).public_key())
 
     if params.type == KeyType.ED25519_PUBLIC_KEY:
         private_key = PrivateKey.generate_ed25519()
@@ -72,7 +79,7 @@ def _handle_public_key(params: KeyGenerationParams, response: KeyGenerationRespo
     if is_list:
         response.privateKeys.append(private_key.to_string_der())
 
-    return private_key.public_key().to_string_der()
+    return _format_generated_public_key(private_key.public_key())
 
 
 def _handle_key_list(params: KeyGenerationParams, response: KeyGenerationResponse) -> str:
