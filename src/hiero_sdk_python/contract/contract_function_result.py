@@ -507,6 +507,6 @@ class ContractFunctionResult:
             gas=self.gas_available,
             amount=self.amount,
             functionParameters=self.function_parameters,
-            signer_nonce=Int64Value(value=self.signer_nonce),
+            signer_nonce=Int64Value(value=self.signer_nonce) if self.signer_nonce is not None else None,
             contract_nonces=[contract_nonce._to_proto() for contract_nonce in self.contract_nonces or []],
         )
