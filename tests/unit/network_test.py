@@ -452,11 +452,11 @@ def test_resolve_nodes_fallback_to_default(monkeypatch):
     assert resolved_nodes[0]._account_id == network.DEFAULT_NODES[network_name][0][1]
 
 
-def test_network_default_is_local():
-    """Test that a new Network defaults to localhost and non-tls."""
+def test_network_default_is_testnet():
+    """Test that a new Network defaults to testnet and tls."""
     network = Network()
-    assert network.network == "localhost"
-    assert network._transport_security is False
+    assert network.network == "testnet"
+    assert network._transport_security is True
 
 
 @pytest.mark.parametrize("network", ["mainnet", "previewnet", "testnet"])
@@ -483,7 +483,7 @@ def test_self_hosted_network_respect_port_50212(network):
     assert network._transport_security is True
 
 
-@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom", None])
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom"])
 def test_non_hosted_network_respects_port_50211(network):
     """Test that on non-hosted network, port 50211 stays 50211 and remains non-tls."""
     node_50211 = _Node(AccountId(0, 0, 3), "127.0.0.1:50211", None)
@@ -495,7 +495,7 @@ def test_non_hosted_network_respects_port_50211(network):
     assert network._transport_security is False
 
 
-@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom", None])
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom"])
 def test_non_hosted_network_respect_port_50212(network):
     """Test that on non hosted network respect port 50212"""
     node_50211 = _Node(AccountId(0, 0, 3), "127.0.0.1:50212", None)

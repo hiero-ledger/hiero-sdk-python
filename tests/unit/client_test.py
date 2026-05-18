@@ -557,7 +557,7 @@ def test_for_network_with_hosted_network_forces_tls(network):
     assert client.network.is_transport_security() is True
 
 
-@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom", None])
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom"])
 def test_for_network_with_non_hosted_network_not_forces_tls(network):
     """Test that if non hosted-net the port 50211 does not change."""
     network_map = {"127.0.0.1:50211": AccountId(0, 0, 3)}
@@ -569,7 +569,7 @@ def test_for_network_with_non_hosted_network_not_forces_tls(network):
     assert client.network.is_transport_security() is False
 
 
-@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom", None])
+@pytest.mark.parametrize("network", ["local", "localhost", "solo", "custom"])
 def test_for_network_with_non_hosted_network_not_downgrade_tls(network):
     """Test that if non hosted-net the port 50212 does not change."""
     network_map = {"127.0.0.1:50212": AccountId(0, 0, 3)}

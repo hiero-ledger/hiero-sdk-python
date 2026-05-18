@@ -98,7 +98,7 @@ class Network:
             Certificate verification is enabled by default for all networks.
             Use Client.set_transport_security() and Client.set_verify_certificates() to customize.
         """
-        self.network: str = network or "localhost"
+        self.network: str = network or "testnet"
         self._mirror_address: str = mirror_address or self.MIRROR_ADDRESS_DEFAULT.get(self.network, "localhost:5600")
         self._mirror_channel: grpc.Channel | None = None
         self._mirror_stub: mirror_consensus_grpc.ConsensusServiceStub | None = None
