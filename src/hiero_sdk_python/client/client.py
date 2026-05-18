@@ -12,7 +12,6 @@ import grpc
 from dotenv import load_dotenv
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.channels import _UserAgentInterceptor
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
