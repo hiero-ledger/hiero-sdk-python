@@ -140,6 +140,13 @@ We welcome contributions! Whether you're:
 
 ---
 
+## Pull Request Reviews
+
+We welcome community reviews on our PRs.
+Please use this link [PR Review Guidelines](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/pr_review_guidelines.md) to find a detailed guide on reviewing PRs.
+
+---
+
 ## License
 
 This project is licensed under the [Apache License 2.0](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/LICENSE).
