@@ -217,6 +217,55 @@ def test_delete_token_nft_allowance_all_serials(account_allowance_transaction, s
     assert allowance.approved_for_all is False
 
 
+def test_delete_token_nft_allowance_all_serials_preserves_prior_serial_approval(
+    account_allowance_transaction, sample_accounts, sample_tokens
+):
+    """Test that delete-all-serials does not fold into a prior per-serial approval."""
+    token_id = sample_tokens["token1"]
+    owner = sample_accounts["owner"]
+    spender = sample_accounts["spender"]
+    nft_id = NftId(token_id, 1)
+
+    account_allowance_transaction.approve_token_nft_allowance(nft_id, owner, spender)
+    account_allowance_transaction.delete_token_nft_allowance_all_serials(token_id, owner, spender)
+
+    assert len(account_allowance_transaction.nft_allowances) == 2
+
+    first = account_allowance_transaction.nft_allowances[0]
+    assert first.token_id == token_id
+    assert first.owner_account_id == owner
+    assert first.spender_account_id == spender
+    assert first.serial_numbers == [1]
+    assert first.approved_for_all is False
+
+    second = account_allowance_transaction.nft_allowances[1]
+    assert second.token_id == token_id
+    assert second.owner_account_id == owner
+    assert second.spender_account_id == spender
+    assert second.serial_numbers == []
+    assert second.approved_for_all is False
+
+
+def test_delete_token_nft_allowance_all_serials_appends_per_call(
+    account_allowance_transaction, sample_accounts, sample_tokens
+):
+    """Test that repeated delete-all-serials calls append one entry per call."""
+    token_id = sample_tokens["token1"]
+    owner = sample_accounts["owner"]
+    spender = sample_accounts["spender"]
+
+    account_allowance_transaction.delete_token_nft_allowance_all_serials(token_id, owner, spender)
+    account_allowance_transaction.delete_token_nft_allowance_all_serials(token_id, owner, spender)
+
+    assert len(account_allowance_transaction.nft_allowances) == 2
+    for allowance in account_allowance_transaction.nft_allowances:
+        assert allowance.token_id == token_id
+        assert allowance.owner_account_id == owner
+        assert allowance.spender_account_id == spender
+        assert allowance.serial_numbers == []
+        assert allowance.approved_for_all is False
+
+
 def test_add_all_token_nft_approval(account_allowance_transaction, sample_accounts, sample_tokens):
     """Test adding all token NFT approval"""
     token_id = sample_tokens["token1"]
