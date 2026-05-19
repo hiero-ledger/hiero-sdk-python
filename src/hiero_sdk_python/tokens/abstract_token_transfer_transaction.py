@@ -152,9 +152,6 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             raise TypeError("is_approved must be a boolean.")
 
         for transfer in self.token_transfers[token_id]:
-            if transfer.account_id == account_id:
-                transfer.amount += amount
-                transfer.expected_decimals = expected_decimals
             if transfer.account_id == account_id and transfer.is_approved == is_approved:
                 transfer.amount += amount
                 transfer.expected_decimals = expected_decimals
