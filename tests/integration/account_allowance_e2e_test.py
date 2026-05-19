@@ -13,6 +13,7 @@ from hiero_sdk_python.account.account_allowance_delete_transaction import (
     AccountAllowanceDeleteTransaction,
 )
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_associate_transaction import (
@@ -532,6 +533,12 @@ def test_integration_can_approve_serial_and_delete_all_serials_in_one_transactio
     )
     assert transfer_receipt.status == ResponseCode.SUCCESS, (
         f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    )
+
+    # Confirm nft1 ownership has actually moved to the receiver
+    nft1_info = TokenNftInfoQuery(nft1).execute(env.client)
+    assert nft1_info.account_id == receiver_account.id, (
+        f"Expected nft1 owner to be receiver {receiver_account.id} after transfer, got {nft1_info.account_id}"
     )
 
     # Transfer nft2 (should fail - delete-all-serials revoked any blanket allowance)
