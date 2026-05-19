@@ -13,9 +13,12 @@ from hiero_sdk_python.account.account_allowance_delete_transaction import (
     AccountAllowanceDeleteTransaction,
 )
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
-from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.tokens.token_associate_transaction import (
+    TokenAssociateTransaction,
+)
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
@@ -61,7 +64,9 @@ def _mint_nft(env, token_id, metadata):
 
 
 @pytest.mark.integration
-def test_integration_cannot_transfer_on_behalf_of_spender_without_allowance_approval(env):
+def test_integration_cannot_transfer_on_behalf_of_spender_without_allowance_approval(
+    env,
+):
     """Test that a spender cannot transfer NFTs on behalf of account without allowance approval."""
     spender_account, receiver_account = _create_spender_and_receiver_accounts(env)
 
@@ -264,7 +269,9 @@ def test_integration_fungible_token_allowance(env):
 
 
 @pytest.mark.integration
-def test_integration_cant_transfer_on_behalf_of_spender_after_removing_the_allowance_approval(env):
+def test_integration_cant_transfer_on_behalf_of_spender_after_removing_the_allowance_approval(
+    env,
+):
     """Test that a spender cannot transfer NFTs after the allowance approval is removed."""
     spender_account, receiver_account = _create_spender_and_receiver_accounts(env)
 
@@ -485,4 +492,65 @@ def test_integration_cannot_send_deleted_token_nft_serials(env):
     assert transfer_receipt.status == ResponseCode.SPENDER_DOES_NOT_HAVE_ALLOWANCE, (
         f"Transfer should have failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE"
         f"status but got: {ResponseCode(transfer_receipt.status).name}"
+    )
+
+
+@pytest.mark.integration
+def test_integration_can_approve_serial_and_delete_all_serials_in_one_transaction(env):
+    """Test that approve-serial + delete-all-serials in one transaction preserves the per-serial allowance."""
+    spender_account, receiver_account = _create_spender_and_receiver_accounts(env)
+
+    token_id = create_nft_token(env)
+    assert token_id is not None
+
+    _associate_token_with_account(env, receiver_account, token_id)
+
+    nft_ids = _mint_nft(env, token_id, [b"\x01", b"\x02"])
+    nft1 = nft_ids[0]
+    nft2 = nft_ids[1]
+
+    # Approve nft1 specifically and delete-all-serials for the same (token, spender)
+    # pair in the same transaction. The per-serial approval is preserved because the
+    # two operations produce independent NftAllowance entries.
+    receipt = (
+        AccountAllowanceApproveTransaction()
+        .approve_token_nft_allowance(nft1, env.operator_id, spender_account.id)
+        .delete_token_nft_allowance_all_serials(token_id, env.operator_id, spender_account.id)
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Allowance approval failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    # Transfer nft1 (should succeed - per-serial allowance preserved)
+    transfer_receipt = (
+        TransferTransaction()
+        .set_transaction_id(TransactionId.generate(spender_account.id))
+        .add_approved_nft_transfer(nft1, env.operator_id, receiver_account.id)
+        .freeze_with(env.client)
+        .sign(spender_account.key)
+        .execute(env.client)
+    )
+    assert transfer_receipt.status == ResponseCode.SUCCESS, (
+        f"Transfer failed with status: {ResponseCode(transfer_receipt.status).name}"
+    )
+
+    # Confirm nft1 ownership has actually moved to the receiver
+    nft1_info = TokenNftInfoQuery(nft1).execute(env.client)
+    assert nft1_info.account_id == receiver_account.id, (
+        f"Expected nft1 owner to be receiver {receiver_account.id} after transfer, got {nft1_info.account_id}"
+    )
+
+    # Transfer nft2 (should fail - delete-all-serials revoked any blanket allowance)
+    transfer_receipt2 = (
+        TransferTransaction()
+        .set_transaction_id(TransactionId.generate(spender_account.id))
+        .add_approved_nft_transfer(nft2, env.operator_id, receiver_account.id)
+        .freeze_with(env.client)
+        .sign(spender_account.key)
+        .execute(env.client)
+    )
+    assert transfer_receipt2.status == ResponseCode.SPENDER_DOES_NOT_HAVE_ALLOWANCE, (
+        f"Transfer should have failed with SPENDER_DOES_NOT_HAVE_ALLOWANCE"
+        f"status but got: {ResponseCode(transfer_receipt2.status).name}"
     )
