@@ -12,6 +12,11 @@ jobs:
   build:
     name: Build distributions
     runs-on: hl-sdk-py-lin-md
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+      artifact-metadata: write
 
     steps:
       - name: Harden the runner (Audit all outbound calls)
@@ -38,6 +43,13 @@ jobs:
 
       - name: Build wheel and sdist
         run: python -m build
+
+      - name: Generate build provenance attestations
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
+        with:
+          subject-path: |
+            dist/*.whl
+            dist/*.tar.gz
 
       - name: Upload distributions
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -98,6 +110,7 @@ jobs:
         with:
           packages-dir: publish-dist
           skip-existing: true
+          attestations: true
 
       - name: Upload signed assets to GitHub Release
         uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3.0.0
