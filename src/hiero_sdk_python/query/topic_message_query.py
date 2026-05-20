@@ -29,7 +29,7 @@ class SubscriptionState:
     attempt: int = 0
     count: int = 0
     last_message: mirror_proto.ConsensusTopicResponse | None = None
-    pending_messages: dict[str, list[mirror_proto.ConsensusTopicResponse]] = field(default_factory=dict)
+    pending_messages: dict[TransactionId, list[mirror_proto.ConsensusTopicResponse]] = field(default_factory=dict)
 
 
 class TopicMessageQuery:
@@ -82,8 +82,8 @@ class TopicMessageQuery:
         self._completion_handler = handler
         return self
 
-    def set_error_handler(self, handler: Callable[[], None]) -> TopicMessageQuery:
-        """Sets a completion handler that is called when the subscription completes."""
+    def set_error_handler(self, handler: Callable[[Exception], None]) -> TopicMessageQuery:
+        """Sets an error handler that is called when the subscription causes an error."""
         self._error_handler = handler
         return self
 
@@ -217,6 +217,7 @@ class TopicMessageQuery:
 
         def run_stream():
             while state.attempt < self._max_attempts and not subscription_handle.is_cancelled():
+                state.attempt += 1
                 request = self._build_query_request(state)
 
                 try:
@@ -247,7 +248,6 @@ class TopicMessageQuery:
                     delay = min(0.5 * (2 ** (state.attempt)), self._max_backoff)
                     logger.warning(f"Error subscribing to topic attempt {state.attempt}. Retrying in {int(delay)}s...")
 
-                    state.attempt += 1
                     time.sleep(delay)
 
         thread = threading.Thread(target=run_stream, daemon=True)
