@@ -13,7 +13,7 @@ from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.hapi.mirror import consensus_service_pb2 as mirror_proto
 from hiero_sdk_python.hapi.services import timestamp_pb2 as hapi_timestamp_pb2
 from hiero_sdk_python.hapi.services.consensus_submit_message_pb2 import ConsensusMessageChunkInfo
-from hiero_sdk_python.query.topic_message_query import TopicMessageQuery
+from hiero_sdk_python.query.topic_message_query import SubscriptionState, TopicMessageQuery
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import RealRpcError
 
@@ -48,15 +48,35 @@ def mock_subscription_response():
     )
 
 
+# Initialization
+
+
 def test_topic_message_query_initialization():
     """Test initializing the query with various parameter types and setters."""
     start = datetime(2023, 1, 1, tzinfo=timezone.utc)
-    query = TopicMessageQuery().set_topic_id("0.0.123").set_start_time(start).set_limit(5).set_chunking_enabled(True)
+
+    def mock_complete():
+        pass
+
+    def mock_error(e):
+        pass
+
+    query = (
+        TopicMessageQuery()
+        .set_topic_id("0.0.123")
+        .set_start_time(start)
+        .set_limit(5)
+        .set_chunking_enabled(True)
+        .set_completion_handler(mock_complete)
+        .set_error_handler(mock_error)
+    )
 
     assert query._topic_id.topicNum == 123
     assert query._start_time.seconds == int(start.timestamp())
     assert query._limit == 5
     assert query._chunking_enabled is True
+    assert query._completion_handler == mock_complete
+    assert query._error_handler == mock_error
 
 
 def test_topic_message_query_invalid_max_backoff():
@@ -102,6 +122,138 @@ def test_subscribe_missing_config(mock_client):
         query_ok.subscribe(mock_client, on_message=MagicMock())
 
 
+@pytest.mark.parametrize(
+    "handler",
+    ["string", 1, True, None, [], {}],
+)
+def test_topic_message_query_invalid_handler_param(handler):
+    """Test that a non-callable handler raises a TypeError."""
+    query = TopicMessageQuery()
+
+    # For complete_handler
+    with pytest.raises(TypeError, match="handler must be a callable object"):
+        query.set_completion_handler(handler)
+    # For error_handler
+    with pytest.raises(TypeError, match="handler must be a callable object"):
+        query.set_error_handler(handler)
+
+
+# build_query_request
+
+
+def test_build_query_request_uses_provided_start_time():
+    """Test that the request uses the provided start_time when no last_message exists."""
+    start = datetime(2023, 1, 1, tzinfo=timezone.utc)
+    query = TopicMessageQuery(topic_id="0.0.123").set_start_time(start)
+    state = SubscriptionState()
+
+    state.last_message = None
+
+    expected_start = query._start_time
+    request = query._build_query_request(state)
+
+    assert request.consensusStartTime.seconds == expected_start.seconds
+    assert request.consensusStartTime.nanos == expected_start.nanos
+
+
+def test_build_query_request_from_last_message_timestamp():
+    """Test that a reconnection request overrides start_time using the last message timestamp + 1 nano"""
+    start = datetime(2023, 1, 1, tzinfo=timezone.utc)
+    query = TopicMessageQuery(topic_id="0.0.123").set_start_time(start)
+    state = SubscriptionState()
+
+    state.last_message = state.last_message = mirror_proto.ConsensusTopicResponse(
+        consensusTimestamp=hapi_timestamp_pb2.Timestamp(seconds=50, nanos=10)
+    )
+
+    request = query._build_query_request(state)
+
+    assert request.consensusStartTime.seconds == 50
+    assert request.consensusStartTime.nanos == 11
+
+
+def test_build_query_request_nanosecond_rollover():
+    """Test that nanos reaching 1_000_000_000 correctly increments the seconds field."""
+    query = TopicMessageQuery(topic_id="0.0.123")
+    state = SubscriptionState()
+
+    # Mock message arriving at the 999_999_999 nanosecond of second 50
+    state.last_message = mirror_proto.ConsensusTopicResponse(
+        consensusTimestamp=hapi_timestamp_pb2.Timestamp(seconds=50, nanos=999_999_999)
+    )
+
+    request = query._build_query_request(state)
+
+    assert request.consensusStartTime.seconds == 51
+    assert request.consensusStartTime.nanos == 0
+
+
+def test_build_query_request_limit_decrements_on_retry():
+    """Test that retry requests ask only for the remaining messages within the limit."""
+    query = TopicMessageQuery(topic_id="0.0.123").set_limit(10)
+    state = SubscriptionState()
+
+    # Mock state already have collect 4 message
+    state.count = 4
+    state.last_message = mirror_proto.ConsensusTopicResponse(
+        consensusTimestamp=hapi_timestamp_pb2.Timestamp(seconds=100, nanos=500)
+    )
+
+    request = query._build_query_request(state)
+
+    # New request only ask for the remaining 6 message (10 - 4)
+    assert request.limit == 6
+
+
+def test_build_query_request_limit_floor_at_zero():
+    """Test that remaining request limits never drop below zero."""
+    query = TopicMessageQuery(topic_id="0.0.123").set_limit(5)
+    state = SubscriptionState()
+
+    state.count = 6
+    state.last_message = mirror_proto.ConsensusTopicResponse(
+        consensusTimestamp=hapi_timestamp_pb2.Timestamp(seconds=100, nanos=500)
+    )
+
+    request = query._build_query_request(state)
+
+    # The limit should be  0 rather than becoming negative
+    assert request.limit == 0
+
+
+def test_build_query_request_set_end_time_if_provided():
+    """Test that request is created with the end_time if provided."""
+    end = datetime(2023, 1, 1, tzinfo=timezone.utc)
+    query = TopicMessageQuery(topic_id="0.0.123").set_end_time(end)
+
+    state = SubscriptionState()
+    state.last_message = None
+
+    expected_end = query._end_time
+    request = query._build_query_request(state)
+
+    assert request.consensusEndTime.seconds == expected_end.seconds
+    assert request.consensusEndTime.nanos == expected_end.nanos
+
+
+def test_build_query_request_set_start_end_time_to_default():
+    """Test that request is created with start_time and end_time as None if not present."""
+    query = TopicMessageQuery(topic_id="0.0.123")
+    state = SubscriptionState()
+    state.last_message = None
+
+    request = query._build_query_request(state)
+
+    assert request.consensusStartTime.seconds == 0
+    assert request.consensusStartTime.nanos == 0
+
+    assert request.consensusEndTime.seconds == 0
+    assert request.consensusEndTime.nanos == 0
+
+
+# handle_response / subscribe
+
+
 def test_topic_message_query_subscription(mock_client, mock_topic_id, mock_subscription_response):
     """Test subscribing to topic messages using TopicMessageQuery."""
     query = TopicMessageQuery().set_topic_id(mock_topic_id).set_start_time(datetime.now(tz=timezone.utc))
@@ -128,7 +280,7 @@ def test_topic_message_query_subscription(mock_client, mock_topic_id, mock_subsc
         on_error.assert_not_called()
 
 
-def test_chunk_message_handling_improved(mock_client):
+def test_chunk_message_handling(mock_client):
     """Test that multiple chunks are correctly buffered and released as a single message."""
     query = TopicMessageQuery(topic_id="0.0.123", chunking_enabled=True)
 
@@ -154,6 +306,32 @@ def test_chunk_message_handling_improved(mock_client):
     assert b"chunk-2" in received_messages[0].contents
 
 
+def test_chunk_message_handling_when_chunking_is_disabled(mock_client):
+    """Test that when chunking is disabled only single chunk is released as a single message."""
+    query = TopicMessageQuery(topic_id="0.0.123", chunking_enabled=False)
+
+    tx_id = TransactionId.generate(mock_client.operator_account_id)
+    tx_id_proto = tx_id._to_proto()
+
+    chunk1 = mirror_proto.ConsensusTopicResponse(
+        message=b"chunk-1", chunkInfo=ConsensusMessageChunkInfo(initialTransactionID=tx_id_proto, total=2, number=1)
+    )
+    chunk2 = mirror_proto.ConsensusTopicResponse(
+        message=b"chunk-2", chunkInfo=ConsensusMessageChunkInfo(initialTransactionID=tx_id_proto, total=2, number=2)
+    )
+
+    mock_client.mirror_stub.subscribeTopic.return_value = iter([chunk1, chunk2])
+
+    received_messages = []
+    handle = query.subscribe(mock_client, on_message=lambda m: received_messages.append(m))
+
+    handle._thread.join(timeout=1.0)
+
+    assert len(received_messages) == 2  # since we will get 2 seperate message
+    assert b"chunk-1" in received_messages[0].contents
+    assert b"chunk-2" not in received_messages[0].contents
+
+
 @pytest.mark.parametrize(
     "error",
     [
@@ -169,7 +347,6 @@ def test_retry_logic_on_retryable_error(mock_client, error):
     query = TopicMessageQuery(topic_id="0.0.123").set_max_attempts(2).set_max_backoff(0.5)
 
     mock_client.mirror_stub.subscribeTopic.side_effect = [error, error]
-
     handle = query.subscribe(mock_client, on_message=MagicMock(), on_error=MagicMock())
 
     handle._thread.join(timeout=2.0)

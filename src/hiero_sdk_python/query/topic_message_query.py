@@ -79,11 +79,17 @@ class TopicMessageQuery:
 
     def set_completion_handler(self, handler: Callable[[], None]) -> TopicMessageQuery:
         """Sets a completion handler that is called when the subscription completes."""
+        if not callable(handler):
+            raise TypeError("handler must be a callable object")
+
         self._completion_handler = handler
         return self
 
     def set_error_handler(self, handler: Callable[[Exception], None]) -> TopicMessageQuery:
         """Sets an error handler that is called when the subscription causes an error."""
+        if not callable(handler):
+            raise TypeError("handler must be a callable object")
+
         self._error_handler = handler
         return self
 
