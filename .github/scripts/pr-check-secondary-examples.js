@@ -4,6 +4,10 @@
 
 const { execSync, spawnSync } = require("child_process");
 
+const EXAMPLES_PREFIX = "examples/";
+const PY_EXT = ".py";
+const INIT_FILE = "__init__.py";
+
 // -----------------------------
 // Helpers
 // -----------------------------
@@ -12,7 +16,7 @@ const { execSync, spawnSync } = require("child_process");
 function getAllExamples() {
     return execSync("git ls-files examples", { encoding: "utf-8" })
         .split("\n")
-        .filter(f => f.endsWith(".py") && !f.endsWith("__init__.py"));
+        .filter(f => f.endsWith(PY_EXT) && !f.endsWith(INIT_FILE));
 }
 
 // Get changed example files (PR only)
@@ -34,7 +38,7 @@ function getChangedExamples() {
         const diff = spawnSync("git", ["diff", "--name-only", `${remoteRef}...HEAD`], { encoding: "utf-8", stdio: "pipe" });
         if (diff.status !== 0) return [];
         return diff.stdout.trim()
-            ? diff.stdout.trim().split("\n").filter(f => f.startsWith("examples/") && f.endsWith(".py") && !f.endsWith("__init__.py"))
+            ? diff.stdout.trim().split("\n").filter(f => f.startsWith(EXAMPLES_PREFIX) && f.endsWith(PY_EXT) && !f.endsWith(INIT_FILE))
             : [];
     } catch (error) {
         console.warn(`⚠️ Unexpected error detecting changed examples; falling back to running the full example set.`, error);
@@ -87,16 +91,16 @@ function computeExecutionPlan(all, changed) {
 if (require.main === module) {
     const all = getAllExamples();
     const changed = getChangedExamples();
-    const { remaining } = computeExecutionPlan(all, changed);
+    const { changed: runnableChanged, remaining } = computeExecutionPlan(all, changed);
 
     console.log("\n=== Example Execution Plan ===");
-    console.log("Changed:", changed.length ? changed : "(none)");
+    console.log("Changed:", runnableChanged.length ? runnableChanged : "(none)");
     console.log("Remaining:", remaining.length);
     console.log("");
 
-    if (changed.length > 0) {
+    if (runnableChanged.length > 0) {
         console.log("🚀 Phase 1: Running CHANGED examples...");
-        runAll(changed);
+        runAll(runnableChanged);
     } else {
         console.log("ℹ️ No changed examples detected");
     }
