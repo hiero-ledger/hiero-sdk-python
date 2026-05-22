@@ -9,6 +9,8 @@ transaction body for submission to the Hedera network .
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.key import Key
@@ -21,6 +23,10 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.utils.key_utils import key_to_proto
+
+
+if TYPE_CHECKING:
+    from hiero_sdk_python.client.client import Client
 
 
 class TopicCreateTransaction(Transaction):
@@ -186,6 +192,27 @@ class TopicCreateTransaction(Transaction):
         self._require_not_frozen()
         self.fee_exempt_keys = keys
         return self
+
+    def freeze_with(self, client: Client) -> TopicCreateTransaction:
+        """
+        Freeze the transaction with the given client.
+
+        If `auto_renew_account` was not explicitly set, automatically assigns it:
+        - If `transaction_id` is already set, use its `account_id`.
+        - Otherwise, fall back to the client's `operator_account_id`.
+
+        Args:
+            client (Client): The client instance to use for setting defaults.
+
+        Returns:
+            TopicCreateTransaction: The current transaction instance for method chaining.
+        """
+        if client is not None and client.operator_account_id is not None and self.auto_renew_account is None:
+            self.auto_renew_account = (
+                self.transaction_id.account_id if self.transaction_id is not None else client.operator_account_id
+            )
+
+        return super().freeze_with(client)
 
     def _to_proto_key(self, key: Key | None):
         """
