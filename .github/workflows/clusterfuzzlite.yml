@@ -2,9 +2,15 @@ name: ClusterFuzzLite
 
 on:
   pull_request:
+    paths:
+      - "src/**"
+      - ".clusterfuzzlite/**"
   push:
     branches:
       - main
+    paths:
+      - "src/**"
+      - ".clusterfuzzlite/**"
 
 permissions: read-all
 
