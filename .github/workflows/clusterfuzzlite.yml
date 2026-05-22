@@ -5,12 +5,16 @@ on:
     paths:
       - "src/**"
       - ".clusterfuzzlite/**"
+      - "pyproject.toml"
+      - "generate_proto.py"
   push:
     branches:
       - main
     paths:
       - "src/**"
       - ".clusterfuzzlite/**"
+      - "pyproject.toml"
+      - "generate_proto.py"
 
 permissions: read-all
 
