@@ -84,7 +84,7 @@ hiero-sdk-python/
 │       └── account_create_transaction.py
 └── tests/
     └── unit/
-        └── test_account_create_transaction.py
+        └── account_create_transaction_test.py
 ```
 ---
 
@@ -491,7 +491,7 @@ You may look at an already-created unit test file for better clarity:
 uv run pytest tests/unit/tokens/token_transfer_test.py -v
 
 # Run integration tests
-uv run pytest tests/integration/token_transfer_e2e_test.py -v
+uv run pytest tests/integration/transfer_transaction_e2e_test.py -v
 ```
 
 ---

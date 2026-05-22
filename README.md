@@ -60,6 +60,7 @@ print(f"Balance: {balance.hbars} HBAR")
 ### For SDK Users
 
 - **[Running Examples](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_users/running_examples.md)** - Complete guide to all SDK operations with code examples
+- **[Error Handling](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_users/error_handling.md)** - Exception types, response codes, and retry guidance
 - **[Examples Directory](https://github.com/hiero-ledger/hiero-sdk-python/tree/main/examples)** - Ready-to-run example scripts
 
 ### For SDK Developers
@@ -137,6 +138,13 @@ We welcome contributions! Whether you're:
 - 💻 Writing code
 
 **Start here:** [CONTRIBUTING.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/CONTRIBUTING.md)
+
+---
+
+## Pull Request Reviews
+
+We welcome community reviews on our PRs.
+Please use this link [PR Review Guidelines](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/pr_review_guidelines.md) to find a detailed guide on reviewing PRs.
 
 ---
 

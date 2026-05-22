@@ -12,13 +12,13 @@ import grpc
 from dotenv import load_dotenv
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.channels import _UserAgentInterceptor
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.logger.logger import Logger, LogLevel
+from hiero_sdk_python.node import _Node
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 from .network import Network
@@ -57,9 +57,6 @@ class Client:
 
         self.network: Network = network
 
-        self.mirror_channel: grpc.Channel = None
-        self.mirror_stub: mirror_consensus_grpc.ConsensusServiceStub = None
-
         self.max_attempts: int = 10
         self.default_max_query_payment: Hbar = DEFAULT_MAX_QUERY_PAYMENT
 
@@ -69,9 +66,16 @@ class Client:
         self._grpc_deadline: float = DEFAULT_GRPC_DEADLINE
         self._request_timeout: float = DEFAULT_REQUEST_TIMEOUT
 
-        self._init_mirror_stub()
-
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
+
+    @property
+    def mirror_stub(self) -> mirror_consensus_grpc.ConsensusServiceStub:
+        return self.network.get_mirror_stub()
+
+    @property
+    def mirror_channel(self) -> grpc.Channel:
+        self.network.get_mirror_stub()
+        return self.network._mirror_channel
 
     @classmethod
     def from_env(cls, network: NetworkName | None = None) -> Client:
@@ -153,20 +157,32 @@ class Client:
         """
         return cls(Network("previewnet"))
 
-    def _init_mirror_stub(self) -> None:
+    @classmethod
+    def for_network(cls, network_map: dict[str, AccountId], network_name: str | None = "localhost") -> Client:
         """
-        Connect to a mirror node for topic message subscriptions.
-        Mirror nodes always use TLS (mandatory). We use self.network.get_mirror_address()
-        for a configurable mirror address, which should use port 443 for HTTPS connections.
-        """
-        mirror_address = self.network.get_mirror_address()
-        if mirror_address.endswith(":50212") or mirror_address.endswith(":443"):
-            self.mirror_channel = grpc.secure_channel(mirror_address, grpc.ssl_channel_credentials())
-        else:
-            self.mirror_channel = grpc.insecure_channel(mirror_address)
+        Create a Client with a custom set of nodes and an optional network label.
 
-        self.mirror_channel = grpc.intercept_channel(self.mirror_channel, _UserAgentInterceptor())
-        self.mirror_stub = mirror_consensus_grpc.ConsensusServiceStub(self.mirror_channel)
+        Args:
+            network_map (dict[str, AccountId]): A map where keys are "host:port" strings
+                and values are the node's AccountId.
+            network_name (str): A label for the network. Defaults to "localhost".
+
+        Returns:
+            Client: A Client instance configured with the custom network.
+        """
+        if not network_map:
+            raise ValueError("network_map cannot be empty")
+
+        first_node = next(iter(network_map.values()))
+        shard = first_node.shard
+        realm = first_node.realm
+
+        for account_id in network_map.values():
+            if shard != account_id.shard or realm != account_id.realm:
+                raise ValueError("network is not valid, all nodes must be in the same shard and realm")
+
+        nodes = [_Node(account_id, address, None) for address, account_id in network_map.items()]
+        return cls(Network(network=network_name, nodes=nodes))
 
     def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> None:
         """Sets the operator credentials (account ID and private key)."""
@@ -203,17 +219,7 @@ class Client:
         Closes any open gRPC channels and frees resources.
         Call this when you are done using the Client to ensure a clean shutdown.
         """
-        # Close mirror channel
-        if self.mirror_channel is not None:
-            self.mirror_channel.close()
-            self.mirror_channel = None
-
-        self.mirror_stub = None
-
-        # Fix: Close all consensus node channels
-        if self.network and self.network.nodes:
-            for node in self.network.nodes:
-                node._close()
+        self.network._close()
 
     def set_transport_security(self, enabled: bool) -> Client:
         """
