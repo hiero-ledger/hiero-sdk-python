@@ -36,7 +36,10 @@ function getChangedExamples() {
             return [];
         }
         const diff = spawnSync("git", ["diff", "--name-only", `${remoteRef}...HEAD`], { encoding: "utf-8", stdio: "pipe" });
-        if (diff.status !== 0) return [];
+        if (diff.status !== 0) {
+            console.warn(`⚠️ git diff failed against '${remoteRef}'; falling back to running the full example set.`);
+            return [];
+        }
         return diff.stdout.trim()
             ? diff.stdout.trim().split("\n").filter(f => f.startsWith(EXAMPLES_PREFIX) && f.endsWith(PY_EXT) && !f.endsWith(INIT_FILE))
             : [];

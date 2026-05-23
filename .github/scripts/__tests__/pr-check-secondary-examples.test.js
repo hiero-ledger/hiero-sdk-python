@@ -71,7 +71,7 @@ describe("getChangedExamples", () => {
         delete process.env.GITHUB_BASE_REF;
 
         expect(getChangedExamples()).toEqual([]);
-        expect(execSync).not.toHaveBeenCalled();
+        expect(spawnSync).not.toHaveBeenCalled();
     });
 
     test("returns only changed example .py files", () => {
