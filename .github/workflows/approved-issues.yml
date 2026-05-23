@@ -14,11 +14,15 @@ defaults:
 permissions:
   issues: write
 
+concurrency:
+  group: approve-issues-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   approve:
     if: github.event.label.name == 'approved'
     name: Approve Issue
-    runs-on: ubuntu-latest
+    runs-on: hl-sdk-py-lin-md
 
     steps:
       - name: Harden Runner
@@ -29,6 +33,7 @@ jobs:
       - name: Remove pending-review label
         uses: actions-ecosystem/action-remove-labels@2ce5d41b4b6aa8503e285553f75ed56e0a40bae0 # v1.3.0
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           labels: pending-review
 
       - name: Unlock issue
