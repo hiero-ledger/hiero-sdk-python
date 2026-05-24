@@ -47,9 +47,10 @@ class Transaction(_Executable):
         super().__init__()
 
         self.transaction_id = None
-        self.transaction_fee: int | None = None
+        self._transaction_fee: int | None = None
         self.transaction_valid_duration = 120
         self.generate_record = False
+        self._high_volume = False
         self.memo = ""
         self.custom_fee_limits: list[CustomFeeLimit] = []
         # Maps each node's AccountId to its corresponding transaction body bytes
@@ -466,7 +467,7 @@ class Transaction(_Executable):
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(selected_node._to_proto())
 
-        fee = self.transaction_fee or self._default_transaction_fee
+        fee = self._transaction_fee or self._default_transaction_fee
         if hasattr(fee, "to_tinybars"):
             transaction_body.transactionFee = int(fee.to_tinybars())
         else:
@@ -474,6 +475,7 @@ class Transaction(_Executable):
 
         transaction_body.transactionValidDuration.seconds = self.transaction_valid_duration
         transaction_body.generateRecord = self.generate_record
+        transaction_body.high_volume = self._high_volume
         transaction_body.memo = self.memo
         custom_fee_limits = [custom_fee._to_proto() for custom_fee in self.custom_fee_limits]
         transaction_body.max_custom_fees.extend(custom_fee_limits)
@@ -493,7 +495,7 @@ class Transaction(_Executable):
         """
         schedulable_body = SchedulableTransactionBody()
 
-        fee = self.transaction_fee or self._default_transaction_fee
+        fee = self._transaction_fee or self._default_transaction_fee
         if hasattr(fee, "to_tinybars"):
             schedulable_body.transactionFee = int(fee.to_tinybars())
         else:
@@ -602,6 +604,13 @@ class Transaction(_Executable):
         """
         self._require_not_frozen()
         self.transaction_id = transaction_id
+        return self
+
+    def transaction_fee(self, fee: Hbar):
+        """
+        Set the maximum transaction fee for this transaction.
+        """
+        self._transaction_fee = fee.to_tinybars()
         return self
 
     def to_bytes(self) -> bytes:
@@ -853,6 +862,7 @@ class Transaction(_Executable):
         transaction.transaction_fee = transaction_body.transactionFee
         transaction.transaction_valid_duration = transaction_body.transactionValidDuration.seconds
         transaction.generate_record = transaction_body.generateRecord
+        transaction._high_volume = transaction_body.high_volume
         transaction.memo = transaction_body.memo
 
         if transaction_body.max_custom_fees:
@@ -884,6 +894,26 @@ class Transaction(_Executable):
         """
         self._require_not_frozen()
         self.batch_key = key
+        return self
+
+    def set_high_volume(self, high_volume: bool) -> Transaction:
+        """
+        Enables or disables high-volume throttles for this transaction.
+
+        When enabled, the transaction may use high-volume capacity with
+        dynamic pricing as defined by HIP-1313.
+
+        Args:
+            high_volume (bool): Whether to enable high-volume throttles.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            Exception: If the transaction has already been frozen.
+        """
+        self._require_not_frozen()
+        self._high_volume = high_volume
         return self
 
     def batchify(self, client: Client, batch_key: Key):
@@ -935,3 +965,13 @@ class Transaction(_Executable):
         """Returns just the transaction body size in bytes after encoding"""
         self._require_frozen()
         return self.build_transaction_body().ByteSize()
+
+    @property
+    def high_volume(self) -> bool:
+        """
+        Returns whether high-volume throttles are enabled for this transaction.
+
+        Returns:
+            bool: True if high-volume throttles are enabled.
+        """
+        return self._high_volume
