@@ -32,7 +32,7 @@ def create_account_high_volume(client):
         .set_initial_balance(Hbar(1))
         .set_account_memo("High-volume test account")
         .set_high_volume(True)
-        .set_max_transaction_fee(Hbar(5))
+        .transaction_fee(Hbar(5))
         .freeze_with(client)
         .sign(account_private_key)
         .execute(client)
