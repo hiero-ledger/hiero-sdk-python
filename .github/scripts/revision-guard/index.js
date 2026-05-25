@@ -18,7 +18,6 @@ module.exports = async function revisionGuard({ github, context, core }) {
     !repo?.repo ||
     !pr ||
     typeof pr.number !== 'number' ||
-    !pr.node_id ||
     reviewState !== 'changes_requested'
   ) {
     core?.info?.('Skipping revision guard due to missing or non-matching payload data.');
@@ -36,7 +35,11 @@ module.exports = async function revisionGuard({ github, context, core }) {
   }
 
   try {
-    await convertToDraft(github, pr.node_id);
+    await convertToDraft(github, {
+      owner: repo.owner,
+      repo: repo.repo,
+      pullNumber: pr.number,
+    });
     core?.info?.(`Converted PR #${pr.number} to draft.`);
   } catch (error) {
     core?.error?.(`Failed to convert PR #${pr.number} to draft: ${error.message}`);

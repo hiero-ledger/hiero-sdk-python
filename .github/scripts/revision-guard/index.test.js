@@ -17,17 +17,20 @@ function freshRequire() {
 
 function createGithubMock() {
   const removedLabels = [];
+  const pullUpdates = [];
 
   return {
     removedLabels,
-    graphqlCalls: [],
-    graphql: async function (_query, variables) {
-      this.graphqlCalls.push(variables);
-    },
+    pullUpdates,
     rest: {
       issues: {
         removeLabel: async ({ name }) => {
           removedLabels.push(name);
+        },
+      },
+      pulls: {
+        update: async (params) => {
+          pullUpdates.push(params);
         },
       },
     },
@@ -71,7 +74,9 @@ describe('revision-guard index', () => {
 
     await handler({ github, context, core: { info() {} } });
 
-    assert.deepEqual(github.graphqlCalls, [{ pullRequestId: 'PR_node_42' }]);
+    assert.deepEqual(github.pullUpdates, [
+      { owner: 'hiero-ledger', repo: 'hiero-sdk-python', pull_number: 42, draft: true },
+    ]);
     assert.deepEqual(github.removedLabels, [
       'queue:committers',
       'status: ready-to-merge',
@@ -93,7 +98,7 @@ describe('revision-guard index', () => {
 
     await handler({ github, context, core: { info() {} } });
 
-    assert.equal(github.graphqlCalls.length, 0);
+    assert.equal(github.pullUpdates.length, 0);
     assert.equal(github.removedLabels.length, 0);
   });
 
@@ -112,7 +117,7 @@ describe('revision-guard index', () => {
 
     await handler({ github, context, core: { info() {} } });
 
-    assert.equal(github.graphqlCalls.length, 0);
+    assert.equal(github.pullUpdates.length, 0);
     assert.equal(github.removedLabels.length, 0);
   });
 
@@ -137,7 +142,9 @@ describe('revision-guard index', () => {
     await handler({ github, context, core: { info() {} } });
 
     // Draft conversion must also fire for configurable-label scenarios.
-    assert.deepEqual(github.graphqlCalls, [{ pullRequestId: 'PR_node_45' }]);
+    assert.deepEqual(github.pullUpdates, [
+      { owner: 'hiero-ledger', repo: 'hiero-sdk-python', pull_number: 45, draft: true },
+    ]);
     // Custom labels AND the matching default (queue:committers) must both be removed.
     assert.deepEqual(github.removedLabels, ['queue:committers', 'custom: one', 'custom: two']);
   });
