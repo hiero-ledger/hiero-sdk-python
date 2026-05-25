@@ -184,12 +184,13 @@ class TopicMessageQuery:
 
     def _handle_response(self, response, state: SubscriptionState, on_message: Callable[[TopicMessage], None]) -> None:
         """Handles single or chunked messages."""
-        state.count += 1
         state.last_message = response
 
         if not self._chunking_enabled or not response.HasField("chunkInfo") or response.chunkInfo.total <= 1:
             message = TopicMessage.of_single(response)
             on_message(message)
+            
+            state.count += 1
             return
 
         initial_tx_id = TransactionId._from_proto(response.chunkInfo.initialTransactionID)
@@ -202,9 +203,10 @@ class TopicMessageQuery:
 
         if len(chunks) == response.chunkInfo.total:
             del state.pending_messages[initial_tx_id]
-
             message = TopicMessage.of_many(chunks)
             on_message(message)
+
+            state.count += 1
 
     def subscribe(
         self,
