@@ -73,9 +73,6 @@ def create_topic(params: CreateTopicParams) -> CreateTopicResponse:
 
     transaction = _build_create_topic_transaction(params)
 
-    if params.autoRenewAccountId is None and client is not None and client.operator_account_id is not None:
-        transaction.set_auto_renew_account(client.operator_account_id)
-
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
