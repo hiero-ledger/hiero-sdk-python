@@ -281,12 +281,6 @@ class AccountAllowanceApproveTransaction(Transaction):
         """
         self._require_not_frozen()
 
-        for allowance in self.nft_allowances:
-            if allowance.token_id == token_id and allowance.spender_account_id == spender_account_id:
-                allowance.serial_numbers = []
-                allowance.approved_for_all = True
-                return self
-
         self.nft_allowances.append(
             TokenNftAllowance(
                 token_id=token_id,
