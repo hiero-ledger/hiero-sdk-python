@@ -2,9 +2,19 @@ name: ClusterFuzzLite
 
 on:
   pull_request:
+    paths:
+      - "src/**"
+      - ".clusterfuzzlite/**"
+      - "pyproject.toml"
+      - "generate_proto.py"
   push:
     branches:
       - main
+    paths:
+      - "src/**"
+      - ".clusterfuzzlite/**"
+      - "pyproject.toml"
+      - "generate_proto.py"
 
 permissions: read-all
 
@@ -25,7 +35,7 @@ jobs:
           - address
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@9ca718d3bf646d6534007c269a635b3e54cadf99 # v2.19.2
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
@@ -63,7 +73,7 @@ jobs:
           - address
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@9ca718d3bf646d6534007c269a635b3e54cadf99 # v2.19.2
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 

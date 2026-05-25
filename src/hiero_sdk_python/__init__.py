@@ -9,8 +9,17 @@ from .account.account_records_query import AccountRecordsQuery
 from .account.account_update_transaction import AccountUpdateTransaction
 
 # Address book
+from .address_book.block_node_api import BlockNodeApi
+from .address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
 from .address_book.endpoint import Endpoint
+from .address_book.general_service_endpoint import GeneralServiceEndpoint
+from .address_book.mirror_node_service_endpoint import MirrorNodeServiceEndpoint
 from .address_book.node_address import NodeAddress
+from .address_book.registered_node import RegisteredNode
+from .address_book.registered_node_address_book import RegisteredNodeAddressBook
+from .address_book.registered_node_address_book_query import RegisteredNodeAddressBookQuery
+from .address_book.registered_service_endpoint import RegisteredServiceEndpoint
+from .address_book.rpc_relay_service_endpoint import RpcRelayServiceEndpoint
 
 # Client and Network
 from .client.client import Client
@@ -77,6 +86,9 @@ from .logger.logger import Logger
 from .nodes.node_create_transaction import NodeCreateTransaction
 from .nodes.node_delete_transaction import NodeDeleteTransaction
 from .nodes.node_update_transaction import NodeUpdateTransaction
+from .nodes.registered_node_create_transaction import RegisteredNodeCreateTransaction
+from .nodes.registered_node_delete_transaction import RegisteredNodeDeleteTransaction
+from .nodes.registered_node_update_transaction import RegisteredNodeUpdateTransaction
 
 # PRNG
 from .prng_transaction import PrngTransaction
@@ -245,8 +257,17 @@ __all__ = [
     "TokenInfoQuery",
     "AccountInfoQuery",
     # Address book
+    "BlockNodeApi",
+    "BlockNodeServiceEndpoint",
     "Endpoint",
+    "GeneralServiceEndpoint",
+    "MirrorNodeServiceEndpoint",
     "NodeAddress",
+    "RegisteredNode",
+    "RegisteredNodeAddressBook",
+    "RegisteredNodeAddressBookQuery",
+    "RegisteredServiceEndpoint",
+    "RpcRelayServiceEndpoint",
     # Logger
     "Logger",
     "LogLevel",
@@ -296,6 +317,9 @@ __all__ = [
     "NodeCreateTransaction",
     "NodeUpdateTransaction",
     "NodeDeleteTransaction",
+    "RegisteredNodeCreateTransaction",
+    "RegisteredNodeUpdateTransaction",
+    "RegisteredNodeDeleteTransaction",
     # PRNG
     "PrngTransaction",
     # Custom Fees
