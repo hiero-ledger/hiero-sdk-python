@@ -577,20 +577,6 @@ def test_mixed_key_types_in_constructor(mock_account_ids):
     assert len(transaction_body.consensusCreateTopic.fee_exempt_key_list) == 2
 
 
-def _generate_transaction_id(account_id):
-    """Generate a unique transaction ID based on the account ID and the current timestamp."""
-    import time
-
-    from hiero_sdk_python.hapi.services import timestamp_pb2
-
-    current_time = time.time()
-    timestamp_seconds = int(current_time)
-    timestamp_nanos = int((current_time - timestamp_seconds) * 1e9)
-
-    tx_timestamp = timestamp_pb2.Timestamp(seconds=timestamp_seconds, nanos=timestamp_nanos)
-    return TransactionId(valid_start=tx_timestamp, account_id=account_id)
-
-
 def test_freeze_with_defaults_auto_renew_account_to_operator(mock_client):
     """Test that freeze_with sets auto_renew_account to operator when not explicitly set."""
     tx = TopicCreateTransaction(memo="test topic")
@@ -614,7 +600,7 @@ def test_freeze_with_uses_transaction_id_account_when_set(mock_client):
     """Test that freeze_with uses transaction_id.account_id when transaction_id is set."""
     tx_account = AccountId(0, 0, 5555)
     tx = TopicCreateTransaction(memo="test topic")
-    tx.transaction_id = _generate_transaction_id(tx_account)
+    tx.transaction_id = TransactionId.generate(tx_account)
     frozen_tx = tx.freeze_with(mock_client)
     body = frozen_tx.build_transaction_body()
 
@@ -636,7 +622,7 @@ def test_freeze_with_leaves_auto_renew_account_unset_without_operator(mock_clien
     """Test that freeze_with leaves auto_renew_account unset when operator_account_id is None."""
     mock_client.operator_account_id = None
     tx = TopicCreateTransaction(memo="test topic")
-    tx.transaction_id = _generate_transaction_id(AccountId(0, 0, 1234))
+    tx.transaction_id = TransactionId.generate(AccountId(0, 0, 1234))
     frozen_tx = tx.freeze_with(mock_client)
     body = frozen_tx.build_transaction_body()
 
