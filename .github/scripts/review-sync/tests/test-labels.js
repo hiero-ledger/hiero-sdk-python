@@ -157,7 +157,7 @@ const unitTests = [
       const mock = createMockGithub({ roles: {}, reviews: [] });
       const pr = { number: 1, labels: [{ name: 'queue:junior-committer' }], head: { sha: '123' }, user: { type: 'Bot' } };
       const changed = await syncLabel(mock, 'o', 'r', pr, false);
-      // Already has junior-committer, and being a Bot means it shouldn't add community review
+      // Already has junior-committer; missing COMMUNITY_REVIEW should be added for bot PRs too
       return changed === true && mock.calls.labelsAdded.includes(COMMUNITY_REVIEW.name);
     },
   },
