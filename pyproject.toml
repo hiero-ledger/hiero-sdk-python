@@ -21,6 +21,7 @@ dependencies = [
     "pycryptodome>=3.18.0,<4",
     "eth-abi>=5.1.0,<6",
     "python-dotenv>=1.2.1,<3",
+    "mnemonic>=0.21,<1",
 ]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
