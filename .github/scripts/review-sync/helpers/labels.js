@@ -179,7 +179,7 @@ async function syncLabel(github, owner, repo, pr, dryRun) {
   );
 
   const isHuman = pr.user && pr.user.type !== 'Bot';
-  const needsCommunityReview = isHuman && !currentLabels.includes(COMMUNITY_REVIEW.name);
+  const needsCommunityReview = !currentLabels.includes(COMMUNITY_REVIEW.name);
 
   // Check if the correct labels are already present AND there are no stale labels to remove
   if (currentLabels.includes(correctLabel.name) && staleLabels.length === 0 && !needsCommunityReview) {
