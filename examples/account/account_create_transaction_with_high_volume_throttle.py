@@ -25,17 +25,18 @@ def create_account_high_volume(client):
     account_private_key = PrivateKey.generate_ed25519()
     account_public_key = account_private_key.public_key()
 
-    receipt = (
+    tx = (
         AccountCreateTransaction()
         .set_key_without_alias(account_public_key)
         .set_initial_balance(Hbar(1))
         .set_account_memo("High-volume test account")
         .set_high_volume(True)
-        .set_max_transaction_fee(Hbar(5))
-        .freeze_with(client)
-        .sign(account_private_key)
-        .execute(client)
     )
+
+    # Set max transaction fee before freezing
+    tx.transaction_fee = Hbar(5)
+
+    receipt = tx.freeze_with(client).sign(account_private_key).execute(client)
 
     if receipt.status != ResponseCode.SUCCESS:
         print(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
