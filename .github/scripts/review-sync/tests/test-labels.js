@@ -113,7 +113,7 @@ const unitTests = [
     name: 'syncLabel: already correct, no stale → returns false',
     test: async () => {
       const mock = createMockGithub({ roles: {}, reviews: [] });
-      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:junior-committer' }], head: { sha: '123' }, user: { type: 'Bot' } }, false);
+      const changed = await syncLabel(mock, 'o', 'r', { number: 1, labels: [{ name: 'queue:junior-committer' }, { name: COMMUNITY_REVIEW.name }], head: { sha: '123' }, user: { type: 'Bot' } }, false);
       return changed === false && mock.calls.labelsAdded.length === 0;
     },
   },
@@ -152,13 +152,13 @@ const unitTests = [
     },
   },
   {
-    name: 'syncLabel: bot PR does NOT receive community review label',
+    name: 'syncLabel: bot PR receives community review label if missing',
     test: async () => {
       const mock = createMockGithub({ roles: {}, reviews: [] });
       const pr = { number: 1, labels: [{ name: 'queue:junior-committer' }], head: { sha: '123' }, user: { type: 'Bot' } };
       const changed = await syncLabel(mock, 'o', 'r', pr, false);
       // Already has junior-committer, and being a Bot means it shouldn't add community review
-      return changed === false && mock.calls.labelsAdded.length === 0;
+      return changed === true && mock.calls.labelsAdded.includes(COMMUNITY_REVIEW.name);
     },
   },
   {
