@@ -1,15 +1,14 @@
 """
-
-
 Example demonstrating high-volume account creation functionality.
 
 Run:
 uv run examples/account/high_volume_account_create_transaction.py
 python examples/account/high_volume_account_create_transaction.py
-
 """
 
 import sys
+
+from dotenv import load_dotenv
 
 from hiero_sdk_python import (
     AccountCreateTransaction,
@@ -32,7 +31,7 @@ def create_account_high_volume(client):
         .set_initial_balance(Hbar(1))
         .set_account_memo("High-volume test account")
         .set_high_volume(True)
-        .transaction_fee(Hbar(5))
+        .set_max_transaction_fee(Hbar(5))
         .freeze_with(client)
         .sign(account_private_key)
         .execute(client)
@@ -48,7 +47,7 @@ def create_account_high_volume(client):
     return account_id, account_private_key
 
 
-def high_volume_account_create():
+def main():
     """
     Demonstrates high-volume account creation functionality by:
 
@@ -57,6 +56,7 @@ def high_volume_account_create():
     3. Setting a max transaction fee for dynamic pricing protection
     4. Deleting the created account
     """
+    load_dotenv()
     client = Client.from_env()
 
     # Create an account using high-volume throttles
@@ -82,4 +82,4 @@ def high_volume_account_create():
 
 
 if __name__ == "__main__":
-    high_volume_account_create()
+    main()

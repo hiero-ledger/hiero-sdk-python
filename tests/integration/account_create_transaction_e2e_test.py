@@ -361,19 +361,19 @@ def test_create_account_with_negative_initial_balance(env):
 def test_can_create_account_with_high_volume(env):
     key = PrivateKey.generate_ed25519()
 
-    tx = (
-        AccountCreateTransaction()
-        .set_key_without_alias(key)
-        .set_initial_balance(Hbar(1))
-        .set_high_volume(True)
-        .transaction_fee(Hbar(10))
-    )
+    tx = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(Hbar(1)).set_high_volume(True)
+
+    tx.transaction_fee = Hbar(10)
+    tx.freeze_with(env.client)
 
     receipt = tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, f"Unexpected status: {ResponseCode(receipt.status).name}"
+
     account_id = receipt.account_id
+    assert account_id is not None
 
     record = TransactionRecordQuery(tx.transaction_id).execute(env.client)
-    # record = tx.get_record(env.client)
 
     assert record.high_volume_pricing_multiplier >= 1000
 
@@ -388,13 +388,9 @@ def test_can_create_account_with_high_volume(env):
 def test_can_create_account_with_high_volume_and_valid_max_fee(env):
     key = PrivateKey.generate_ed25519()
 
-    tx = (
-        AccountCreateTransaction()
-        .set_key_without_alias(key)
-        .set_initial_balance(Hbar(1))
-        .set_high_volume(True)
-        .transaction_fee(Hbar(10))
-    )
+    tx = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(Hbar(1)).set_high_volume(True)
+
+    tx.transaction_fee = Hbar(10)
 
     receipt = tx.execute(env.client)
     account_id = receipt.account_id

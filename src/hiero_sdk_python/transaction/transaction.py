@@ -606,12 +606,25 @@ class Transaction(_Executable):
         self.transaction_id = transaction_id
         return self
 
-    def transaction_fee(self, fee: Hbar):
+    # this will preserves original behavior
+    @property
+    def transaction_fee(self):
         """
         Set the maximum transaction fee for this transaction.
         """
-        self._transaction_fee = fee.to_tinybars()
-        return self
+        return self._transaction_fee
+
+    @transaction_fee.setter
+    def transaction_fee(self, fee: Hbar | int):
+        """
+        Set the maximum transaction fee for this transaction.
+        """
+        self._require_not_frozen()
+
+        if isinstance(fee, Hbar):
+            self._transaction_fee = fee.to_tinybars()
+        else:
+            self._transaction_fee = fee
 
     def to_bytes(self) -> bytes:
         """
@@ -910,9 +923,14 @@ class Transaction(_Executable):
             Transaction: The current transaction instance for method chaining.
 
         Raises:
+            TypeError: If high_volume is not a bool.
             Exception: If the transaction has already been frozen.
         """
         self._require_not_frozen()
+
+        if not isinstance(high_volume, bool):
+            raise TypeError("high_volume must be of type bool")
+
         self._high_volume = high_volume
         return self
 
