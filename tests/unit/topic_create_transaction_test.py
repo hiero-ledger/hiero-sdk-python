@@ -605,3 +605,53 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed.admin_key == admin_key
     assert reconstructed.submit_key == submit_key
     assert reconstructed.auto_renew_period == auto_renew_period
+def test_freeze_with_defaults_auto_renew_account_to_operator(mock_client):
+    """Test that freeze_with sets auto_renew_account to operator when not explicitly set."""
+    tx = TopicCreateTransaction(memo="test topic")
+    frozen_tx = tx.freeze_with(mock_client)
+    body = frozen_tx.build_transaction_body()
+
+    assert body.consensusCreateTopic.autoRenewAccount == mock_client.operator_account_id._to_proto()
+
+
+def test_freeze_with_preserves_explicit_auto_renew_account(mock_client):
+    """Test that freeze_with does not override an explicitly set auto_renew_account."""
+    explicit_account = AccountId(0, 0, 9999)
+    tx = TopicCreateTransaction(memo="test topic", auto_renew_account=explicit_account)
+    frozen_tx = tx.freeze_with(mock_client)
+    body = frozen_tx.build_transaction_body()
+
+    assert body.consensusCreateTopic.autoRenewAccount == explicit_account._to_proto()
+
+
+def test_freeze_with_uses_transaction_id_account_when_set(mock_client):
+    """Test that freeze_with uses transaction_id.account_id when transaction_id is set."""
+    tx_account = AccountId(0, 0, 5555)
+    tx = TopicCreateTransaction(memo="test topic")
+    tx.transaction_id = TransactionId.generate(tx_account)
+    frozen_tx = tx.freeze_with(mock_client)
+    body = frozen_tx.build_transaction_body()
+
+    assert body.consensusCreateTopic.autoRenewAccount == tx_account._to_proto()
+
+
+def test_freeze_with_auto_renew_account_set_via_setter(mock_client):
+    """Test that freeze_with preserves auto_renew_account set via set_auto_renew_account."""
+    explicit_account = AccountId(0, 0, 7777)
+    tx = TopicCreateTransaction(memo="test topic")
+    tx.set_auto_renew_account(explicit_account)
+    frozen_tx = tx.freeze_with(mock_client)
+    body = frozen_tx.build_transaction_body()
+
+    assert body.consensusCreateTopic.autoRenewAccount == explicit_account._to_proto()
+
+
+def test_freeze_with_leaves_auto_renew_account_unset_without_operator(mock_client):
+    """Test that freeze_with leaves auto_renew_account unset when operator_account_id is None."""
+    mock_client.operator_account_id = None
+    tx = TopicCreateTransaction(memo="test topic")
+    tx.transaction_id = TransactionId.generate(AccountId(0, 0, 1234))
+    frozen_tx = tx.freeze_with(mock_client)
+    body = frozen_tx.build_transaction_body()
+
+    assert not body.consensusCreateTopic.HasField("autoRenewAccount")

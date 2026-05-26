@@ -44,6 +44,7 @@ class NodeCreateParams:
     admin_key: PublicKey | None = None
     decline_reward: bool | None = None
     grpc_web_proxy_endpoint: Endpoint | None = None
+    associated_registered_nodes: list[int] = field(default_factory=list)
 
 
 class NodeCreateTransaction(Transaction):
@@ -76,6 +77,7 @@ class NodeCreateTransaction(Transaction):
         self.admin_key: PublicKey | None = node_create_params.admin_key
         self.decline_reward: bool | None = node_create_params.decline_reward
         self.grpc_web_proxy_endpoint: Endpoint | None = node_create_params.grpc_web_proxy_endpoint
+        self.associated_registered_nodes: list[int] = node_create_params.associated_registered_nodes
 
     def set_account_id(self, account_id: AccountId | None) -> NodeCreateTransaction:
         """
@@ -212,6 +214,34 @@ class NodeCreateTransaction(Transaction):
         self.grpc_web_proxy_endpoint = grpc_web_proxy_endpoint
         return self
 
+    def set_associated_registered_nodes(self, registered_node_ids: list[int]) -> NodeCreateTransaction:
+        """
+        Sets the associated registered node IDs for this node create transaction.
+
+        Args:
+            registered_node_ids (list[int]): The registered node IDs to associate.
+
+        Returns:
+            NodeCreateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes = registered_node_ids
+        return self
+
+    def add_associated_registered_node(self, registered_node_id: int) -> NodeCreateTransaction:
+        """
+        Adds an associated registered node ID to this node create transaction.
+
+        Args:
+            registered_node_id (int): The registered node ID to add.
+
+        Returns:
+            NodeCreateTransaction: This transaction instance.
+        """
+        self._require_not_frozen()
+        self.associated_registered_nodes.append(registered_node_id)
+        return self
+
     def _build_proto_body(self) -> NodeCreateTransactionBody:
         """
         Returns the protobuf body for the node create transaction.
@@ -229,6 +259,7 @@ class NodeCreateTransaction(Transaction):
             admin_key=self.admin_key._to_proto() if self.admin_key else None,
             decline_reward=self.decline_reward,
             grpc_proxy_endpoint=(self.grpc_web_proxy_endpoint._to_proto() if self.grpc_web_proxy_endpoint else None),
+            associated_registered_node=self.associated_registered_nodes,
         )
 
     def build_transaction_body(self) -> TransactionBody:
@@ -288,3 +319,29 @@ class NodeCreateTransaction(Transaction):
             _Method: An object containing the transaction function to create a node.
         """
         return _Method(transaction_func=channel.address_book.createNode, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+
+        if transaction_body.HasField("nodeCreate"):
+            pb = transaction_body.nodeCreate
+            if pb.HasField("account_id"):
+                transaction.account_id = AccountId._from_proto(pb.account_id)
+            if pb.description:
+                transaction.description = pb.description
+            transaction.gossip_endpoints = [Endpoint._from_proto(ep) for ep in pb.gossip_endpoint]
+            transaction.service_endpoints = [Endpoint._from_proto(ep) for ep in pb.service_endpoint]
+            if pb.gossip_ca_certificate:
+                transaction.gossip_ca_certificate = pb.gossip_ca_certificate
+            if pb.grpc_certificate_hash:
+                transaction.grpc_certificate_hash = pb.grpc_certificate_hash
+            if pb.HasField("admin_key"):
+                transaction.admin_key = PublicKey._from_proto(pb.admin_key)
+            if pb.decline_reward:
+                transaction.decline_reward = pb.decline_reward
+            if pb.HasField("grpc_proxy_endpoint"):
+                transaction.grpc_web_proxy_endpoint = Endpoint._from_proto(pb.grpc_proxy_endpoint)
+            transaction.associated_registered_nodes = list(pb.associated_registered_node)
+
+        return transaction

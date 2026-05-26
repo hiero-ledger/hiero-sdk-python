@@ -219,6 +219,61 @@ def test_delete_token_nft_allowance_all_serials(account_allowance_transaction, s
     assert allowance.approved_for_all is False
 
 
+def test_delete_token_nft_allowance_all_serials_preserves_prior_serial_approval(
+    account_allowance_transaction, sample_accounts, sample_tokens
+):
+    """Test that delete-all-serials does not fold into a prior per-serial approval."""
+    token_id = sample_tokens["token1"]
+    owner = sample_accounts["owner"]
+    spender = sample_accounts["spender"]
+    nft_id = NftId(token_id, 1)
+
+    account_allowance_transaction.approve_token_nft_allowance(nft_id, owner, spender)
+    account_allowance_transaction.delete_token_nft_allowance_all_serials(token_id, owner, spender)
+
+    assert len(account_allowance_transaction.nft_allowances) == 2, (
+        "Expected delete-all after per-serial approval to append a second NFT allowance entry"
+    )
+
+    first = account_allowance_transaction.nft_allowances[0]
+    assert first.token_id == token_id, "Expected first entry token_id to match the approved NFT's token"
+    assert first.owner_account_id == owner, "Expected first entry owner to match"
+    assert first.spender_account_id == spender, "Expected first entry spender to match"
+    assert first.serial_numbers == [1], "Expected first entry to preserve approved serial [1]"
+    assert first.approved_for_all is False, (
+        "Expected first entry approved_for_all to remain False (per-serial approval)"
+    )
+
+    second = account_allowance_transaction.nft_allowances[1]
+    assert second.token_id == token_id, "Expected second entry token_id to match the delete-all token"
+    assert second.owner_account_id == owner, "Expected second entry owner to match"
+    assert second.spender_account_id == spender, "Expected second entry spender to match"
+    assert second.serial_numbers == [], "Expected second entry to represent delete-all with empty serials"
+    assert second.approved_for_all is False, "Expected second entry approved_for_all to be False (revoke semantics)"
+
+
+def test_delete_token_nft_allowance_all_serials_appends_per_call(
+    account_allowance_transaction, sample_accounts, sample_tokens
+):
+    """Test that repeated delete-all-serials calls append one entry per call."""
+    token_id = sample_tokens["token1"]
+    owner = sample_accounts["owner"]
+    spender = sample_accounts["spender"]
+
+    account_allowance_transaction.delete_token_nft_allowance_all_serials(token_id, owner, spender)
+    account_allowance_transaction.delete_token_nft_allowance_all_serials(token_id, owner, spender)
+
+    assert len(account_allowance_transaction.nft_allowances) == 2, (
+        "Expected each delete-all call to append a separate NFT allowance entry"
+    )
+    for index, allowance in enumerate(account_allowance_transaction.nft_allowances):
+        assert allowance.token_id == token_id, f"Entry {index}: token_id mismatch"
+        assert allowance.owner_account_id == owner, f"Entry {index}: owner mismatch"
+        assert allowance.spender_account_id == spender, f"Entry {index}: spender mismatch"
+        assert allowance.serial_numbers == [], f"Entry {index}: expected empty serial_numbers for delete-all"
+        assert allowance.approved_for_all is False, f"Entry {index}: expected approved_for_all=False (revoke semantics)"
+
+
 def test_add_all_token_nft_approval(account_allowance_transaction, sample_accounts, sample_tokens):
     """Test adding all token NFT approval"""
     token_id = sample_tokens["token1"]
