@@ -39,6 +39,7 @@ from .contract.ethereum_transaction import EthereumTransaction
 
 # Crypto
 from .crypto.evm_address import EvmAddress
+from .crypto.mnemonic import MnemonicPhrase
 from .crypto.private_key import PrivateKey
 from .crypto.public_key import PublicKey
 
@@ -172,6 +173,7 @@ __all__ = [
     "AccountRecordsQuery",
     # Crypto
     "PrivateKey",
+    "MnemonicPhrase",
     "PublicKey",
     "EvmAddress",
     # Tokens
