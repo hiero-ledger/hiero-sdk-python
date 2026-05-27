@@ -80,7 +80,7 @@ class FileId:
             object.__setattr__(file_id, "checksum", checksum)
 
             return file_id
-        except Exception as e:
+        except (ValueError, AttributeError) as e:
             raise ValueError(f"Invalid file ID string '{file_id_str}'. Expected format 'shard.realm.file'.") from e
 
     def __str__(self) -> str:
