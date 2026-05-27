@@ -98,7 +98,7 @@ class AccountId:
             account_id.__checksum = checksum
 
             return account_id
-        except Exception as e:
+        except (ValueError, AttributeError) as e:
             alias_match = ALIAS_REGEX.match(account_id_str)
 
             if alias_match:
@@ -146,7 +146,7 @@ class AccountId:
         if isinstance(evm_address, str):
             try:
                 evm_address = EvmAddress.from_string(evm_address)
-            except Exception as e:
+            except (ValueError, TypeError) as e:
                 raise ValueError(f"Invalid EVM address string: {evm_address}") from e
 
         elif not isinstance(evm_address, EvmAddress):
