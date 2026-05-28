@@ -88,8 +88,6 @@ def _build_update_account_transaction(params: UpdateAccountParams) -> AccountUpd
 
     if params.accountId is not None:
         transaction.set_account_id(AccountId.from_string(params.accountId))
-    else:
-        transaction.set_account_id(AccountId(0, 0, 0))
 
     if params.key is not None:
         transaction.set_key(get_key_from_string(params.key))

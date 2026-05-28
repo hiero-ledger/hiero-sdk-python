@@ -91,13 +91,13 @@ def test_build_update_account_transaction_sets_tck_fields():
     assert update_body.decline_reward.value is True
 
 
-def test_build_update_account_transaction_uses_zero_account_when_omitted():
+def test_build_update_account_transaction_omits_account_id_when_not_provided():
     transaction = _build_update_account_transaction(UpdateAccountParams(sessionId="session-1"))
 
-    update_body = transaction._build_proto_body()
-
-    assert update_body.accountIDToUpdate == AccountId(0, 0, 0)._to_proto()
-    assert not update_body.HasField("autoRenewPeriod")
+    assert transaction.account_id is None
+    proto_body = transaction._build_proto_body()
+    assert not proto_body.HasField("accountIDToUpdate")
+    assert not proto_body.HasField("autoRenewPeriod")
 
 
 def test_update_account_handler_returns_receipt_status():
