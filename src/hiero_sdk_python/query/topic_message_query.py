@@ -189,7 +189,7 @@ class TopicMessageQuery:
         if not self._chunking_enabled or not response.HasField("chunkInfo") or response.chunkInfo.total <= 1:
             message = TopicMessage.of_single(response)
             on_message(message)
-            
+
             state.count += 1
             return
 
