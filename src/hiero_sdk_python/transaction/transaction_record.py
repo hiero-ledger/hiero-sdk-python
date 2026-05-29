@@ -243,11 +243,6 @@ class TransactionRecord:
             else None
         )
 
-        if "high_volume_pricing_multiplier" in proto.DESCRIPTOR.fields_by_name:
-            high_volume_pricing_multiplier = proto.high_volume_pricing_multiplier
-        else:
-            high_volume_pricing_multiplier = None
-
         alias = proto.alias if proto.alias else None
         ethereum_hash = proto.ethereum_hash if proto.ethereum_hash else None
         evm_address = proto.evm_address if proto.evm_address else None
@@ -287,7 +282,7 @@ class TransactionRecord:
             paid_staking_rewards=paid_staking_rewards,
             evm_address=evm_address,
             contract_create_result=contract_create_result,
-            high_volume_pricing_multiplier=high_volume_pricing_multiplier,
+            high_volume_pricing_multiplier=proto.high_volume_pricing_multiplier,
         )
 
     @staticmethod

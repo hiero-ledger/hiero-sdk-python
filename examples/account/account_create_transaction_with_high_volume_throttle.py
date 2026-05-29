@@ -8,8 +8,6 @@ python examples/account/high_volume_account_create_transaction.py
 
 import sys
 
-from dotenv import load_dotenv
-
 from hiero_sdk_python import (
     AccountCreateTransaction,
     AccountDeleteTransaction,
@@ -57,7 +55,6 @@ def main():
     3. Setting a max transaction fee for dynamic pricing protection
     4. Deleting the created account
     """
-    load_dotenv()
     client = Client.from_env()
 
     # Create an account using high-volume throttles
