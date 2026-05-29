@@ -5,17 +5,21 @@ from __future__ import annotations
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_info import AccountInfo
+from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
-from tck.param.account import CreateAccountParams, GetAccountInfoParams
+from tck.param.account import CreateAccountParams, GetAccountInfoParams, UpdateAccountParams
 from tck.response.account import (
     CreateAccountResponse,
     GetAccountInfoResponse,
     StakingInfoResponse,
     TokenRelationshipResponse,
+    UpdateAccountResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
@@ -76,6 +80,59 @@ def create_account(params: CreateAccountParams) -> CreateAccountResponse:
         account_id = str(receipt.account_id)
 
     return CreateAccountResponse(account_id, ResponseCode(receipt.status).name)
+
+
+def _build_update_account_transaction(params: UpdateAccountParams) -> AccountUpdateTransaction:
+    transaction = AccountUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+    transaction.set_auto_renew_period(None)
+
+    if params.accountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.accountId))
+
+    if params.key is not None:
+        transaction.set_key(get_key_from_string(params.key))
+
+    if params.expirationTime is not None:
+        transaction.set_expiration_time(Timestamp(params.expirationTime, 0))
+
+    if params.receiverSignatureRequired is not None:
+        transaction.set_receiver_signature_required(params.receiverSignatureRequired)
+
+    if params.maxAutoTokenAssociations is not None:
+        transaction.set_max_automatic_token_associations(params.maxAutoTokenAssociations)
+
+    if params.stakedAccountId is not None:
+        transaction.set_staked_account_id(AccountId.from_string(params.stakedAccountId))
+
+    if params.stakedNodeId is not None:
+        transaction.set_staked_node_id(params.stakedNodeId)
+
+    if params.declineStakingReward is not None:
+        transaction.set_decline_staking_reward(params.declineStakingReward)
+
+    if params.memo is not None:
+        transaction.set_account_memo(params.memo)
+
+    if params.autoRenewPeriod is not None:
+        transaction.set_auto_renew_period(Duration(params.autoRenewPeriod))
+
+    return transaction
+
+
+@rpc_method("updateAccount")
+def update_account(params: UpdateAccountParams) -> UpdateAccountResponse:
+    """Update an account using TCK updateAccount parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_update_account_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UpdateAccountResponse(ResponseCode(receipt.status).name)
 
 
 def _enum_name(value) -> str | None:

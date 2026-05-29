@@ -284,15 +284,9 @@ class AccountUpdateTransaction(Transaction):
 
         Returns:
             CryptoUpdateTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If account_id is not set.
         """
-        if self.account_id is None:
-            raise ValueError("Missing required AccountID to update")
-
         proto_body = CryptoUpdateTransactionBody(
-            accountIDToUpdate=self.account_id._to_proto(),
+            accountIDToUpdate=self.account_id._to_proto() if self.account_id else None,
             key=self.key.to_proto_key() if self.key else None,
             memo=StringValue(value=self.account_memo) if self.account_memo is not None else None,
             autoRenewPeriod=(self.auto_renew_period._to_proto() if self.auto_renew_period else None),

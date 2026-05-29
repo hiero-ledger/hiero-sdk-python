@@ -14,6 +14,13 @@ class CreateAccountResponse:
 
 
 @dataclass
+class UpdateAccountResponse:
+    """Response payload for updateAccount."""
+
+    status: str | None = None
+
+
+@dataclass
 class StakingInfoResponse:
     """Nested staking fields in the getAccountInfo response."""
 

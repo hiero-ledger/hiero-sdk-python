@@ -332,11 +332,11 @@ def test_build_transaction_body_receiver_sig_required_variants(mock_account_ids)
 
 
 def test_missing_account_id():
-    """Test that building a transaction without setting account_id raises a ValueError."""
+    """Test that building a transaction without setting account_id omits the field from proto."""
     account_tx = AccountUpdateTransaction()
 
-    with pytest.raises(ValueError, match="Missing required AccountID to update"):
-        account_tx.build_transaction_body()
+    proto_body = account_tx._build_proto_body()
+    assert not proto_body.HasField("accountIDToUpdate")
 
 
 def test_sign_transaction(mock_client):
