@@ -221,7 +221,7 @@ class PrivateKey(Key):
             raise ValueError("Ed25519 private key seed must be 32 bytes.")
         try:
             return cls(ed25519.Ed25519PrivateKey.from_private_bytes(seed_32))
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             raise ValueError(f"Could not load Ed25519 private key from seed: {e}") from e
 
     @classmethod
@@ -254,7 +254,7 @@ class PrivateKey(Key):
 
         try:
             private_key = serialization.load_der_private_key(der_data, password=None)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             raise ValueError(f"Could not parse DER private key: {e}") from e
 
         if isinstance(private_key, ed25519.Ed25519PrivateKey):
@@ -430,7 +430,7 @@ class PrivateKey(Key):
 
         try:
             return ec.derive_private_key(private_int, ec.SECP256K1())
-        except Exception as exc:
+        except (ValueError, TypeError) as exc:
             raise ValueError(f"Failed to derive ECDSA private key: {exc}") from exc
 
     def to_proto_key(self) -> basic_types_pb2.Key:
