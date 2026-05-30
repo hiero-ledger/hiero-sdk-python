@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_info import AccountInfo
 from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
@@ -13,9 +14,10 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
-from tck.param.account import CreateAccountParams, GetAccountInfoParams, UpdateAccountParams
+from tck.param.account import CreateAccountParams, DeleteAccountParams, GetAccountInfoParams, UpdateAccountParams
 from tck.response.account import (
     CreateAccountResponse,
+    DeleteAccountResponse,
     GetAccountInfoResponse,
     StakingInfoResponse,
     TokenRelationshipResponse,
@@ -230,3 +232,25 @@ def get_account_info(params: GetAccountInfoParams) -> GetAccountInfoResponse:
 
     info = query.execute(client)
     return _build_account_info_response(info)
+
+
+@rpc_method("deleteAccount")
+def delete_account(params: DeleteAccountParams) -> DeleteAccountResponse:
+    """Delete an account using TCK deleteAccount parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = AccountDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.deleteAccountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.deleteAccountId))
+
+    if params.transferAccountId is not None:
+        transaction.set_transfer_account_id(AccountId.from_string(params.transferAccountId))
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return DeleteAccountResponse(status=ResponseCode(receipt.status).name)
