@@ -9,6 +9,8 @@ on:
     paths:
       - "examples/**"
       - "src/**"
+      - "pyproject.toml"
+      - "generate_proto.py"
       - ".github/scripts/pr-check-secondary-examples.js"
       - ".github/scripts/__tests__/pr-check-secondary-examples.test.js"
       - ".github/scripts/jest.config.js"
@@ -18,6 +20,8 @@ on:
     paths:
       - "examples/**"
       - "src/**"
+      - "pyproject.toml"
+      - "generate_proto.py"
       - ".github/scripts/pr-check-secondary-examples.js"
       - ".github/scripts/__tests__/pr-check-secondary-examples.test.js"
       - ".github/scripts/jest.config.js"
