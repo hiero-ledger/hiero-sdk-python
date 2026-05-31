@@ -113,7 +113,7 @@ class TokenId:
             object.__setattr__(token_id, "checksum", checksum)
 
             return token_id
-        except Exception as e:
+        except (ValueError, AttributeError) as e:
             raise ValueError(f"Invalid token ID string '{token_id_str}'. Expected format 'shard.realm.num'.") from e
 
     def validate_checksum(self, client: Client) -> None:

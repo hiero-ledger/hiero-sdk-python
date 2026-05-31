@@ -144,7 +144,7 @@ class ContractId(Key):
             object.__setattr__(contract_id, "checksum", checksum)
             return contract_id
 
-        except Exception as e:
+        except (ValueError, AttributeError) as e:
             raise ValueError(
                 f"Invalid contract ID string '{contract_id_str}'. Expected format 'shard.realm.contract'."
             ) from e
@@ -179,7 +179,7 @@ class ContractId(Key):
             # throw error internally if not valid evm_address
             evm_addr = EvmAddress.from_string(evm_address=evm_address)
             return cls(shard=shard, realm=realm, evm_address=evm_addr.address_bytes)
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             raise ValueError(f"Invalid EVM address: {evm_address}") from e
 
     @classmethod
@@ -202,7 +202,7 @@ class ContractId(Key):
 
         try:
             proto = basic_types_pb2.ContractID.FromString(data)
-        except Exception as exc:
+        except (ValueError, TypeError) as exc:
             raise ValueError("Failed to deserialize ContractId from bytes") from exc
 
         return cls._from_proto(proto)

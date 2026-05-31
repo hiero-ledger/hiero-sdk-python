@@ -61,7 +61,7 @@ class ContractFunctionResult:
 
         try:
             return list(eth_abi.decode(output_types, self.contract_call_result))
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             raise ValueError(f"Failed to decode contract result: {str(e)}") from e
 
     def _validate_contract_call_result(self) -> None:

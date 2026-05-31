@@ -94,7 +94,7 @@ class StakingInfo:
 
         try:
             proto = StakingInfoProto.FromString(data)
-        except Exception as exc:
+        except (ValueError, TypeError) as exc:
             raise ValueError(f"Failed to parse StakingInfo bytes: {exc}") from exc
 
         return cls._from_proto(proto)

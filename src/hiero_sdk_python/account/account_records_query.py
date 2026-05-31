@@ -75,7 +75,7 @@ class AccountRecordsQuery(Query):
             query.cryptoGetAccountRecords.CopyFrom(crypto_records_query)
 
             return query
-        except Exception as e:
+        except (AttributeError, TypeError) as e:
             print(f"Exception in _make_request: {e}")
             traceback.print_exc()
             raise
