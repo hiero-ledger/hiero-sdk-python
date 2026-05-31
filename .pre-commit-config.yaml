@@ -13,3 +13,10 @@ repos:
   hooks:
     - id: ruff-check
     - id: ruff-format
+- repo: https://github.com/PyCQA/bandit
+  rev: 1.9.4
+  hooks:
+  - id: bandit
+    args: ["-c", "bandit.yml", "-ll"]
+    files: ^src/
+    verbose: true
