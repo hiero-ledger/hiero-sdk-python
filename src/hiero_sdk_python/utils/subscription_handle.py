@@ -19,19 +19,29 @@ class SubscriptionHandle:
 
     def _set_call(self, call: Any):
         """Sets the active gRPC call so it can be cancelled."""
+        should_cancel = False
+
         with self._lock:
             self._call = call
 
-            if self._cancelled.is_set():
-                self._call.cancel()
+            if call is not None and self._cancelled.is_set():
+                should_cancel = True
+
+        if should_cancel:
+            self._call.cancel()
 
     def cancel(self):
         """Signals to cancel the subscription."""
+        should_cancel = False
+
         with self._lock:
             self._cancelled.set()
 
-            if self._call:
-                self._call.cancel()
+            if self._call is not None:
+                should_cancel = True
+
+        if should_cancel:
+            self._call.cancel()
 
     def is_cancelled(self) -> bool:
         """Returns True if this subscription is already cancelled."""
