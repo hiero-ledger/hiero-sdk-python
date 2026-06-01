@@ -21,6 +21,13 @@ class UpdateAccountResponse:
 
 
 @dataclass
+class DeleteAccountResponse:
+    """Response payload for deleteAccount."""
+
+    status: str | None = None
+
+
+@dataclass
 class StakingInfoResponse:
     """Nested staking fields in the getAccountInfo response."""
 
