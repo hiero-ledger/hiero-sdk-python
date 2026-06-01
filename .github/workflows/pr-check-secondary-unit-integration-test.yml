@@ -135,6 +135,8 @@ jobs:
           soloVersion: v0.74.0
           mirrorNodeVersion: v0.153.0
           hieroVersion: v0.73.0
+          haproxyPort: 50211
+          mirrorNodePortRest: 5551
 
       - name: Run integration tests
         id: integration
