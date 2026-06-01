@@ -53,7 +53,6 @@ uv run bandit -c bandit.yml -ll -r src/
 uv run bandit -c bandit.yml -r src/ --format txt --output bandit_report.txt
 ```
 
-
 ### Run using Pre-Commit Hook
 
 If you want to run the Bandit using the `pre-commit` configuration, use:
@@ -86,11 +85,9 @@ assert user_role == "admin"  # nosec B101
 
 **Global Suppressions:** If a specific rule is completely irrelevant to entire codebase, do not add `# nosec` everywhere. Instead, permanently drop it by adding the error code to the `skips` list inside `bandit.yml` file.
 
-
 ```yml
 skips: ["B101", "B601", "B413"]
 ```
-
 
 ## 📝 Example Output
 
@@ -116,7 +113,6 @@ Code scanned:
 Run metrics:
         Total issues (by severity): Low: 3, Medium: 0, High: 1
 ```
-
 
 ### When security scans clear successfully:
 
