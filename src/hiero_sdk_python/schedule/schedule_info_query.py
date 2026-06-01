@@ -70,7 +70,7 @@ class ScheduleInfoQuery(Query):
             query.scheduleGetInfo.CopyFrom(schedule_info_query)
 
             return query
-        except Exception as e:
+        except (TypeError, AttributeError, KeyError) as e:
             print(f"Exception in _make_request: {e}")
             traceback.print_exc()
             raise

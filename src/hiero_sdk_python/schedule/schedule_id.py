@@ -58,7 +58,7 @@ class ScheduleId:
             object.__setattr__(schedule_id, "checksum", checksum)
 
             return schedule_id
-        except Exception as e:
+        except (TypeError, AttributeError, KeyError) as e:
             raise ValueError(f"Invalid schedule ID string '{id_str}'. Expected format 'shard.realm.schedule'.") from e
 
     def __str__(self) -> str:

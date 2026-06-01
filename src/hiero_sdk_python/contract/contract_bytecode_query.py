@@ -79,7 +79,7 @@ class ContractBytecodeQuery(Query):
             query.contractGetBytecode.CopyFrom(contract_bytecode_query)
 
             return query
-        except Exception as e:
+        except (TypeError, AttributeError, KeyError) as e:
             print(f"Exception in _make_request: {e}")
             traceback.print_exc()
             raise

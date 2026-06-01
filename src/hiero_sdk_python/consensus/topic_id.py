@@ -101,7 +101,7 @@ class TopicId:
             object.__setattr__(topic_id, "checksum", checksum)
 
             return topic_id
-        except Exception as e:
+        except (TypeError, AttributeError, KeyError) as e:
             raise ValueError(f"Invalid topic ID string '{topic_id_str}'. Expected format 'shard.realm.num'.") from e
 
     def validate_checksum(self, client: Client) -> None:
