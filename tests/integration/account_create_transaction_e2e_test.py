@@ -359,6 +359,10 @@ def test_create_account_with_negative_initial_balance(env):
 
 
 def test_can_create_account_with_high_volume(env):
+    """
+    Test creation of an account with high-volume pricing enabled and verify
+    the resulting pricing multiplier and account properties.
+    """
     key = PrivateKey.generate_ed25519()
 
     tx = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(Hbar(1)).set_high_volume(True)
@@ -386,6 +390,10 @@ def test_can_create_account_with_high_volume(env):
 
 
 def test_can_create_account_with_high_volume_and_valid_max_fee(env):
+    """
+    Verify that a high-volume account can be created when the transaction
+    maximum fee is set high enough to cover the increased cost.
+    """
     key = PrivateKey.generate_ed25519()
 
     tx = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(Hbar(1)).set_high_volume(True)
@@ -401,3 +409,18 @@ def test_can_create_account_with_high_volume_and_valid_max_fee(env):
     info = AccountInfoQuery().set_account_id(account_id).execute(env.client)
 
     assert info.account_id == account_id
+
+
+def test_create_account_with_high_volume_fails_with_insufficient_tx_fee(env):
+    """
+    Verify that an account creation transaction with high-volume pricing
+    fails with INSUFFICIENT_TX_FEE when the transaction fee is too low.
+    """
+    key = PrivateKey.generate_ed25519()
+
+    tx = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(Hbar(1)).set_high_volume(True)
+
+    tx.transaction_fee = Hbar(1)
+    receipt = tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.INSUFFICIENT_TX_FEE

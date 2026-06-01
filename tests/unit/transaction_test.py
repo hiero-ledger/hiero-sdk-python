@@ -458,13 +458,12 @@ def test_high_volume_defaults_to_false():
     assert transaction.high_volume is False
 
 
-def test_high_volume_can_be_serialized():
+def test_high_volume_can_be_serialized(mock_client):
     """Test that high_volume is preserved during serialization/deserialization."""
-    client = mock_client()  # or your test_env.client if needed
 
     transaction = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_high_volume(True)
 
-    transaction.freeze_with(client)
+    transaction.freeze_with(mock_client)
 
     transaction_bytes = transaction.to_bytes()
     transaction_from_bytes = Transaction.from_bytes(transaction_bytes)
