@@ -1,0 +1,42 @@
+name: Revision Guard - Review Events
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    if: github.event.review.state == 'changes_requested'
+    runs-on: hl-sdk-py-lin-md
+    permissions:
+      pull-requests: write
+      issues: write
+      contents: read
+    concurrency:
+      group: revision-guard-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@8d3c67de8e2fe68ef647c8db1e6a09f647780f40 # v2.19.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          # Use trusted base commit, not PR head/merge ref, to prevent fork PRs
+          # from executing untrusted changes with a write-scoped token.
+          ref: ${{ github.event.pull_request.base.sha }}
+          sparse-checkout: .github/scripts
+
+      - name: Handle changes requested
+        env:
+          REVISION_GUARD_MANAGED_LABELS: ${{ vars.REVISION_GUARD_MANAGED_LABELS }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const handler = require('./.github/scripts/revision-guard/index.js');
+            await handler({ github, context, core });
