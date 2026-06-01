@@ -200,7 +200,7 @@ class PrivateKey(Key):
         try:
             return PrivateKey._parse_legacy_ecdsa_der_key(key_bytes)
         except Exception:
-            pass
+            pass  # nosec B110
 
         try:
             private_key = serialization.load_der_private_key(key_bytes, password=None)
@@ -250,7 +250,7 @@ class PrivateKey(Key):
             private_key = PrivateKey._parse_legacy_ecdsa_der_key(der_data)
             return cls(private_key)
         except Exception:
-            pass
+            pass  # nosec B110
 
         try:
             private_key = serialization.load_der_private_key(der_data, password=None)

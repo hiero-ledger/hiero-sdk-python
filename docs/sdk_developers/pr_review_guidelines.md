@@ -197,6 +197,7 @@ AI-assisted review tools can be helpful but require critical thinking:
 | [Submitting a Pull Request](training/workflow/10_submit_pull_request.md) | Step-by-step PR submission details |
 | [Signing Requirements](training/workflow/07_signing_requirements.md) | GPG and DCO commit signing |
 | [Linting Guide](ruff.md) | Code quality with Ruff |
+| [Security Analysis](docs/sdk_developers/bandit.md) | Security analysis & vulnerability scanning |
 
 ### Need Help?
 
