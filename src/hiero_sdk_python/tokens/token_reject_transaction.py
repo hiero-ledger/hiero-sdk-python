@@ -128,6 +128,21 @@ class TokenRejectTransaction(Transaction):
         """
         return _Method(transaction_func=channel.token.rejectToken, query_func=None)
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenReject"):
+            body = transaction_body.tokenReject
+            if body.HasField("owner"):
+                transaction.owner_id = AccountId._from_proto(body.owner)
+            transaction.token_ids = [
+                TokenId._from_proto(e.fungible_token) for e in body.rejections if e.HasField("fungible_token")
+            ]
+            transaction.nft_ids = [
+                NftId._from_proto(e.nft) for e in body.rejections if e.HasField("nft")
+            ]
+        return transaction
+
     def _from_proto(self, proto: TokenRejectTransactionBody) -> TokenRejectTransaction:
         """
         Deserializes a TokenRejectTransactionBody from a protobuf object.

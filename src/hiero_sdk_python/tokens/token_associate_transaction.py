@@ -108,6 +108,16 @@ class TokenAssociateTransaction(Transaction):
         )
 
     @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenAssociate"):
+            body = transaction_body.tokenAssociate
+            if body.HasField("account"):
+                transaction.account_id = AccountId._from_proto(body.account)
+            transaction.token_ids = [TokenId._from_proto(t) for t in body.tokens]
+        return transaction
+
+    @classmethod
     def _from_proto(cls, body: token_associate_pb2.TokenAssociateTransactionBody) -> TokenAssociateTransaction:
         """Construct a TokenAssociateTransaction from its protobuf."""
         account_id = AccountId._from_proto(body.account)

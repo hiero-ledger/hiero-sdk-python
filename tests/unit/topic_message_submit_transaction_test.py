@@ -22,6 +22,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -483,6 +484,22 @@ def test_topic_submit_execute_raises_error_with_validation(topic_id):
             tx.execute(client, validate_status=True)
 
         assert e.value.status == ResponseCode.INVALID_SIGNATURE
+
+
+def test_from_bytes(topic_id):
+    """Test round-trip via _from_protobuf for TopicMessageSubmitTransaction."""
+    tx = TopicMessageSubmitTransaction()
+    tx.set_topic_id(topic_id)
+    tx.set_message("hello world")
+    tx.transaction_id = TransactionId.generate(AccountId(0, 0, 1))
+    tx.node_account_id = AccountId(0, 0, 3)
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TopicMessageSubmitTransaction)
+    assert reconstructed.topic_id == topic_id
+    assert reconstructed.message == "hello world"
 
 
 def test_topic_submit_execute_returns_failed_receipt_by_default(topic_id):

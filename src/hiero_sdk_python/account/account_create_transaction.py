@@ -319,7 +319,7 @@ class AccountCreateTransaction(Transaction):
             # triggers an INVALID_INITIAL_BALANCE pre-check error instead of a local error.
             initialBalance=ctypes.c_uint64(initial_balance_tinybars).value,
             receiverSigRequired=self.receiver_signature_required,
-            autoRenewPeriod=duration_pb2.Duration(seconds=self.auto_renew_period.seconds),
+            autoRenewPeriod=(duration_pb2.Duration(seconds=self.auto_renew_period.seconds) if self.auto_renew_period else None),
             memo=self.account_memo,
             max_automatic_token_associations=self.max_automatic_token_associations,
             alias=self.alias.address_bytes if self.alias else None,
@@ -371,3 +371,27 @@ class AccountCreateTransaction(Transaction):
             _Method: An instance of _Method containing the transaction and query functions.
         """
         return _Method(transaction_func=channel.crypto.createAccount, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("cryptoCreateAccount"):
+            body = transaction_body.cryptoCreateAccount
+            if body.HasField("key"):
+                transaction.key = Key.from_proto_key(body.key)
+            transaction.initial_balance = body.initialBalance
+            transaction.receiver_signature_required = body.receiverSigRequired
+            transaction.auto_renew_period = None
+            if body.HasField("autoRenewPeriod"):
+                transaction.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
+            transaction.account_memo = body.memo if body.memo else None
+            transaction.max_automatic_token_associations = body.max_automatic_token_associations
+            transaction.alias = EvmAddress.from_bytes(body.alias) if body.alias else None
+            transaction.decline_staking_reward = body.decline_reward
+            staked_id = body.WhichOneof("staked_id")
+            if staked_id == "staked_account_id":
+                transaction.staked_account_id = AccountId._from_proto(body.staked_account_id)
+            elif staked_id == "staked_node_id":
+                transaction.staked_node_id = body.staked_node_id
+        return transaction

@@ -10,6 +10,7 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.contract.contract_function_parameters import (
     ContractFunctionParameters,
 )
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
@@ -386,6 +387,38 @@ class ContractCreateTransaction(Transaction):
         schedulable_body = self.build_base_scheduled_body()
         schedulable_body.contractCreateInstance.CopyFrom(contract_create_body)
         return schedulable_body
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("contractCreateInstance"):
+            body = transaction_body.contractCreateInstance
+            if body.HasField("adminKey"):
+                transaction.admin_key = Key.from_proto_key(body.adminKey)
+            transaction.gas = body.gas
+            transaction.initial_balance = body.initialBalance if body.initialBalance else None
+            if body.HasField("proxyAccountID"):
+                transaction.proxy_account_id = AccountId._from_proto(body.proxyAccountID)
+            transaction.auto_renew_period = (
+                Duration._from_proto(body.autoRenewPeriod) if body.HasField("autoRenewPeriod") else Duration(DEFAULT_AUTO_RENEW_PERIOD)
+            )
+            transaction.parameters = body.constructorParameters if body.constructorParameters else None
+            transaction.contract_memo = body.memo if body.memo else None
+            transaction.max_automatic_token_associations = body.max_automatic_token_associations
+            if body.HasField("auto_renew_account_id"):
+                transaction.auto_renew_account_id = AccountId._from_proto(body.auto_renew_account_id)
+            transaction.decline_reward = body.decline_reward if body.decline_reward else None
+            initcode_source = body.WhichOneof("initcodeSource")
+            if initcode_source == "fileID":
+                transaction.bytecode_file_id = FileId._from_proto(body.fileID)
+            elif initcode_source == "initcode":
+                transaction.bytecode = body.initcode
+            staked_id = body.WhichOneof("staked_id")
+            if staked_id == "staked_account_id":
+                transaction.staked_account_id = AccountId._from_proto(body.staked_account_id)
+            elif staked_id == "staked_node_id":
+                transaction.staked_node_id = body.staked_node_id
+        return transaction
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

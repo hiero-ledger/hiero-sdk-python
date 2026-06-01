@@ -13,6 +13,8 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 pytestmark = pytest.mark.unit
@@ -245,6 +247,27 @@ def test_build_scheduled_body(delete_params):
     # Verify fields in the schedulable body
     assert schedulable_body.cryptoDelete.deleteAccountID == delete_params["account_id"]._to_proto()
     assert schedulable_body.cryptoDelete.transferAccountID == delete_params["transfer_account_id"]._to_proto()
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for AccountDeleteTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    account_id_sender = AccountId(0, 0, 1)
+    account_id_recipient = AccountId(0, 0, 2)
+
+    tx = AccountDeleteTransaction(
+        account_id=account_id_sender,
+        transfer_account_id=account_id_recipient,
+    )
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, AccountDeleteTransaction)
+    assert reconstructed.account_id == account_id_sender
+    assert reconstructed.transfer_account_id == account_id_recipient
 
 
 def test_parameter_validation_none_values():

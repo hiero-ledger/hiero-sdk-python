@@ -9,6 +9,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -136,3 +137,21 @@ def test_build_scheduled_body(mock_account_ids):
     assert schedulable_body.HasField("tokenFreeze")
     assert schedulable_body.tokenFreeze.token == token_id._to_proto()
     assert schedulable_body.tokenFreeze.account == freeze_id._to_proto()
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for TokenFreezeTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenFreezeTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_account_id(account_id_sender)
+    tx.transaction_id = generate_transaction_id(account_id_sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenFreezeTransaction)
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.account_id == account_id_sender

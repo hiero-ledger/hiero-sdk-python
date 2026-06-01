@@ -138,3 +138,14 @@ class AccountDeleteTransaction(Transaction):
                 delete accounts.
         """
         return _Method(transaction_func=channel.crypto.cryptoDelete, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("cryptoDelete"):
+            body = transaction_body.cryptoDelete
+            if body.HasField("deleteAccountID"):
+                transaction.account_id = AccountId._from_proto(body.deleteAccountID)
+            if body.HasField("transferAccountID"):
+                transaction.transfer_account_id = AccountId._from_proto(body.transferAccountID)
+        return transaction
