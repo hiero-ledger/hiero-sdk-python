@@ -18,5 +18,5 @@ repos:
   hooks:
   - id: bandit
     args: ["-c", "bandit.yml", "-ll"]
-    files: ^src/
+    files: ^(src|tck)/
     verbose: true
