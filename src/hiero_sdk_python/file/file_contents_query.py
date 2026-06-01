@@ -75,7 +75,7 @@ class FileContentsQuery(Query):
             query.fileGetContents.CopyFrom(file_contents_query)
 
             return query
-        except Exception as e:
+        except (TypeError, AttributeError, KeyError) as e:
             print(f"Exception in _make_request: {e}")
             raise
 

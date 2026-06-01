@@ -69,7 +69,7 @@ class AccountInfoQuery(Query):
             query.cryptoGetInfo.CopyFrom(crypto_info_query)
 
             return query
-        except Exception as e:
+        except (TypeError, AttributeError, KeyError) as e:
             print(f"Exception in _make_request: {e}")
             raise
 

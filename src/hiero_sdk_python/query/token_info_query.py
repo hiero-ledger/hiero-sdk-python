@@ -70,7 +70,7 @@ class TokenInfoQuery(Query):
             query.tokenGetInfo.CopyFrom(token_info_query)
 
             return query
-        except Exception as e:
+        except (TypeError, AttributeError, KeyError) as e:
             print(f"Exception in _make_request: {e}")
             raise
 
