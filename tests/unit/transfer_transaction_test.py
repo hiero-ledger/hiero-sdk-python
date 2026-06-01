@@ -453,7 +453,7 @@ def test_approved_token_transfer_with_decimals(mock_account_ids):
 
 
 def test_approved_token_transfer_accumulation(mock_account_ids):
-    """Test that approved token transfers accumulate for the same account."""
+    """Test that approved token transfers are stored as separate entries from normal ones."""
     account_id_1, account_id_2, _, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
@@ -471,18 +471,76 @@ def test_approved_token_transfer_accumulation(mock_account_ids):
     assert transfer_2.is_approved is False
     assert transfer_2.expected_decimals is None
 
-    # Add approved transfer with decimals for account_1 (accumulates)
+    # Add approved transfer with decimals for account_1 (separate entry, not merged)
     transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 200, 8)
 
-    # Verify accumulation
-    transfer_1 = transfer_tx.token_transfers[token_id_1][0]
-    transfer_2 = transfer_tx.token_transfers[token_id_1][1]
-    assert transfer_1.amount == 700  # 500 + 200
-    assert transfer_1.is_approved is False  # unchanged
-    assert transfer_1.expected_decimals == 8  # updated from the accumulation
-    assert transfer_2.amount == 300  # unchanged
-    assert transfer_2.is_approved is False  # unchanged
-    assert transfer_2.expected_decimals is None  # unchanged
+    # Verify stored as separate entries
+    transfers = transfer_tx.token_transfers[token_id_1]
+    assert len(transfers) == 3  # account_1 normal, account_2 normal, account_1 approved
+
+    assert transfers[0].amount == 500  # unchanged
+    assert transfers[0].is_approved is False  # unchanged
+    assert transfers[1].amount == 300  # unchanged
+    assert transfers[1].is_approved is False  # unchanged
+    assert transfers[2].amount == 200
+    assert transfers[2].is_approved is True
+    assert transfers[2].expected_decimals == 8
+
+
+def test_normal_and_approved_transfers_kept_separate(mock_account_ids):
+    """Normal and approved transfers for the same account are stored as separate entries."""
+    account_id_1, account_id_2, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_token_transfer(token_id_1, account_id_1, 500)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, -500)
+    transfer_tx.add_approved_token_transfer(token_id_1, account_id_1, 200)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, -200)
+
+    transfers = transfer_tx.token_transfers[token_id_1]
+    assert len(transfers) == 3  # account_1 normal, account_2 accumulated, account_1 approved
+
+    assert transfers[0].amount == 500
+    assert transfers[0].is_approved is False
+
+    assert transfers[1].amount == -700  # -500 + -200 accumulated
+    assert transfers[1].is_approved is False
+
+    assert transfers[2].amount == 200
+    assert transfers[2].is_approved is True
+
+
+def test_same_approved_transfers_accumulate(mock_account_ids):
+    """Two approved transfers for the same account DO accumulate."""
+    account_id_1, account_id_2, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_approved_token_transfer(token_id_1, account_id_1, 300)
+    transfer_tx.add_approved_token_transfer(token_id_1, account_id_1, 200)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, -500)
+
+    transfers = transfer_tx.token_transfers[token_id_1]
+    assert len(transfers) == 2  # account_1 approved (merged), account_2 normal
+
+    assert transfers[0].amount == 500  # 300 + 200 accumulated
+    assert transfers[0].is_approved is True
+
+    assert transfers[1].amount == -500
+    assert transfers[1].is_approved is False
+
+
+def test_add_approved_token_transfer_no_decimals(mock_account_ids):
+    """add_approved_token_transfer (non-decimal variant) sets is_approved=True."""
+    account_id_1, account_id_2, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+
+    transfer_tx.add_approved_token_transfer(token_id_1, account_id_1, -1000)
+    transfer_tx.add_token_transfer(token_id_1, account_id_2, 1000)
+
+    transfer = transfer_tx.token_transfers[token_id_1][0]
+    assert transfer.amount == -1000
+    assert transfer.is_approved is True
+    assert transfer.expected_decimals is None
 
 
 def test_approved_token_transfer_validation(mock_account_ids):
