@@ -81,26 +81,24 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, delete_p
     assert transaction_body.cryptoDelete.transferAccountID == delete_params["transfer_account_id"]._to_proto()
 
 
-def test_build_proto_body_missing_account_id_uses_default_account(delete_params):
-    """Test that missing account_id serializes as the default account ID."""
+def test_build_proto_body_missing_account_id_leaves_field_unset(delete_params):
+    """Test that missing account_id leaves deleteAccountID unset."""
     delete_tx = AccountDeleteTransaction(transfer_account_id=delete_params["transfer_account_id"])
 
     proto_body = delete_tx._build_proto_body()
 
-    assert proto_body.deleteAccountID.WhichOneof("account") == "accountNum"
-    assert proto_body.deleteAccountID == AccountId()._to_proto()
+    assert not proto_body.HasField("deleteAccountID")
     assert proto_body.transferAccountID == delete_params["transfer_account_id"]._to_proto()
 
 
-def test_build_proto_body_missing_transfer_account_id_uses_default_account():
-    """Test that missing transfer_account_id serializes as the default account ID."""
+def test_build_proto_body_missing_transfer_account_id_leaves_field_unset():
+    """Test that missing transfer_account_id leaves transferAccountID unset."""
     delete_tx = AccountDeleteTransaction(account_id=AccountId(0, 0, 123))
 
     proto_body = delete_tx._build_proto_body()
 
     assert proto_body.deleteAccountID == AccountId(0, 0, 123)._to_proto()
-    assert proto_body.transferAccountID.WhichOneof("account") == "accountNum"
-    assert proto_body.transferAccountID == AccountId()._to_proto()
+    assert not proto_body.HasField("transferAccountID")
 
 
 def test_set_account_id(delete_params):

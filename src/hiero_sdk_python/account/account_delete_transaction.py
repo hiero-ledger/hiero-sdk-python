@@ -86,12 +86,9 @@ class AccountDeleteTransaction(Transaction):
             CryptoDeleteTransactionBody: The protobuf body for this transaction.
 
         """
-        delete_account_id = self.account_id if self.account_id is not None else AccountId()
-        transfer_account_id = self.transfer_account_id if self.transfer_account_id is not None else AccountId()
-
         return CryptoDeleteTransactionBody(
-            deleteAccountID=delete_account_id._to_proto(),
-            transferAccountID=transfer_account_id._to_proto(),
+            deleteAccountID=(self.account_id._to_proto() if self.account_id is not None else None),
+            transferAccountID=(self.transfer_account_id._to_proto() if self.transfer_account_id is not None else None),
         )
 
     def build_transaction_body(self):
