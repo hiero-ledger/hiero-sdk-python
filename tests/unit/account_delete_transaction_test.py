@@ -101,6 +101,16 @@ def test_build_proto_body_missing_transfer_account_id_leaves_field_unset():
     assert not proto_body.HasField("transferAccountID")
 
 
+def test_build_proto_body_both_ids_missing_leaves_fields_unset():
+    """Test that omitting both IDs leaves both proto fields unset."""
+    delete_tx = AccountDeleteTransaction()
+
+    proto_body = delete_tx._build_proto_body()
+
+    assert not proto_body.HasField("deleteAccountID")
+    assert not proto_body.HasField("transferAccountID")
+
+
 def test_set_account_id(delete_params):
     """Test setting account_id using the setter method."""
     delete_tx = AccountDeleteTransaction()
