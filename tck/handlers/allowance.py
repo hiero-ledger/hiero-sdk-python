@@ -51,6 +51,8 @@ def _apply_allowance_entry(
     spender_account_id = _parse_optional_account_id(entry.spenderAccountId)
 
     if entry.hbar is not None:
+        if entry.hbar.amount is None:
+            raise ValueError("hbar allowance requires an amount")
         amount = int(entry.hbar.amount)
         transaction.approve_hbar_allowance(
             owner_account_id,
@@ -59,6 +61,8 @@ def _apply_allowance_entry(
         )
 
     if entry.token is not None:
+        if entry.token.tokenId is None or entry.token.amount is None:
+            raise ValueError("token allowance requires tokenId and amount")
         token_id = TokenId.from_string(entry.token.tokenId)
         amount = int(entry.token.amount)
         transaction.approve_token_allowance(
@@ -84,9 +88,7 @@ def _apply_allowance_entry(
                 spender_account_id,
             )
         elif entry.nft.serialNumbers is not None:
-            delegating_spender = None
-            if entry.nft.delegateSpenderAccountId:
-                delegating_spender = AccountId.from_string(entry.nft.delegateSpenderAccountId)
+            delegating_spender = _parse_optional_account_id(entry.nft.delegateSpenderAccountId)
 
             for serial in entry.nft.serialNumbers:
                 nft_id = NftId(token_id=token_id, serial_number=int(serial))
