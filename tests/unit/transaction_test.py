@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -33,23 +31,6 @@ from tests.unit.mock_server import mock_hedera_servers
 
 
 pytestmark = pytest.mark.unit
-
-
-def mock_client():
-    client = MagicMock()
-    client.mirror_network = "https://testnet.mirrornode.hedera.com"
-    client.max_retries = 3
-
-    client.generate_transaction_id.return_value = TransactionId.generate(AccountId(0, 0, 1001))
-    client.operator_account_id._to_proto.return_value = AccountId(0, 0, 1)._to_proto()
-
-    node = MagicMock()
-    node._account_id = AccountId(0, 0, 3)
-
-    client.network = MagicMock()
-    client.network.nodes = [node]
-
-    return client
 
 
 @pytest.fixture
