@@ -85,18 +85,10 @@ class AccountDeleteTransaction(Transaction):
         Returns:
             CryptoDeleteTransactionBody: The protobuf body for this transaction.
 
-        Raises:
-            ValueError: If account_id or transfer_account_id is not set.
         """
-        if self.account_id is None:
-            raise ValueError("Missing required AccountID")
-
-        if self.transfer_account_id is None:
-            raise ValueError("Missing AccountID for transfer")
-
         return CryptoDeleteTransactionBody(
-            deleteAccountID=self.account_id._to_proto(),
-            transferAccountID=(self.transfer_account_id._to_proto() if self.transfer_account_id else None),
+            deleteAccountID=(self.account_id._to_proto() if self.account_id is not None else None),
+            transferAccountID=(self.transfer_account_id._to_proto() if self.transfer_account_id is not None else None),
         )
 
     def build_transaction_body(self):
@@ -106,8 +98,6 @@ class AccountDeleteTransaction(Transaction):
         Returns:
             TransactionBody: The built transaction body.
 
-        Raises:
-            ValueError: If account_id or transfer_account_id is not set.
         """
         account_delete_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()

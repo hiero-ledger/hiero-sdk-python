@@ -227,5 +227,5 @@ While this guide focuses on PowerShell, you can also use **Git Bash**. If using 
 
 - **Installation issues?** Check the [uv documentation](https://docs.astral.sh/uv/)
 - **Hedera testnet?** Visit [Hedera Portal](https://portal.hedera.com/)
-- **Git questions?** See [Git Basics](https://git-scm.com/book/en/v2/Getting-Started-Git-Basics)
+- **Git questions?** See [Git Basics](https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository)
 - **General questions?** Ask on the [Linux Foundation Decentralized Trust Discord](https://discord.gg/hyperledger)
