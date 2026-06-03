@@ -511,6 +511,7 @@ def test_high_volume_is_included_in_protobuf_output(
 
 
 def test_transaction_fee_accepts_hbar():
+    """Test that transaction_fee accepts an Hbar value and stores it as tinybars."""
     tx = AccountCreateTransaction()
 
     tx.transaction_fee = Hbar(1)
@@ -519,6 +520,7 @@ def test_transaction_fee_accepts_hbar():
 
 
 def test_transaction_fee_rejects_bool():
+    """Test transaction_fee rejects boolean values."""
     tx = AccountCreateTransaction()
 
     with pytest.raises(TypeError, match="fee must be of type Hbar or int"):
@@ -526,6 +528,7 @@ def test_transaction_fee_rejects_bool():
 
 
 def test_transaction_fee_rejects_invalid_type():
+    """Test transaction_fee rejects invalid types."""
     tx = AccountCreateTransaction()
 
     with pytest.raises(TypeError, match="fee must be of type Hbar or int"):
@@ -533,6 +536,7 @@ def test_transaction_fee_rejects_invalid_type():
 
 
 def test_transaction_fee_rejects_negative_int():
+    """Test transaction_fee rejects negative integer values."""
     tx = AccountCreateTransaction()
 
     with pytest.raises(ValueError, match="fee must be greater than or equal to 0"):
