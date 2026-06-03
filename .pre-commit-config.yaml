@@ -19,4 +19,9 @@ repos:
   - id: bandit
     args: ["-c", "bandit.yml", "-ll"]
     files: ^(src|tck)/
+
+  - id: bandit
+    name: bandit-report
+    args: ["-c", "bandit.yml", "-l", "--exit-zero"]
+    files: ^(src|tck)/
     verbose: true
