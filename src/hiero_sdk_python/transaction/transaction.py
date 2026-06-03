@@ -509,7 +509,7 @@ class Transaction(_Executable):
         """
         transaction_body = transaction_pb2.TransactionBody()
 
-        fee = self._transaction_fee or self._default_transaction_fee
+        fee = self._transaction_fee if self._transaction_fee is not None else self._default_transaction_fee
         if hasattr(fee, "to_tinybars"):
             transaction_body.transactionFee = int(fee.to_tinybars())
         else:
@@ -836,6 +836,32 @@ class Transaction(_Executable):
         return transaction_class._from_protobuf(
             transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
         )
+
+    def set_default_max_transaction_fee(self, max_transaction_fee):
+        """
+         Sets the maximum transaction fee for this transaction.
+
+        The maximum transaction fee specifies the highest fee that can be
+        charged when the transaction is executed. The value must be
+        non-negative.
+
+        Args:
+             max_transaction_fee (Hbar | int | str): The maximum transaction
+             fee. Accepted types are those supported by ``Hbar._coerce_fee``.
+
+        Returns:
+            Self: This transaction instance, allowing method chaining.
+
+        Raises:
+            ValueError: If ``max_transaction_fee`` is negative.
+            RuntimeError: If the transaction has been frozen.
+        """
+        self._require_not_frozen()
+        value = Hbar._coerce_fee(max_transaction_fee)
+        if value < Hbar.ZERO:
+            raise ValueError("max_transaction_fee must be non-negative")
+        self.transaction_fee = value
+        return self
 
     @staticmethod
     def _get_transaction_class(transaction_type: str):
