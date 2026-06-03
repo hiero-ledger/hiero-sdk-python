@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from decimal import Decimal
 from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -8,9 +9,17 @@ from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_contents_pb2, transaction_pb2
-from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
-from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    transaction_contents_pb2,
+    transaction_pb2,
+)
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
+    TransactionResponse as TransactionResponseProto,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.fee_estimate_query import FeeEstimateQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -297,6 +306,20 @@ class Transaction(_Executable):
         # Resolve transaction_id and node_accountids to be set when using freeze()
         self._resolve_transaction_id(client)
         self._resolve_node_ids(client)
+
+        # Resolve fee priority before building bodies:
+        # 1. Explicit transaction fee (self.transaction_fee)
+        # 2. Client default_max_transaction_fee
+        # 3. Transaction class default (_default_transaction_fee)
+        #
+        # This must run before the loop below: once _transaction_body_bytes is
+        # populated the transaction counts as frozen, and the transaction_fee
+        # setter calls _require_not_frozen().
+        if self.transaction_fee is None:
+            if client is not None and getattr(client, "default_max_transaction_fee", None) is not None:
+                self.transaction_fee = client.default_max_transaction_fee
+            else:
+                self.transaction_fee = self._default_transaction_fee
 
         # We iterate through every node in the node_account_id list and
         # For each node_account_id build the transaction body
@@ -767,6 +790,22 @@ class Transaction(_Executable):
         return transaction_class._from_protobuf(
             transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
         )
+
+    def set_max_transaction_fee(self, max_transaction_fee):
+        # Accept int, float, Decimal, or Hbar (but not bool)
+
+        if isinstance(max_transaction_fee, bool) or not isinstance(max_transaction_fee, (int, float, Decimal, Hbar)):
+            raise TypeError(
+                f"max_transaction_fee must be int, float, Decimal, or Hbar, got {type(max_transaction_fee).__name__}"
+            )
+
+        value = max_transaction_fee if isinstance(max_transaction_fee, Hbar) else Hbar(max_transaction_fee)
+
+        if value < Hbar(0):
+            raise ValueError("max_transaction_fee must be non-negative")
+
+        self.transaction_fee = value
+        return self
 
     @staticmethod
     def _get_transaction_class(transaction_type: str):
