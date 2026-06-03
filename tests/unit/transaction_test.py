@@ -372,7 +372,6 @@ def test_tx_with_no_content_should_return_single_body_chunk(file_id, account_id,
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 1
-    assert 1 == 1  # temporay for test will remove this
 
 
 def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):

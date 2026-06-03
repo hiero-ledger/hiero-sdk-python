@@ -1,5 +1,5 @@
-exclude_dirs: ['tck/**', '.clusterfuzzlite/**']
+exclude_dirs: ['.clusterfuzzlite/**']
 
-per_file_ignores:
-  'tests/**/*.py':
-    - B101
+assert_used:
+  skips:
+    - '**/tests/**/*.py'
