@@ -81,20 +81,34 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, delete_p
     assert transaction_body.cryptoDelete.transferAccountID == delete_params["transfer_account_id"]._to_proto()
 
 
-def test_build_transaction_body_missing_account_id():
-    """Test that build_transaction_body raises ValueError when account_id is missing."""
-    delete_tx = AccountDeleteTransaction()
+def test_build_proto_body_missing_account_id_leaves_field_unset(delete_params):
+    """Test that missing account_id leaves deleteAccountID unset."""
+    delete_tx = AccountDeleteTransaction(transfer_account_id=delete_params["transfer_account_id"])
 
-    with pytest.raises(ValueError, match="Missing required AccountID"):
-        delete_tx.build_transaction_body()
+    proto_body = delete_tx._build_proto_body()
+
+    assert not proto_body.HasField("deleteAccountID")
+    assert proto_body.transferAccountID == delete_params["transfer_account_id"]._to_proto()
 
 
-def test_build_transaction_body_missing_transfer_account_id():
-    """Test that build_transaction_body raises ValueError when transfer_account_id is missing."""
+def test_build_proto_body_missing_transfer_account_id_leaves_field_unset():
+    """Test that missing transfer_account_id leaves transferAccountID unset."""
     delete_tx = AccountDeleteTransaction(account_id=AccountId(0, 0, 123))
 
-    with pytest.raises(ValueError, match="Missing AccountID for transfer"):
-        delete_tx.build_transaction_body()
+    proto_body = delete_tx._build_proto_body()
+
+    assert proto_body.deleteAccountID == AccountId(0, 0, 123)._to_proto()
+    assert not proto_body.HasField("transferAccountID")
+
+
+def test_build_proto_body_both_ids_missing_leaves_fields_unset():
+    """Test that omitting both IDs leaves both proto fields unset."""
+    delete_tx = AccountDeleteTransaction()
+
+    proto_body = delete_tx._build_proto_body()
+
+    assert not proto_body.HasField("deleteAccountID")
+    assert not proto_body.HasField("transferAccountID")
 
 
 def test_set_account_id(delete_params):

@@ -86,6 +86,24 @@ class UpdateAccountParams(BaseTransactionParams):
 
 
 @dataclass
+class DeleteAccountParams(BaseTransactionParams):
+    """Request parameters for the deleteAccount endpoint."""
+
+    deleteAccountId: str | None = None
+    transferAccountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteAccountParams:
+        """Parse JSON-RPC params into a DeleteAccountParams instance."""
+        return cls(
+            deleteAccountId=params.get("deleteAccountId"),
+            transferAccountId=params.get("transferAccountId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class GetAccountInfoParams(BaseParams):
     """Request parameters for the getAccountInfo endpoint."""
 
