@@ -760,4 +760,3 @@ def test_fee_resolution_falls_back_to_transaction_default(mock_client):
     tx.freeze_with(mock_client)
 
     assert tx.transaction_fee == 100000000  # Default fee for TransferTransaction
-    print(tx.__class__.__mro__)
