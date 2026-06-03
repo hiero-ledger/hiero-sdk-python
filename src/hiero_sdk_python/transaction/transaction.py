@@ -622,9 +622,16 @@ class Transaction(_Executable):
         self._require_not_frozen()
 
         if isinstance(fee, Hbar):
-            self._transaction_fee = fee.to_tinybars()
+            tinybars = fee.to_tinybars()
+        elif isinstance(fee, bool) or not isinstance(fee, int):
+            raise TypeError("fee must be of type Hbar or int")
         else:
-            self._transaction_fee = fee
+            tinybars = fee
+
+        if tinybars < 0:
+            raise ValueError("fee must be greater than or equal to 0")
+
+        self._transaction_fee = tinybars
 
     def to_bytes(self) -> bytes:
         """
