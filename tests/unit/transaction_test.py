@@ -508,3 +508,32 @@ def test_high_volume_is_included_in_protobuf_output(
     body_false.ParseFromString(body_bytes_false)
 
     assert body_false.high_volume is False
+
+
+def test_transaction_fee_accepts_hbar():
+    tx = AccountCreateTransaction()
+
+    tx.transaction_fee = Hbar(1)
+
+    assert tx._transaction_fee == Hbar(1).to_tinybars()
+
+
+def test_transaction_fee_rejects_bool():
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="fee must be of type Hbar or int"):
+        tx.transaction_fee = True
+
+
+def test_transaction_fee_rejects_invalid_type():
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="fee must be of type Hbar or int"):
+        tx.transaction_fee = "100"
+
+
+def test_transaction_fee_rejects_negative_int():
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(ValueError, match="fee must be greater than or equal to 0"):
+        tx.transaction_fee = -1
