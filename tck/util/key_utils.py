@@ -43,6 +43,6 @@ def get_key_from_string(key_string: str) -> Key:
     try:
         return PrivateKey.from_string_der(key_string)
     except Exception:
-        pass  # nosec B110
+        pass
 
     raise ValueError("Invalid key string")
