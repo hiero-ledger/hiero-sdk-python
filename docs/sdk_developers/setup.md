@@ -213,7 +213,7 @@ pre-commit install
 
 Once installed, `git commit` will automatically trigger the checks.
 - If they **pass**: Your commit is created normally.
-- If they **fail**: The hooks will often fix the files for you (e.g., `Ruff` reformatting, `Bandit` vulnerabilities detection). Simply `git add` the changed files and commit again.
+- If they **fail**: Some hooks may auto-fix files (e.g., `Ruff` formatting). Others (e.g., `Bandit`) only report findings that you must fix manually, then `git add` and commit again.
 
 
 ### Manual Execution

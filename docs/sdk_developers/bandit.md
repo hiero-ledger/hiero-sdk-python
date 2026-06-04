@@ -17,15 +17,24 @@ This README provides an introduction to using Bandit with the Hiero Python SDK. 
 
 We use **uv** to manage the Hiero Python SDK environment. Bandit is included in the `lint` dependency group.
 
+### The Recommended Way (Using uv)
+The below command will simply pull down the latest dependencies and synchronize your local environment in one step:
 ```bash
-# Using uv (Recommended)
-uv add --dev bandit
+uv sync
+```
 
-# Using pip
+### Alternative Installation Layouts
+
+If you need to install Bandit manually into an alternate isolated setup or are using a different environment manager, use the corresponding configuration below:
+```bash
+# Explicitly add to the development group via uv
+uv add --group lint bandit
+
+# Using classic pip inside an active virtualenv
 pip install bandit
 
 # Using Poetry
-poetry add --dev bandit
+poetry add --group lint bandit
 
 # Using Conda
 conda install -c conda-forge bandit
@@ -46,8 +55,8 @@ uv run bandit -c bandit.yml -r src/
 # Check multiple active development folders together
 uv run bandit -c bandit.yml -r src/ tck/ tests/
 
-# Run with custom exit code thresholds (e.g., fail ONLY on Medium and High issues)
-uv run bandit -c bandit.yml -ll -r src/
+# Run with custom thresholds
+uv run bandit -c bandit.yml -l -r src/
 
 # Run checks and generate a clean text log report file
 uv run bandit -c bandit.yml -r src/ --format txt --output bandit_report.txt
@@ -81,6 +90,25 @@ subprocess.Popen(["/bin/ls", "-l"], shell=False)  # nosec B602, B607
 
 # Tell Bandit this specific assert statement is intentional and safe
 assert user_role == "admin"  # nosec B101
+```
+
+### Targeted Rule Suppressions
+Instead of disabling a rule globally or littering your files with `# nosec` comments, you can use Bandit's plugin-specific configuration blocks to skip rules for matching file patterns.
+
+```yml
+# bandit.yml
+
+# Global directory exclusions
+exclude_dirs: ['.clusterfuzzlite/**']
+
+# Targeted plugin rule overrides
+assert_used:
+  skips:
+    - '**/tests/**/*.py'
+
+exec_used:
+  skips:
+    - '**/tests/mocks/**/*.py'
 ```
 
 **Global Suppressions:** If a specific rule is completely irrelevant to entire codebase, do not add `# nosec` everywhere. Instead, permanently drop it by adding the error code to the `skips` list inside `bandit.yml` file.
