@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
-import traceback
-
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import query_pb2, response_pb2, schedule_get_info_pb2
 from hiero_sdk_python.hapi.services.schedule_get_info_pb2 import ScheduleGetInfoResponse
+from hiero_sdk_python.logger.logger import get_logger
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_info import ScheduleInfo
+
+logger = get_logger()
 
 
 class ScheduleInfoQuery(Query):
@@ -71,8 +72,7 @@ class ScheduleInfoQuery(Query):
 
             return query
         except Exception as e:
-            print(f"Exception in _make_request: {e}")
-            traceback.print_exc()
+            logger.error("Exception in _make_request", e)
             raise
 
     def _get_method(self, channel: _Channel) -> _Method:

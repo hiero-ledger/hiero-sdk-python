@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import traceback
-
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.executable import _Method
@@ -11,7 +9,10 @@ from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info import FileInfo
 from hiero_sdk_python.hapi.services import file_get_info_pb2, query_pb2, response_pb2
 from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
+from hiero_sdk_python.logger.logger import get_logger
 from hiero_sdk_python.query.query import Query
+
+logger = get_logger()
 
 
 class FileInfoQuery(Query):
@@ -75,8 +76,7 @@ class FileInfoQuery(Query):
 
             return query
         except Exception as e:
-            print(f"Exception in _make_request: {e}")
-            traceback.print_exc()
+            logger.error("Exception in _make_request", e)
             raise
 
     def _get_method(self, channel: _Channel) -> _Method:
