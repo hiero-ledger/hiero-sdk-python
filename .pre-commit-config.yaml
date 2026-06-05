@@ -17,14 +17,6 @@ repos:
   rev: 1.9.4
   hooks:
   - id: bandit
+    args: ["-c", "bandit.yml", "-ll"]
     files: ^(src|tck)/
     verbose: true
-    entry: |
-          bash -c '
-          output=$(bandit -c bandit.yml -l --exit-zero --format screen "$@")
-          echo "$output"
-          if echo "$output" | grep -qE "Severity: (Medium|High)"; then
-              echo -e "\n\033[1;31m[ERROR] Bandit found Medium or High severity issues. Commit blocked!\033[0m"
-              exit 1
-          fi
-          ' --
