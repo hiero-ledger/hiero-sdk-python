@@ -200,6 +200,7 @@ class PrivateKey(Key):
         try:
             return PrivateKey._parse_legacy_ecdsa_der_key(key_bytes)
         except Exception:
+            # Catch any parsing failure here to try standard DER format next
             pass  # nosec B110
 
         try:
@@ -250,6 +251,7 @@ class PrivateKey(Key):
             private_key = PrivateKey._parse_legacy_ecdsa_der_key(der_data)
             return cls(private_key)
         except Exception:
+            # Catch any parsing failure here to try standard DER format next
             pass  # nosec B110
 
         try:
