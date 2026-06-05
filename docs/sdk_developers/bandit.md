@@ -75,7 +75,24 @@ uv run pre-commit run --all-files
 ###  How Severity Levels Affect Commits
 Unlike code formatters, Bandit will never modify your code automatically. Security risks must be reviewed and patched manually based on their tier:
 
-- **Low Severity (Warnings):** Issues like public parameter keywords triggering hardcoded credential filters (`B106`) or standard pseudo-random generators (`B311`) or any other low severity issue print directly to your screen as warnings, but will not block your commit.
+- **Low Severity (Warnings):** Issues like public parameter keywords triggering hardcoded credential filters (`B106`) or standard pseudo-random generators (`B311`) or any other low severity issue will print out to your logging metrics for context but will not block your commit.
+
+  An example of a passing run containing a low-severity warning:
+  ```
+  Test results:
+        No issues identified.
+
+  Code scanned:
+        Total lines of code: 24726
+        Total lines skipped (#nosec): 0
+
+  Run metrics:
+        Total issues (by severity):
+                Undefined: 0
+                Low: 1
+                Medium: 0
+                High: 0
+  ```
 
 - **Medium & High Severity (Blockers):** High-risk flaws like deprecated cryptographic libraries (`B413`), exposed keys, or command injections throw a failure execution code and instantly halt your commit.
 
@@ -146,14 +163,21 @@ Run metrics:
 
 If project satisfies active gating baseline, it finishes with a clean summary report:
 ```text
+bandit...................................................................Passed
+
+Test results:
+        No issues identified.
+
 Code scanned:
         Total lines of code: 23318
         Total lines skipped (#nosec): 2
 
 Run metrics:
-        Total issues (by severity): Low: 0, Medium: 0, High: 0
-
-bandit...................................................................Passed
+        Total issues (by severity):
+                Undefined: 0
+                Low: 0
+                Medium: 0
+                High: 0
 ```
 
 Happy scanning! 🛡️
