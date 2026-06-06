@@ -6,6 +6,7 @@ from examples.contract.contracts import SIMPLE_CONTRACT_BYTECODE
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
 from hiero_sdk_python.contract.contract_delete_transaction import ContractDeleteTransaction
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.response_code import ResponseCode
 from tests.integration.utils import IntegrationTestEnv
@@ -89,11 +90,10 @@ def test_integration_contract_balance_query_can_execute():
 def test_integration_balance_query_raises_when_neither_source_set():
     env = IntegrationTestEnv()
     try:
-        with pytest.raises(
-            ValueError,
-            match=r"Either account_id or contract_id must be set before making the request\.",
-        ):
+        with pytest.raises(PrecheckError) as err:
             CryptoGetAccountBalanceQuery().execute(env.client)
+
+        assert err.value.status == ResponseCode.INVALID_ACCOUNT_ID
     finally:
         env.close()
 

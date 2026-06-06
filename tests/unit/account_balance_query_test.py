@@ -132,15 +132,13 @@ def test_last_wins_when_both_account_id_and_contract_id_are_set(
     assert query.account_id is None
 
 
-def test_make_request_raises_when_neither_account_id_nor_contract_id_is_set():
-    """_make_request should raise if neither account_id nor contract_id is set."""
+def test_make_request_when_neither_account_id_nor_contract_id_is_set():
+    """_make_request should create request without ids when neither account_id nor contract_id is set."""
     query = CryptoGetAccountBalanceQuery()
+    proto = query._make_request()
 
-    with pytest.raises(
-        ValueError,
-        match=r"Either account_id or contract_id must be set before making the request\.",
-    ):
-        query._make_request()
+    assert not proto.cryptogetAccountBalance.HasField("accountID")
+    assert not proto.cryptogetAccountBalance.HasField("contractID")
 
 
 def test_make_request_populates_contract_id_only():
