@@ -113,3 +113,18 @@ class GetAccountInfoParams(BaseParams):
     def parse_json_params(cls, params: dict) -> GetAccountInfoParams:
         """Parse JSON-RPC params into a GetAccountInfoParams instance."""
         return cls(accountId=params.get("accountId"), sessionId=parse_session_id(params))
+
+
+@dataclass
+class GetAccountBalanceParams(BaseParams):
+    """Request parameters for the getAccountBalance endpoint."""
+
+    accountId: str | None = None
+    contractId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params):
+        """Parse JSON-RPC params into a GetAccountBalanceParams instance."""
+        return cls(
+            accountId=params.get("accountId"), contractId=params.get("contractId"), sessionId=parse_session_id(params)
+        )

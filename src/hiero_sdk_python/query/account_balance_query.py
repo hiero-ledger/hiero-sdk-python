@@ -90,9 +90,6 @@ class CryptoGetAccountBalanceQuery(Query):
             Exception: If any other error occurs during request construction.
         """
         try:
-            if not self.account_id and not self.contract_id:
-                raise ValueError("Either account_id or contract_id must be set before making the request.")
-
             if self.account_id and self.contract_id:
                 raise ValueError("Specify either account_id or contract_id, not both.")
 
@@ -100,9 +97,10 @@ class CryptoGetAccountBalanceQuery(Query):
             crypto_get_balance = crypto_get_account_balance_pb2.CryptoGetAccountBalanceQuery()
             crypto_get_balance.header.CopyFrom(query_header)
 
-            if self.account_id:
+            if self.account_id is not None:
                 crypto_get_balance.accountID.CopyFrom(self.account_id._to_proto())
-            else:
+
+            if self.contract_id is not None:
                 crypto_get_balance.contractID.CopyFrom(self.contract_id._to_proto())
 
             query = query_pb2.Query()
