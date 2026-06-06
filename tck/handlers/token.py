@@ -6,6 +6,11 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.custom_fee import CustomFee
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
+from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
+from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
@@ -20,7 +25,9 @@ from tck.handlers.registry import rpc_method
 from tck.param.token import (
     AssociateTokenParams,
     CreateTokenParams,
+    CustomFeeParams,
     DeleteTokenParams,
+    FixedFeeParams,
     FreezeTokenParams,
     MintTokenParams,
     PauseTokenParams,
@@ -36,6 +43,62 @@ from tck.response.token import (
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
+
+
+def _parse_required_int(value: str | None, field_name: str) -> int:
+    if value is None:
+        raise ValueError(f"{field_name} is required")
+    return int(value)
+
+
+def _build_fixed_fee(params: FixedFeeParams) -> CustomFixedFee:
+    fee = CustomFixedFee(amount=_parse_required_int(params.amount, "fixedFee.amount"))
+    if params.denominatingTokenId is not None:
+        fee.set_denominating_token_id(TokenId.from_string(params.denominatingTokenId))
+    return fee
+
+
+def _apply_custom_fee_common_fields(fee: CustomFee, params: CustomFeeParams) -> CustomFee:
+    if params.feeCollectorAccountId == "":
+        raise ValueError("feeCollectorAccountId cannot be empty")
+    if params.feeCollectorAccountId is not None:
+        fee.set_fee_collector_account_id(AccountId.from_string(params.feeCollectorAccountId))
+    if params.feeCollectorsExempt is not None:
+        fee.set_all_collectors_are_exempt(params.feeCollectorsExempt)
+    return fee
+
+
+def _build_custom_fee(params: CustomFeeParams) -> CustomFee:
+    if params.fixedFee is not None:
+        fee: CustomFee = _build_fixed_fee(params.fixedFee)
+    elif params.fractionalFee is not None:
+        assessment_methods = {
+            "inclusive": FeeAssessmentMethod.INCLUSIVE,
+            "exclusive": FeeAssessmentMethod.EXCLUSIVE,
+        }
+        try:
+            assessment_method = assessment_methods[params.fractionalFee.assessmentMethod]
+        except KeyError as exc:
+            raise ValueError("fractionalFee.assessmentMethod must be inclusive or exclusive") from exc
+
+        fee = CustomFractionalFee(
+            numerator=_parse_required_int(params.fractionalFee.numerator, "fractionalFee.numerator"),
+            denominator=_parse_required_int(params.fractionalFee.denominator, "fractionalFee.denominator"),
+            min_amount=_parse_required_int(params.fractionalFee.minimumAmount, "fractionalFee.minimumAmount"),
+            max_amount=_parse_required_int(params.fractionalFee.maximumAmount, "fractionalFee.maximumAmount"),
+            assessment_method=assessment_method,
+        )
+    elif params.royaltyFee is not None:
+        fallback_fee = _build_fixed_fee(params.royaltyFee.fallbackFee) if params.royaltyFee.fallbackFee else None
+        fee = CustomRoyaltyFee(
+            numerator=_parse_required_int(params.royaltyFee.numerator, "royaltyFee.numerator"),
+            denominator=_parse_required_int(params.royaltyFee.denominator, "royaltyFee.denominator"),
+            fallback_fee=fallback_fee,
+        )
+    else:
+        raise ValueError("custom fee requires a fee type")
+
+    return _apply_custom_fee_common_fields(fee, params)
 
 
 def _build_create_token_transaction(params: CreateTokenParams) -> TokenCreateTransaction:
@@ -89,12 +152,16 @@ def _build_create_token_transaction(params: CreateTokenParams) -> TokenCreateTra
             transaction.set_token_type(TokenType.FUNGIBLE_COMMON)
         elif params.tokenType == "nft":
             transaction.set_token_type(TokenType.NON_FUNGIBLE_UNIQUE)
+        else:
+            raise ValueError("tokenType must be ft or nft")
 
     if params.supplyType is not None:
         if params.supplyType == "infinite":
             transaction.set_supply_type(SupplyType.INFINITE)
         elif params.supplyType == "finite":
             transaction.set_supply_type(SupplyType.FINITE)
+        else:
+            raise ValueError("supplyType must be infinite or finite")
 
     if params.maxSupply is not None:
         transaction.set_max_supply(int(params.maxSupply))
@@ -113,6 +180,9 @@ def _build_create_token_transaction(params: CreateTokenParams) -> TokenCreateTra
 
     if params.metadata is not None:
         transaction.set_metadata(bytes.fromhex(params.metadata) if params.metadata else b"")
+
+    if params.customFees is not None:
+        transaction.set_custom_fees([_build_custom_fee(custom_fee) for custom_fee in params.customFees])
 
     return transaction
 
@@ -192,6 +262,39 @@ def _build_associate_token_transaction(params: AssociateTokenParams) -> TokenAss
     return transaction
 
 
+def _build_delete_token_transaction(params: DeleteTokenParams) -> TokenDeleteTransaction:
+    """Build a TokenDeleteTransaction from TCK params."""
+    transaction = TokenDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    return transaction
+
+
+def _build_freeze_token_transaction(params: FreezeTokenParams) -> TokenFreezeTransaction:
+    """Build a TokenFreezeTransaction from TCK params."""
+    transaction = TokenFreezeTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    if params.accountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.accountId))
+
+    return transaction
+
+
+def _build_pause_token_transaction(params: PauseTokenParams) -> TokenPauseTransaction:
+    """Build a TokenPauseTransaction from TCK params."""
+    transaction = TokenPauseTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    return transaction
+
+
 @rpc_method("associateToken")
 def associate_token(params: AssociateTokenParams) -> AssociateTokenResponse:
     """Associate tokens with an account using TCK associateToken parameters."""
@@ -213,10 +316,7 @@ def delete_token(params: DeleteTokenParams) -> DeleteTokenResponse:
     """Delete a token using TCK deleteToken parameters."""
     client = get_client(params.sessionId)
 
-    transaction = TokenDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
-
-    if params.tokenId is not None:
-        transaction.set_token_id(TokenId.from_string(params.tokenId))
+    transaction = _build_delete_token_transaction(params)
 
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
@@ -232,13 +332,7 @@ def freeze_token(params: FreezeTokenParams) -> FreezeTokenResponse:
     """Freeze a token for an account using TCK freezeToken parameters."""
     client = get_client(params.sessionId)
 
-    transaction = TokenFreezeTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
-
-    if params.tokenId is not None:
-        transaction.set_token_id(TokenId.from_string(params.tokenId))
-
-    if params.accountId is not None:
-        transaction.set_account_id(AccountId.from_string(params.accountId))
+    transaction = _build_freeze_token_transaction(params)
 
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
@@ -254,10 +348,7 @@ def pause_token(params: PauseTokenParams) -> PauseTokenResponse:
     """Pause a token using TCK pauseToken parameters."""
     client = get_client(params.sessionId)
 
-    transaction = TokenPauseTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
-
-    if params.tokenId is not None:
-        transaction.set_token_id(TokenId.from_string(params.tokenId))
+    transaction = _build_pause_token_transaction(params)
 
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)

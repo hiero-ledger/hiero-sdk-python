@@ -114,7 +114,7 @@ def _apply_allowance_entry(
                         spender_account_id,
                     )
         else:
-            # nft object present with only tokenId — this is DeleteNftAllowanceAllSerials
+            # nft object present with only tokenId - this is DeleteNftAllowanceAllSerials
             # with no approvedForAll field (defaults to delete)
             transaction.delete_token_nft_allowance_all_serials(
                 token_id,
