@@ -1,4 +1,4 @@
-"""TCK request parameter models for approveAllowance endpoint."""
+"""TCK request parameter models for allowance endpoints."""
 
 from __future__ import annotations
 
@@ -95,6 +95,55 @@ class ApproveAllowanceParams(BaseTransactionParams):
         allowances = None
         if raw_allowances is not None:
             allowances = [AllowanceEntry.parse_json_params(entry) for entry in raw_allowances]
+
+        return cls(
+            allowances=allowances,
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class DeleteAllowanceEntry:
+    """A single allowance entry in the deleteAllowance allowances list."""
+
+    ownerAccountId: str | None = None
+    tokenId: str | None = None
+    serialNumbers: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteAllowanceEntry:
+        # The TCK sends tokenId and serialNumbers at the entry level
+        # (not nested inside an 'nft' wrapper)
+        nft = params.get("nft")
+        token_id = params.get("tokenId")
+        serial_numbers = params.get("serialNumbers")
+
+        # Support both nested nft format and flat format
+        if nft is not None:
+            token_id = nft.get("tokenId")
+            serial_numbers = nft.get("serialNumbers")
+
+        return cls(
+            ownerAccountId=params.get("ownerAccountId"),
+            tokenId=token_id,
+            serialNumbers=serial_numbers,
+        )
+
+
+@dataclass
+class DeleteAllowanceParams(BaseTransactionParams):
+    """Request parameters for the deleteAllowance endpoint."""
+
+    allowances: list[DeleteAllowanceEntry] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteAllowanceParams:
+        """Parse JSON-RPC params into a DeleteAllowanceParams instance."""
+        raw_allowances = params.get("allowances")
+        allowances = None
+        if raw_allowances is not None:
+            allowances = [DeleteAllowanceEntry.parse_json_params(entry) for entry in raw_allowances]
 
         return cls(
             allowances=allowances,
