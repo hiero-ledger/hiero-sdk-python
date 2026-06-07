@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import traceback
-
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -59,26 +57,22 @@ class AccountRecordsQuery(Query):
 
         Raises:
             ValueError: If the account ID is not set.
-            Exception: If any other error occurs during request construction.
+            TypeError: If any other error occurs during request construction.
+            AttributeError: If any other error occurs during request construction.
         """
-        try:
-            if not self.account_id:
-                raise ValueError("Account ID must be set before making the request.")
+        if not self.account_id:
+            raise ValueError("Account ID must be set before making the request.")
 
-            query_header = self._make_request_header()
+        query_header = self._make_request_header()
 
-            crypto_records_query = crypto_get_account_records_pb2.CryptoGetAccountRecordsQuery()
-            crypto_records_query.header.CopyFrom(query_header)
-            crypto_records_query.accountID.CopyFrom(self.account_id._to_proto())
+        crypto_records_query = crypto_get_account_records_pb2.CryptoGetAccountRecordsQuery()
+        crypto_records_query.header.CopyFrom(query_header)
+        crypto_records_query.accountID.CopyFrom(self.account_id._to_proto())
 
-            query = query_pb2.Query()
-            query.cryptoGetAccountRecords.CopyFrom(crypto_records_query)
+        query = query_pb2.Query()
+        query.cryptoGetAccountRecords.CopyFrom(crypto_records_query)
 
-            return query
-        except Exception as e:
-            print(f"Exception in _make_request: {e}")
-            traceback.print_exc()
-            raise
+        return query
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

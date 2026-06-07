@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import traceback
-
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.contract.contract_id import ContractId
@@ -59,26 +57,22 @@ class ContractInfoQuery(Query):
 
         Raises:
             ValueError: If the contract ID is not set.
-            Exception: If any other error occurs during request construction.
+            TypeError: If any other error occurs during request construction.
+            AttributeError: If any other error occurs during request construction.
         """
-        try:
-            if not self.contract_id:
-                raise ValueError("Contract ID must be set before making the request.")
+        if not self.contract_id:
+            raise ValueError("Contract ID must be set before making the request.")
 
-            query_header = self._make_request_header()
+        query_header = self._make_request_header()
 
-            contract_info_query = contract_get_info_pb2.ContractGetInfoQuery()
-            contract_info_query.header.CopyFrom(query_header)
-            contract_info_query.contractID.CopyFrom(self.contract_id._to_proto())
+        contract_info_query = contract_get_info_pb2.ContractGetInfoQuery()
+        contract_info_query.header.CopyFrom(query_header)
+        contract_info_query.contractID.CopyFrom(self.contract_id._to_proto())
 
-            query = query_pb2.Query()
-            query.contractGetInfo.CopyFrom(contract_info_query)
+        query = query_pb2.Query()
+        query.contractGetInfo.CopyFrom(contract_info_query)
 
-            return query
-        except Exception as e:
-            print(f"Exception in _make_request: {e}")
-            traceback.print_exc()
-            raise
+        return query
 
     def _get_method(self, channel: _Channel) -> _Method:
         """

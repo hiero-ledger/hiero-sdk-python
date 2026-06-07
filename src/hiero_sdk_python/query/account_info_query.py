@@ -5,10 +5,7 @@ from hiero_sdk_python.account.account_info import AccountInfo
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import crypto_get_info_pb2, query_pb2
-from hiero_sdk_python.logger.logger import get_logger
 from hiero_sdk_python.query.query import Query
-
-logger = get_logger()
 
 
 class AccountInfoQuery(Query):
@@ -56,25 +53,22 @@ class AccountInfoQuery(Query):
 
         Raises:
             ValueError: If the account ID is not set.
-            Exception: If any other error occurs during request construction.
+            TypeError: If any other error occurs during request construction.
+            AttributeError: If any other error occurs during request construction.
         """
-        try:
-            if not self.account_id:
-                raise ValueError("Account ID must be set before making the request.")
+        if not self.account_id:
+            raise ValueError("Account ID must be set before making the request.")
 
-            query_header = self._make_request_header()
+        query_header = self._make_request_header()
 
-            crypto_info_query = crypto_get_info_pb2.CryptoGetInfoQuery()
-            crypto_info_query.header.CopyFrom(query_header)
-            crypto_info_query.accountID.CopyFrom(self.account_id._to_proto())
+        crypto_info_query = crypto_get_info_pb2.CryptoGetInfoQuery()
+        crypto_info_query.header.CopyFrom(query_header)
+        crypto_info_query.accountID.CopyFrom(self.account_id._to_proto())
 
-            query = query_pb2.Query()
-            query.cryptoGetInfo.CopyFrom(crypto_info_query)
+        query = query_pb2.Query()
+        query.cryptoGetInfo.CopyFrom(crypto_info_query)
 
-            return query
-        except Exception as e:
-            logger.error("Exception in _make_request", e)
-            raise
+        return query
 
     def _get_method(self, channel: _Channel) -> _Method:
         """
