@@ -42,6 +42,11 @@ module.exports = async function revisionGuard({ github, context, core }) {
     core?.info?.(`Converted PR #${pr.number} to draft.`);
   } catch (error) {
     core?.error?.(`Failed to convert PR #${pr.number} to draft: ${error.message}`);
+    if (!process.env.REVIEWBOT_TOKEN) {
+      core?.info?.(
+        'Hint: configure REVIEWBOT_TOKEN with permission to convert pull requests to draft.'
+      );
+    }
     throw error;
   }
 
