@@ -7,13 +7,20 @@ function isDraft(pr) {
   return pr?.draft === true;
 }
 
-async function convertToDraft(github, { owner, repo, pullNumber }) {
-  await github.rest.pulls.update({
-    owner,
-    repo,
-    pull_number: pullNumber,
-    draft: true,
-  });
+async function convertToDraft(github, { pullRequestId }) {
+  await github.graphql(
+    `
+      mutation ConvertPullRequestToDraft($pullRequestId: ID!) {
+        convertPullRequestToDraft(input: { pullRequestId: $pullRequestId }) {
+          pullRequest {
+            id
+            isDraft
+          }
+        }
+      }
+    `,
+    { pullRequestId }
+  );
 }
 
 module.exports = {

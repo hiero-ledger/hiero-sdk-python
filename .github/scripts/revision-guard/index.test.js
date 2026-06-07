@@ -6,31 +6,39 @@ function freshRequire() {
   const helpersPath = require.resolve('./helpers/index.js');
   const labelsPath = require.resolve('./helpers/labels.js');
   const constantsPath = require.resolve('./helpers/constants.js');
+  const draftPath = require.resolve('./helpers/draft.js');
 
   delete require.cache[indexPath];
   delete require.cache[helpersPath];
   delete require.cache[labelsPath];
   delete require.cache[constantsPath];
+  delete require.cache[draftPath];
 
   return require('./index.js');
 }
 
 function createGithubMock() {
   const removedLabels = [];
-  const pullUpdates = [];
+  const graphqlCalls = [];
 
   return {
     removedLabels,
-    pullUpdates,
+    graphqlCalls,
+    graphql: async (query, variables) => {
+      graphqlCalls.push({ query, variables });
+      return {
+        convertPullRequestToDraft: {
+          pullRequest: {
+            id: variables.pullRequestId,
+            isDraft: true,
+          },
+        },
+      };
+    },
     rest: {
       issues: {
         removeLabel: async ({ name }) => {
           removedLabels.push(name);
-        },
-      },
-      pulls: {
-        update: async (params) => {
-          pullUpdates.push(params);
         },
       },
     },
@@ -74,9 +82,9 @@ describe('revision-guard index', () => {
 
     await handler({ github, context, core: { info() {} } });
 
-    assert.deepEqual(github.pullUpdates, [
-      { owner: 'hiero-ledger', repo: 'hiero-sdk-python', pull_number: 42, draft: true },
-    ]);
+    assert.equal(github.graphqlCalls.length, 1);
+    assert.match(github.graphqlCalls[0].query, /convertPullRequestToDraft/);
+    assert.deepEqual(github.graphqlCalls[0].variables, { pullRequestId: 'PR_node_42' });
     assert.deepEqual(github.removedLabels, [
       'queue:committers',
       'status: ready-to-merge',
@@ -98,7 +106,7 @@ describe('revision-guard index', () => {
 
     await handler({ github, context, core: { info() {} } });
 
-    assert.equal(github.pullUpdates.length, 0);
+    assert.equal(github.graphqlCalls.length, 0);
     assert.equal(github.removedLabels.length, 0);
   });
 
@@ -117,7 +125,7 @@ describe('revision-guard index', () => {
 
     await handler({ github, context, core: { info() {} } });
 
-    assert.equal(github.pullUpdates.length, 0);
+    assert.equal(github.graphqlCalls.length, 0);
     assert.equal(github.removedLabels.length, 0);
   });
 
@@ -142,9 +150,8 @@ describe('revision-guard index', () => {
     await handler({ github, context, core: { info() {} } });
 
     // Draft conversion must also fire for configurable-label scenarios.
-    assert.deepEqual(github.pullUpdates, [
-      { owner: 'hiero-ledger', repo: 'hiero-sdk-python', pull_number: 45, draft: true },
-    ]);
+    assert.equal(github.graphqlCalls.length, 1);
+    assert.deepEqual(github.graphqlCalls[0].variables, { pullRequestId: 'PR_node_45' });
     // Custom labels AND the matching default (queue:committers) must both be removed.
     assert.deepEqual(github.removedLabels, ['queue:committers', 'custom: one', 'custom: two']);
   });
