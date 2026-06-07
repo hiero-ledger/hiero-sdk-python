@@ -123,6 +123,64 @@ def test_build_create_token_custom_fees():
     assert fees[2].fallback_fee.amount == 2
 
 
+def test_fractional_fee_error_includes_invalid_assessment_method():
+    params = CreateTokenParams.parse_json_params(
+        {
+            "sessionId": SESSION_ID,
+            "customFees": [
+                {
+                    "fractionalFee": {
+                        "numerator": "1",
+                        "denominator": "10",
+                        "minimumAmount": "1",
+                        "maximumAmount": "10",
+                        "assessmentMethod": "invalid",
+                    }
+                }
+            ],
+        }
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="fractionalFee.assessmentMethod must be inclusive or exclusive, got 'invalid'",
+    ):
+        _build_create_token_transaction(params)
+
+
+@pytest.mark.parametrize(
+    ("field_name", "value"),
+    [
+        ("initialSupply", "not-an-integer"),
+        ("maxSupply", "not-an-integer"),
+        ("expirationTime", "not-an-integer"),
+        ("autoRenewPeriod", "not-an-integer"),
+    ],
+)
+def test_create_token_integer_errors_identify_field(field_name, value):
+    params = CreateTokenParams.parse_json_params(
+        {
+            "sessionId": SESSION_ID,
+            field_name: value,
+        }
+    )
+
+    with pytest.raises(ValueError, match=rf"{field_name} must be an integer string, got {value!r}"):
+        _build_create_token_transaction(params)
+
+
+def test_create_token_metadata_error_identifies_expected_format():
+    params = CreateTokenParams.parse_json_params(
+        {
+            "sessionId": SESSION_ID,
+            "metadata": "not-hex",
+        }
+    )
+
+    with pytest.raises(ValueError, match="metadata must be a hex-encoded string, got 'not-hex'"):
+        _build_create_token_transaction(params)
+
+
 def test_build_mint_and_associate_transactions_for_allowance_setup():
     mint_params = MintTokenParams.parse_json_params(
         {
@@ -146,6 +204,18 @@ def test_build_mint_and_associate_transactions_for_allowance_setup():
     assert list(mint_body.metadata) == [bytes.fromhex("1234")]
     assert associate_body.account.accountNum == 1002
     assert [token.tokenNum for token in associate_body.tokens] == [2001, 2002]
+
+
+def test_mint_token_metadata_error_identifies_item():
+    params = MintTokenParams.parse_json_params(
+        {
+            "sessionId": SESSION_ID,
+            "metadata": ["1234", "not-hex"],
+        }
+    )
+
+    with pytest.raises(ValueError, match=r"metadata\[1\] must be a hex-encoded string, got 'not-hex'"):
+        _build_mint_token_transaction(params)
 
 
 def test_build_delete_freeze_and_pause_transactions_for_allowance_cases():

@@ -111,6 +111,16 @@ class TransactionReceipt:
         return cast(list[int], self._receipt_proto.serialNumbers)
 
     @property
+    def new_total_supply(self) -> int:
+        """
+        Returns the token's total supply after a mint or burn transaction.
+
+        Returns:
+            int: The new total token supply, or 0 when not present.
+        """
+        return self._receipt_proto.newTotalSupply
+
+    @property
     def file_id(self) -> FileId | None:
         """
         Returns the file ID associated with this receipt.

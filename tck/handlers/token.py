@@ -48,7 +48,17 @@ from tck.util.key_utils import get_key_from_string
 def _parse_required_int(value: str | None, field_name: str) -> int:
     if value is None:
         raise ValueError(f"{field_name} is required")
-    return int(value)
+    try:
+        return int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field_name} must be an integer string, got {value!r}") from exc
+
+
+def _parse_hex(value: str, field_name: str) -> bytes:
+    try:
+        return bytes.fromhex(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{field_name} must be a hex-encoded string, got {value!r}") from exc
 
 
 def _build_fixed_fee(params: FixedFeeParams) -> CustomFixedFee:
@@ -79,7 +89,10 @@ def _build_custom_fee(params: CustomFeeParams) -> CustomFee:
         try:
             assessment_method = assessment_methods[params.fractionalFee.assessmentMethod]
         except KeyError as exc:
-            raise ValueError("fractionalFee.assessmentMethod must be inclusive or exclusive") from exc
+            raise ValueError(
+                "fractionalFee.assessmentMethod must be inclusive or exclusive, "
+                f"got {params.fractionalFee.assessmentMethod!r}"
+            ) from exc
 
         fee = CustomFractionalFee(
             numerator=_parse_required_int(params.fractionalFee.numerator, "fractionalFee.numerator"),
@@ -115,7 +128,7 @@ def _build_create_token_transaction(params: CreateTokenParams) -> TokenCreateTra
         transaction.set_decimals(params.decimals)
 
     if params.initialSupply is not None:
-        transaction.set_initial_supply(int(params.initialSupply))
+        transaction.set_initial_supply(_parse_required_int(params.initialSupply, "initialSupply"))
 
     if params.treasuryAccountId is not None:
         transaction.set_treasury_account_id(AccountId.from_string(params.treasuryAccountId))
@@ -164,22 +177,26 @@ def _build_create_token_transaction(params: CreateTokenParams) -> TokenCreateTra
             raise ValueError("supplyType must be infinite or finite")
 
     if params.maxSupply is not None:
-        transaction.set_max_supply(int(params.maxSupply))
+        transaction.set_max_supply(_parse_required_int(params.maxSupply, "maxSupply"))
 
     if params.freezeDefault is not None:
         transaction.set_freeze_default(params.freezeDefault)
 
     if params.expirationTime is not None:
-        transaction.set_expiration_time(Timestamp(seconds=int(params.expirationTime), nanos=0))
+        transaction.set_expiration_time(
+            Timestamp(seconds=_parse_required_int(params.expirationTime, "expirationTime"), nanos=0)
+        )
 
     if params.autoRenewAccountId is not None:
         transaction.set_auto_renew_account_id(AccountId.from_string(params.autoRenewAccountId))
 
     if params.autoRenewPeriod is not None:
-        transaction.set_auto_renew_period(Duration(seconds=int(params.autoRenewPeriod)))
+        transaction.set_auto_renew_period(
+            Duration(seconds=_parse_required_int(params.autoRenewPeriod, "autoRenewPeriod"))
+        )
 
     if params.metadata is not None:
-        transaction.set_metadata(bytes.fromhex(params.metadata) if params.metadata else b"")
+        transaction.set_metadata(_parse_hex(params.metadata, "metadata"))
 
     if params.customFees is not None:
         transaction.set_custom_fees([_build_custom_fee(custom_fee) for custom_fee in params.customFees])
@@ -216,11 +233,11 @@ def _build_mint_token_transaction(params: MintTokenParams) -> TokenMintTransacti
         transaction.set_token_id(TokenId.from_string(params.tokenId))
 
     if params.amount is not None:
-        transaction.set_amount(int(params.amount))
+        transaction.set_amount(_parse_required_int(params.amount, "amount"))
 
     if params.metadata is not None:
         # metadata is a list of hex-encoded strings
-        metadata_bytes = [bytes.fromhex(m) for m in params.metadata]
+        metadata_bytes = [_parse_hex(metadata, f"metadata[{index}]") for index, metadata in enumerate(params.metadata)]
         transaction.set_metadata(metadata_bytes)
 
     return transaction
@@ -242,7 +259,7 @@ def mint_token(params: MintTokenParams) -> MintTokenResponse:
     serial_numbers = [str(s) for s in receipt.serial_numbers] if receipt.serial_numbers else []
 
     return MintTokenResponse(
-        newTotalSupply=str(receipt._receipt_proto.newTotalSupply),
+        newTotalSupply=str(receipt.new_total_supply),
         serialNumbers=serial_numbers,
         status=ResponseCode(receipt.status).name,
     )
