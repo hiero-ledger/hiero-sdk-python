@@ -32,6 +32,7 @@ def mock_client():
     client.mirror_network = "https://testnet.mirrornode.hedera.com"
     client.max_retries = 3
 
+    client.default_max_transaction_fee = Hbar(2)
     client.generate_transaction_id.return_value = TransactionId.generate(AccountId(0, 0, 1001))
     client.operator_account_id._to_proto.return_value = AccountId(0, 0, 1)._to_proto()
 
