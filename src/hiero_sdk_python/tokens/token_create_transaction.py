@@ -234,7 +234,7 @@ class TokenCreateTransaction(Transaction):
         if token_params is None:
             # It is expected the user will set valid values later.
             token_params = TokenParams(
-                token_name="",
+                token_name="",  # nosec B106
                 token_symbol="",
                 treasury_account_id=AccountId(0, 0, 1),
                 decimals=0,

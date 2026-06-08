@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 
 try:
-    from Crypto.Hash import keccak
+    from Crypto.Hash import keccak  # nosec B413
 except ImportError:
     keccak = None
 
