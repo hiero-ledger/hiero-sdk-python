@@ -95,6 +95,7 @@ def test_freeze_with_generates_transaction_ids():
 
     # Mock client and transaction_id
     mock_client = MagicMock()
+    mock_client.default_max_transaction_fee = Hbar(1)
     mock_transaction_id = TransactionId(account_id=MagicMock(), valid_start=Timestamp(0, 1))
     file_tx.transaction_id = mock_transaction_id
 
@@ -137,6 +138,7 @@ def test_multi_chunk_execution():
 
     # Mock client and responses
     mock_client = MagicMock()
+    mock_client.default_max_transaction_fee = Hbar(1)
     mock_receipt = MagicMock(spec=TransactionReceipt)
     mock_receipt.status = ResponseCode.SUCCESS
 

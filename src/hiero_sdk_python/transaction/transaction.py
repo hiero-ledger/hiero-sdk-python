@@ -304,6 +304,17 @@ class Transaction(_Executable):
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
 
+        # Use all nodes from client network
+        # Resolve fee priority before building bodies:
+        # 1. Explicit transaction fee (self.transaction_fee)
+        # 2. Client default_max_transaction_fee
+        # 3. Transaction class default (_default_transaction_fee)
+        if self.transaction_fee is None:
+            if client is not None and getattr(client, "default_max_transaction_fee", None) is not None:
+                self.transaction_fee = client.default_max_transaction_fee
+            else:
+                self.transaction_fee = self._default_transaction_fee
+
         if self.batch_key:
             # For Inner Transaction of batch transaction node_account_id=0.0.0
             self.node_account_id = AccountId(0, 0, 0)
@@ -323,17 +334,6 @@ class Transaction(_Executable):
                 self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
 
         else:
-            # Use all nodes from client network
-            # Resolve fee priority before building bodies:
-            # 1. Explicit transaction fee (self.transaction_fee)
-            # 2. Client default_max_transaction_fee
-            # 3. Transaction class default (_default_transaction_fee)
-            if self.transaction_fee is None:
-                if client is not None and getattr(client, "default_max_transaction_fee", None) is not None:
-                    self.transaction_fee = client.default_max_transaction_fee
-                else:
-                    self.transaction_fee = self._default_transaction_fee
-
             for node in client.network.nodes:
                 self.node_account_id = node._account_id
                 self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
@@ -796,6 +796,7 @@ class Transaction(_Executable):
 
     def set_max_transaction_fee(self, max_transaction_fee):
         # Accept int, float, Decimal, or Hbar (but not bool)
+        self._require_not_frozen()
 
         if isinstance(max_transaction_fee, bool) or not isinstance(max_transaction_fee, (int, float, Decimal, Hbar)):
             raise TypeError(
