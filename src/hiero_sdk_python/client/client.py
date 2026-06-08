@@ -59,7 +59,7 @@ class Client:
 
         self.max_attempts: int = 10
         self.default_max_query_payment: Hbar = DEFAULT_MAX_QUERY_PAYMENT
-        self.default_max_transaction_fee: Hbar = None
+        self.default_max_transaction_fee: Hbar | None = None
 
         self._min_backoff: float = DEFAULT_MIN_BACKOFF
         self._max_backoff: float = DEFAULT_MAX_BACKOFF
@@ -293,7 +293,20 @@ class Client:
         self,
         max_transaction_fee: int | float | Decimal | Hbar,
     ) -> Client:
+        """
+        Sets the default maximum Hbar fee allowed for any transaction executed by this client.
 
+        This value is used as the transaction fee during freeze_with() if the transaction
+        itself does not have an explicit fee set. Individual transactions may override this
+        default by calling Transaction.set_max_transaction_fee().
+
+        Args:
+            max_transaction_fee (int | float | Decimal | Hbar):
+                The maximum fee that any single transaction is allowed to cost.
+
+        Returns:
+            Client: The current client instance for method chaining.
+        """
         if isinstance(max_transaction_fee, bool) or not isinstance(
             max_transaction_fee,
             (int, float, Decimal, Hbar),

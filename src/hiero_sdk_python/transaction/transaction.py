@@ -324,6 +324,10 @@ class Transaction(_Executable):
         # We iterate through every node in the node_account_id list and
         # For each node_account_id build the transaction body
         # This allows the transaction to be submitted to the given node in the network
+        #
+        # Batch inner transactions (node 0.0.0), explicitly-set nodes, and the
+        # fall-back to all client network nodes are all resolved by
+        # _resolve_node_ids(client) above, so this single loop covers every case.
 
         # TODO: Should lock the node_account_ids once freeze
         # self._node_account_ids.set_lock(True)
@@ -793,6 +797,7 @@ class Transaction(_Executable):
 
     def set_max_transaction_fee(self, max_transaction_fee):
         # Accept int, float, Decimal, or Hbar (but not bool)
+        self._require_not_frozen()
 
         if isinstance(max_transaction_fee, bool) or not isinstance(max_transaction_fee, (int, float, Decimal, Hbar)):
             raise TypeError(
