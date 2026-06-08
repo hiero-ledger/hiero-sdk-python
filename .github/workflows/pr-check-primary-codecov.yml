@@ -6,10 +6,12 @@ on:
     paths:
       - "src/**"
       - "tests/unit/**"
+      - ".github/workflows/pr-check-primary-codecov.yml"
   pull_request:
     paths:
       - "src/**"
       - "tests/unit/**"
+      - ".github/workflows/pr-check-primary-codecov.yml"
 
 permissions:
   contents: read
