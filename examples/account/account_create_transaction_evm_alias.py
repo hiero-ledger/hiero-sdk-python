@@ -1,12 +1,10 @@
 """
-
 Example: Create an account using an EVM-style alias (evm_address).
 
 This example demonstrates:
 1. Generating an ECDSA key pair (required for EVM compatibility).
-2. Deriving the EVM address from the public key.
-3. Creating a new Hedera account with that EVM address as its alias.
-4. Retrieving the account info to verify the alias.
+2. Creating a new Hedera account with an EVM address alias using set_key_with_alias().
+3. Retrieving the account info to verify the alias.
 
 Usage:
     uv run examples/account/account_create_transaction_evm_alias.py
@@ -23,7 +21,6 @@ from hiero_sdk_python import (
     AccountInfo,
     AccountInfoQuery,
     Client,
-    EvmAddress,
     Hbar,
     PrivateKey,
     PublicKey,
@@ -40,19 +37,17 @@ def setup_client() -> Client:
     return client
 
 
-def generate_alias_key() -> tuple[PrivateKey, PublicKey, EvmAddress]:
+def generate_alias_key() -> tuple[PrivateKey, PublicKey]:
     """
+    Generate a new ECDSA key pair for account creation with alias.
 
-    Generate a new ECDSA key pair and derive its EVM-style alias address.
-
-    EVM aliases on Hedera must be derived from an ECDSA (secp256k1) key pair.
-    The EVM address is the last 20 bytes of the keccak256 hash of the public key.
+    ECDSA is required for EVM compatibility. The EVM address derivation
+    is handled internally by set_key_with_alias().
 
     Returns:
-        tuple: A 3-tuple of:
+        tuple: A 2-tuple of:
             - private_key: The newly generated ECDSA private key.
             - public_key: The public key corresponding to the private key.
-            - evm_address (EvmAddress): The derived EVM address to be used as an alias.
     """
     print("\nSTEP 1: Generating a new ECDSA key pair for the account alias...")
 
@@ -60,44 +55,33 @@ def generate_alias_key() -> tuple[PrivateKey, PublicKey, EvmAddress]:
     private_key = PrivateKey.generate("ecdsa")
     public_key = private_key.public_key()
 
-    # Compute the EVM address from the public key
-    try:
-        evm_address = public_key.to_evm_address()
-    except ValueError as e:
-        print(f"❌ Error: {e}")
-        sys.exit(1)
-
-    print(f"✅ Generated new ECDSA key pair. EVM Address (alias): {evm_address}")
-    return private_key, public_key, evm_address
+    print("✅ Generated new ECDSA key pair")
+    return private_key, public_key
 
 
-def create_account_with_alias(
-    client: Client, private_key: PrivateKey, public_key: PublicKey, evm_address: EvmAddress
-) -> AccountId:
+def create_account_with_alias(client: Client, private_key: PrivateKey, public_key: PublicKey) -> AccountId:
     """
+    Create a new Hedera account using an EVM-style alias derived from the public key.
 
-    Create a new Hedera account using the provided EVM-style alias.
+    Uses set_key_with_alias() which internally derives the EVM address from
+    the provided ECDSA public key.
 
     Important: When creating an account with an alias, the transaction must be
-    signed by the private key corresponding to that alias. This proves ownership
-    of the alias (the EVM address) being claimed.
+    signed by the private key corresponding to that alias.
 
     Args:
         client: An initialized `Client` instance with an operator set.
         private_key: The newly generated `PrivateKey` corresponding to the
             alias public key, used to sign the transaction.
-        public_key: The public key associated with `private_key`, which is
-            set as the new account's key.
-        evm_address: The EVM-style alias (derived from `public_key`) to assign
-            to the new account.
+        public_key: The ECDSA public key associated with `private_key`, which is
+            set as the new account's key and used to derive the alias.
 
     Returns:
         The `AccountId` of the newly created account.
-
     """
     print("\nSTEP 2: Creating the account with the EVM address alias...")
 
-    transaction = AccountCreateTransaction().set_key(public_key).set_initial_balance(Hbar(5)).set_alias(evm_address)
+    transaction = AccountCreateTransaction().set_key_with_alias(public_key).set_initial_balance(Hbar(5))
 
     # Sign with new key (required for alias)
     # The client.execute() call below will attach the operator signature automatically.
@@ -136,9 +120,9 @@ def main():
     """Orchestrate the example workflow."""
     client = setup_client()
     try:
-        private_key, public_key, evm_address = generate_alias_key()
+        private_key, public_key = generate_alias_key()
 
-        new_account_id = create_account_with_alias(client, private_key, public_key, evm_address)
+        new_account_id = create_account_with_alias(client, private_key, public_key)
 
         account_info = fetch_account_info(client, new_account_id)
 
