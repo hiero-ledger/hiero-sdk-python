@@ -7,19 +7,16 @@ from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
-from tck.param.topic import CreateTopicCustomFeeParams, CreateTopicParams
+from tck.param.custom_fee import CustomFeeParams
+from tck.param.topic import CreateTopicParams
 from tck.response.topic import CreateTopicResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
 
 
-def _build_custom_fee(custom_fee_params: CreateTopicCustomFeeParams) -> CustomFixedFee:
+def _build_custom_fee(custom_fee_params: CustomFeeParams) -> CustomFixedFee:
     custom_fee = CustomFixedFee()
-
-    if custom_fee_params.feeCollectorAccountId == "":
-        # Keep TCK behavior: explicitly empty collector should surface as internal error.
-        raise ValueError("feeCollectorAccountId cannot be empty")
 
     if custom_fee_params.feeCollectorAccountId is not None:
         custom_fee.set_fee_collector_account_id(AccountId.from_string(custom_fee_params.feeCollectorAccountId))
@@ -29,7 +26,7 @@ def _build_custom_fee(custom_fee_params: CreateTopicCustomFeeParams) -> CustomFi
 
     if custom_fee_params.fixedFee is not None:
         if custom_fee_params.fixedFee.amount is not None:
-            custom_fee.amount = custom_fee_params.fixedFee.amount
+            custom_fee.amount = int(custom_fee_params.fixedFee.amount)
 
         if custom_fee_params.fixedFee.denominatingTokenId:
             custom_fee.set_denominating_token_id(TokenId.from_string(custom_fee_params.fixedFee.denominatingTokenId))
