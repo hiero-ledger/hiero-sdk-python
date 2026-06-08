@@ -33,16 +33,16 @@ def get_key_from_string(key_string: str) -> Key:
     try:
         return Key.from_bytes(key_bytes)
     except Exception:
-        pass
+        pass  # nosec B110
 
     try:
         return PublicKey.from_string_der(key_string)
     except Exception:
-        pass
+        pass  # nosec B110
 
     try:
         return PrivateKey.from_string_der(key_string)
     except Exception:
-        pass
+        pass  # nosec B110
 
     raise ValueError("Invalid key string")
