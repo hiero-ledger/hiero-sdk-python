@@ -66,11 +66,11 @@ def test_freeze_with_valid_parameters():
 @pytest.mark.parametrize(
     "valid_amount,expected",
     [
-        (1, Hbar(1)),
-        (0.1, Hbar(0.1)),
-        (Decimal("0.1"), Hbar(Decimal("0.1"))),
-        (Hbar(1), Hbar(1)),
-        (Hbar(0), Hbar(0)),
+        (1, 1_00_000_000),
+        (0.1, 10_000_000),
+        (Decimal("0.1"), 10_000_000),
+        (Hbar(1), 1_00_000_000),
+        (Hbar(0), 0.00000000),
     ],
 )
 def test_set_max_transaction_fee_valid_param(valid_amount, expected):
@@ -735,7 +735,7 @@ def test_fee_resolution_transaction_precedence(mock_client):
 
     tx.freeze_with(mock_client)
 
-    assert tx.transaction_fee == Hbar(10)
+    assert tx.transaction_fee == 10_00_000_000
 
 
 def test_fee_resolution_client_default_used_when_transaction_missing(mock_client):
@@ -747,7 +747,7 @@ def test_fee_resolution_client_default_used_when_transaction_missing(mock_client
 
     tx.freeze_with(mock_client)
 
-    assert tx.transaction_fee == Hbar(7)
+    assert tx.transaction_fee == 7_00_000_000
 
 
 def test_fee_resolution_falls_back_to_transaction_default(mock_client):
