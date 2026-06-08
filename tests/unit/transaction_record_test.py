@@ -22,7 +22,7 @@ from hiero_sdk_python.tokens.token_airdrop_pending_record import PendingAirdropR
 from hiero_sdk_python.tokens.token_association import TokenAssociation
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
-from hiero_sdk_python.transaction.transaction_id import TransactionId  # noqa: F401
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_record import TransactionRecord
 
@@ -490,6 +490,7 @@ def test_repr_method(transaction_id):
         "transaction_hash=None, "
         "transaction_memo='None', "
         "transaction_fee=None, "
+        "high_volume_pricing_multiplier=None, "
         "receipt_status='None', "
         "token_transfers={}, "
         "nft_transfers={}, "
@@ -528,6 +529,7 @@ def test_repr_method(transaction_id):
         f"transaction_hash=None, "
         f"transaction_memo='None', "
         f"transaction_fee=None, "
+        f"high_volume_pricing_multiplier=None, "
         f"receipt_status='SUCCESS', "
         f"token_transfers={{}}, "
         f"nft_transfers={{}}, "
@@ -559,6 +561,7 @@ def test_repr_method(transaction_id):
         transaction_hash=b"\x01\x02\x03\x04",
         transaction_memo="Test memo",
         transaction_fee=100000,
+        high_volume_pricing_multiplier=1250,
         receipt=receipt,
         consensus_timestamp=ts,
         schedule_ref=sched,
@@ -577,6 +580,7 @@ def test_repr_method(transaction_id):
     assert "transaction_hash=b'\\x01\\x02\\x03\\x04'" in repr_full
     assert "transaction_memo='Test memo'" in repr_full
     assert "transaction_fee=100000" in repr_full
+    assert "high_volume_pricing_multiplier=1250" in repr_full
     assert "receipt_status='SUCCESS'" in repr_full
     assert "consensus_timestamp=" in repr_full
     assert f"schedule_ref={sched}" in repr_full
@@ -608,6 +612,7 @@ def test_repr_method(transaction_id):
         f"transaction_hash=None, "
         f"transaction_memo='None', "
         f"transaction_fee=None, "
+        f"high_volume_pricing_multiplier=None, "
         f"receipt_status='SUCCESS', "
         f"token_transfers={{}}, "
         f"nft_transfers={{}}, "
@@ -884,3 +889,28 @@ def test_to_proto_raises_when_both_prng_fields_set(transaction_id):
 
     with pytest.raises(ValueError, match="mutually exclusive"):
         record._to_proto()
+
+
+def test_high_volume_multiplier_defaults_to_none():
+    record = TransactionRecord()
+
+    assert record.high_volume_pricing_multiplier is None
+
+
+def test_high_volume_multiplier_serialization_round_trip():
+    record = TransactionRecord(
+        transaction_id=TransactionId.from_string("0.0.9@1234567890.000000001"), high_volume_pricing_multiplier=1250
+    )
+
+    proto = record._to_proto()
+    restored = TransactionRecord._from_proto(proto)
+
+    assert restored.high_volume_pricing_multiplier == 1250
+
+
+def test_high_volume_multiplier_in_repr():
+    record = TransactionRecord(high_volume_pricing_multiplier=1250)
+
+    output = repr(record)
+
+    assert "1250" in output
