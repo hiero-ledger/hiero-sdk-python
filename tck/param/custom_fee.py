@@ -7,7 +7,7 @@ from tck.util.param_utils import to_bool
 
 @dataclass
 class CustomFeeParams:
-    """Parameters for a custom fee in topic creation."""
+    """Parameters for custom fee."""
 
     feeCollectorAccountId: str | None = None
     feeCollectorsExempt: bool | None = None
@@ -29,7 +29,7 @@ class CustomFeeParams:
 
 @dataclass
 class FixedFeeParams:
-    """Parameters for a fixed fee custom fee in topic creation."""
+    """Parameters for fixed fee."""
 
     amount: str | None = None
     denominatingTokenId: str | None = None
@@ -44,6 +44,8 @@ class FixedFeeParams:
 
 @dataclass
 class FractionalFeeParams:
+    """Parameters for fractional fee."""
+
     numerator: str | None = None
     denominator: str | None = None
     minimumAmount: str | None = None
@@ -63,6 +65,8 @@ class FractionalFeeParams:
 
 @dataclass
 class RoyaltyFeeParams:
+    """Parameters for royalty fee."""
+
     numerator: str | None = None
     denominator: str | None = None
     fallbackFee: FixedFeeParams | None = None
@@ -82,6 +86,8 @@ class RoyaltyFeeParams:
 
 @dataclass
 class CustomFeeLimitParams:
+    """Parameters for custom fee limit"""
+
     accountId: str | None = None
     fixedFee: FixedFeeParams | None = None
 
