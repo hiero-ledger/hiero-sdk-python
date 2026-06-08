@@ -87,7 +87,7 @@ class TransactionResponse:
 
         Args:
             client (Client): The client instance used to execute the query.
-            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) for this execution.
+            timeout (Optional[Union[int, float]]): The total execution timeout (in seconds) test for this execution.
 
         Returns:
             TransactionRecord: The full transaction record.
