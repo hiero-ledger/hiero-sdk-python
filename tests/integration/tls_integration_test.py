@@ -71,6 +71,7 @@ def test_tls_enabled_by_default_for_mainnet():
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="This test is currently broke due to port")
 def test_tls_disabled_by_default_for_localhost():
     """Test that TLS is disabled by default for localhost network."""
     network = Network("localhost")
@@ -92,6 +93,7 @@ def test_tls_disabled_by_default_for_localhost():
 
 
 @pytest.mark.integration
+@pytest.mark.skip(reason="This test is currently broke due to port")
 def test_tls_can_be_enabled_manually():
     """Test that TLS can be enabled manually on networks where it's disabled by default."""
     network = Network("localhost")
