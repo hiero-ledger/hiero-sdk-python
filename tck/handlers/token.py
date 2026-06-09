@@ -43,15 +43,7 @@ from tck.response.token import (
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
-
-
-def _parse_required_int(value: str | None, field_name: str) -> int:
-    if value is None:
-        raise ValueError(f"{field_name} is required")
-    try:
-        return int(value)
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{field_name} must be an integer string, got {value!r}") from exc
+from tck.util.param_utils import to_int
 
 
 def _parse_hex(value: str, field_name: str) -> bytes:
@@ -62,7 +54,7 @@ def _parse_hex(value: str, field_name: str) -> bytes:
 
 
 def _build_fixed_fee(params: FixedFeeParams) -> CustomFixedFee:
-    fee = CustomFixedFee(amount=_parse_required_int(params.amount, "fixedFee.amount"))
+    fee = CustomFixedFee(amount=to_int(params.amount))
     if params.denominatingTokenId is not None:
         fee.set_denominating_token_id(TokenId.from_string(params.denominatingTokenId))
     return fee
@@ -95,17 +87,17 @@ def _build_custom_fee(params: CustomFeeParams) -> CustomFee:
             ) from exc
 
         fee = CustomFractionalFee(
-            numerator=_parse_required_int(params.fractionalFee.numerator, "fractionalFee.numerator"),
-            denominator=_parse_required_int(params.fractionalFee.denominator, "fractionalFee.denominator"),
-            min_amount=_parse_required_int(params.fractionalFee.minimumAmount, "fractionalFee.minimumAmount"),
-            max_amount=_parse_required_int(params.fractionalFee.maximumAmount, "fractionalFee.maximumAmount"),
+            numerator=to_int(params.fractionalFee.numerator),
+            denominator=to_int(params.fractionalFee.denominator),
+            min_amount=to_int(params.fractionalFee.minimumAmount),
+            max_amount=to_int(params.fractionalFee.maximumAmount),
             assessment_method=assessment_method,
         )
     elif params.royaltyFee is not None:
         fallback_fee = _build_fixed_fee(params.royaltyFee.fallbackFee) if params.royaltyFee.fallbackFee else None
         fee = CustomRoyaltyFee(
-            numerator=_parse_required_int(params.royaltyFee.numerator, "royaltyFee.numerator"),
-            denominator=_parse_required_int(params.royaltyFee.denominator, "royaltyFee.denominator"),
+            numerator=to_int(params.royaltyFee.numerator),
+            denominator=to_int(params.royaltyFee.denominator),
             fallback_fee=fallback_fee,
         )
     else:
@@ -128,7 +120,7 @@ def _build_create_token_transaction(params: CreateTokenParams) -> TokenCreateTra
         transaction.set_decimals(params.decimals)
 
     if params.initialSupply is not None:
-        transaction.set_initial_supply(_parse_required_int(params.initialSupply, "initialSupply"))
+        transaction.set_initial_supply(to_int(params.initialSupply))
 
     if params.treasuryAccountId is not None:
         transaction.set_treasury_account_id(AccountId.from_string(params.treasuryAccountId))
@@ -177,26 +169,22 @@ def _build_create_token_transaction(params: CreateTokenParams) -> TokenCreateTra
             raise ValueError("supplyType must be infinite or finite")
 
     if params.maxSupply is not None:
-        transaction.set_max_supply(_parse_required_int(params.maxSupply, "maxSupply"))
+        transaction.set_max_supply(to_int(params.maxSupply))
 
     if params.freezeDefault is not None:
         transaction.set_freeze_default(params.freezeDefault)
 
     if params.expirationTime is not None:
-        transaction.set_expiration_time(
-            Timestamp(seconds=_parse_required_int(params.expirationTime, "expirationTime"), nanos=0)
-        )
+        transaction.set_expiration_time(Timestamp(seconds=to_int(params.expirationTime), nanos=0))
 
     if params.autoRenewAccountId is not None:
         transaction.set_auto_renew_account_id(AccountId.from_string(params.autoRenewAccountId))
 
     if params.autoRenewPeriod is not None:
-        transaction.set_auto_renew_period(
-            Duration(seconds=_parse_required_int(params.autoRenewPeriod, "autoRenewPeriod"))
-        )
+        transaction.set_auto_renew_period(Duration(seconds=to_int(params.autoRenewPeriod)))
 
     if params.metadata is not None:
-        transaction.set_metadata(_parse_hex(params.metadata, "metadata"))
+        transaction.set_metadata(params.metadata.encode())
 
     if params.customFees is not None:
         transaction.set_custom_fees([_build_custom_fee(custom_fee) for custom_fee in params.customFees])
@@ -233,7 +221,7 @@ def _build_mint_token_transaction(params: MintTokenParams) -> TokenMintTransacti
         transaction.set_token_id(TokenId.from_string(params.tokenId))
 
     if params.amount is not None:
-        transaction.set_amount(_parse_required_int(params.amount, "amount"))
+        transaction.set_amount(to_int(params.amount))
 
     if params.metadata is not None:
         # metadata is a list of hex-encoded strings

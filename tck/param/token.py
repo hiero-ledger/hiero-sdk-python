@@ -9,6 +9,7 @@ from tck.util.param_utils import (
     parse_common_transaction_params,
     parse_session_id,
     to_bool,
+    to_int,
 )
 
 
@@ -152,7 +153,7 @@ class CreateTokenParams(BaseTransactionParams):
         return cls(
             name=params.get("name"),
             symbol=params.get("symbol"),
-            decimals=params.get("decimals"),
+            decimals=to_int(params.get("decimals")),
             initialSupply=params.get("initialSupply"),
             treasuryAccountId=params.get("treasuryAccountId"),
             adminKey=params.get("adminKey"),

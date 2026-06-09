@@ -169,7 +169,7 @@ def _apply_delete_allowance_entry(
 
     token_id = TokenId.from_string(entry.tokenId)
 
-    if entry.serialNumbers is None:
+    if not entry.serialNumbers:
         raise ValueError("NFT allowance requires serialNumbers")
 
     for serial in entry.serialNumbers:
