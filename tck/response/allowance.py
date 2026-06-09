@@ -4,16 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from tck.response.base import StatusOnlyResponse
+
 
 @dataclass
-class ApproveAllowanceResponse:
+class ApproveAllowanceResponse(StatusOnlyResponse):
     """Response payload for approveAllowance."""
 
-    status: str | None = None
-
 
 @dataclass
-class DeleteAllowanceResponse:
+class DeleteAllowanceResponse(StatusOnlyResponse):
     """Response payload for deleteAllowance."""
-
-    status: str | None = None

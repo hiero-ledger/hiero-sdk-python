@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from tck.response.base import StatusOnlyResponse
+
 
 @dataclass
 class CreateTokenResponse:
@@ -23,28 +25,20 @@ class MintTokenResponse:
 
 
 @dataclass
-class AssociateTokenResponse:
+class AssociateTokenResponse(StatusOnlyResponse):
     """Response payload for associateToken."""
 
-    status: str | None = None
-
 
 @dataclass
-class DeleteTokenResponse:
+class DeleteTokenResponse(StatusOnlyResponse):
     """Response payload for deleteToken."""
 
-    status: str | None = None
-
 
 @dataclass
-class FreezeTokenResponse:
+class FreezeTokenResponse(StatusOnlyResponse):
     """Response payload for freezeToken."""
 
-    status: str | None = None
-
 
 @dataclass
-class PauseTokenResponse:
+class PauseTokenResponse(StatusOnlyResponse):
     """Response payload for pauseToken."""
-
-    status: str | None = None
