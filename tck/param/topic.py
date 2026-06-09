@@ -68,10 +68,14 @@ class TopicMessageSubmitParams(BaseTransactionParams):
 
     @classmethod
     def parse_json_params(cls, params: dict) -> TopicMessageSubmitParams:
+        """Parse JSON-RPC params into a TopicMessageSubmitParams instance."""
         custom_fee_limits = params.get("customFeeLimits")
+
         if custom_fee_limits is not None and not isinstance(custom_fee_limits, list):
             raise ValueError("customFeeLimits must be a list")
-        if custom_fee_limits is not None and any(not isinstance(custom_fee, dict) for custom_fee in custom_fee_limits):
+        if custom_fee_limits is not None and any(
+            not isinstance(custom_fee_limit, dict) for custom_fee_limit in custom_fee_limits
+        ):
             raise ValueError("each customFeeLimits item must be an object")
 
         return cls(

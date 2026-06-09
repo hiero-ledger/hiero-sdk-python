@@ -110,7 +110,6 @@ def _build_custom_fee_limit(params: CustomFeeLimitParams) -> CustomFeeLimit:
 
 def _build_topic_message_submit_transaction(params: TopicMessageSubmitParams) -> TopicMessageSubmitTransaction:
     """Build topic message submit transaction from params."""
-
     transaction = TopicMessageSubmitTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
     if params.topicId is not None:
@@ -136,7 +135,6 @@ def _build_topic_message_submit_transaction(params: TopicMessageSubmitParams) ->
 @rpc_method("submitTopicMessage")
 def submit_topic_message(params: TopicMessageSubmitParams) -> TopicMessageSubmitResponse:
     """Submit message to a topic."""
-
     client = get_client(params.sessionId)
 
     transaction = _build_topic_message_submit_transaction(params)

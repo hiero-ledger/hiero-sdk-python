@@ -7,7 +7,7 @@ from tck.util.param_utils import to_bool
 
 @dataclass
 class CustomFeeParams:
-    """Parameters for custom fee."""
+    """Request parameters for CustomFee."""
 
     feeCollectorAccountId: str | None = None
     feeCollectorsExempt: bool | None = None
@@ -17,6 +17,7 @@ class CustomFeeParams:
 
     @classmethod
     def parse_json_params(cls, params: dict) -> CustomFeeParams:
+        """Parse JSON-RPC params into a CustomFeeParams instance."""
         fixed_fee = params.get("fixedFee")
         fee_collector_account_id = params.get("feeCollectorAccountId")
 
@@ -29,13 +30,14 @@ class CustomFeeParams:
 
 @dataclass
 class FixedFeeParams:
-    """Parameters for fixed fee."""
+    """Request parameters for FixedFee."""
 
     amount: str | None = None
     denominatingTokenId: str | None = None
 
     @classmethod
     def parse_json_params(cls, params: dict) -> FixedFeeParams:
+        """Parse JSON-RPC params into a FixedFeeParams instance."""
         return cls(
             amount=params.get("amount"),
             denominatingTokenId=params.get("denominatingTokenId"),
@@ -44,7 +46,7 @@ class FixedFeeParams:
 
 @dataclass
 class FractionalFeeParams:
-    """Parameters for fractional fee."""
+    """Request parameters for FractionalFee."""
 
     numerator: str | None = None
     denominator: str | None = None
@@ -54,6 +56,7 @@ class FractionalFeeParams:
 
     @classmethod
     def parse_json_params(cls, params: dict) -> FractionalFeeParams:
+        """Parse JSON-RPC params into a FractionalFeeParams instance."""
         return cls(
             numerator=params.get("numerator"),
             denominator=params.get("denominator"),
@@ -65,7 +68,7 @@ class FractionalFeeParams:
 
 @dataclass
 class RoyaltyFeeParams:
-    """Parameters for royalty fee."""
+    """Request parameters for RoyaltyFee."""
 
     numerator: str | None = None
     denominator: str | None = None
@@ -73,6 +76,7 @@ class RoyaltyFeeParams:
 
     @classmethod
     def parse_json_params(cls, params: dict) -> RoyaltyFeeParams:
+        """Parse JSON-RPC params into a RoyaltyFeeParams instance."""
         fixed_fee = params.get("fixedFee")
 
         return cls(
@@ -84,13 +88,14 @@ class RoyaltyFeeParams:
 
 @dataclass
 class CustomFeeLimitParams:
-    """Parameters for custom fee limit"""
+    """Request parameters for CustomFeeLimit."""
 
     payerId: str | None = None
     fixedFees: list[FixedFeeParams] | None = None
 
     @classmethod
     def parse_json_params(cls, params: dict) -> CustomFeeLimitParams:
+        """Parse JSON-RPC params into a CustomFeeLimitParams instance."""
         fixed_fees = params.get("fixedFees")
 
         return cls(
