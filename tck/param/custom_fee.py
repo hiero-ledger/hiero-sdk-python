@@ -75,12 +75,10 @@ class RoyaltyFeeParams:
     def parse_json_params(cls, params: dict) -> RoyaltyFeeParams:
         fixed_fee = params.get("fixedFee")
 
-        return (
-            cls(
-                numerator=params.get("numerator"),
-                denominator=params.get("denominator"),
-                fixedFee=(FixedFeeParams.parse_json_params(fixed_fee) if isinstance(fixed_fee, dict) else None),
-            ),
+        return cls(
+            numerator=params.get("numerator"),
+            denominator=params.get("denominator"),
+            fixedFee=(FixedFeeParams.parse_json_params(fixed_fee) if isinstance(fixed_fee, dict) else None),
         )
 
 
@@ -88,16 +86,18 @@ class RoyaltyFeeParams:
 class CustomFeeLimitParams:
     """Parameters for custom fee limit"""
 
-    accountId: str | None = None
-    fixedFee: FixedFeeParams | None = None
+    payerId: str | None = None
+    fixedFees: list[FixedFeeParams] | None = None
 
     @classmethod
     def parse_json_params(cls, params: dict) -> CustomFeeLimitParams:
-        fixed_fee = params.get("fixedFee")
+        fixed_fees = params.get("fixedFees")
 
-        return (
-            cls(
-                accountId=params.get("accountId"),
-                fixedFee=(FixedFeeParams.parse_json_params(fixed_fee) if isinstance(fixed_fee, dict) else None),
+        return cls(
+            payerId=params.get("payerId"),
+            fixedFees=(
+                [FixedFeeParams.parse_json_params(fixed_fee) for fixed_fee in fixed_fees]
+                if fixed_fees is not None
+                else None
             ),
         )

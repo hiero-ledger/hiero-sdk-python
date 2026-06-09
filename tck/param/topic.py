@@ -68,7 +68,6 @@ class TopicMessageSubmitParams(BaseTransactionParams):
 
     @classmethod
     def parse_json_params(cls, params: dict) -> TopicMessageSubmitParams:
-
         custom_fee_limits = params.get("customFeeLimits")
         if custom_fee_limits is not None and not isinstance(custom_fee_limits, list):
             raise ValueError("customFeeLimits must be a list")

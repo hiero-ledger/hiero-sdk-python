@@ -4,7 +4,6 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
-from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_id import TokenId
@@ -89,22 +88,23 @@ def create_topic(params: CreateTopicParams) -> CreateTopicResponse:
 
 def _build_custom_fee_limit(params: CustomFeeLimitParams) -> CustomFeeLimit:
     """Build custom fee limit from params."""
-
     custom_fee_limit = CustomFeeLimit()
 
-    if params.accountId is not None:
-        custom_fee_limit.set_payer_id(AccountId.from_string(params.accountId))
-    if params.fixedFee is not None:
-        fixed_fee = CustomFixedFee()
+    if params.payerId is not None:
+        custom_fee_limit.set_payer_id(AccountId.from_string(params.payerId))
+    if params.fixedFees is not None:
+        fixed_fees = []
+        for fee in params.fixedFees:
+            fixed_fee = CustomFixedFee()
+            if fee.amount is not None:
+                fixed_fee.set_amount_in_tinybars(int(fee.amount))
 
-        if params.fixedFee.amount is not None:
-            fixed_fee.set_hbar_amount(Hbar.from_string(params.fixedFee.amount))
+            if fee.denominatingTokenId is not None:
+                fixed_fee.set_denominating_token_id(TokenId.from_string(fee.denominatingTokenId))
 
-        if params.fixedFee.denominatingTokenId is not None:
-            fixed_fee.set_denominating_token_id(TokenId.from_string(params.fixedFee.denominatingTokenId))
+            fixed_fees.append(fixed_fee)
 
-        custom_fee_limit.add_custom_fee(fixed_fee)
-
+        custom_fee_limit.set_custom_fees(fixed_fees)
     return custom_fee_limit
 
 
