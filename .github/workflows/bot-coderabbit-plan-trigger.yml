@@ -1,10 +1,9 @@
 # Triggers CodeRabbit's plan feature for difficulty-labeled issues.
-# It runs when a difficulty label is added to an unlocked issue, and again when
-# a previously locked issue is unlocked (e.g. after triage approval).
+# It runs when a difficulty label is added to an unlocked issue.
 name: CodeRabbit Plan Trigger
 on:
   issues:
-    types: [labeled, unlocked]
+    types: [labeled]
 
 permissions:
   issues: write
@@ -16,6 +15,11 @@ jobs:
     concurrency:
       group: coderabbit-plan-${{ github.event.issue.number }}
       cancel-in-progress: false
+    # Run only for open, unlocked issues when a difficulty label is added.
+    if: >
+      github.event.issue.state == 'open' &&
+      github.event.issue.locked == false &&
+      contains(fromJson('["skill: beginner","skill: intermediate","skill: advanced"]'), github.event.label.name)
 
     steps:
       - name: Harden the runner
@@ -23,43 +27,12 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Evaluate trigger conditions
-        id: should_run
-        run: echo "value=true" >> "$GITHUB_OUTPUT"
-        # Run only for open, unlocked issues that have beginner/intermediate/advanced difficulty.
-        if: >
-          github.event.issue.state == 'open' &&
-          github.event.issue.locked == false &&
-          (
-            (
-              github.event.action == 'labeled' &&
-              contains(fromJson('["skill: beginner","skill: intermediate","skill: advanced"]'), github.event.label.name)
-            ) ||
-            (
-              github.event.action == 'unlocked' &&
-              (
-                contains(github.event.issue.labels.*.name, 'skill: beginner') ||
-                contains(github.event.issue.labels.*.name, 'skill: intermediate') ||
-                contains(github.event.issue.labels.*.name, 'skill: advanced')
-              )
-            )
-          )
-
-      - name: Log skip context
-        if: steps.should_run.outputs.value != 'true'
-        run: |
-          echo "::notice::Skipping CodeRabbit plan trigger"
-          echo "::notice::action=${{ github.event.action }}"
-          echo "::notice::issue_state=${{ github.event.issue.state }}"
-          echo "::notice::issue_locked=${{ github.event.issue.locked }}"
-          echo "::notice::issue_labels=${{ join(github.event.issue.labels.*.name, ', ') }}"
-
       - name: Checkout repository
-        if: steps.should_run.outputs.value == 'true'
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 #v6.0.3
+        with:
+          persist-credentials: false
 
       - name: Trigger CodeRabbit Plan
-        if: steps.should_run.outputs.value == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9.0.0

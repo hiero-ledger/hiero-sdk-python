@@ -97,6 +97,10 @@ async function main({ github, context }) {
     // Validations
     if (!issue?.number) return console.log('No issue in payload');
 
+    if (issue.locked) {
+      return console.log(`Issue #${issue.number} is locked. CodeRabbit plan trigger will be deferred until the issue is approved and unlocked.`);
+    }
+
     if (!hasBeginnerOrHigherLabel(issue, label)) {
       return console.log('Issue does not have beginner/intermediate/advanced label');
     }
