@@ -13,6 +13,7 @@ This module includes:
 
 from __future__ import annotations
 
+import ctypes
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -473,12 +474,6 @@ class TokenCreateTransaction(Transaction):
         Raises:
             ValueError: If required fields are missing or invalid.
         """
-        # Validate all token params
-        TokenCreateValidator._validate_token_params(self._token_params)
-
-        # Validate freeze status
-        TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
-
         # Convert keys
         admin_key_proto = key_to_proto(self._keys.admin_key)
         supply_key_proto = key_to_proto(self._keys.supply_key)
@@ -505,8 +500,8 @@ class TokenCreateTransaction(Transaction):
         return token_create_pb2.TokenCreateTransactionBody(
             name=self._token_params.token_name,
             symbol=self._token_params.token_symbol,
-            decimals=self._token_params.decimals,
-            initialSupply=self._token_params.initial_supply,
+            decimals=ctypes.c_uint32(self._token_params.decimals).value,
+            initialSupply=ctypes.c_uint64(self._token_params.initial_supply).value,
             tokenType=token_type_value,
             supplyType=supply_type_value,
             maxSupply=self._token_params.max_supply,
