@@ -90,6 +90,48 @@ def test_build_transaction_body_nft(mock_account_ids, metadata):
     assert transaction_body.tokenMint.metadata == metadata
 
 
+def test_build_proto_body_no_token_id(mock_account_ids):
+    """Test that _build_proto_body handles None token_id."""
+    payer_account, _, node_account_id, _, _ = mock_account_ids
+
+    mint_tx = TokenMintTransaction()
+    mint_tx.set_amount(100)
+    mint_tx.transaction_id = generate_transaction_id(payer_account)
+    mint_tx.node_account_id = node_account_id
+
+    transaction_body = mint_tx.build_transaction_body()
+    assert transaction_body.tokenMint.amount == 100
+
+
+def test_build_proto_body_no_amount_no_metadata(mock_account_ids):
+    """Test that _build_proto_body returns empty body when neither amount nor metadata is set."""
+    payer_account, _, node_account_id, token_id, _ = mock_account_ids
+
+    mint_tx = TokenMintTransaction()
+    mint_tx.set_token_id(token_id)
+    mint_tx.transaction_id = generate_transaction_id(payer_account)
+    mint_tx.node_account_id = node_account_id
+
+    transaction_body = mint_tx.build_transaction_body()
+    assert transaction_body.tokenMint.amount == 0
+    assert len(transaction_body.tokenMint.metadata) == 0
+
+
+def test_build_proto_body_metadata_bytes_in_build(mock_account_ids):
+    """Test that raw bytes metadata assigned directly is converted in _build_proto_body."""
+    payer_account, _, node_account_id, token_id, _ = mock_account_ids
+
+    mint_tx = TokenMintTransaction()
+    mint_tx.set_token_id(token_id)
+    mint_tx.metadata = b"raw_bytes"  # bypass set_metadata to test the isinstance branch
+    mint_tx.transaction_id = generate_transaction_id(payer_account)
+    mint_tx.node_account_id = node_account_id
+
+    transaction_body = mint_tx.build_transaction_body()
+    assert transaction_body.tokenMint.amount == 0
+    assert transaction_body.tokenMint.metadata == [b"raw_bytes"]
+
+
 # This test uses fixtures (mock_account_ids, amount, mock_client) as parameters
 def test_sign_transaction_fungible(mock_account_ids, amount, mock_client):
     """Test signing the fungible token mint transaction with a supply key."""

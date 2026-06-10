@@ -51,6 +51,15 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenAssociate.tokens[1].tokenNum == token_id_2.num
 
 
+def test_build_proto_body_no_account_id():
+    """Test that _build_proto_body handles None account_id."""
+    associate_tx = TokenAssociateTransaction()
+
+    body = associate_tx._build_proto_body()
+    assert not body.HasField("account")
+    assert len(body.tokens) == 0
+
+
 # This test uses fixture (mock_account_ids, mock_client) as parameter
 def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token associate transaction with a private key."""

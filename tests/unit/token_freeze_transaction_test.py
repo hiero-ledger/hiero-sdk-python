@@ -49,6 +49,28 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenFreeze.account == proto_account
 
 
+def test_build_proto_body_no_token_id(mock_account_ids):
+    """Test that _build_proto_body handles None token_id."""
+    _, freeze_id, _, _, _ = mock_account_ids
+
+    freeze_tx = TokenFreezeTransaction()
+    freeze_tx.set_account_id(freeze_id)
+
+    body = freeze_tx._build_proto_body()
+    assert not body.HasField("token")
+
+
+def test_build_proto_body_no_account_id(mock_account_ids):
+    """Test that _build_proto_body handles None account_id."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    freeze_tx = TokenFreezeTransaction()
+    freeze_tx.set_token_id(token_id)
+
+    body = freeze_tx._build_proto_body()
+    assert not body.HasField("account")
+
+
 # This test uses fixtures (mock_account_id, mock_client) as parameters
 def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token freeze transaction with a freeze key."""
