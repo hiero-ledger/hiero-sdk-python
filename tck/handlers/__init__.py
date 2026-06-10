@@ -8,6 +8,7 @@ from . import (
     key,
     sdk,  # setup, reset
     topic,
+    transfer,
 )
 from .registry import (
     get_all_handlers,
