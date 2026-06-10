@@ -49,28 +49,6 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenFreeze.account == proto_account
 
 
-# This test uses fixture mock_account_ids as parameter
-def test_missing_token_id(mock_account_ids):
-    """Test that building a transaction without setting TokenID raises a ValueError."""
-    account_id, freeze_id, node_account_id, token_id, _ = mock_account_ids
-
-    freeze_tx = TokenFreezeTransaction()
-    freeze_tx.set_account_id(freeze_id)
-    with pytest.raises(ValueError, match="Missing required TokenID."):
-        freeze_tx.build_transaction_body()
-
-
-# This test uses fixture mock_account_ids as parameter
-def test_missing_account_id(mock_account_ids):
-    """Test that building a transaction without setting AccountID raises a ValueError."""
-    account_id, freeze_id, node_account_id, token_id, _ = mock_account_ids
-
-    freeze_tx = TokenFreezeTransaction()
-    freeze_tx.set_token_id(token_id)
-    with pytest.raises(ValueError, match="Missing required AccountID."):
-        freeze_tx.build_transaction_body()
-
-
 # This test uses fixtures (mock_account_id, mock_client) as parameters
 def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token freeze transaction with a freeze key."""

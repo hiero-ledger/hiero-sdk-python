@@ -94,45 +94,25 @@ class TokenMintTransaction(Transaction):
         self.metadata = metadata
         return self
 
-    def _validate_parameters(self):
-        """Validates the parameters for the token mint transaction."""
-        if self.token_id is None:
-            raise ValueError("Token ID is required for minting.")
-
-        if (self.amount is not None) and (self.metadata is not None):
-            raise ValueError("Specify either amount for fungible tokens or metadata for NFTs, not both.")
-
     def _build_proto_body(self) -> token_mint_pb2.TokenMintTransactionBody:
         """
         Returns the protobuf body for the token mint transaction (fungible or NFT).
-
-        Raises:
-            ValueError: If required fields are missing or conflicting.
         """
-        self._validate_parameters()
+        token_proto = self.token_id._to_proto() if self.token_id else None
 
         if self.amount is not None:
-            if self.amount <= 0:
-                raise ValueError("Amount to mint must be positive.")
-            # Fungible token
             return token_mint_pb2.TokenMintTransactionBody(
-                token=self.token_id._to_proto(),
+                token=token_proto,
                 amount=self.amount,
                 metadata=[],
             )
 
         if self.metadata is not None:
-            # NFT
-            if not isinstance(self.metadata, list):
-                raise ValueError("Metadata must be a list of byte arrays for NFTs.")
-            if not self.metadata:
-                raise ValueError("Metadata list cannot be empty for NFTs.")
-            return token_mint_pb2.TokenMintTransactionBody(
-                token=self.token_id._to_proto(), amount=0, metadata=self.metadata
-            )
+            if isinstance(self.metadata, bytes):
+                self.metadata = [self.metadata]
+            return token_mint_pb2.TokenMintTransactionBody(token=token_proto, amount=0, metadata=self.metadata)
 
-        # Neither amount nor metadata is set
-        raise ValueError("Specify either amount for fungible tokens or metadata for NFTs.")
+        return token_mint_pb2.TokenMintTransactionBody(token=token_proto, amount=0, metadata=[])
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """

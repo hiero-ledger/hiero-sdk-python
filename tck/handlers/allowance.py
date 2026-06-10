@@ -32,10 +32,7 @@ def _build_approve_allowance_transaction(
     """Build an AccountAllowanceApproveTransaction from TCK params."""
     transaction = AccountAllowanceApproveTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
-    if not params.allowances:
-        raise ValueError("allowances list cannot be empty")
-
-    for entry in params.allowances:
+    for entry in params.allowances or []:
         _apply_allowance_entry(transaction, entry)
 
     return transaction
@@ -145,10 +142,7 @@ def _build_delete_allowance_transaction(
     """Build an AccountAllowanceDeleteTransaction from TCK params."""
     transaction = AccountAllowanceDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
-    if not params.allowances:
-        raise ValueError("allowances list cannot be empty")
-
-    for entry in params.allowances:
+    for entry in params.allowances or []:
         _apply_delete_allowance_entry(transaction, entry)
 
     return transaction
@@ -169,10 +163,7 @@ def _apply_delete_allowance_entry(
 
     token_id = TokenId.from_string(entry.tokenId)
 
-    if not entry.serialNumbers:
-        raise ValueError("NFT allowance requires serialNumbers")
-
-    for serial in entry.serialNumbers:
+    for serial in entry.serialNumbers or []:
         nft_id = NftId(token_id=token_id, serial_number=int(serial))
         transaction.delete_all_token_nft_allowances(nft_id, owner_account_id)
 

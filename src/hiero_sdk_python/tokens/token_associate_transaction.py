@@ -96,15 +96,10 @@ class TokenAssociateTransaction(Transaction):
 
         Returns:
             TokenAssociateTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If account ID or token IDs are not set.
         """
-        if not self.account_id or not self.token_ids:
-            raise ValueError("Account ID and token IDs must be set.")
-
         return token_associate_pb2.TokenAssociateTransactionBody(
-            account=self.account_id._to_proto(), tokens=[token_id._to_proto() for token_id in self.token_ids]
+            account=self.account_id._to_proto() if self.account_id else None,
+            tokens=[token_id._to_proto() for token_id in (self.token_ids or [])],
         )
 
     @classmethod
