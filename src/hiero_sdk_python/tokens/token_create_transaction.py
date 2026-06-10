@@ -109,23 +109,6 @@ class TokenCreateValidator:
     """Token, key and freeze checks for creating a token as per the proto."""
 
     @staticmethod
-    def _validate_token_params(token_params: TokenParams) -> None:
-        """Ensure valid values for the token characteristics."""
-        TokenCreateValidator._validate_required_fields(token_params)
-        TokenCreateValidator._validate_name_and_symbol(token_params)
-        TokenCreateValidator._validate_initial_supply(token_params)
-        TokenCreateValidator._validate_decimals_and_token_type(token_params)
-        TokenCreateValidator._validate_supply_max_and_type(token_params)
-
-    @staticmethod
-    def _validate_token_freeze_status(keys: TokenKeys, token_params: TokenParams) -> None:
-        """Ensure account is not frozen for this token."""
-        if token_params.freeze_default and not keys.freeze_key:
-            raise ValueError("Token is permanently frozen. Unable to proceed.")
-            # freezeDefault=True simply starts accounts frozen; allow creation as long as
-            # a freeze key exists so the treasury (and others) can be unfrozen later.
-
-    @staticmethod
     def _validate_required_fields(token_params: TokenParams) -> None:
         """Ensure all required fields are present and not empty."""
         required_fields: dict[str, Any] = {
