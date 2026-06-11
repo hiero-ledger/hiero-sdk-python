@@ -20,7 +20,7 @@ jobs:
       # projects: write is required for GitHub Projects V2 GraphQL mutations
       # and is not available at the workflow level — it must be scoped to the job
       contents: read
-      actions: read
+      actions: read    # Required to download artifacts from the compute workflow
       # Note: 'projects: write' requires the GITHUB_TOKEN to be granted this
       # permission in the repository or organisation settings, or a PAT/App
       # token with the project scope must be passed via secrets.PROJECT_TOKEN.
