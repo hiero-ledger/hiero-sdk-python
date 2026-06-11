@@ -12,7 +12,7 @@ module.exports = async ({ github, context, core }) => {
         console.log('=== DRY RUN MODE — no project fields will be modified ===\n');
     }
 
-    // ── 1. Validate required config ──────────────────────────────────────────
+    //  1. Validate required config 
     if (!PROJECT_NODE_ID) {
         core.setFailed(
             'PROJECT_NODE_ID is not set. Export it as an environment variable or ' +
@@ -21,11 +21,11 @@ module.exports = async ({ github, context, core }) => {
         return;
     }
 
-    // ── 2. Ensure managed labels exist ───────────────────────────────────────
+    // 2. Ensure managed labels exist
     console.log('--- Ensuring Labels Exist ---');
     await ensureAllLabels(github, owner, repo, dryRun);
 
-    // ── 3. Fetch live field metadata from the board ───────────────────────────
+    // 3. Fetch live field metadata from the board 
     //
     // We resolve field and option IDs at runtime rather than hardcoding them.
     // This means the scripts continue to work if the project is recreated.
@@ -67,7 +67,7 @@ module.exports = async ({ github, context, core }) => {
                 }
             }
 
-            // ── 5. Update Type field ──────────────────────────────────────────────
+            // 5. Update Type field 
             if (type && typeField) {
                 const optionId = typeField.options[type];
                 if (optionId) {
