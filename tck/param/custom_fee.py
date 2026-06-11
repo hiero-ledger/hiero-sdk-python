@@ -19,12 +19,19 @@ class CustomFeeParams:
     def parse_json_params(cls, params: dict) -> CustomFeeParams:
         """Parse JSON-RPC params into a CustomFeeParams instance."""
         fixed_fee = params.get("fixedFee")
+        fractional_fee = params.get("fractionalFee")
+        royalty_fee = params.get("royaltyFee")
+
         fee_collector_account_id = params.get("feeCollectorAccountId")
 
         return cls(
             feeCollectorAccountId=fee_collector_account_id,
             feeCollectorsExempt=to_bool(params.get("feeCollectorsExempt")),
             fixedFee=(FixedFeeParams.parse_json_params(fixed_fee) if isinstance(fixed_fee, dict) else None),
+            fractionalFee=(
+                FractionalFeeParams.parse_json_params(fractional_fee) if isinstance(fractional_fee, dict) else None
+            ),
+            royaltyFee=(RoyaltyFeeParams.parse_json_params(royalty_fee) if isinstance(royalty_fee, dict) else None),
         )
 
 
@@ -101,7 +108,10 @@ class CustomFeeLimitParams:
         return cls(
             payerId=params.get("payerId"),
             fixedFees=(
-                [FixedFeeParams.parse_json_params(fixed_fee) for fixed_fee in fixed_fees]
+                [
+                    FixedFeeParams.parse_json_params(fixed_fee) if isinstance(fixed_fee, dict) else None
+                    for fixed_fee in fixed_fees
+                ]
                 if fixed_fees is not None
                 else None
             ),
