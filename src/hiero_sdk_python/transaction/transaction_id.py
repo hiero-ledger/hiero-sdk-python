@@ -101,7 +101,15 @@ class TransactionId:
             valid_start = timestamp_pb2.Timestamp(seconds=int(seconds_str), nanos=int(nanos_str))
 
             return cls(account_id, valid_start, scheduled=scheduled)
-        except Exception as e:
+        except (ValueError, TypeError, KeyError, IndexError) as e:
+            # Suffix errors carry diagnostic information specific to the input
+            # shape (e.g. "?fast" instead of "?scheduled"), so let them through
+            # unchanged. Everything else is rewrapped as a format error so the
+            # user gets a single, actionable error message. AttributeError is
+            # intentionally NOT caught here: a typo in our own code (e.g.
+            # timestamp_pb2.Timestamp(seconds=...) misspelled) would otherwise
+            # be hidden as a misleading "Invalid format" error and surface as
+            # a confusing user-facing message instead of a developer bug.
             if isinstance(e, ValueError) and "suffix" in str(e):
                 raise e
             raise ValueError(f"Invalid TransactionId string format: {original_string}") from e

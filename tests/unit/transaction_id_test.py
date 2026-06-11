@@ -182,3 +182,24 @@ def test_from_string_with_scheduled_flag():
     assert tx_id.valid_start.seconds == 1234567890
     assert tx_id.valid_start.nanos == 123456789
     assert tx_id.scheduled is True
+
+
+def test_from_string_does_not_swallow_attribute_error_bugs():
+    """Regression: TransactionId.from_string used a bare `except Exception`
+    which masked AttributeError from typos in our own code as a misleading
+    "Invalid TransactionId string format" error. After the fix, AttributeError
+    propagates as-is so the underlying bug is visible in the traceback."""
+
+    from hiero_sdk_python.transaction import transaction_id as tid_mod
+
+    real = tid_mod.AccountId.from_string
+
+    def fake(s):
+        raise AttributeError(f"simulated typo on {s!r}")
+
+    tid_mod.AccountId.from_string = staticmethod(fake)
+    try:
+        with pytest.raises(AttributeError, match="simulated typo"):
+            tid_mod.TransactionId.from_string("0.0.123@1234567890.500")
+    finally:
+        tid_mod.AccountId.from_string = real
