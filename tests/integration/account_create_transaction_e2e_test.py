@@ -7,6 +7,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
+from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from hiero_sdk_python.response_code import ResponseCode
 
 
@@ -355,3 +356,71 @@ def test_create_account_with_negative_initial_balance(env):
         tx.execute(env.client)
 
     assert e.value.status == ResponseCode.INVALID_INITIAL_BALANCE
+
+
+def test_can_create_account_with_high_volume(env):
+    """
+    Test creation of an account with high-volume pricing enabled and verify
+    the resulting pricing multiplier and account properties.
+    """
+    key = PrivateKey.generate_ed25519()
+
+    tx = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(Hbar(1)).set_high_volume(True)
+
+    tx.transaction_fee = Hbar(10)
+    tx.freeze_with(env.client)
+
+    receipt = tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, f"Unexpected status: {ResponseCode(receipt.status).name}"
+
+    account_id = receipt.account_id
+    assert account_id is not None
+
+    record = TransactionRecordQuery(tx.transaction_id).execute(env.client)
+
+    assert record.high_volume_pricing_multiplier >= 1000
+
+    info = AccountInfoQuery().set_account_id(account_id).execute(env.client)
+
+    assert info.account_id == account_id
+    assert info.is_deleted is False
+    assert str(info.key) == str(key.public_key())
+    assert info.balance == Hbar(1)
+
+
+def test_can_create_account_with_high_volume_and_valid_max_fee(env):
+    """
+    Verify that a high-volume account can be created when the transaction
+    maximum fee is set high enough to cover the increased cost.
+    """
+    key = PrivateKey.generate_ed25519()
+
+    tx = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(Hbar(1)).set_high_volume(True)
+
+    tx.transaction_fee = Hbar(10)
+
+    receipt = tx.execute(env.client)
+    account_id = receipt.account_id
+
+    assert receipt.status == ResponseCode.SUCCESS
+    assert account_id is not None
+
+    info = AccountInfoQuery().set_account_id(account_id).execute(env.client)
+
+    assert info.account_id == account_id
+
+
+def test_create_account_with_high_volume_fails_with_insufficient_tx_fee(env):
+    """
+    Verify that an account creation transaction with high-volume pricing
+    fails with INSUFFICIENT_TX_FEE when the transaction fee is too low.
+    """
+    key = PrivateKey.generate_ed25519()
+
+    tx = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(Hbar(1)).set_high_volume(True)
+
+    tx.transaction_fee = Hbar(1)
+    receipt = tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.INSUFFICIENT_TX_FEE

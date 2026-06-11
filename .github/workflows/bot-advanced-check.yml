@@ -28,7 +28,7 @@ jobs:
     runs-on: hl-sdk-py-lin-md
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@ab7a9404c0f3da075243ca237b5fac12c98deaa5 # v2.19.3
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
         with:
           egress-policy: audit
 
@@ -51,7 +51,7 @@ jobs:
           echo "::notice::Skipping: event=${{ github.event_name }}, action=${{ github.event.action }}, has_advanced_label=${{ contains(github.event.issue.labels.*.name, 'skill: advanced') }}"
       - name: Checkout scripts
         if: steps.should_run.outputs.value == 'true'
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           sparse-checkout: |
             .github/scripts

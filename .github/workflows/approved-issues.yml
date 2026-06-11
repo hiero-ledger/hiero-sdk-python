@@ -1,0 +1,52 @@
+# SPDX-License-Identifier: Apache-2.0
+
+name: "Approve Issues"
+
+on:
+  issues:
+    types:
+      - labeled
+
+defaults:
+  run:
+    shell: bash
+
+permissions:
+  issues: write
+
+concurrency:
+  group: approve-issues-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  approve:
+    if: github.event.label.name == 'approved'
+    name: Approve Issue
+    runs-on: hl-sdk-py-lin-md
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Remove pending-review label
+        uses: actions-ecosystem/action-remove-labels@2ce5d41b4b6aa8503e285553f75ed56e0a40bae0 # v1.3.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: pending-review
+
+      - name: Unlock issue
+        run: |
+          gh api \
+            -X DELETE \
+            repos/${{ github.repository }}/issues/${{ github.event.issue.number }}/lock
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Approval comment
+        uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9 # v5.0.0
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            Approved by @hiero-ledger/hiero-sdk-python-triage and @hiero-ledger/hiero-sdk-python-committers and @hiero-ledger/hiero-sdk-python-maintainers.

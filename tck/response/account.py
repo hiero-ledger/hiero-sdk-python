@@ -14,6 +14,20 @@ class CreateAccountResponse:
 
 
 @dataclass
+class UpdateAccountResponse:
+    """Response payload for updateAccount."""
+
+    status: str | None = None
+
+
+@dataclass
+class DeleteAccountResponse:
+    """Response payload for deleteAccount."""
+
+    status: str | None = None
+
+
+@dataclass
 class StakingInfoResponse:
     """Nested staking fields in the getAccountInfo response."""
 
@@ -66,3 +80,12 @@ class GetAccountInfoResponse:
     tokenAllowances: list[dict] = field(default_factory=list)
     nftAllowances: list[dict] = field(default_factory=list)
     stakingInfo: StakingInfoResponse | None = None
+
+
+@dataclass
+class GetAccountBalanceResponse:
+    """Response payload for getAccountBalance."""
+
+    hbars: str | None = None
+    tokenBalances: dict[str, int] = field(default_factory=dict)
+    tokenDecimals: dict[str, int] = field(default_factory=dict)

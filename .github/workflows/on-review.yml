@@ -1,0 +1,45 @@
+name: Bot - On Review
+
+on:
+  pull_request_target:
+    types:
+      - review_requested
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to process (for manual testing)'
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  add-reviewers-as-assignees:
+    name: Add Reviewers as Assignees
+    runs-on: hl-sdk-py-lin-md
+
+    concurrency:
+      group: reviewer-assignee-${{ github.event.pull_request.number || inputs.pr_number || github.run_id }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: ${{ github.event.pull_request.base.sha || github.ref }}
+          persist-credentials: false
+
+      - name: Run Add Reviewers as Assignees
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-pr-add-reviewers-as-assignees.js');
+            await script({ github, context });

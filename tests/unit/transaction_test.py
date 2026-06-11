@@ -15,6 +15,7 @@ from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
@@ -22,6 +23,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -428,3 +430,114 @@ def test_chunked_tx_differ_size_if_chunk_are_not_equal(topic_id, account_id, tra
     assert len(sizes) == 2
     # The first chunk should be larger than the second because it carries more message data
     assert sizes[0] > sizes[1]
+
+
+def test_high_volume_defaults_to_false():
+    """Test that high_volume defaults to False."""
+    transaction = AccountCreateTransaction()
+
+    assert transaction.high_volume is False
+
+
+def test_high_volume_can_be_serialized(mock_client):
+    """Test that high_volume is preserved during serialization/deserialization."""
+
+    transaction = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ed25519()).set_high_volume(True)
+
+    transaction.freeze_with(mock_client)
+
+    transaction_bytes = transaction.to_bytes()
+    transaction_from_bytes = Transaction.from_bytes(transaction_bytes)
+
+    assert isinstance(transaction_from_bytes, AccountCreateTransaction)
+    assert transaction_from_bytes.high_volume is True
+
+
+def test_high_volume_cannot_change_after_freeze(transaction_id, account_id):
+    """Test that high_volume cannot be modified after freezing."""
+    transaction = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ed25519())
+        .set_transaction_id(transaction_id)
+        .set_node_account_id(account_id)
+        .freeze()
+    )
+
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
+        transaction.set_high_volume(True)
+
+
+def test_high_volume_is_included_in_protobuf_output(
+    transaction_id,
+    account_id,
+):
+    """Test that high_volume is correctly serialized into protobuf output."""
+
+    # Test with high_volume=True
+    transaction = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ed25519())
+        .set_transaction_id(transaction_id)
+        .set_node_account_id(account_id)
+        .set_high_volume(True)
+        .freeze()
+    )
+
+    assert transaction._transaction_body_bytes
+
+    body_bytes = next(iter(transaction._transaction_body_bytes.values()))
+
+    body = transaction_pb2.TransactionBody()
+    body.ParseFromString(body_bytes)
+
+    assert body.high_volume is True
+
+    # Test with high_volume=False
+    transaction_false = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ed25519())
+        .set_transaction_id(transaction_id)
+        .set_node_account_id(account_id)
+        .set_high_volume(False)
+        .freeze()
+    )
+
+    body_bytes_false = next(iter(transaction_false._transaction_body_bytes.values()))
+
+    body_false = transaction_pb2.TransactionBody()
+    body_false.ParseFromString(body_bytes_false)
+
+    assert body_false.high_volume is False
+
+
+def test_transaction_fee_accepts_hbar():
+    """Test that transaction_fee accepts an Hbar value and stores it as tinybars."""
+    tx = AccountCreateTransaction()
+
+    tx.transaction_fee = Hbar(1)
+
+    assert tx._transaction_fee == Hbar(1).to_tinybars()
+
+
+def test_transaction_fee_rejects_bool():
+    """Test transaction_fee rejects boolean values."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="fee must be of type Hbar or int"):
+        tx.transaction_fee = True
+
+
+def test_transaction_fee_rejects_invalid_type():
+    """Test transaction_fee rejects invalid types."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="fee must be of type Hbar or int"):
+        tx.transaction_fee = "100"
+
+
+def test_transaction_fee_rejects_negative_int():
+    """Test transaction_fee rejects negative integer values."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(ValueError, match="fee must be greater than or equal to 0"):
+        tx.transaction_fee = -1

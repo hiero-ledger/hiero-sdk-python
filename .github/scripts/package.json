@@ -1,0 +1,11 @@
+{
+  "name": "hiero-sdk-python-ci-scripts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

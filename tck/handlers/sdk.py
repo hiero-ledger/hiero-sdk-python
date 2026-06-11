@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from hiero_sdk_python import AccountId, Client, Network, PrivateKey
-from hiero_sdk_python.node import _Node
+from hiero_sdk_python import AccountId, Client, PrivateKey
 from tck.handlers.registry import rpc_method
 from tck.param.base import BaseParams
 from tck.param.sdk import SetupParams
@@ -15,11 +14,11 @@ def setup_handler(params: SetupParams) -> SetupResponse:
     operator_private_key = PrivateKey.from_string(params.operatorPrivateKey)
 
     if params.nodeIp and params.nodeAccountId and params.mirrorNetworkIp:
-        client = Client()
-        client.network = Network(
-            nodes=[_Node(AccountId.from_string(params.nodeAccountId), params.nodeIp, None)],
-            mirror_address=params.mirrorNetworkIp,
-        )
+        nodes = {params.nodeIp: AccountId.from_string(params.nodeAccountId)}
+
+        client = Client.for_network(network_map=nodes)
+        client.network.mirror_address = params.mirrorNetworkIp
+
         client.set_operator(operator_account_id, operator_private_key)
 
         client_type = "custom"

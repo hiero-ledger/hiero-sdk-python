@@ -178,14 +178,14 @@ uv sync --dev --all-extras
 
 ## Pre-Commit Tool Setup
 
-To maintain high code quality and security, this repository uses `re-commit` hooks. These hooks automatically run checks (like `Ruff` for linting and `Gitleaks` for security) every time you attempt to commit code.
+To maintain high code quality and security, this repository uses `pre-commit` hooks. These hooks automatically run checks (like `Ruff` for linting, `Bandit` for static security analysis and `Gitleaks` for security) every time you attempt to commit code.
 
 ### Installation
 ---
 
 **Option 1: Using `uv` (Recommended)**
 
-`uv` is recommended because it manages pre-commit within your project’s locked environment, ensuring your local linting matches the CI exactly.
+`uv` is recommended because it manages pre-commit within your project’s locked environment, ensuring your local changes matches the CI exactly.
 
 1. **Install the git hooks:**
 ```bash
@@ -213,7 +213,7 @@ pre-commit install
 
 Once installed, `git commit` will automatically trigger the checks.
 - If they **pass**: Your commit is created normally.
-- If they **fail**: The hooks will often fix the files for you (e.g., `Ruff` reformatting). Simply `git add` the changed files and commit again.
+- If they **fail**: Some hooks may auto-fix files (e.g., `Ruff` formatting). Others (e.g., `Bandit`) only report findings that you must fix manually, then `git add` and commit again.
 
 
 ### Manual Execution
@@ -329,6 +329,6 @@ Test your credentials at [Hedera Portal](https://portal.hedera.com/)
 
 - **Installation issues?** Check the [uv documentation](https://docs.astral.sh/uv/)
 - **Hedera testnet?** Visit [Hedera Portal](https://portal.hedera.com/)
-- **Git questions?** See [Git Basics](https://git-scm.com/book/en/v2/Getting-Started-Git-Basics)
+- **Git questions?** See [Git Basics](https://git-scm.com/book/en/v2/Git-Basics-Getting-a-Git-Repository)
 - **General questions?** Ask on the [Linux Foundation Decentralized Trust Discord](https://discord.gg/hyperledger)
 (or, if logged in, straight in the [related Hiero Python SDK Group](https://discord.com/channels/905194001349627914/1336494517544681563))

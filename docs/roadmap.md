@@ -6,12 +6,12 @@ This is a high-level quarterly roadmap for the Hiero SDK Python project. It is a
 
 ## 2026 Q1 (Underway)
 
-- Implement [TCK](/tck) and [fuzzing tests](/tests/fuzz)
-- Implement [static workflow tests](/.github/workflows/)
+- Implement [TCK](../tck) and [fuzzing tests](../tests/fuzz)
+- Implement [static workflow tests](../.github/workflows/)
 
 ## 2026 Q2
 
-- Complete [TCK](/tck) tests
+- Complete [TCK](../tck) tests
 - Implement 2 new HIPs
 
 ## 2026 Q3
