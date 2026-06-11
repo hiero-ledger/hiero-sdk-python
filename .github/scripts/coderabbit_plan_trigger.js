@@ -80,6 +80,30 @@ async function hasExistingCodeRabbitPlan(github, owner, repo, issueNumber) {
   }
 }
 
+async function getLatestIssue(github, owner, repo, issue) {
+  if (!issue?.number) return issue;
+
+  try {
+    const { data } = await github.rest.issues.get({
+      owner,
+      repo,
+      issue_number: issue.number,
+    });
+
+    return data || issue;
+  } catch (error) {
+    console.log('Failed to refresh issue state; falling back to event payload:', {
+      message: error?.message,
+      status: error?.status,
+      owner,
+      repo,
+      issueNumber: issue?.number,
+    });
+
+    return issue;
+  }
+}
+
 function logSummary(owner, repo, issue) {
   console.log('=== Summary ===');
   console.log(`Repository: ${owner}/${repo}`);
@@ -92,10 +116,14 @@ function logSummary(owner, repo, issue) {
 async function main({ github, context }) {
   try {
     const { owner, repo } = context.repo;
-    const { issue, label } = context.payload;
+    const { issue: eventIssue, label } = context.payload;
 
     // Validations
-    if (!issue?.number) return console.log('No issue in payload');
+    if (!eventIssue?.number) return console.log('No issue in payload');
+
+    // Refresh issue state to avoid stale payload fields (e.g., locked status)
+    // when this script is invoked after earlier workflow steps mutate the issue.
+    const issue = await getLatestIssue(github, owner, repo, eventIssue);
 
     if (issue.locked) {
       return console.log(`Issue #${issue.number} is locked. CodeRabbit plan trigger will be deferred until the issue is approved and unlocked.`);

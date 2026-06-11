@@ -1,5 +1,6 @@
-# Triggers CodeRabbit's plan feature for difficulty-labeled issues.
-# It runs when a difficulty label is added to an unlocked issue.
+# Triggers CodeRabbit's plan feature when a skill label is added to an already-approved (unlocked) issue.
+# Primary trigger path: approved-issues.yml fires CodeRabbit immediately after unlocking the issue.
+# This workflow is the fallback: fires when a skill label arrives after the issue was already approved and unlocked.
 name: CodeRabbit Plan Trigger
 on:
   issues:
@@ -15,10 +16,12 @@ jobs:
     concurrency:
       group: coderabbit-plan-${{ github.event.issue.number }}
       cancel-in-progress: false
-    # Run only for open, unlocked issues when a difficulty label is added.
+    # Only run when a skill label is added to an open, unlocked, approved issue.
+    # This guards against triggering while the issue is still locked (newly created issues).
     if: >
       github.event.issue.state == 'open' &&
       github.event.issue.locked == false &&
+      contains(github.event.issue.labels.*.name, 'approved') &&
       contains(fromJson('["skill: beginner","skill: intermediate","skill: advanced"]'), github.event.label.name)
 
     steps:
