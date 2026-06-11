@@ -1,0 +1,98 @@
+name: Sync PR Project Fields - Compute
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  issues: read
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  compute:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout scripts
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          sparse-checkout: |
+            .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Compute Project Field Values
+        id: compute
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const prNodeId = context.payload.pull_request.node_id;
+            console.log(`--- Processing PR #${prNumber} (node: ${prNodeId}) ---`);
+
+            const { data: prData } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            // Skip bot-authored PRs — they are not linked to labelled issues
+            const prAuthor = prData.user.login;
+            if (/\[bot\]$/i.test(prAuthor) || /dependabot/i.test(prAuthor)) {
+              console.log(`Skipping bot-authored PR (author: ${prAuthor}).`);
+              return;
+            }
+
+            // Inline helpers — kept here to avoid a checkout of the scripts dir
+            // at the low-privilege compute phase.
+            const { getLinkedIssueLabels } = require('./.github/scripts/project-sync/helpers/linked-issues');
+            const { deriveFieldValues }    = require('./.github/scripts/project-sync/helpers/mapping');
+
+            const issueLabels = await getLinkedIssueLabels(
+              prData.body,
+              github,
+              context.repo.owner,
+              context.repo.repo
+            );
+
+            if (issueLabels.length === 0) {
+              console.log('No priority or type labels found on linked issues. Nothing to sync.');
+              return;
+            }
+
+            const { priority, type } = deriveFieldValues(issueLabels);
+
+            if (!priority && !type) {
+              console.log('Labels found but none map to a project field. Nothing to sync.');
+              return;
+            }
+
+            const fs = require('fs');
+            const payload = { prNodeId, priority, type };
+            fs.writeFileSync('project-sync-payload.json', JSON.stringify(payload));
+            console.log(`Payload written: ${JSON.stringify(payload)}`);
+
+      - name: Check for Payload File
+        id: check_file
+        run: |
+          if [ -f project-sync-payload.json ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload Artifact
+        if: steps.check_file.outputs.exists == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: project-sync-payload
+          path: project-sync-payload.json
+          retention-days: 1
