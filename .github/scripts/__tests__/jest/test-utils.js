@@ -1,8 +1,6 @@
-// SPDX-License-Identifier: Apache-2.0
+// __tests__/jest/test-utils.js
 //
-// __tests__/test-utils.js
-//
-// Shared Jest test utilities .
+// Shared Jest test utilities
 //
 // Provides:
 //   - createMockGithub()  — mock GitHub API factory with call tracking

@@ -40,3 +40,6 @@ pubkey.asc
 
 # Ruff cache
 .ruff_cache
+
+# Node.js
+node_modules/

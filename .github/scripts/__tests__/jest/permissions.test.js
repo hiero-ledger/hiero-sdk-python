@@ -1,8 +1,9 @@
-// SPDX-License-Identifier: Apache-2.0
+// __tests__/jest/permissions.test.js
 //
-// tests/test-permissions.js
+// Run from .github/scripts:
+// npm run test:js -- permissions.test.js
 
-const { createMockGithub } = require('../test-utils');
+const { createMockGithub } = require('./test-utils');
 const {
   getPermissionLevel,
   countApprovals,

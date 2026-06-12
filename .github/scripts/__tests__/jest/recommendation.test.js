@@ -1,4 +1,7 @@
-// node --test .github/scripts/tests/recommendation.test.js
+// __tests__/jest/recommendation.test.js
+//
+// Run from .github/scripts:
+// npm run test:js -- recommendation.test.js
 
 const {
   computeLevelStepIndices,

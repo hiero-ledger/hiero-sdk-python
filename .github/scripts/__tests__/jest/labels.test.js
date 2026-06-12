@@ -1,6 +1,7 @@
-// SPDX-License-Identifier: Apache-2.0
+// __tests__/jest/labels.test.js
 //
-// __tests__/test-labels.js
+// Run from .github/scripts:
+// npm run test:js -- labels.test.js
 
 const { createMockGithub } = require('./test-utils');
 const {

@@ -1,6 +1,7 @@
-// SPDX-License-Identifier: Apache-2.0
+// __tests__/jest/reviews.test.js
 //
-// tests/reviews.test.js
+// Run from .github/scripts:
+// npm run test:js -- reviews.test.js
 
 const { createMockGithub } = require('./test-utils');
 const { getLatestReviewStates } = require('../../review-sync/helpers/reviews');
