@@ -3,7 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from tck.param.base import BaseTransactionParams
-from tck.util.param_utils import parse_session_id, to_bool
+from tck.util.param_utils import (
+    parse_common_transaction_params,
+    parse_session_id,
+    to_bool,
+)
 
 
 @dataclass
@@ -78,6 +82,6 @@ class TransferCryptoParams(BaseTransactionParams):
 
         return cls(
             sessionId=parse_session_id(params),
-            commonTransactionParams=params.get("commonTransactionParams"),
+            commonTransactionParams=parse_common_transaction_params(params),
             transfers=[TransferParams.parse_json_params(t) for t in transfers_raw] if transfers_raw else None,
         )

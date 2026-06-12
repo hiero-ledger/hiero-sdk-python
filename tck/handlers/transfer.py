@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from hiero_sdk_python import (
     AccountId,
-    Hbar,
     NftId,
     TokenId,
     TransferTransaction,
@@ -12,14 +11,15 @@ from tck.handlers.registry import rpc_method
 from tck.param.transfer import TransferCryptoParams
 from tck.response.transfer import TransferCryptoResponse
 from tck.util.client_utils import get_client
+from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 
 
 def _build_transfer_transaction(params: TransferCryptoParams) -> TransferTransaction:
     tx = TransferTransaction()
 
-    tx.set_grpc_deadline(params.grpcDeadline)
+    tx.set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
-    if not params.transfers:
+    if params.transfers is None:
         return tx
 
     for entry in params.transfers:
@@ -27,7 +27,11 @@ def _build_transfer_transaction(params: TransferCryptoParams) -> TransferTransac
         if entry.hbar is not None:
             hbar = entry.hbar
             account = AccountId.from_string(hbar.evmAddress if hbar.evmAddress else hbar.accountId)
-            amount = Hbar.from_string(int(hbar.amount))
+            amount = int(hbar.amount)
+
+            # Python SDK rejects zero-value transfers
+            if amount == 0:
+                continue
 
             if entry.approved:
                 tx.add_approved_hbar_transfer(account, amount)
@@ -36,7 +40,7 @@ def _build_transfer_transaction(params: TransferCryptoParams) -> TransferTransac
 
         ## Token Transfer
         elif entry.token is not None:
-            token = entry.tokem
+            token = entry.token
 
             token_id = TokenId.from_string(token.tokenId)
             account = AccountId.from_string(token.accountId)
@@ -77,8 +81,8 @@ def transfer_crypto(params: TransferCryptoParams) -> TransferCryptoResponse:
 
     tx = _build_transfer_transaction(params)
 
-    if hasattr(params, "commonTransactionParams") and params.commonTransactionParams:
-        tx.apply_common_params(params.commonTransactionParams)
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(tx, client)
 
     receipt = tx.execute(client, wait_for_receipt=False).get_receipt(
         client,
