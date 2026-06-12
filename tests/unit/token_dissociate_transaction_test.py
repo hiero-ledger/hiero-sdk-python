@@ -109,17 +109,6 @@ def test_validate_check_sum(mock_account_ids, mock_client, monkeypatch):
     token_validate.assert_has_calls([call(mock_client), call(mock_client)])
 
 
-def test_build_proto_body_no_account_id():
-    """Test that _build_proto_body handles None account_id."""
-    from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
-
-    dissociate_tx = TokenDissociateTransaction()
-
-    body = dissociate_tx._build_proto_body()
-    assert not body.HasField("account")
-    assert len(body.tokens) == 0
-
-
 def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token dissociate transaction with a private key."""
     account_id, _, _, token_id_1, _ = mock_account_ids

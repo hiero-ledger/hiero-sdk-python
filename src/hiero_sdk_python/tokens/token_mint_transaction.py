@@ -99,20 +99,16 @@ class TokenMintTransaction(Transaction):
         Returns the protobuf body for the token mint transaction (fungible or NFT).
         """
         token_proto = self.token_id._to_proto() if self.token_id else None
+        tx_body = token_mint_pb2.TokenMintTransactionBody(token=token_proto)
 
         if self.amount is not None:
-            return token_mint_pb2.TokenMintTransactionBody(
-                token=token_proto,
-                amount=self.amount,
-                metadata=[],
-            )
+            tx_body.amount = self.amount
 
         if self.metadata is not None:
-            if isinstance(self.metadata, bytes):
-                self.metadata = [self.metadata]
-            return token_mint_pb2.TokenMintTransactionBody(token=token_proto, amount=0, metadata=self.metadata)
+            metadata = [self.metadata] if isinstance(self.metadata, bytes) else self.metadata
+            tx_body.metadata.extend(metadata)
 
-        return token_mint_pb2.TokenMintTransactionBody(token=token_proto, amount=0, metadata=[])
+        return tx_body
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """

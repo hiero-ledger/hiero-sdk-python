@@ -101,6 +101,7 @@ def test_build_proto_body_no_token_id(mock_account_ids):
 
     transaction_body = mint_tx.build_transaction_body()
     assert transaction_body.tokenMint.amount == 100
+    assert not transaction_body.tokenMint.HasField("token")
 
 
 def test_build_proto_body_no_amount_no_metadata(mock_account_ids):
