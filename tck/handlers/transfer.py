@@ -29,10 +29,6 @@ def _build_transfer_transaction(params: TransferCryptoParams) -> TransferTransac
             account = AccountId.from_string(hbar.evmAddress if hbar.evmAddress else hbar.accountId)
             amount = int(hbar.amount)
 
-            # Python SDK rejects zero-value transfers
-            if amount == 0:
-                continue
-
             if entry.approved:
                 tx.add_approved_hbar_transfer(account, amount)
             else:
