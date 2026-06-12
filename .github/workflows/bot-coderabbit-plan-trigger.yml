@@ -18,6 +18,9 @@ jobs:
       cancel-in-progress: false
     # Only run when a skill label is added to an open, unlocked, approved issue.
     # This guards against triggering while the issue is still locked (newly created issues).
+    # NOTE: The skill label names below must stay in sync with DIFFICULTY_LABELS
+    # in .github/scripts/shared/labels.js (the canonical source of truth).
+    # YAML `if:` conditions cannot import JS, so these are duplicated here.
     if: >
       github.event.issue.state == 'open' &&
       github.event.issue.locked == false &&
