@@ -9,7 +9,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
   let handler;
 
   beforeAll(() => {
-    handler = require('../bot-pr-add-reviewers-as-assignees.js');
+    handler = require('../../bot-pr-add-reviewers-as-assignees.js');
   });
 
   beforeEach(() => {

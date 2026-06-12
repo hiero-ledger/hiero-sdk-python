@@ -1,7 +1,7 @@
 """Unit tests for compute-time-until-meeting.py helper.
 
 Run with:
-    python3 -m unittest .github/scripts/tests/test_compute_time_until_meeting.py -v
+    python3 -m unittest .github/scripts/__tests__/test_compute_time_until_meeting.py -v
 
 Or from the tests directory:
     python3 -m unittest test_compute_time_until_meeting -v

@@ -3,13 +3,13 @@
 const {
   computeLevelStepIndices,
   buildFallbackChain,
-} = require('../shared/core/recommendation');
+} = require('../../shared/core/recommendation');
 
 const {
   adjustEligibilityForCurrentPR,
-} = require('../shared/core/eligibility');
+} = require('../../shared/core/eligibility');
 
-const { CONFIG } = require('../shared/config');
+const { CONFIG } = require('../../shared/config');
 
 // ---------------------------------------------------------------------------
 // computeLevelStepIndices

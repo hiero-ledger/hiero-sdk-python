@@ -12,7 +12,7 @@ const {
     runExample,
     runAll,
     computeExecutionPlan,
-} = require("../pr-check-secondary-examples");
+} = require("../../pr-check-secondary-examples");
 
 // ---------------------------------------------------------------------------
 // toModule
