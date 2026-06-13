@@ -1,12 +1,12 @@
 """Unit tests for compute-time-until-meeting.py helper.
 
-Run with:
-    python3 -m unittest .github/scripts/__tests__/test_compute_time_until_meeting.py -v
+Run from .github/scripts:
+    npm run test:py
 
-Or from the tests directory:
-    python3 -m unittest test_compute_time_until_meeting -v
+Or directly:
+    pytest __tests__/pytest/test_compute_time_until_meeting.py
+
 """
-
 from __future__ import annotations
 
 import os

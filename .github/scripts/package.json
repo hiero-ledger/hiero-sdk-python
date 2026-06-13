@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "test:js": "jest",
-    "test:py": "pytest __tests__/pytest",
+    "test:py": "python3 -m pytest __tests__/pytest",
     "test": "npm run test:js && npm run test:py"
   },
   "devDependencies": {
