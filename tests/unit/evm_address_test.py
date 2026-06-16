@@ -42,6 +42,16 @@ def test_from_string_invalid_hex_characters():
         EvmAddress.from_string("0xZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ")
 
 
+def test_from_string_with_surrounding_whitespace():
+    """Surrounding whitespace (from .env, JSON config, shell vars) should be stripped, not rejected."""
+    hex_no_prefix = "1234567890abcdef1234567890abcdef12345678"
+    hex_with_prefix = "0x1234567890abcdef1234567890abcdef12345678"
+
+    assert EvmAddress.from_string(f"  {hex_no_prefix}  ").to_string() == hex_no_prefix
+    assert EvmAddress.from_string(f"\n{hex_with_prefix}\n").to_string() == hex_no_prefix
+    assert EvmAddress.from_string(f"\t{hex_with_prefix}\t").to_string() == hex_no_prefix
+
+
 def test_from_bytes_valid():
     """Test creating EvmAddress from 20 bytes."""
     raw = bytes(range(20))
