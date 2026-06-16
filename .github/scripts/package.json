@@ -7,5 +7,10 @@
   },
   "devDependencies": {
     "jest": "^29.7.0"
+  },
+  "overrides": {
+    "jest": {
+      "js-yaml": "^4.2.0"
+    }
   }
 }
