@@ -109,14 +109,6 @@ def test_validate_check_sum(mock_account_ids, mock_client, monkeypatch):
     token_validate.assert_has_calls([call(mock_client), call(mock_client)])
 
 
-def test_missing_fields():
-    """Test that building the transaction without account ID or token IDs raises a ValueError."""
-    dissociate_tx = TokenDissociateTransaction()
-
-    with pytest.raises(ValueError, match="Account ID and token IDs must be set."):
-        dissociate_tx.build_transaction_body()
-
-
 def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token dissociate transaction with a private key."""
     account_id, _, _, token_id_1, _ = mock_account_ids

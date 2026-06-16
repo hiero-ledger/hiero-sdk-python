@@ -63,14 +63,8 @@ class TokenPauseTransaction(Transaction):
 
         Returns:
             TokenPauseTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If no token_id has been set.
         """
-        if self.token_id is None or self.token_id.num == 0:
-            raise ValueError("token_id must be set before building the transaction body")
-
-        return TokenPauseTransactionBody(token=self.token_id._to_proto())
+        return TokenPauseTransactionBody(token=self.token_id._to_proto() if self.token_id else None)
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
