@@ -395,4 +395,25 @@ describe("bot-contributor-lifecycle", () => {
     expect(m.unassigned).toHaveLength(0); // falls back to 21 -> 10d only triggers a reminder
     expect(commentedOn(m, 123, "<!-- issue-reminder-bot -->")).toBe(true);
   });
+
+  test("collaborative co-assignment: a teammate's /working keeps the shared PR alive", async () => {
+    // Issue assigned to alice + bob; the linked PR is the team's shared work. bob's /working
+    // counts for the PR even though alice opened it — a PR by one counts for both.
+    const spec = specWithPR(125, 251, ["alice", "bob"], { author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) });
+    spec.commentsByIssue[125] = [{ user: { login: "bob", type: "User" }, body: "/working", created_at: daysAgo(2) }];
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.closed).toHaveLength(0); // shared PR kept alive by bob's /working
+    expect(m.unassigned).toHaveLength(0); // neither teammate unassigned
+  });
+
+  test("missing assignment event -> reminder via created_at, never unassign", async () => {
+    const spec = {
+      issues: [{ number: 126, assignees: [{ login: "alice" }], created_at: daysAgo(30) }],
+      commentsByIssue: { 126: [] },
+      graphqlByIssue: { 126: gqlIssue({ assignedEvents: [], prNumbers: [] }) },
+    };
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.unassigned).toHaveLength(0); // no real assignment date -> never unassign
+    expect(commentedOn(m, 126, "<!-- issue-reminder-bot -->")).toBe(true); // but still nudges (created 30d ago)
+  });
 });

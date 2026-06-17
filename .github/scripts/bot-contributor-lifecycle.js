@@ -355,15 +355,24 @@ async function handleNoPRStage(github, owner, repo, issue, graph, comments, nowM
   const toRemind = [];
 
   for (const assignee of issue.assignees.map((a) => a.login)) {
-    const assignedAt = assignmentDateFor(graph, assignee);
+    let assignedAt = assignmentDateFor(graph, assignee);
+    let canUnassign = true;
     if (!assignedAt) {
-      console.log(`    [SKIP] @${assignee}: no assignment event found (safety)`);
+      // No assignment event in the timeline (rare — e.g. a timeline gap). Fall back to the
+      // issue's creation date so we can still nudge, but never unassign without a real
+      // assignment timestamp (created_at could be far older than the actual assignment).
+      assignedAt = issue.created_at ? new Date(issue.created_at) : null;
+      canUnassign = false;
       stats.skipNoAssignEvent++;
-      continue;
+      console.log(`    [WARN] @${assignee}: no assignment event; using issue.created_at for reminder only (won't unassign)`);
+      if (!assignedAt) {
+        console.log(`    [SKIP] @${assignee}: no assignment event and no created_at`);
+        continue;
+      }
     }
     const baseline = maxDate([assignedAt, latestWorkingAmong(comments, [assignee])]);
     const ageDays = daysSince(baseline, nowMs);
-    if (ageDays >= cfg.issueUnassignDays) {
+    if (canUnassign && ageDays >= cfg.issueUnassignDays) {
       toUnassign.push({ assignee, ageDays });
     } else if (ageDays >= cfg.issueRemindDays) {
       toRemind.push({ assignee, ageDays });
@@ -398,6 +407,9 @@ async function handleNoPRStage(github, owner, repo, issue, graph, comments, nowM
 
 async function handlePRStage(github, owner, repo, issue, prNumbers, comments, nowMs, cfg, stats) {
   const assignees = issue.assignees.map((a) => a.login);
+  // Co-assignment is collaborative: a linked PR is the team's shared work, so a /working
+  // from ANY assignee keeps every linked PR alive (a PR by one counts for both). This is
+  // intentional — do not scope /working to individual PR authors.
   const workingAt = latestWorkingAmong(comments, assignees);
 
   // Pass 1 — classify each linked PR without mutating anything.
