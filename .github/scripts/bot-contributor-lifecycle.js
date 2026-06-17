@@ -3,40 +3,48 @@
 Contributor Lifecycle Bot
 
 Runs on a schedule via actions/github-script. Scans every OPEN issue that has
-assignees (not PRs). For each assignee it applies a staged escalation:
+assignees (not PRs). For each issue it applies a staged escalation:
 
-  Issue has NO linked open PR:
-    age >= ISSUE_UNASSIGN_DAYS  -> comment + unassign
-    age >= ISSUE_REMIND_DAYS    -> reminder (once, marker-guarded)
+  Issue has NO linked open PR (evaluated per assignee):
+    age >= ISSUE_UNASSIGN_DAYS  -> comment + unassign that assignee
+    age >= ISSUE_REMIND_DAYS    -> one reminder comment mentioning all assignees
+                                   in the remind window (marker-guarded)
     else                        -> keep
 
-  Issue HAS linked open PR(s) (per PR):
-    'discussion' label          -> skip
-    no human review             -> keep (never close an un-reviewed PR)
-    reviewed, age >= PR_CLOSE_DAYS  -> comment + close PR + unassign issue
-    reviewed, age >= PR_REMIND_DAYS -> reminder on PR (once, marker-guarded)
+  Issue HAS linked open PR(s) (evaluated once per PR for the whole issue):
+    PR not open                 -> skip
+    PR has a skip label         -> skip   (configurable, see SKIP_PR_LABELS)
+    no human review             -> keep    (never close an un-reviewed PR)
+    reviewed, age >= PR_CLOSE_DAYS  -> comment + close PR + unassign ALL assignees
+    reviewed, age >= PR_REMIND_DAYS -> reminder on PR (marker-guarded)
     else                        -> keep
 
 "age" is measured from the most recent activity, which always includes a recent
-`/working` comment from the assignee — so `/working` resets every timer. PR age
+`/working` comment from an assignee — so `/working` resets every timer. PR age
 also includes the last commit and the last human (non-bot, non-author) review.
 
 DRY_RUN=true logs intended actions and mutates nothing.
 
+Config (env, all override-able via the workflow's "Run workflow" inputs):
   ISSUE_REMIND_DAYS=7  ISSUE_UNASSIGN_DAYS=21  PR_REMIND_DAYS=10  PR_CLOSE_DAYS=60
+  SKIP_PR_LABELS="status: discussion"   comma-separated; a linked PR carrying any
+                                        of these labels is never reminded or closed
 ------------------------------------------------------------------------------
 */
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// HTML markers — issues/PRs that are already pinged are not re-pinged
-
+// HTML markers — issues/PRs already pinged are not re-pinged.
 const MARK_ISSUE_REMIND = "<!-- issue-reminder-bot -->";
 const MARK_PR_REMIND = "<!-- pr-inactivity-bot-marker -->";
-const MARK_UNASSIGN = "<!-- inactivity-unassign-bot -->";
 const MARK_CLOSE = "<!-- inactivity-close-bot -->";
+const unassignMarkerFor = (login) => `<!-- inactivity-unassign:${login} -->`;
 
 const WORKING_RE = /(^|\s)\/working(\s|$)/i;
+
+// Default set of PR labels that exempt a PR from reminder/close. Override with the
+// SKIP_PR_LABELS env var (comma-separated). Matched case-insensitively.
+const DEFAULT_SKIP_PR_LABELS = "status: discussion";
 
 const DISCORD_LINK =
   "[Discord](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md)";
@@ -52,12 +60,20 @@ function intEnv(name, def) {
   return Number.isFinite(v) && v >= 0 ? v : def;
 }
 
+function parseSkipLabels(raw) {
+  return (raw === undefined || raw === null || raw === "" ? DEFAULT_SKIP_PR_LABELS : raw)
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 function readConfig() {
   return {
     issueRemindDays: intEnv("ISSUE_REMIND_DAYS", 7),
     issueUnassignDays: intEnv("ISSUE_UNASSIGN_DAYS", 21),
     prRemindDays: intEnv("PR_REMIND_DAYS", 10),
     prCloseDays: intEnv("PR_CLOSE_DAYS", 60),
+    skipPrLabels: parseSkipLabels(process.env.SKIP_PR_LABELS),
     dryRun: (process.env.DRY_RUN || "false").toString().toLowerCase() === "true",
   };
 }
@@ -76,11 +92,16 @@ function hasMarker(comments, marker) {
   return comments.some((c) => typeof c.body === "string" && c.body.includes(marker));
 }
 
-// Latest `/working` comment from a specific user (Date or null).
-function lastWorkingAt(comments, user) {
+function mentions(logins) {
+  return logins.map((l) => `@${l}`).join(", ");
+}
+
+// Latest `/working` comment from any of the given users (Date or null).
+function latestWorkingAmong(comments, logins) {
+  const set = new Set(logins);
   let latest = null;
   for (const c of comments) {
-    if (c?.user?.login !== user) continue;
+    if (!set.has(c?.user?.login)) continue;
     if (typeof c.body !== "string" || !WORKING_RE.test(c.body)) continue;
     const d = new Date(c.created_at);
     if (!latest || d > latest) latest = d;
@@ -120,6 +141,15 @@ function linkedOpenPRNumbers(graph, nameWithOwner) {
   return [...set];
 }
 
+// First skip label found on the PR (string) or null.
+function prSkipLabel(pr, skipLabels) {
+  for (const l of pr.labels || []) {
+    const name = (l.name || "").trim().toLowerCase();
+    if (skipLabels.includes(name)) return name;
+  }
+  return null;
+}
+
 // ---- I/O helpers (octokit) ----
 
 async function listIssueComments(github, owner, repo, number) {
@@ -132,6 +162,8 @@ async function listIssueComments(github, owner, repo, number) {
 }
 
 async function fetchIssueGraph(github, owner, repo, number) {
+  // crossRefs uses last:100 to bias toward the most RECENT cross-references, so a
+  // recently-opened linking PR isn't missed on a heavily-referenced issue.
   const query = `
     query($owner:String!, $repo:String!, $number:Int!) {
       repository(owner:$owner, name:$repo) {
@@ -139,7 +171,7 @@ async function fetchIssueGraph(github, owner, repo, number) {
           assignedEvents: timelineItems(itemTypes:[ASSIGNED_EVENT], last:100) {
             nodes { ... on AssignedEvent { createdAt assignee { ... on User { login } } } }
           }
-          crossRefs: timelineItems(itemTypes:[CROSS_REFERENCED_EVENT], first:100) {
+          crossRefs: timelineItems(itemTypes:[CROSS_REFERENCED_EVENT], last:100) {
             nodes {
               ... on CrossReferencedEvent {
                 source { ... on PullRequest { number state repository { nameWithOwner } } }
@@ -186,7 +218,15 @@ async function lastCommitDate(github, pr) {
       ref: pr.head.sha,
     });
     const commit = res.data?.commit ?? null;
-    return new Date(commit?.committer?.date || commit?.author?.date || pr.created_at);
+    const d = new Date(commit?.committer?.date || commit?.author?.date || pr.created_at);
+    // Commit dates are author-controlled; ignore implausibly future-dated commits so a
+    // PR can't dodge the inactivity clock with a forged committer date. Falls back to the
+    // (server-set) review/working timestamps instead.
+    if (d.getTime() > Date.now() + DAY_MS) {
+      console.log(`  [WARN] PR #${pr.number} head commit date is in the future; ignoring`);
+      return null;
+    }
+    return d;
   } catch (err) {
     console.log(`  [WARN] Could not fetch head commit for PR #${pr.number}:`, err.message || err);
     return null;
@@ -195,9 +235,9 @@ async function lastCommitDate(github, pr) {
 
 // ---- message builders ----
 
-function issueReminderBody(assignee) {
+function issueReminderBody(assignees) {
   return `${MARK_ISSUE_REMIND}
-Hi @${assignee} 👋
+Hi ${mentions(assignees)} 👋
 
 This issue has been assigned but no pull request has been created yet.
 Are you still planning on working on it?
@@ -208,7 +248,7 @@ From the Python SDK Team`;
 }
 
 function issueUnassignBody(assignee, ageDays) {
-  return `${MARK_UNASSIGN}
+  return `${unassignMarkerFor(assignee)}
 Hi @${assignee}, this is CronInactivityBot 👋
 
 You were assigned to this issue **${ageDays} days** ago, and there is currently no open pull request linked to it.
@@ -241,11 +281,14 @@ Reach out on discord or join our office hours if you need assistance.
 From the Python SDK Team`;
 }
 
-function prCloseBody(assignee, ageDays) {
+function prCloseBody(assignees, ageDays, willUnassign) {
+  const tail = willUnassign
+    ? "so I'm closing it and unassigning you from the linked issue to keep the backlog healthy."
+    : "so I'm closing it to keep the backlog healthy. Another open pull request is still linked to the issue, so you remain assigned.";
   return `${MARK_CLOSE}
-Hi @${assignee}, this is CronInactivityBot 👋
+Hi ${mentions(assignees)}, this is CronInactivityBot 👋
 
-This pull request has been reviewed but has had no new activity for **${ageDays} days**, so I'm closing it and unassigning you from the linked issue to keep the backlog healthy.
+This pull request has been reviewed but has had no new activity for **${ageDays} days**, ${tail}
 
 If you're no longer interested, no action is needed.
 
@@ -290,89 +333,150 @@ async function closePR(github, owner, repo, prNumber, cfg) {
 
 // ---- stage handlers ----
 
-async function handleNoPR(github, owner, repo, issue, assignee, baseline, comments, nowMs, cfg, stats) {
-  const ageDays = daysSince(baseline, nowMs);
-  console.log(`    [INFO] No linked open PR; age ~${ageDays}d`);
+async function handleNoPRStage(github, owner, repo, issue, graph, comments, nowMs, cfg, stats) {
+  const toUnassign = [];
+  const toRemind = [];
 
-  if (ageDays >= cfg.issueUnassignDays) {
-    console.log(`    [RESULT] Stale assignment (>= ${cfg.issueUnassignDays}d, no PR) -> unassign`);
-    await postComment(github, owner, repo, issue.number, issueUnassignBody(assignee, ageDays), cfg);
+  for (const assignee of issue.assignees.map((a) => a.login)) {
+    const assignedAt = assignmentDateFor(graph, assignee);
+    if (!assignedAt) {
+      console.log(`    [SKIP] @${assignee}: no assignment event found (safety)`);
+      stats.skipNoAssignEvent++;
+      continue;
+    }
+    const baseline = maxDate([assignedAt, latestWorkingAmong(comments, [assignee])]);
+    const ageDays = daysSince(baseline, nowMs);
+    if (ageDays >= cfg.issueUnassignDays) {
+      toUnassign.push({ assignee, ageDays });
+    } else if (ageDays >= cfg.issueRemindDays) {
+      toRemind.push({ assignee, ageDays });
+    } else {
+      console.log(`    [KEEP] @${assignee}: fresh (~${ageDays}d < ${cfg.issueRemindDays}d)`);
+    }
+  }
+
+  // Unassign each stale assignee individually (their dates differ). The personalized
+  // comment is guarded by a per-user marker so a failed removal won't re-comment.
+  for (const { assignee, ageDays } of toUnassign) {
+    console.log(`    [RESULT] @${assignee}: stale (~${ageDays}d >= ${cfg.issueUnassignDays}d, no PR) -> unassign`);
+    if (!hasMarker(comments, unassignMarkerFor(assignee))) {
+      await postComment(github, owner, repo, issue.number, issueUnassignBody(assignee, ageDays), cfg);
+    }
     await removeAssignee(github, owner, repo, issue.number, assignee, cfg);
     stats.unassigned++;
-    return;
   }
 
-  if (ageDays >= cfg.issueRemindDays) {
+  // Remind everyone in the remind window with a single comment (marker-guarded).
+  if (toRemind.length > 0) {
     if (hasMarker(comments, MARK_ISSUE_REMIND)) {
-      console.log(`    [SKIP] Issue already has a reminder comment`);
-      return;
+      console.log(`    [SKIP] reminder already posted on issue #${issue.number}`);
+    } else {
+      const who = toRemind.map((r) => r.assignee);
+      console.log(`    [RESULT] idle (no PR) -> remind ${mentions(who)}`);
+      await postComment(github, owner, repo, issue.number, issueReminderBody(who), cfg);
+      stats.issueReminders++;
     }
-    console.log(`    [RESULT] Idle assignment (>= ${cfg.issueRemindDays}d, no PR) -> remind`);
-    await postComment(github, owner, repo, issue.number, issueReminderBody(assignee), cfg);
-    stats.issueReminders++;
-    return;
   }
-
-  console.log(`    [KEEP] Assignment fresh (< ${cfg.issueRemindDays}d)`);
 }
 
-async function handleLinkedPRs(github, owner, repo, issue, assignee, prNumbers, workingAt, nowMs, cfg, stats) {
+async function handlePRStage(github, owner, repo, issue, prNumbers, comments, nowMs, cfg, stats) {
+  const assignees = issue.assignees.map((a) => a.login);
+  const workingAt = latestWorkingAmong(comments, assignees);
+
+  // Pass 1 — classify each linked PR without mutating anything.
+  const toClose = [];
+  const toRemind = [];
+  // An open linked PR that still represents active/blocked work, so the assignment is kept.
+  let survivingOpenPR = false;
+
   for (const prNum of prNumbers) {
     let pr;
     try {
       pr = (await github.rest.pulls.get({ owner, repo, pull_number: prNum })).data;
     } catch (err) {
-      console.log(`    [SKIP] Could not fetch PR #${prNum}:`, err.message || err);
+      console.log(`    [SKIP] PR #${prNum}: fetch failed:`, err.message || err);
+      survivingOpenPR = true; // unknown — be conservative, don't unassign
       continue;
     }
     if (pr.state !== "open") {
       console.log(`    [SKIP] PR #${prNum} is ${pr.state}`);
       continue;
     }
-    if ((pr.labels || []).some((l) => (l.name || "").toLowerCase() === "discussion")) {
-      console.log(`    [SKIP] PR #${prNum} has 'discussion' label`);
+    const skipLabel = prSkipLabel(pr, cfg.skipPrLabels);
+    if (skipLabel) {
+      console.log(`    [SKIP] PR #${prNum} has skip label '${skipLabel}'`);
+      stats.skipLabel++;
+      survivingOpenPR = true;
       continue;
     }
-
     const reviewDate = await lastHumanReviewDate(github, owner, repo, prNum, pr.user?.login);
     if (!reviewDate) {
-      console.log(`    [KEEP] PR #${prNum} has no human review yet -> not eligible for reminder/close`);
+      console.log(`    [KEEP] PR #${prNum} has no human review yet`);
+      stats.skipNoReview++;
+      survivingOpenPR = true;
       continue;
     }
-
     const commitDate = await lastCommitDate(github, pr);
-    const activity = maxDate([reviewDate, commitDate, workingAt]);
-    const ageDays = daysSince(activity, nowMs);
+    const ageDays = daysSince(maxDate([reviewDate, commitDate, workingAt]), nowMs);
     console.log(`    [INFO] PR #${prNum} reviewed; last activity ~${ageDays}d ago`);
 
+    // Close takes priority over remind so an (unusual) close < remind config still closes.
     if (ageDays >= cfg.prCloseDays) {
-      console.log(`    [RESULT] PR #${prNum} stale (>= ${cfg.prCloseDays}d) -> close + unassign`);
-      await postComment(github, owner, repo, prNum, prCloseBody(assignee, ageDays), cfg);
-      await closePR(github, owner, repo, prNum, cfg);
+      toClose.push({ prNum, ageDays });
+    } else if (ageDays >= cfg.prRemindDays) {
+      toRemind.push({ prNum, author: pr.user?.login, ageDays });
+      survivingOpenPR = true; // reminded PR stays open
+    } else {
+      console.log(`    [KEEP] PR #${prNum} active (< ${Math.min(cfg.prRemindDays, cfg.prCloseDays)}d)`);
+      survivingOpenPR = true;
+    }
+  }
+
+  // Only unassign when we're closing at least one PR AND nothing else keeps the issue open.
+  const willUnassign = toClose.length > 0 && !survivingOpenPR;
+
+  // Pass 2 — close stale PRs (marker-guarded comment, then close).
+  for (const { prNum, ageDays } of toClose) {
+    let prComments = [];
+    try {
+      prComments = await listIssueComments(github, owner, repo, prNum);
+    } catch (err) {
+      console.log(`    [WARN] PR #${prNum}: could not list comments (close note may duplicate):`, err.message || err);
+    }
+    console.log(`    [RESULT] PR #${prNum} stale (>= ${cfg.prCloseDays}d) -> close${willUnassign ? " + unassign" : " (keep assignees)"}`);
+    if (!hasMarker(prComments, MARK_CLOSE)) {
+      await postComment(github, owner, repo, prNum, prCloseBody(assignees, ageDays, willUnassign), cfg);
+    }
+    await closePR(github, owner, repo, prNum, cfg);
+    stats.closed++;
+  }
+
+  // Pass 2 — remind on inactive (but not yet closeable) PRs.
+  for (const { prNum, author, ageDays } of toRemind) {
+    let prComments;
+    try {
+      prComments = await listIssueComments(github, owner, repo, prNum);
+    } catch (err) {
+      console.log(`    [SKIP] PR #${prNum}: could not list comments (avoid duplicate):`, err.message || err);
+      continue;
+    }
+    if (hasMarker(prComments, MARK_PR_REMIND)) {
+      console.log(`    [SKIP] PR #${prNum} already has an inactivity reminder`);
+      continue;
+    }
+    console.log(`    [RESULT] PR #${prNum} inactive (>= ${cfg.prRemindDays}d) -> remind`);
+    await postComment(github, owner, repo, prNum, prReminderBody(author || assignees[0], ageDays), cfg);
+    stats.prReminders++;
+  }
+
+  // Unassign every assignee once, only when warranted.
+  if (willUnassign) {
+    for (const assignee of assignees) {
       await removeAssignee(github, owner, repo, issue.number, assignee, cfg);
-      stats.closed++;
-      continue;
+      stats.unassigned++;
     }
-
-    if (ageDays >= cfg.prRemindDays) {
-      let prComments;
-      try {
-        prComments = await listIssueComments(github, owner, repo, prNum);
-      } catch (err) {
-        console.log(`    [SKIP] Could not list comments for PR #${prNum} (avoid duplicate):`, err.message || err);
-        continue;
-      }
-      if (hasMarker(prComments, MARK_PR_REMIND)) {
-        console.log(`    [SKIP] PR #${prNum} already has an inactivity reminder`);
-        continue;
-      }
-      console.log(`    [RESULT] PR #${prNum} inactive (>= ${cfg.prRemindDays}d) -> remind`);
-      await postComment(github, owner, repo, prNum, prReminderBody(pr.user?.login || assignee, ageDays), cfg);
-      stats.prReminders++;
-      continue;
-    }
-
-    console.log(`    [KEEP] PR #${prNum} active (< ${cfg.prRemindDays}d)`);
+  } else if (toClose.length > 0) {
+    console.log(`    [INFO] Closed stale PR(s) but another linked PR is still open -> keeping assignees`);
   }
 }
 
@@ -389,10 +493,21 @@ module.exports = async ({ github, context }) => {
   console.log(`  Repo: ${nameWithOwner}`);
   console.log(`  Thresholds: issue remind ${cfg.issueRemindDays}d / unassign ${cfg.issueUnassignDays}d`);
   console.log(`              PR remind ${cfg.prRemindDays}d / close ${cfg.prCloseDays}d`);
+  console.log(`  Skip PR labels: ${cfg.skipPrLabels.map((l) => `'${l}'`).join(", ") || "(none)"}`);
   console.log(`  Dry run: ${cfg.dryRun}`);
   console.log("------------------------------------------------------------");
 
-  const stats = { issueReminders: 0, prReminders: 0, unassigned: 0, closed: 0, scanned: 0 };
+  const stats = {
+    scanned: 0,
+    issueReminders: 0,
+    prReminders: 0,
+    unassigned: 0,
+    closed: 0,
+    skipLabel: 0,
+    skipNoReview: 0,
+    skipNoAssignEvent: 0,
+    errors: 0,
+  };
 
   const issues = await github.paginate(github.rest.issues.listForRepo, {
     owner,
@@ -406,43 +521,34 @@ module.exports = async ({ github, context }) => {
     if (!issue.assignees || issue.assignees.length === 0) continue;
     stats.scanned++;
 
-    console.log(`\n== ISSUE #${issue.number} ==`);
+    console.log(`\n== ISSUE #${issue.number} (assignees: ${mentions(issue.assignees.map((a) => a.login))}) ==`);
 
     try {
       const comments = await listIssueComments(github, owner, repo, issue.number);
       const graph = await fetchIssueGraph(github, owner, repo, issue.number);
       const prNumbers = linkedOpenPRNumbers(graph, nameWithOwner);
 
-      for (const assignee of issue.assignees.map((a) => a.login)) {
-        console.log(`  -> assignee @${assignee}`);
-
-        const assignedAt = assignmentDateFor(graph, assignee);
-        if (!assignedAt) {
-          console.log(`    [WARN] No assignment event found; skipping for safety`);
-          continue;
-        }
-
-        const workingAt = lastWorkingAt(comments, assignee);
-
-        if (prNumbers.length === 0) {
-          // Issue stage: baseline is the latest of assignment or a /working signal.
-          const baseline = maxDate([assignedAt, workingAt]);
-          await handleNoPR(github, owner, repo, issue, assignee, baseline, comments, nowMs, cfg, stats);
-        } else {
-          console.log(`    [INFO] Linked open PRs: ${prNumbers.join(", ")}`);
-          await handleLinkedPRs(github, owner, repo, issue, assignee, prNumbers, workingAt, nowMs, cfg, stats);
-        }
+      if (prNumbers.length === 0) {
+        await handleNoPRStage(github, owner, repo, issue, graph, comments, nowMs, cfg, stats);
+      } else {
+        console.log(`    [INFO] Linked open PRs: ${prNumbers.join(", ")}`);
+        await handlePRStage(github, owner, repo, issue, prNumbers, comments, nowMs, cfg, stats);
       }
     } catch (err) {
       console.log(`  [ERROR] Issue #${issue.number} failed:`, err.message || err);
+      stats.errors++;
     }
   }
 
   console.log("\n=== Summary ===");
-  console.log(`  Issues scanned:   ${stats.scanned}`);
-  console.log(`  Issue reminders:  ${stats.issueReminders}`);
-  console.log(`  PR reminders:     ${stats.prReminders}`);
-  console.log(`  Unassigned:       ${stats.unassigned}`);
-  console.log(`  PRs closed:       ${stats.closed}`);
-  console.log(`  Dry run:          ${cfg.dryRun}`);
+  console.log(`  Issues scanned:        ${stats.scanned}`);
+  console.log(`  Issue reminders:       ${stats.issueReminders}`);
+  console.log(`  PR reminders:          ${stats.prReminders}`);
+  console.log(`  Unassigned:            ${stats.unassigned}`);
+  console.log(`  PRs closed:            ${stats.closed}`);
+  console.log(`  Skipped (skip label):  ${stats.skipLabel}`);
+  console.log(`  Skipped (no review):   ${stats.skipNoReview}`);
+  console.log(`  Skipped (no assign ev):${stats.skipNoAssignEvent}`);
+  console.log(`  Errors:                ${stats.errors}`);
+  console.log(`  Dry run:               ${cfg.dryRun}`);
 };
