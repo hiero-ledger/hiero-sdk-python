@@ -48,7 +48,7 @@ The contributor-lifecycle bot (`.github/workflows/bot-contributor-lifecycle.yml`
 `.github/scripts/bot-contributor-lifecycle.js`) reads its thresholds from environment
 variables, so you do **not** need to edit any code — just trigger the workflow manually
 with the thresholds set to `0` (and `dry_run` off) so everything is treated as immediately
-stale:
+stale. (For PRs, reminders/closes only apply once there is at least one human review.)
 
 ```
 Actions tab → bot-contributor-lifecycle → Run workflow:
@@ -63,7 +63,7 @@ The thresholds are `ISSUE_REMIND_DAYS` (7), `ISSUE_UNASSIGN_DAYS` (21),
 `PR_REMIND_DAYS` (10), and `PR_CLOSE_DAYS` (60). Leave `dry_run = true` (the default) to log
 intended actions without commenting / unassigning / closing anything.
 
-### 2. accelerating Cron Schedules
+### 2. Accelerating Cron Schedules
 If a workflow runs once a day, you don't want to wait 24 hours. Modify the `.yml` file to run frequently or allow manual triggers.
 
 **Before:**
