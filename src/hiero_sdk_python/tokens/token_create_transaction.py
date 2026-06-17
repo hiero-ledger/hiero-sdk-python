@@ -5,7 +5,6 @@ hiero_sdk_python.tokens.token_create_transaction.py.
 Module for creating and validating Hedera token transactions.
 
 This module includes:
-- TokenCreateValidator: Validates token creation parameters.
 - TokenParams: Represents token attributes.
 - TokenKeys: Represents cryptographic keys for tokens.
 - TokenCreateTransaction: Handles token creation transactions on Hedera.
@@ -13,8 +12,8 @@ This module includes:
 
 from __future__ import annotations
 
+import ctypes
 from dataclasses import dataclass, field
-from typing import Any
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
@@ -102,101 +101,6 @@ class TokenKeys:
     pause_key: Key | None = None
     kyc_key: Key | None = None
     fee_schedule_key: Key | None = None
-
-
-class TokenCreateValidator:
-    """Token, key and freeze checks for creating a token as per the proto."""
-
-    @staticmethod
-    def _validate_token_params(token_params: TokenParams) -> None:
-        """Ensure valid values for the token characteristics."""
-        TokenCreateValidator._validate_required_fields(token_params)
-        TokenCreateValidator._validate_name_and_symbol(token_params)
-        TokenCreateValidator._validate_initial_supply(token_params)
-        TokenCreateValidator._validate_decimals_and_token_type(token_params)
-        TokenCreateValidator._validate_supply_max_and_type(token_params)
-
-    @staticmethod
-    def _validate_token_freeze_status(keys: TokenKeys, token_params: TokenParams) -> None:
-        """Ensure account is not frozen for this token."""
-        if token_params.freeze_default and not keys.freeze_key:
-            raise ValueError("Token is permanently frozen. Unable to proceed.")
-            # freezeDefault=True simply starts accounts frozen; allow creation as long as
-            # a freeze key exists so the treasury (and others) can be unfrozen later.
-
-    @staticmethod
-    def _validate_required_fields(token_params: TokenParams) -> None:
-        """Ensure all required fields are present and not empty."""
-        required_fields: dict[str, Any] = {
-            "Token name": token_params.token_name,
-            "Token symbol": token_params.token_symbol,
-            "Treasury account ID": token_params.treasury_account_id,
-        }
-        for _field, _value in required_fields.items():
-            if not _value:
-                raise ValueError(f"{_field} is required")
-
-    @staticmethod
-    def _validate_name_and_symbol(token_params: TokenParams) -> None:
-        """Ensure the token name & symbol are valid in length and do not contain a NUL character."""
-        if len(token_params.token_name.encode()) > 100:
-            raise ValueError("Token name must be between 1 and 100 bytes")
-        if len(token_params.token_symbol.encode()) > 100:
-            raise ValueError("Token symbol must be between 1 and 100 bytes")
-
-        # Ensure the token name and symbol do not contain a NUL character
-        for attr in ["token_name", "token_symbol"]:
-            if "\x00" in getattr(token_params, attr):
-                raise ValueError(f"{attr.replace('_', ' ').capitalize()} must not contain the Unicode NUL character")
-
-    @staticmethod
-    def _validate_initial_supply(token_params: TokenParams) -> None:
-        """Ensure initial supply is a non-negative integer and does not exceed max supply."""
-        MAXIMUM_SUPPLY = 9_223_372_036_854_775_807  # 2^63 - 1
-
-        if token_params.initial_supply < 0:
-            raise ValueError("Initial supply must be a non-negative integer")
-        if token_params.initial_supply > MAXIMUM_SUPPLY:
-            raise ValueError(f"Initial supply cannot exceed {MAXIMUM_SUPPLY}")
-        if token_params.max_supply > MAXIMUM_SUPPLY:
-            raise ValueError(f"Max supply cannot exceed {MAXIMUM_SUPPLY}")
-
-    @staticmethod
-    def _validate_decimals_and_token_type(token_params: TokenParams) -> None:
-        """Ensure decimals and token_type align with either fungible or non-fungible constraints."""
-        if token_params.decimals < 0:
-            raise ValueError("Decimals must be a non-negative integer")
-
-        if token_params.token_type == TokenType.FUNGIBLE_COMMON:
-            # Fungible tokens must have an initial supply > 0
-            if token_params.initial_supply <= 0:
-                raise ValueError("A Fungible Token requires an initial supply greater than zero")
-
-        elif token_params.token_type == TokenType.NON_FUNGIBLE_UNIQUE:
-            # Non-fungible tokens must have zero decimals and zero initial supply
-            if token_params.decimals != 0:
-                raise ValueError("A Non-fungible Unique Token must have zero decimals")
-            if token_params.initial_supply != 0:
-                raise ValueError("A Non-fungible Unique Token requires an initial supply of zero")
-
-    @staticmethod
-    def _validate_supply_max_and_type(token_params: TokenParams) -> None:
-        """Ensure max supply and supply type constraints."""
-        # An infinite token must have max supply = 0.
-        # A finite token must have max supply > 0.
-        # Setting a max supply is only approprite for a finite token.
-        if token_params.max_supply != 0 and token_params.supply_type != SupplyType.FINITE:
-            raise ValueError("Setting a max supply field requires setting a finite supply type")
-
-        # Finite tokens have the option to set a max supply >0.
-        # A finite token must have max supply > 0.
-        if token_params.supply_type == SupplyType.FINITE:
-            if token_params.max_supply <= 0:
-                raise ValueError("A finite supply token requires max_supply greater than zero 0")
-
-            # Ensure max supply is greater than initial supply
-            if token_params.initial_supply > token_params.max_supply:
-                raise ValueError("Initial supply cannot exceed the defined max supply for a finite token")
 
 
 class TokenCreateTransaction(Transaction):
@@ -473,12 +377,6 @@ class TokenCreateTransaction(Transaction):
         Raises:
             ValueError: If required fields are missing or invalid.
         """
-        # Validate all token params
-        TokenCreateValidator._validate_token_params(self._token_params)
-
-        # Validate freeze status
-        TokenCreateValidator._validate_token_freeze_status(self._keys, self._token_params)
-
         # Convert keys
         admin_key_proto = key_to_proto(self._keys.admin_key)
         supply_key_proto = key_to_proto(self._keys.supply_key)
@@ -505,8 +403,8 @@ class TokenCreateTransaction(Transaction):
         return token_create_pb2.TokenCreateTransactionBody(
             name=self._token_params.token_name,
             symbol=self._token_params.token_symbol,
-            decimals=self._token_params.decimals,
-            initialSupply=self._token_params.initial_supply,
+            decimals=ctypes.c_uint32(self._token_params.decimals).value,
+            initialSupply=ctypes.c_uint64(self._token_params.initial_supply).value,
             tokenType=token_type_value,
             supplyType=supply_type_value,
             maxSupply=self._token_params.max_supply,
