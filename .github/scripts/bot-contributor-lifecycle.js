@@ -56,8 +56,14 @@ const OFFICE_HOURS =
 function intEnv(name, def) {
   const raw = process.env[name];
   if (raw === undefined || raw === null || raw === "") return def;
-  const v = parseInt(raw, 10);
-  return Number.isFinite(v) && v >= 0 ? v : def;
+  const trimmed = String(raw).trim();
+  // Strict: only a complete non-negative integer. Reject things like "10 days" or
+  // "0oops" that parseInt would silently coerce into a (possibly destructive) threshold.
+  if (!/^\d+$/.test(trimmed)) {
+    console.log(`  [WARN] ${name}="${raw}" is not a non-negative integer; using default ${def}`);
+    return def;
+  }
+  return parseInt(trimmed, 10);
 }
 
 function parseSkipLabels(raw) {
@@ -88,8 +94,19 @@ function maxDate(dates) {
   return new Date(Math.max(...valid.map((d) => d.getTime())));
 }
 
+// A comment authored by a GitHub App / Actions bot (login ends in "[bot]" — a suffix
+// users cannot have, since "[" and "]" are not valid login characters).
+function isBotAuthored(comment) {
+  const login = comment?.user?.login || "";
+  return comment?.user?.type === "Bot" || login.endsWith("[bot]");
+}
+
+// Only honour markers we posted ourselves, so a non-bot user can't suppress lifecycle
+// actions by pasting a hidden marker comment.
 function hasMarker(comments, marker) {
-  return comments.some((c) => typeof c.body === "string" && c.body.includes(marker));
+  return comments.some(
+    (c) => isBotAuthored(c) && typeof c.body === "string" && c.body.includes(marker),
+  );
 }
 
 function mentions(logins) {
@@ -551,4 +568,10 @@ module.exports = async ({ github, context }) => {
   console.log(`  Skipped (no assign ev):${stats.skipNoAssignEvent}`);
   console.log(`  Errors:                ${stats.errors}`);
   console.log(`  Dry run:               ${cfg.dryRun}`);
+
+  // A per-issue error (e.g. a permission/API failure) silently disables actions for that
+  // issue. Process the rest, then fail the run so the failure is visible instead of silent.
+  if (stats.errors > 0) {
+    throw new Error(`bot-contributor-lifecycle: ${stats.errors} issue(s) failed — see logs above.`);
+  }
 };

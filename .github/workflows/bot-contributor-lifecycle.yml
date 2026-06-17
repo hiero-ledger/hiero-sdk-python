@@ -43,9 +43,15 @@ on:
         type: string
 
 permissions:
-  contents: read
-  issues: write
-  pull-requests: write
+  contents: read # checkout the repo to load the script
+  issues: write # comment on and unassign issues
+  pull-requests: write # comment on and close pull requests
+
+# Serialize runs so a manual dispatch can't overlap the scheduled run and double-post
+# before the first run's dedup markers are written.
+concurrency:
+  group: contributor-lifecycle
+  cancel-in-progress: false
 
 jobs:
   lifecycle:

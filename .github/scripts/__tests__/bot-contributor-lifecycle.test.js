@@ -136,7 +136,13 @@ const botReview = (d) => ({ user: { login: "coderabbitai[bot]", type: "Bot" }, s
 const THRESHOLD_KEYS = ["DRY_RUN", "ISSUE_REMIND_DAYS", "ISSUE_UNASSIGN_DAYS", "PR_REMIND_DAYS", "PR_CLOSE_DAYS", "SKIP_PR_LABELS"];
 
 async function run(spec, env = {}) {
-  for (const k of THRESHOLD_KEYS) delete process.env[k];
+  // Snapshot the keys we touch and restore them afterwards so we never pollute
+  // process.env for other test files / cases.
+  const saved = {};
+  for (const k of THRESHOLD_KEYS) {
+    saved[k] = process.env[k];
+    delete process.env[k];
+  }
   Object.assign(process.env, env);
   const { github, context, mut } = makeEnv(spec);
   const spy = jest.spyOn(console, "log").mockImplementation(() => {});
@@ -144,6 +150,10 @@ async function run(spec, env = {}) {
     await bot({ github, context });
   } finally {
     spy.mockRestore();
+    for (const k of THRESHOLD_KEYS) {
+      if (saved[k] === undefined) delete process.env[k];
+      else process.env[k] = saved[k];
+    }
   }
   return mut;
 }
@@ -154,10 +164,6 @@ const unassignedFrom = (mut, issue, login) =>
   mut.unassigned.some((u) => u.issue_number === issue && u.assignees.includes(login));
 
 describe("bot-contributor-lifecycle", () => {
-  afterEach(() => {
-    for (const k of THRESHOLD_KEYS) delete process.env[k];
-  });
-
   test("issue, no PR, 10d -> reminder only", async () => {
     const m = await run(specNoPR(101, "alice", 10), { DRY_RUN: "false" });
     expect(commentedOn(m, 101, "<!-- issue-reminder-bot -->")).toBe(true);
@@ -371,5 +377,22 @@ describe("bot-contributor-lifecycle", () => {
       DRY_RUN: "false",
     });
     expect(m.closed.some((c) => c.pull_number === 321)).toBe(true);
+  });
+
+  test("a non-bot user's hidden marker does NOT suppress the reminder", async () => {
+    const m = await run(
+      specNoPR(122, "alice", 10, [
+        { user: { login: "alice", type: "User" }, body: "<!-- issue-reminder-bot --> sneaky", created_at: daysAgo(1) },
+      ]),
+      { DRY_RUN: "false" },
+    );
+    expect(commentedOn(m, 122, "<!-- issue-reminder-bot -->")).toBe(true);
+    expect(m.comments.filter((c) => c.number === 122)).toHaveLength(1);
+  });
+
+  test("malformed threshold falls back to the default (no premature unassign)", async () => {
+    const m = await run(specNoPR(123, "alice", 10), { DRY_RUN: "false", ISSUE_UNASSIGN_DAYS: "0oops" });
+    expect(m.unassigned).toHaveLength(0); // falls back to 21 -> 10d only triggers a reminder
+    expect(commentedOn(m, 123, "<!-- issue-reminder-bot -->")).toBe(true);
   });
 });
