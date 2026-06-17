@@ -36,6 +36,11 @@ on:
         required: false
         default: "60"
         type: string
+      skip_pr_labels:
+        description: "Comma-separated PR labels that exempt a PR from reminder/close"
+        required: false
+        default: "status: discussion"
+        type: string
 
 permissions:
   contents: read
@@ -64,6 +69,7 @@ jobs:
           ISSUE_UNASSIGN_DAYS: ${{ inputs.issue_unassign_days || '21' }}
           PR_REMIND_DAYS: ${{ inputs.pr_remind_days || '10' }}
           PR_CLOSE_DAYS: ${{ inputs.pr_close_days || '60' }}
+          SKIP_PR_LABELS: "${{ inputs.skip_pr_labels || 'status: discussion' }}"
         with:
           script: |
             const script = require('./.github/scripts/bot-contributor-lifecycle.js');
