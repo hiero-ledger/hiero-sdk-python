@@ -6,7 +6,7 @@ on:
     types: [completed]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch }
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 permissions:
@@ -18,7 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      actions: read    # Required to download artifacts from the compute workflow
+      actions: read # Required to download artifacts from the compute workflow
+      issues: write # Required by ensureAllLabels() to create missing priority/type labels
       # Note: 'projects: write' requires the GITHUB_TOKEN to be granted this
       # permission in the repository or organisation settings, or a PAT/App
       # token with the project scope must be passed via secrets.PROJECT_TOKEN.
@@ -50,9 +51,6 @@ jobs:
         env:
           PROJECT_NODE_ID: ${{ secrets.PROJECT_NODE_ID }}
         with:
-          # Use a PAT or GitHub App token with the 'project' OAuth scope for
-          # Projects V2 mutations.  GITHUB_TOKEN only has project scope when
-          # explicitly granted in repo/org settings.
           github-token: ${{ secrets.PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
@@ -62,21 +60,44 @@ jobs:
               return;
             }
 
-            const payload = JSON.parse(fs.readFileSync('project-sync-payload.json', 'utf8'));
-            const { prNodeId, priority, type } = payload;
+            const payload = JSON.parse(
+              fs.readFileSync('project-sync-payload.json', 'utf8')
+            );
 
-            if (!prNodeId) {
-              console.log('Payload is missing prNodeId. Skipping.');
+            const { prNumber, prNodeId } = payload;
+
+            if (!prNumber || !prNodeId) {
+              console.log('Payload is missing required fields. Skipping.');
               return;
             }
 
+            const { data: prData } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            const {
+              getLinkedIssueLabels,
+            } = require('./scripts/project-sync/helpers/linked-issues');
+
+            const {
+              deriveFieldValues,
+            } = require('./scripts/project-sync/helpers/mapping');
+
+            const issueLabels = await getLinkedIssueLabels(
+              prData.body,
+              github,
+              context.repo.owner,
+              context.repo.repo
+            );
+
+            const { priority, type } = deriveFieldValues(issueLabels);
+
             console.log(`Applying project fields for PR node: ${prNodeId}`);
-            console.log(`  priority="${priority || 'none'}"  type="${type || 'none'}"`);
+            console.log(
+              `  priority="${priority || 'none'}"  type="${type || 'none'}"`
+            );
 
-            const setupSync = require('./.github/scripts/project-sync/index.js');
-            const syncPR = await setupSync({ github, context, core });
-
-            if (typeof syncPR === 'function') {
-              await syncPR({ prNodeId, priority, type });
-              console.log('Project fields synced successfully.');
+            const setupSync = require('./scripts/project-sync/index.js');
             }
