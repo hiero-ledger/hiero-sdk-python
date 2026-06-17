@@ -5,9 +5,9 @@ on:
     types: [opened, edited, reopened, synchronize]
 
 permissions:
-  issues: read
-  contents: read
-  pull-requests: read
+  issues: read          # Needed to fetch labels from linked issues
+  contents: read        # Needed for checkout
+  pull-requests: read   # Needed to read PR body for linked-issue extraction
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
@@ -25,8 +25,9 @@ jobs:
       - name: Checkout scripts
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
+          persist-credentials: false
           sparse-checkout: |
-            .github/scripts
+            scripts
           sparse-checkout-cone-mode: false
 
       - name: Compute Project Field Values
@@ -51,32 +52,11 @@ jobs:
               return;
             }
 
-            // Inline helpers — kept here to avoid a checkout of the scripts dir
-            // at the low-privilege compute phase.
-            const { getLinkedIssueLabels } = require('./.github/scripts/project-sync/helpers/linked-issues');
-            const { deriveFieldValues }    = require('./.github/scripts/project-sync/helpers/mapping');
-
-            const issueLabels = await getLinkedIssueLabels(
-              prData.body,
-              github,
-              context.repo.owner,
-              context.repo.repo
-            );
-
-            if (issueLabels.length === 0) {
-              console.log('No priority or type labels found on linked issues. Nothing to sync.');
-              return;
-            }
-
-            const { priority, type } = deriveFieldValues(issueLabels);
-
-            if (!priority && !type) {
-              console.log('Labels found but none map to a project field. Nothing to sync.');
-              return;
-            }
-
+            // Only write prNumber + prNodeId to the artifact.
+            // Do NOT derive priority/type here — this code runs from the PR
+            // author's branch and cannot be trusted by the privileged apply job.
             const fs = require('fs');
-            const payload = { prNodeId, priority, type };
+            const payload = { prNumber, prNodeId };
             fs.writeFileSync('project-sync-payload.json', JSON.stringify(payload));
             console.log(`Payload written: ${JSON.stringify(payload)}`);
 

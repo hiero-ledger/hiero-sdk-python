@@ -9,7 +9,8 @@ const RATE_LIMIT_FLOOR = 100;
  * Node ID of the GitHub Projects V2 board.
  * Override via PROJECT_NODE_ID environment variable.
  *
- * Starts with "PVT_" — retrieve via GraphQL as described above.
+ * Starts with "PVT_". Retrieve it via:
+ *   gh api graphql -f query='{ repository(owner: "hiero-ledger", name: "hiero-sdk-python") { projectsV2(first: 10) { nodes { id title } } } }'
  */
 const PROJECT_NODE_ID = process.env.PROJECT_NODE_ID?.trim() || '';
 

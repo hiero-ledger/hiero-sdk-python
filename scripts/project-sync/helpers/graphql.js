@@ -10,9 +10,12 @@
  * @param {string} contentId - Global node ID of the PR (e.g. "PR_...")
  * @returns {Promise<string>} The item node ID on the project board
  */
-async function addItemToProject(github, projectId, contentId) {
-    const result = await github.graphql(
-        `
+async function fetchProjectFields(github, projectId) {
+  // NOTE: fields(first: 50) caps results to the first 50 fields on the board.
+  // If "Priority" or "Type" are positioned beyond field #50, they won't be found.
+  // Add cursor-based pagination if the board grows beyond this limit.
+  const result = await github.graphql(
+    `
     mutation AddItemToProject($projectId: ID!, $contentId: ID!) {
       addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
         item {
@@ -21,10 +24,10 @@ async function addItemToProject(github, projectId, contentId) {
       }
     }
   `,
-        { projectId, contentId }
-    );
+    { projectId, contentId }
+  );
 
-    return result.addProjectV2ItemById.item.id;
+  return result.addProjectV2ItemById.item.id;
 }
 
 /**
@@ -40,8 +43,8 @@ async function addItemToProject(github, projectId, contentId) {
  * @returns {Promise<void>}
  */
 async function updateSingleSelectField(github, projectId, itemId, fieldId, optionId) {
-    await github.graphql(
-        `
+  await github.graphql(
+    `
     mutation UpdateField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
       updateProjectV2ItemFieldValue(input: {
         projectId: $projectId,
@@ -55,8 +58,8 @@ async function updateSingleSelectField(github, projectId, itemId, fieldId, optio
       }
     }
   `,
-        { projectId, itemId, fieldId, optionId }
-    );
+    { projectId, itemId, fieldId, optionId }
+  );
 }
 
 /**
@@ -71,8 +74,8 @@ async function updateSingleSelectField(github, projectId, itemId, fieldId, optio
  * @returns {Promise<Record<string, { id: string, options: Record<string, string> }>>}
  */
 async function fetchProjectFields(github, projectId) {
-    const result = await github.graphql(
-        `
+  const result = await github.graphql(
+    `
     query FetchFields($projectId: ID!) {
       node(id: $projectId) {
         ... on ProjectV2 {
@@ -92,22 +95,22 @@ async function fetchProjectFields(github, projectId) {
       }
     }
   `,
-        { projectId }
-    );
+    { projectId }
+  );
 
-    const fieldMap = {};
-    for (const node of result.node.fields.nodes) {
-        // Non-SingleSelect fields have no .name at this fragment type — skip them
-        if (!node.name) continue;
+  const fieldMap = {};
+  for (const node of result.node.fields.nodes) {
+    // Non-SingleSelect fields have no .name at this fragment type — skip them
+    if (!node.name) continue;
 
-        const options = {};
-        for (const opt of node.options || []) {
-            options[opt.name] = opt.id;
-        }
-        fieldMap[node.name] = { id: node.id, options };
+    const options = {};
+    for (const opt of node.options || []) {
+      options[opt.name] = opt.id;
     }
+    fieldMap[node.name] = { id: node.id, options };
+  }
 
-    return fieldMap;
+  return fieldMap;
 }
 
 module.exports = { addItemToProject, updateSingleSelectField, fetchProjectFields };

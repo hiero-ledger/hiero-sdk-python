@@ -15,6 +15,8 @@ const { PRIORITY_LABEL_NAMES, TYPE_LABEL_NAMES } = require('./constants');
  */
 async function getLinkedIssueLabels(prBody, octokit, owner, repo) {
     // Same closing-keyword regex as sync-issue-labels-compute.yml
+    // NOTE: Matches same-repo "#123" references only. Cross-repo references
+    // (owner/repo#123) and full GitHub URLs are intentionally not matched.
     const regex =
         /(?:fix|fixes|fixed|close|closes|closed|resolve|resolves|resolved)[:\s]+\s*#(\d+)\b/gi;
 
