@@ -2,11 +2,6 @@
 ------------------------------------------------------------------------------
 Contributor Lifecycle Bot
 
-Replaces three former bots (one daily scan, one source of truth):
-  - cron-reminder-issue-no-pr   (remind assignee, issue has no PR)
-  - cron-reminder-pr-inactive   (remind PR author, no activity)
-  - bot-inactivity-unassign     (unassign idle assignees / close stale reviewed PRs)
-
 Runs on a schedule via actions/github-script. Scans every OPEN issue that has
 assignees (not PRs). For each assignee it applies a staged escalation:
 
@@ -28,16 +23,14 @@ also includes the last commit and the last human (non-bot, non-author) review.
 
 DRY_RUN=true logs intended actions and mutates nothing.
 
-Config (env, all override-able for fork testing — set to 0 to fire immediately):
   ISSUE_REMIND_DAYS=7  ISSUE_UNASSIGN_DAYS=21  PR_REMIND_DAYS=10  PR_CLOSE_DAYS=60
 ------------------------------------------------------------------------------
 */
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// HTML markers — reused from the old bots so issues/PRs they already pinged are
-// not re-pinged. Enforcement markers are for traceability (close/unassign are
-// also state-idempotent).
+// HTML markers — issues/PRs that are already pinged are not re-pinged
+
 const MARK_ISSUE_REMIND = "<!-- issue-reminder-bot -->";
 const MARK_PR_REMIND = "<!-- pr-inactivity-bot-marker -->";
 const MARK_UNASSIGN = "<!-- inactivity-unassign-bot -->";
@@ -46,7 +39,7 @@ const MARK_CLOSE = "<!-- inactivity-close-bot -->";
 const WORKING_RE = /(^|\s)\/working(\s|$)/i;
 
 const DISCORD_LINK =
-  "[Discord](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/discord.md)";
+  "[Discord](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md)";
 const OFFICE_HOURS =
   "[Office Hours](https://zoom-lfx.platform.linuxfoundation.org/meetings/hiero?view=week)";
 
