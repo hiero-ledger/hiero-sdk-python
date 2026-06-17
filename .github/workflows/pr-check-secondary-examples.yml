@@ -54,7 +54,7 @@ jobs:
           node-version: '20'
 
       - name: Install script dependencies
-        run: npm install
+        run: npm ci
         working-directory: .github/scripts
 
       - name: Test script

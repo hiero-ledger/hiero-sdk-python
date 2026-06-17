@@ -9,8 +9,7 @@
     "jest": "^29.7.0"
   },
   "overrides": {
-    "jest": {
-      "js-yaml": "^4.2.0"
-    }
+    "js-yaml": "^4.2.0",
+    "@babel/core": "^7.29.6"
   }
 }
