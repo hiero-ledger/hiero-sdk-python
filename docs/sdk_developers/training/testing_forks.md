@@ -50,7 +50,7 @@ variables, so you do **not** need to edit any code — just trigger the workflow
 with the thresholds set to `0` (and `dry_run` off) so everything is treated as immediately
 stale. (For PRs, reminders/closes only apply once there is at least one human review.)
 
-```
+```text
 Actions tab → bot-contributor-lifecycle → Run workflow:
   dry_run             = false
   issue_remind_days   = 0
