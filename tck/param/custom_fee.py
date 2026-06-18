@@ -75,7 +75,7 @@ class FractionalFeeParams:
 
 @dataclass
 class RoyaltyFeeParams:
-    """Request parameters for RoyaltyFee."""
+    """Royalty custom fee parameters."""
 
     numerator: str | None = None
     denominator: str | None = None
@@ -83,13 +83,14 @@ class RoyaltyFeeParams:
 
     @classmethod
     def parse_json_params(cls, params: dict) -> RoyaltyFeeParams:
-        """Parse JSON-RPC params into a RoyaltyFeeParams instance."""
-        fixed_fee = params.get("fixedFee")
+        fallback_fee = params.get("fallbackFee")
+        if fallback_fee is not None and not isinstance(fallback_fee, dict):
+            raise ValueError("fallbackFee must be an object")
 
         return cls(
             numerator=params.get("numerator"),
             denominator=params.get("denominator"),
-            fixedFee=(FixedFeeParams.parse_json_params(fixed_fee) if isinstance(fixed_fee, dict) else None),
+            fallbackFee=FixedFeeParams.parse_json_params(fallback_fee) if fallback_fee is not None else None,
         )
 
 

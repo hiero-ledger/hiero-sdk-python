@@ -22,12 +22,11 @@ from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransactio
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
+from tck.param.custom_fee import CustomFeeParams, FixedFeeParams
 from tck.param.token import (
     AssociateTokenParams,
     CreateTokenParams,
-    CustomFeeParams,
     DeleteTokenParams,
-    FixedFeeParams,
     FreezeTokenParams,
     MintTokenParams,
     PauseTokenParams,
