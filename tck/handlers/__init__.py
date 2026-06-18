@@ -9,6 +9,7 @@ from . import (
     sdk,  # setup, reset
     token,
     topic,
+    transfer,
 )
 from .registry import (
     get_all_handlers,
