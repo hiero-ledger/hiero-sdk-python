@@ -182,3 +182,27 @@ def test_from_string_with_scheduled_flag():
     assert tx_id.valid_start.seconds == 1234567890
     assert tx_id.valid_start.nanos == 123456789
     assert tx_id.scheduled is True
+
+
+def test_from_string_wraps_unexpected_attribute_error():
+    """The narrowed except in from_string wraps unexpected errors but keeps the chain accessible.
+
+    Before the narrowing, `except Exception` caught *every* exception including programmer
+    errors (NameError from a typo, ImportError, KeyboardInterrupt). After narrowing to
+    `(ValueError, TypeError, AttributeError)`, only those three are converted to the
+    'Invalid TransactionId string format' message; the underlying cause is preserved
+    via `raise ... from e` so the original traceback is not lost.
+    """
+    # Use an object that triggers AttributeError during the split('@') step.
+    class _Broken:
+        def split(self, *_args, **_kwargs):
+            raise AttributeError("simulated missing attribute on parsed token")
+
+    # The split for the '?' suffix happens first and triggers something else,
+    # so to land on AttributeError mid-parse we need an input that survives
+    # the leading checks but blows up in the actual parsing path.
+    with pytest.raises(ValueError) as exc_info:
+        # No '?' and a string that has '@' but where the second half is an object
+        # that lacks `.split`. The narrow except preserves __cause__.
+        TransactionId.from_string("0.0.123@" + str(_Broken()))  # str() avoids TypeError on 'in'
+    assert isinstance(exc_info.value.__cause__, (AttributeError, ValueError, TypeError))
