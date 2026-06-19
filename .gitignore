@@ -41,5 +41,5 @@ pubkey.asc
 # Ruff cache
 .ruff_cache
 
-# .github/scripts node_modules
+# .github/scripts/node_modules
 .github/scripts/node_modules
