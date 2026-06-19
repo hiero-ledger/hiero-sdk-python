@@ -281,3 +281,27 @@ class PauseTokenParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class AirdropTokenParams(BaseTransactionParams):
+    """Request parameters for the airdropToken endpoint."""
+
+    tokenTransfers: list | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> AirdropTokenParams:
+        """Parse JSON-RPC params into an AirdropTokenParams instance."""
+        from tck.param.transfer import TransferParams
+
+        token_transfers_raw = params.get("tokenTransfers")
+
+        return cls(
+            tokenTransfers=(
+                [TransferParams.parse_json_params(t) for t in token_transfers_raw]
+                if token_transfers_raw is not None
+                else None
+            ),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )

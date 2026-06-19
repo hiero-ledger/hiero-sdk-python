@@ -11,13 +11,14 @@ from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import token_airdrop_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services import basic_types_pb2, token_airdrop_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.tokens.abstract_token_transfer_transaction import AbstractTokenTransferTransaction
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
+from hiero_sdk_python.tokens.token_transfer_list import TokenTransferList
 
 
 class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTransaction"]):
@@ -45,20 +46,36 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
         if nft_transfers:
             self._init_nft_transfers(nft_transfers)
 
+    def build_token_transfers(self) -> list[basic_types_pb2.TokenTransferList]:
+        """Build token transfer protos without enforcing balanced transfers.
+
+        Airdrops are inherently one-directional: the sender's debit is implied
+        by the network, so we skip the net-zero validation.
+        """
+        token_transfer_list: list[TokenTransferList] = []
+
+        for token_id, token_transfers in self.token_transfers.items():
+            tl = TokenTransferList(token=token_id, expected_decimals=token_transfers[0].expected_decimals)
+            for token_transfer in token_transfers:
+                tl.add_token_transfer(token_transfer)
+            token_transfer_list.append(tl)
+
+        for nft_id, nft_transfers in self.nft_transfers.items():
+            nft_list = TokenTransferList(token=nft_id)
+            for nft_transfer in nft_transfers:
+                nft_list.add_nft_transfer(nft_transfer)
+            token_transfer_list.append(nft_list)
+
+        return [transfer._to_proto() for transfer in token_transfer_list]
+
     def _build_proto_body(self) -> token_airdrop_pb2.TokenAirdropTransactionBody:
         """
         Returns the protobuf body for the token airdrop transaction.
 
         Returns:
             TokenAirdropTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If transfer list is invalid.
         """
         token_transfers = self.build_token_transfers()
-
-        if len(token_transfers) < 1 or len(token_transfers) > 10:
-            raise ValueError("Airdrop transfer list must contain minimum 1 and maximum 10 transfers.")
 
         return token_airdrop_pb2.TokenAirdropTransactionBody(token_transfers=token_transfers)
 
