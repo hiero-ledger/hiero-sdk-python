@@ -7,6 +7,7 @@ Or directly:
     pytest __tests__/pytest/test_compute_time_until_meeting.py
 
 """
+
 from __future__ import annotations
 
 import os
