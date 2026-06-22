@@ -1,7 +1,7 @@
-// Script to trigger CodeRabbit plan for intermediate and advanced issues
+// Script to trigger CodeRabbit plan for all difficulty-labeled issues (including GFI)
 
 const CODERABBIT_MARKER = '<!-- CodeRabbit Plan Trigger -->';
-const { DIFFICULTY_LABELS, GOOD_FIRST_ISSUE_LABEL } = require('./shared/labels.js');
+const { DIFFICULTY_LABELS } = require('./shared/labels.js');
 
 async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERABBIT_MARKER) {
   const comment = `${marker} @coderabbitai plan`;
@@ -27,13 +27,10 @@ async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERA
   }
 }
 
-function hasBeginnerOrHigherLabel(issue, label) {
-  // Only beginner+ labels qualify here; GFI gets its own CodeRabbit plan
-  // trigger via the assignment bot chain (bot-gfi-assign-on-comment.js).
-  const beginnerPlus = DIFFICULTY_LABELS
-    .filter(d => d !== GOOD_FIRST_ISSUE_LABEL)
-    .map(d => d.toLowerCase());
-  const allowed = new Set(beginnerPlus);
+function hasDifficultyLabel(issue, label) {
+  // All difficulty labels now qualify — CodeRabbit plan is delivered on
+  // approval for every difficulty tier, including Good First Issue.
+  const allowed = new Set(DIFFICULTY_LABELS.map(d => d.toLowerCase()));
 
   const hasAllowedLabel = issue.labels?.some(l => allowed.has(l?.name?.toLowerCase()));
 
@@ -129,8 +126,8 @@ async function main({ github, context }) {
       return console.log(`Issue #${issue.number} is locked. CodeRabbit plan trigger will be deferred until the issue is approved and unlocked.`);
     }
 
-    if (!hasBeginnerOrHigherLabel(issue, label)) {
-      return console.log('Issue does not have beginner/intermediate/advanced label');
+    if (!hasDifficultyLabel(issue, label)) {
+      return console.log('Issue does not have a difficulty label');
     }
 
     if (await hasExistingCodeRabbitPlan(github, owner, repo, issue.number)) {
