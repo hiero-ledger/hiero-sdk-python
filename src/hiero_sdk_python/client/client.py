@@ -293,28 +293,7 @@ class Client:
         self,
         max_transaction_fee: int | float | Decimal | Hbar,
     ) -> Client:
-        """
-        Sets the default maximum Hbar fee allowed for any transaction executed by this client.
-
-        This value is used as the transaction fee during freeze_with() if the transaction
-        itself does not have an explicit fee set. Individual transactions may override this
-        default by calling Transaction.set_max_transaction_fee().
-
-        Args:
-            max_transaction_fee (int | float | Decimal | Hbar):
-                The maximum fee that any single transaction is allowed to cost.
-
-        Returns:
-            Client: The current client instance for method chaining.
-        """
-        if isinstance(max_transaction_fee, bool) or not isinstance(
-            max_transaction_fee,
-            (int, float, Decimal, Hbar),
-        ):
-            raise TypeError(
-                f"max_transaction_fee must be int, float, Decimal, or Hbar, got {type(max_transaction_fee).__name__}"
-            )
-
+        """Sets the default maximum Hbar fee allowed for any transaction executed by this client."""
         value = max_transaction_fee if isinstance(max_transaction_fee, Hbar) else Hbar(max_transaction_fee)
 
         if value < Hbar(0):
