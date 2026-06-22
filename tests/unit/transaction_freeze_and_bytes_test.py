@@ -62,15 +62,19 @@ def test_freeze_with_valid_parameters():
     # Should return self for method chaining
     assert result is transaction
 
+    # Should have transaction body bytes set
+    assert len(transaction._transaction_body_bytes) > 0
+    assert node_id in transaction._transaction_body_bytes
+
 
 @pytest.mark.parametrize(
     "valid_amount,expected",
     [
-        (1, 1_00_000_000),
+        (1, 100_000_000),
         (0.1, 10_000_000),
         (Decimal("0.1"), 10_000_000),
-        (Hbar(1), 1_00_000_000),
-        (Hbar(0), 0.00000000),
+        (Hbar(1), 100_000_000),
+        (Hbar(0), 0),
     ],
 )
 def test_set_max_transaction_fee_valid_param(valid_amount, expected):
@@ -733,9 +737,11 @@ def test_fee_resolution_transaction_precedence(mock_client):
     # client has different default
     mock_client.set_max_transaction_fee(Hbar(5))
 
+    before = tx.transaction_fee
     tx.freeze_with(mock_client)
 
-    assert tx.transaction_fee == 10_00_000_000
+    assert tx.transaction_fee == 1_000_000_000
+    assert tx.transaction_fee == before
 
 
 def test_fee_resolution_client_default_used_when_transaction_missing(mock_client):
@@ -747,7 +753,7 @@ def test_fee_resolution_client_default_used_when_transaction_missing(mock_client
 
     tx.freeze_with(mock_client)
 
-    assert tx.transaction_fee == 7_00_000_000
+    assert tx.transaction_fee == 700_000_000
 
 
 def test_fee_resolution_falls_back_to_transaction_default(mock_client):
@@ -759,4 +765,28 @@ def test_fee_resolution_falls_back_to_transaction_default(mock_client):
 
     tx.freeze_with(mock_client)
 
-    assert tx.transaction_fee == 100000000  # Default fee for TransferTransaction
+    assert tx.transaction_fee == 100_000_000  # Default fee for TransferTransaction
+
+
+def test_resolved_fee_serialized_into_transaction_body(mock_client):
+    """The resolved fee must reach the serialized proto transactionFee."""
+    tx = TransferTransaction()
+
+    tx.set_max_transaction_fee(Hbar(2))
+
+    body = tx.build_base_scheduled_body()
+
+    assert body.transactionFee == Hbar(2).to_tinybars()
+
+
+def test_max_transaction_fee_survives_to_bytes_round_trip(mock_client):
+    """An explicitly set max fee must survive a to_bytes -> from_bytes round trip."""
+    tx = TransferTransaction()
+
+    tx.set_max_transaction_fee(Hbar(2))
+
+    tx.freeze_with(mock_client)  # Serlize  to_bytes()
+    data = tx.to_bytes()
+
+    restored = TransferTransaction.from_bytes(data)  # Deserialize from_bytes().
+    assert restored._transaction_fee == Hbar(2).to_tinybars()
