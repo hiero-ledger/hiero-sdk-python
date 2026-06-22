@@ -377,19 +377,8 @@ def _build_airdrop_token_transaction(params: AirdropTokenParams) -> TokenAirdrop
         return tx
 
     for entry in params.tokenTransfers:
-        ## HBAR Transfer (not supported in airdrop)
-        if entry.hbar is not None:
-            hbar = entry.hbar
-            account = AccountId.from_string(hbar.evmAddress if hbar.evmAddress else hbar.accountId)
-            amount = int(hbar.amount)
-
-            if entry.approved:
-                tx.add_approved_hbar_transfer(account, amount)
-            else:
-                tx.add_hbar_transfer(account, amount)
-
         ## Token Transfer
-        elif entry.token is not None:
+        if entry.token is not None:
             token = entry.token
 
             token_id = TokenId.from_string(token.tokenId)
