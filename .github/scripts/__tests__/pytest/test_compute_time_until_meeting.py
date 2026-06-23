@@ -4,7 +4,7 @@ Run from .github/scripts:
     npm run test:py
 
 Or directly:
-    pytest __tests__/pytest/test_compute_time_until_meeting.py
+    pytest .github/scripts/__tests__/pytest/test_compute_time_until_meeting.py
 
 """
 
