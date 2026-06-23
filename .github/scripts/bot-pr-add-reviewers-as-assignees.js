@@ -2,19 +2,20 @@
 
 /**
  * @fileoverview
- * Automatically adds requested individual reviewers as assignees on Pull Requests.
+ * Keeps individual requested reviewers mirrored as PR assignees.
  *
  * This is part of the generic "on-review" infrastructure.
  * Team reviewers are intentionally ignored (only individual users are assigned).
- * Caps the number of assignees at MAX_ASSIGNEES (default: 2).
+ * Requested reviewers are added as assignees, and reviewers are removed from
+ * assignees after submitting a review.
  */
 
-const { createLogger, MAX_ASSIGNEES, BOT_NAME_ASSIGNEES } = require('./shared/helpers/reviewers-assignee-index.js');
+const { createLogger, BOT_NAME_ASSIGNEES } = require('./shared/helpers/reviewers-assignee-index.js');
 
 const logger = createLogger(BOT_NAME_ASSIGNEES);
 
 /**
- * Resolves the PR number from context (pull_request_target or workflow_dispatch).
+ * Resolves the PR number from context.
  *
  * @param {Object} context - GitHub Actions context object
  * @returns {number|null} Valid PR number or null if invalid/missing
@@ -29,7 +30,6 @@ function resolvePrNumber(context) {
       return null;
     }
   } else {
-    // pull_request_target
     prNumber = context.payload.pull_request?.number;
     if (!Number.isInteger(prNumber) || prNumber <= 0) {
       logger.warn('No PR number found. Skipping.');
@@ -59,30 +59,113 @@ function getUsersToAssign(requestedReviewers, currentAssignees) {
 }
 
 /**
- * Logs a warning if some reviewers were dropped due to the assignee cap.
+ * Loads PR data from the event payload or GitHub API.
  *
- * @param {Set<string>} usersToAssign
+ * @param {Object} params
+ * @param {Object} params.github - GitHub Octokit client instance
+ * @param {Object} params.context - GitHub Actions context object
+ * @param {number} params.prNumber - Pull request number
+ * @returns {Promise<Object>} Pull request payload
  */
-function logAssigneeCapWarning(usersToAssign, maxToAdd) {
-  if (usersToAssign.size > maxToAdd) {
-    const dropped = Array.from(usersToAssign).slice(maxToAdd);
-    logger.warn(`Assignee cap (${MAX_ASSIGNEES}) reached. Dropping: ${dropped.join(', ')}`);
+async function loadPullRequest({ github, context, prNumber }) {
+  const payloadPr = context.payload.pull_request;
+  if (payloadPr && Number.isInteger(payloadPr.number)) {
+    return payloadPr;
   }
+
+  return (await github.rest.pulls.get({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    pull_number: prNumber
+  })).data;
 }
 
 /**
- * Main handler that adds requested reviewers as assignees on a PR.
+ * Adds all requested individual reviewers as assignees.
+ *
+ * @param {Object} params
+ * @param {Object} params.github - GitHub Octokit client instance
+ * @param {Object} params.context - GitHub Actions context object
+ * @param {number} params.prNumber - Pull request number
+ * @param {Object} params.pr - Pull request payload
+ * @returns {Promise<void>}
+ */
+async function addRequestedReviewersAsAssignees({ github, context, prNumber, pr }) {
+  const owner = context.repo.owner;
+  const repo = context.repo.repo;
+  const requestedReviewers = pr.requested_reviewers || [];
+  const requestedTeams = pr.requested_teams || [];
+
+  const currentAssignees = new Set(
+    (pr.assignees || []).map(a => a.login)
+  );
+
+  if (requestedTeams.length > 0) {
+    logger.info(`${requestedTeams.length} team reviewer(s) detected but ignored (only individual users are assigned)`);
+  }
+
+  const assigneesList = Array.from(getUsersToAssign(requestedReviewers, currentAssignees));
+
+  if (assigneesList.length === 0) {
+    logger.log('No new users to assign. Done.');
+    return;
+  }
+
+  logger.log(`Will assign: ${assigneesList.join(', ')}`);
+
+  await github.rest.issues.addAssignees({
+    owner,
+    repo,
+    issue_number: prNumber,
+    assignees: assigneesList
+  });
+
+  logger.log(`✅ Successfully added ${assigneesList.length} reviewer(s) as assignee(s)`);
+}
+
+/**
+ * Removes the reviewer from assignees after they submit a review.
+ *
+ * @param {Object} params
+ * @param {Object} params.github - GitHub Octokit client instance
+ * @param {Object} params.context - GitHub Actions context object
+ * @param {number} params.prNumber - Pull request number
+ * @param {Object} params.pr - Pull request payload
+ * @returns {Promise<void>}
+ */
+async function removeReviewerFromAssignees({ github, context, prNumber, pr }) {
+  const reviewerLogin = context.payload.review?.user?.login;
+  if (!reviewerLogin) {
+    logger.warn('No reviewer login found. Skipping.');
+    return;
+  }
+
+  const currentAssignees = new Set(
+    (pr.assignees || []).map(a => a.login)
+  );
+
+  if (!currentAssignees.has(reviewerLogin)) {
+    logger.log(`${reviewerLogin} is not an assignee. Done.`);
+    return;
+  }
+
+  await github.rest.issues.removeAssignees({
+    owner: context.repo.owner,
+    repo: context.repo.repo,
+    issue_number: prNumber,
+    assignees: [reviewerLogin]
+  });
+
+  logger.log(`✅ Removed ${reviewerLogin} from assignees after review submission`);
+}
+
+/**
+ * Main handler that syncs requested reviewers and PR assignees.
  *
  * Triggered by:
  *   - `pull_request_target: review_requested`
- *   - `workflow_dispatch` (for manual testing)
- *
- * Behavior:
- *   - Only processes individual reviewers (`requested_reviewers`)
- *   - Ignores team reviewers (`requested_teams`)
- *   - Skips users who are already assignees
- *   - Caps at `MAX_ASSIGNEES` (default: 2)
- *   - Logs a warning when reviewers are dropped due to the cap
+ *   - `pull_request_review: submitted`
+ *   - `workflow_dispatch` (for manual add-flow testing)
  *
  * @param {Object} params
  * @param {Object} params.github - GitHub Octokit client instance
@@ -94,51 +177,24 @@ module.exports = async ({ github, context }) => {
     const prNumber = resolvePrNumber(context);
     if (!prNumber) return;
 
-    const owner = context.repo.owner;
-    const repo = context.repo.repo;
-
     logger.log(`Processing PR #${prNumber}`);
 
-    const payloadPr = context.payload.pull_request;
-    const pr = (payloadPr && Number.isInteger(payloadPr.number))
-      ? payloadPr
-      : (await github.rest.pulls.get({
-          owner,
-          repo,
-          pull_number: prNumber
-        })).data;
+    const pr = await loadPullRequest({ github, context, prNumber });
 
-    const requestedReviewers = pr.requested_reviewers || [];
-    const requestedTeams = pr.requested_teams || [];
-
-    const currentAssignees = new Set(
-      (pr.assignees || []).map(a => a.login)
-    );
-
-    if (requestedTeams.length > 0) {
-      logger.info(`${requestedTeams.length} team reviewer(s) detected but ignored (only individual users are assigned)`);
-    }
-    const usersToAssign = getUsersToAssign(requestedReviewers, currentAssignees);
-    const currentCount = currentAssignees.size;
-    const maxNewAssignees = Math.max(0, MAX_ASSIGNEES - currentCount);
-    const assigneesList = Array.from(usersToAssign).slice(0, maxNewAssignees);
-
-    if (assigneesList.length === 0) {
-      logger.log('No new users to assign. Done.');
+    if (context.eventName === 'pull_request_review' && context.payload.action === 'submitted') {
+      await removeReviewerFromAssignees({ github, context, prNumber, pr });
       return;
     }
 
-    logger.log(`Will assign: ${assigneesList.join(', ')}`);
-    logAssigneeCapWarning(usersToAssign, maxNewAssignees);
+    if (
+      context.eventName === 'workflow_dispatch' ||
+      (context.eventName === 'pull_request_target' && context.payload.action === 'review_requested')
+    ) {
+      await addRequestedReviewersAsAssignees({ github, context, prNumber, pr });
+      return;
+    }
 
-    await github.rest.issues.addAssignees({
-      owner,
-      repo,
-      issue_number: prNumber,
-      assignees: assigneesList
-    });
-
-    logger.log(`✅ Successfully added ${assigneesList.length} reviewer(s) as assignee(s)`);
+    logger.info(`Unsupported event ${context.eventName}:${context.payload.action || 'unknown'}. Skipping.`);
 
   } catch (error) {
     logger.error('Failed:', error.message);

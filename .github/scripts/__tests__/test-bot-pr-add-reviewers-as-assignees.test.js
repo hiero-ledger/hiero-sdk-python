@@ -18,6 +18,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
 
   const createTestState = () => ({
     addAssigneesCalls: [],
+    removeAssigneesCalls: [],
     pullsGetCalls: 0,
     currentPrData: null,
   });
@@ -26,12 +27,32 @@ describe('Bot: Add Reviewers as Assignees', () => {
     repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-python' },
     eventName: 'pull_request_target',
     payload: {
+      action: 'review_requested',
       pull_request: {
         number: 123,
         requested_reviewers: [],
         requested_teams: [],
         assignees: [],
         ...prData
+      }
+    }
+  });
+
+  const createReviewSubmittedContext = (prData = {}, reviewData = {}) => ({
+    repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-python' },
+    eventName: 'pull_request_review',
+    payload: {
+      action: 'submitted',
+      pull_request: {
+        number: 123,
+        requested_reviewers: [],
+        requested_teams: [],
+        assignees: [],
+        ...prData
+      },
+      review: {
+        user: { login: 'alice' },
+        ...reviewData
       }
     }
   });
@@ -54,6 +75,10 @@ describe('Bot: Add Reviewers as Assignees', () => {
       issues: {
         addAssignees: async (params) => {
           state.addAssigneesCalls.push(params);
+          return { data: {} };
+        },
+        removeAssignees: async (params) => {
+          state.removeAssigneesCalls.push(params);
           return { data: {} };
         }
       }
@@ -114,7 +139,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
     expect(state.addAssigneesCalls).toHaveLength(0);
   });
 
-  test('respects MAX_ASSIGNEES = 2 cap', async () => {
+  test('adds all requested reviewers as assignees without cap', async () => {
     const state = createTestState();
     state.currentPrData = {
       requested_reviewers: [{ login: 'u1' }, { login: 'u2' }, { login: 'u3' }],
@@ -128,7 +153,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
     await handler({ github: createMockGithub(state), context: ctx });
 
     expect(state.addAssigneesCalls).toHaveLength(1);
-    expect(state.addAssigneesCalls[0].assignees).toHaveLength(2);
+    expect(state.addAssigneesCalls[0].assignees.sort()).toEqual(['u1', 'u2', 'u3']);
   });
 
   test('does nothing when no reviewers are requested', async () => {
@@ -152,6 +177,47 @@ describe('Bot: Add Reviewers as Assignees', () => {
     expect(state.addAssigneesCalls).toHaveLength(0);
   });
 
+  test('removes reviewer from assignees after review submission', async () => {
+    const state = createTestState();
+    const ctx = createReviewSubmittedContext({
+      assignees: [{ login: 'alice' }, { login: 'bob' }]
+    });
+
+    await handler({ github: createMockGithub(state), context: ctx });
+
+    expect(state.removeAssigneesCalls).toHaveLength(1);
+    expect(state.removeAssigneesCalls[0]).toMatchObject({
+      owner: 'hiero-ledger',
+      repo: 'hiero-sdk-python',
+      issue_number: 123,
+      assignees: ['alice']
+    });
+    expect(state.addAssigneesCalls).toHaveLength(0);
+  });
+
+  test('does nothing when submitted reviewer is not an assignee', async () => {
+    const state = createTestState();
+    const ctx = createReviewSubmittedContext({
+      assignees: [{ login: 'bob' }]
+    });
+
+    await handler({ github: createMockGithub(state), context: ctx });
+
+    expect(state.removeAssigneesCalls).toHaveLength(0);
+    expect(state.addAssigneesCalls).toHaveLength(0);
+  });
+
+  test('does nothing when review submission has no reviewer login', async () => {
+    const state = createTestState();
+    const ctx = createReviewSubmittedContext({
+      assignees: [{ login: 'alice' }]
+    }, { user: null });
+
+    await handler({ github: createMockGithub(state), context: ctx });
+
+    expect(state.removeAssigneesCalls).toHaveLength(0);
+  });
+
   test('supports workflow_dispatch with pr_number input', async () => {
     const state = createTestState();
     state.currentPrData = { requested_reviewers: [{ login: 'eve' }], assignees: [] };
@@ -166,6 +232,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
 
     expect(state.addAssigneesCalls).toHaveLength(1);
     expect(state.addAssigneesCalls[0].issue_number).toBe(128);
+    expect(state.removeAssigneesCalls).toHaveLength(0);
   });
 
   test('handles invalid pr_number in workflow_dispatch', async () => {
@@ -185,7 +252,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
     }
   });
 
-  test('gracefully handles 403 permission errors', async () => {
+  test('gracefully handles 403 permission errors when adding assignees', async () => {
     const ctx = createMockContext({ requested_reviewers: [{ login: 'x' }] });
 
     const errorMock = {
@@ -204,7 +271,26 @@ describe('Bot: Add Reviewers as Assignees', () => {
     await expect(handler({ github: errorMock, context: ctx })).resolves.not.toThrow();
   });
 
-  test('rethrows non-403 errors', async () => {
+  test('gracefully handles 403 permission errors when removing assignees', async () => {
+    const ctx = createReviewSubmittedContext({ assignees: [{ login: 'alice' }] });
+
+    const errorMock = {
+      rest: {
+        pulls: { get: async () => ({ data: { assignees: [{ login: 'alice' }] } }) },
+        issues: {
+          removeAssignees: async () => {
+            const err = new Error('Forbidden');
+            err.status = 403;
+            throw err;
+          }
+        }
+      }
+    };
+
+    await expect(handler({ github: errorMock, context: ctx })).resolves.not.toThrow();
+  });
+
+  test('rethrows non-403 errors when adding assignees', async () => {
     const ctx = createMockContext({ requested_reviewers: [{ login: 'x' }] });
 
     const errorMock = {
@@ -212,6 +298,25 @@ describe('Bot: Add Reviewers as Assignees', () => {
         pulls: { get: async () => ({ data: { requested_reviewers: [{ login: 'x' }] } }) },
         issues: {
           addAssignees: async () => {
+            const err = new Error('Internal Server Error');
+            err.status = 500;
+            throw err;
+          }
+        }
+      }
+    };
+
+    await expect(handler({ github: errorMock, context: ctx })).rejects.toHaveProperty('status', 500);
+  });
+
+  test('rethrows non-403 errors when removing assignees', async () => {
+    const ctx = createReviewSubmittedContext({ assignees: [{ login: 'alice' }] });
+
+    const errorMock = {
+      rest: {
+        pulls: { get: async () => ({ data: { assignees: [{ login: 'alice' }] } }) },
+        issues: {
+          removeAssignees: async () => {
             const err = new Error('Internal Server Error');
             err.status = 500;
             throw err;
