@@ -18,7 +18,6 @@ module.exports = async function revisionGuard({ github, context, core }) {
     !repo?.repo ||
     !pr ||
     typeof pr.number !== 'number' ||
-    typeof pr.node_id !== 'string' ||
     reviewState !== 'changes_requested'
   ) {
     core?.info?.('Skipping revision guard due to missing or non-matching payload data.');
@@ -30,27 +29,30 @@ module.exports = async function revisionGuard({ github, context, core }) {
     return;
   }
 
-  if (isDraft(pr)) {
-    core?.info?.(`Skipping PR #${pr.number} because it is already a draft.`);
-    return;
-  }
+  const labelsToRemove = getPresentManagedLabels(pr.labels);
 
-  try {
-    await convertToDraft(github, {
-      pullRequestId: pr.node_id,
-    });
-    core?.info?.(`Converted PR #${pr.number} to draft.`);
-  } catch (error) {
-    core?.error?.(`Failed to convert PR #${pr.number} to draft: ${error.message}`);
-    if (!process.env.REVIEWBOT_TOKEN) {
+  if (!isDraft(pr)) {
+    if (process.env.REVIEWBOT_TOKEN && typeof pr.node_id === 'string') {
+      try {
+        await convertToDraft(github, {
+          pullRequestId: pr.node_id,
+        });
+        core?.info?.(`Converted PR #${pr.number} to draft.`);
+      } catch (error) {
+        core?.error?.(
+          `Failed to convert PR #${pr.number} to draft: ${error.message}. ` +
+          'Continuing with managed label cleanup.'
+        );
+      }
+    } else {
       core?.info?.(
-        'Hint: configure REVIEWBOT_TOKEN with permission to convert pull requests to draft.'
+        `Skipping draft conversion for PR #${pr.number}; REVIEWBOT_TOKEN is not configured.`
       );
     }
-    throw error;
+  } else {
+    core?.info?.(`PR #${pr.number} is already a draft.`);
   }
 
-  const labelsToRemove = getPresentManagedLabels(pr.labels);
   if (labelsToRemove.length === 0) {
     core?.info?.(`No managed labels to remove for PR #${pr.number}.`);
     return;
@@ -71,6 +73,6 @@ module.exports = async function revisionGuard({ github, context, core }) {
       `Failed to remove labels from PR #${pr.number}: ${error.message}. ` +
       `Labels to remove: ${labelsToRemove.join(', ')}.`
     );
-    // Don't re-throw; draft conversion succeeded and is the primary goal
+    throw error;
   }
 };

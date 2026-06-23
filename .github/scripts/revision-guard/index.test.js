@@ -20,12 +20,19 @@ function freshRequire() {
 function createGithubMock() {
   const removedLabels = [];
   const graphqlCalls = [];
+  let graphqlError;
 
   return {
     removedLabels,
     graphqlCalls,
+    failGraphql(error) {
+      graphqlError = error;
+    },
     graphql: async (query, variables) => {
       graphqlCalls.push({ query, variables });
+      if (graphqlError) {
+        throw graphqlError;
+      }
       return {
         convertPullRequestToDraft: {
           pullRequest: {
@@ -69,22 +76,22 @@ function createContext(overrides = {}) {
 describe('revision-guard index', () => {
   beforeEach(() => {
     delete process.env.REVISION_GUARD_MANAGED_LABELS;
+    delete process.env.REVIEWBOT_TOKEN;
   });
 
   afterEach(() => {
     delete process.env.REVISION_GUARD_MANAGED_LABELS;
+    delete process.env.REVIEWBOT_TOKEN;
   });
 
-  it('converts a ready PR to draft and removes only managed labels', async () => {
+  it('removes only managed labels without draft conversion when no review bot token is configured', async () => {
     const handler = freshRequire();
     const github = createGithubMock();
     const context = createContext();
 
     await handler({ github, context, core: { info() {} } });
 
-    assert.equal(github.graphqlCalls.length, 1);
-    assert.match(github.graphqlCalls[0].query, /convertPullRequestToDraft/);
-    assert.deepEqual(github.graphqlCalls[0].variables, { pullRequestId: 'PR_node_42' });
+    assert.equal(github.graphqlCalls.length, 0);
     assert.deepEqual(github.removedLabels, [
       'queue:committers',
       'status: ready-to-merge',
@@ -110,7 +117,7 @@ describe('revision-guard index', () => {
     assert.equal(github.removedLabels.length, 0);
   });
 
-  it('skips already-draft PRs', async () => {
+  it('removes managed labels from already-draft PRs without converting again', async () => {
     const handler = freshRequire();
     const github = createGithubMock();
     const context = createContext({
@@ -126,7 +133,40 @@ describe('revision-guard index', () => {
     await handler({ github, context, core: { info() {} } });
 
     assert.equal(github.graphqlCalls.length, 0);
-    assert.equal(github.removedLabels.length, 0);
+    assert.deepEqual(github.removedLabels, ['queue:committers']);
+  });
+
+  it('converts to draft when a review bot token is configured', async () => {
+    process.env.REVIEWBOT_TOKEN = 'token';
+    const handler = freshRequire();
+    const github = createGithubMock();
+    const context = createContext();
+
+    await handler({ github, context, core: { info() {} } });
+
+    assert.equal(github.graphqlCalls.length, 1);
+    assert.match(github.graphqlCalls[0].query, /convertPullRequestToDraft/);
+    assert.deepEqual(github.graphqlCalls[0].variables, { pullRequestId: 'PR_node_42' });
+    assert.deepEqual(github.removedLabels, [
+      'queue:committers',
+      'status: ready-to-merge',
+    ]);
+  });
+
+  it('still removes managed labels when draft conversion fails', async () => {
+    process.env.REVIEWBOT_TOKEN = 'token';
+    const handler = freshRequire();
+    const github = createGithubMock();
+    github.failGraphql(new Error('Resource not accessible by integration'));
+    const context = createContext();
+
+    await handler({ github, context, core: { error() {}, info() {} } });
+
+    assert.equal(github.graphqlCalls.length, 1);
+    assert.deepEqual(github.removedLabels, [
+      'queue:committers',
+      'status: ready-to-merge',
+    ]);
   });
 
   it('uses configurable managed labels and still removes defaults', async () => {
@@ -149,9 +189,7 @@ describe('revision-guard index', () => {
 
     await handler({ github, context, core: { info() {} } });
 
-    // Draft conversion must also fire for configurable-label scenarios.
-    assert.equal(github.graphqlCalls.length, 1);
-    assert.deepEqual(github.graphqlCalls[0].variables, { pullRequestId: 'PR_node_45' });
+    assert.equal(github.graphqlCalls.length, 0);
     // Custom labels AND the matching default (queue:committers) must both be removed.
     assert.deepEqual(github.removedLabels, ['queue:committers', 'custom: one', 'custom: two']);
   });
