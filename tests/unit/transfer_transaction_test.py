@@ -119,9 +119,6 @@ def test_add_invalid_transfer(mock_account_ids):
     with pytest.raises(TypeError):
         transfer_tx.add_hbar_transfer(12345, -500)
 
-    with pytest.raises(ValueError):
-        transfer_tx.add_hbar_transfer(mock_account_ids[0], 0)
-
     with pytest.raises(TypeError):
         transfer_tx.add_token_transfer(12345, mock_account_ids[0], -100)
 
@@ -271,16 +268,19 @@ def test_edge_case_amounts(mock_account_ids):
     assert token1_amounts[account_id_1] == 2
 
 
-def test_zero_amount_validation(mock_account_ids):
-    """Test that zero amounts are properly rejected."""
+def test_zero_amount_handling(mock_account_ids):
+    """Test handling of zero transfer amounts."""
     account_id_1, _, _, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
-    # Test zero HBAR amount should raise ValueError with updated message
-    with pytest.raises(ValueError, match="Amount must be a non-zero value"):
-        transfer_tx.add_hbar_transfer(account_id_1, 0)
+    # Zero HBAR transfers are allowed
+    transfer_tx.add_hbar_transfer(account_id_1, 0)
 
-    # Test zero token amount should raise ValueError
+    assert len(transfer_tx.hbar_transfers) == 1
+    assert transfer_tx.hbar_transfers[0].account_id == account_id_1
+    assert transfer_tx.hbar_transfers[0].amount == 0
+
+    # Token transfers still reject zero amounts (if unchanged)
     with pytest.raises(ValueError, match="Amount must be a non-zero integer"):
         transfer_tx.add_token_transfer(token_id_1, account_id_1, 0)
 
@@ -555,16 +555,21 @@ def test_hbar_accumulation_with_mixed_int_and_hbar(mock_account_ids):
     assert transfer.amount == 100 + 100_000_000 - 50
 
 
-def test_zero_hbar_value_validation(mock_account_ids):
-    """Test that zero Hbar amounts are properly rejected."""
+def test_zero_hbar_value_handling(mock_account_ids):
+    """Test that zero Hbar amounts are accepted."""
     account_id_1, _, _, _, _ = mock_account_ids
+
     transfer_tx = TransferTransaction()
+    transfer_tx.add_hbar_transfer(account_id_1, Hbar(0))
 
-    with pytest.raises(ValueError, match="Amount must be a non-zero value"):
-        transfer_tx.add_hbar_transfer(account_id_1, Hbar(0))
+    assert len(transfer_tx.hbar_transfers) == 1
+    assert transfer_tx.hbar_transfers[0].amount == 0
 
-    with pytest.raises(ValueError, match="Amount must be a non-zero value"):
-        transfer_tx.add_hbar_transfer(account_id_1, 0)
+    transfer_tx = TransferTransaction()
+    transfer_tx.add_hbar_transfer(account_id_1, 0)
+
+    assert len(transfer_tx.hbar_transfers) == 1
+    assert transfer_tx.hbar_transfers[0].amount == 0
 
 
 def test_add_hbar_transfer_with_various_hbar_units(mock_account_ids):

@@ -76,18 +76,10 @@ class TokenFreezeTransaction(Transaction):
 
         Returns:
             TokenFreezeAccountTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If the token ID or account ID is missing.
         """
-        if not self.token_id:
-            raise ValueError("Missing required TokenID.")
-
-        if not self.account_id:
-            raise ValueError("Missing required AccountID.")
-
         return token_freeze_account_pb2.TokenFreezeAccountTransactionBody(
-            token=self.token_id._to_proto(), account=self.account_id._to_proto()
+            token=self.token_id._to_proto() if self.token_id else None,
+            account=self.account_id._to_proto() if self.account_id else None,
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:

@@ -178,12 +178,11 @@ async function syncLabel(github, owner, repo, pr, dryRun) {
     (name) => ALL_QUEUE_LABEL_NAMES.includes(name) && name !== correctLabel.name
   );
 
-  const isHuman = pr.user && pr.user.type !== 'Bot';
-  const needsCommunityReview = isHuman && !currentLabels.includes(COMMUNITY_REVIEW.name);
+  const needsCommunityReview = !currentLabels.includes(COMMUNITY_REVIEW.name);
 
   // Check if the correct labels are already present AND there are no stale labels to remove
   if (currentLabels.includes(correctLabel.name) && staleLabels.length === 0 && !needsCommunityReview) {
-    console.log(`    ✓ Already has "${correctLabel.name}"${isHuman ? ` and "${COMMUNITY_REVIEW.name}"` : ''}. No change needed.`);
+    console.log(`    ✓ Already has "${correctLabel.name}" and "${COMMUNITY_REVIEW.name}". No change needed.`);
     return false;
   }
 

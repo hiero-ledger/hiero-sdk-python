@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-import random
+import secrets
 import time
 from datetime import datetime, timedelta, timezone
 
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
+
+
+secure_random = secrets.SystemRandom()
 
 
 class Timestamp:
@@ -34,10 +37,10 @@ class Timestamp:
         Returns:
             Timestamp: A new `Timestamp` instance.
         """
-        jitter = random.randint(3000, 8000) if has_jitter else 0
+        jitter = secure_random.randint(3000, 8000) if has_jitter else 0
         now_ms = int(round(time.time() * 1000)) - jitter
         seconds = now_ms // 1000
-        nanos = (now_ms % 1000) * 1_000_000 + random.randint(0, 999_999)
+        nanos = (now_ms % 1000) * 1_000_000 + secure_random.randint(0, 999_999)
 
         return Timestamp(seconds, nanos)
 
