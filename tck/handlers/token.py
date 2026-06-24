@@ -11,7 +11,9 @@ from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.custom_fractional_fee import CustomFractionalFee
 from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
+from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
@@ -23,6 +25,7 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.token import (
+    AirdropTokenParams,
     AssociateTokenParams,
     CreateTokenParams,
     CustomFeeParams,
@@ -33,6 +36,7 @@ from tck.param.token import (
     PauseTokenParams,
 )
 from tck.response.token import (
+    AirdropTokenResponse,
     AssociateTokenResponse,
     CreateTokenResponse,
     DeleteTokenResponse,
@@ -362,3 +366,67 @@ def pause_token(params: PauseTokenParams) -> PauseTokenResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return PauseTokenResponse(status=ResponseCode(receipt.status).name)
+
+
+def _build_airdrop_token_transaction(params: AirdropTokenParams) -> TokenAirdropTransaction:
+    """Build a TokenAirdropTransaction from TCK params."""
+    tx = TokenAirdropTransaction()
+    tx.set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenTransfers is None:
+        return tx
+
+    for entry in params.tokenTransfers:
+        ## Token Transfer
+        if entry.token is not None:
+            token = entry.token
+
+            token_id = TokenId.from_string(token.tokenId)
+            account = AccountId.from_string(token.accountId)
+
+            if token.decimals is not None:
+                decimals = int(token.decimals)
+
+                if entry.approved:
+                    tx.add_approved_token_transfer_with_decimals(token_id, account, int(token.amount), decimals)
+                else:
+                    tx.add_token_transfer_with_decimals(token_id, account, int(token.amount), decimals)
+            else:
+                if entry.approved:
+                    tx.add_approved_token_transfer(token_id, account, int(token.amount))
+                else:
+                    tx.add_token_transfer(token_id, account, int(token.amount))
+
+        ## NFT Transfer
+        elif entry.nft is not None:
+            nft = entry.nft
+
+            nft_id = NftId(TokenId.from_string(nft.tokenId), int(nft.serialNumber))
+
+            sender = AccountId.from_string(nft.senderAccountId)
+            receiver = AccountId.from_string(nft.receiverAccountId)
+
+            if entry.approved:
+                tx.add_approved_nft_transfer(nft_id, sender, receiver)
+            else:
+                tx.add_nft_transfer(nft_id, sender, receiver)
+
+    return tx
+
+
+@rpc_method("airdropToken")
+def airdrop_token(params: AirdropTokenParams) -> AirdropTokenResponse:
+    """Airdrop tokens using TCK airdropToken parameters."""
+    client = get_client(params.sessionId)
+
+    tx = _build_airdrop_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(tx, client)
+
+    receipt = tx.execute(client, wait_for_receipt=False).get_receipt(
+        client,
+        validate_status=True,
+    )
+
+    return AirdropTokenResponse(status=ResponseCode(receipt.status).name)
