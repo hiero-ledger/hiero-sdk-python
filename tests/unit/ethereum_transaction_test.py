@@ -233,3 +233,43 @@ def test_ethereum_transaction_can_execute():
         receipt = transaction.execute(client)
 
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = EthereumTransaction()
+    tx.set_ethereum_data(b"eth_tx_data")
+    tx.set_max_gas_allowed(500_000)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, EthereumTransaction)
+    assert reconstructed.ethereum_data == b"eth_tx_data"
+    assert reconstructed.max_gas_allowed == 500_000
+    assert reconstructed.call_data is None
+
+
+def test_from_bytes_with_call_data(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = EthereumTransaction()
+    tx.set_ethereum_data(b"eth_tx")
+    tx.set_call_data_file_id(FileId(0, 0, 88))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, EthereumTransaction)
+    assert reconstructed.call_data == FileId(0, 0, 88)

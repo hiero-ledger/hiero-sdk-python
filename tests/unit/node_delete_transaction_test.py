@@ -190,3 +190,21 @@ def test_build_proto_body_missing_node_id():
 
     with pytest.raises(ValueError, match="Missing required NodeID"):
         node_tx._build_proto_body()
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = NodeDeleteTransaction()
+    tx.set_node_id(42)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, NodeDeleteTransaction)
+    assert reconstructed.node_id == 42

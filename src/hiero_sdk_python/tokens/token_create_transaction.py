@@ -28,7 +28,6 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_type import TokenType
-from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.utils.key_utils import key_to_proto
 
@@ -486,19 +485,19 @@ class TokenCreateTransaction(Transaction):
             transaction._token_params.metadata = body.metadata if body.metadata else None
             transaction._token_params.custom_fees = [CustomFee._from_proto(f) for f in body.custom_fees]
             if body.HasField("adminKey"):
-                transaction._keys.admin_key = PublicKey._from_proto(body.adminKey)
+                transaction._keys.admin_key = Key.from_proto_key(body.adminKey)
             if body.HasField("kycKey"):
-                transaction._keys.kyc_key = PublicKey._from_proto(body.kycKey)
+                transaction._keys.kyc_key = Key.from_proto_key(body.kycKey)
             if body.HasField("freezeKey"):
-                transaction._keys.freeze_key = PublicKey._from_proto(body.freezeKey)
+                transaction._keys.freeze_key = Key.from_proto_key(body.freezeKey)
             if body.HasField("wipeKey"):
-                transaction._keys.wipe_key = PublicKey._from_proto(body.wipeKey)
+                transaction._keys.wipe_key = Key.from_proto_key(body.wipeKey)
             if body.HasField("supplyKey"):
-                transaction._keys.supply_key = PublicKey._from_proto(body.supplyKey)
+                transaction._keys.supply_key = Key.from_proto_key(body.supplyKey)
             if body.HasField("fee_schedule_key"):
-                transaction._keys.fee_schedule_key = PublicKey._from_proto(body.fee_schedule_key)
+                transaction._keys.fee_schedule_key = Key.from_proto_key(body.fee_schedule_key)
             if body.HasField("pause_key"):
-                transaction._keys.pause_key = PublicKey._from_proto(body.pause_key)
+                transaction._keys.pause_key = Key.from_proto_key(body.pause_key)
             if body.HasField("metadata_key"):
-                transaction._keys.metadata_key = PublicKey._from_proto(body.metadata_key)
+                transaction._keys.metadata_key = Key.from_proto_key(body.metadata_key)
         return transaction

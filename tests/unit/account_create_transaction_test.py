@@ -560,3 +560,20 @@ def test_from_bytes(mock_account_ids):
     assert isinstance(reconstructed, AccountCreateTransaction)
     assert reconstructed.initial_balance == Hbar(5).to_tinybars()
     assert reconstructed.receiver_signature_required is True
+
+
+def test_from_bytes_without_auto_renew_period(mock_account_ids):
+    """When auto_renew_period is None, round-trip must preserve None (not restore the default)."""
+    operator_id, node_account_id = mock_account_ids
+
+    tx = AccountCreateTransaction(auto_renew_period=None)
+    tx.set_initial_balance(1000)
+    tx.transaction_id = generate_transaction_id(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, AccountCreateTransaction)
+    assert reconstructed.initial_balance == 1000
+    assert reconstructed.auto_renew_period is None
