@@ -345,30 +345,6 @@ class NodeUpdateTransaction(Transaction):
         scheduled_body.nodeUpdate.CopyFrom(node_update_body)
         return scheduled_body
 
-    @classmethod
-    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
-        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
-        if transaction_body.HasField("nodeUpdate"):
-            body = transaction_body.nodeUpdate
-            transaction.node_id = body.node_id if body.node_id else None
-            if body.HasField("account_id"):
-                transaction.account_id = AccountId._from_proto(body.account_id)
-            if body.HasField("description"):
-                transaction.description = body.description.value
-            transaction.gossip_endpoints = [Endpoint._from_proto(ep) for ep in body.gossip_endpoint]
-            transaction.service_endpoints = [Endpoint._from_proto(ep) for ep in body.service_endpoint]
-            if body.HasField("gossip_ca_certificate"):
-                transaction.gossip_ca_certificate = body.gossip_ca_certificate.value
-            if body.HasField("grpc_certificate_hash"):
-                transaction.grpc_certificate_hash = body.grpc_certificate_hash.value
-            if body.HasField("admin_key"):
-                transaction.admin_key = Key.from_proto_key(body.admin_key)
-            if body.HasField("decline_reward"):
-                transaction.decline_reward = body.decline_reward.value
-            if body.HasField("grpc_proxy_endpoint"):
-                transaction.grpc_web_proxy_endpoint = Endpoint._from_proto(body.grpc_proxy_endpoint)
-        return transaction
-
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the node update transaction.
@@ -390,7 +366,7 @@ class NodeUpdateTransaction(Transaction):
 
         if transaction_body.HasField("nodeUpdate"):
             pb = transaction_body.nodeUpdate
-            transaction.node_id = pb.node_id
+            transaction.node_id = pb.node_id if pb.node_id else None
             if pb.HasField("account_id"):
                 transaction.account_id = AccountId._from_proto(pb.account_id)
             if pb.HasField("description"):
@@ -402,7 +378,7 @@ class NodeUpdateTransaction(Transaction):
             if pb.HasField("grpc_certificate_hash"):
                 transaction.grpc_certificate_hash = pb.grpc_certificate_hash.value
             if pb.HasField("admin_key"):
-                transaction.admin_key = PublicKey._from_proto(pb.admin_key)
+                transaction.admin_key = Key.from_proto_key(pb.admin_key)
             if pb.HasField("decline_reward"):
                 transaction.decline_reward = pb.decline_reward.value
             if pb.HasField("grpc_proxy_endpoint"):
