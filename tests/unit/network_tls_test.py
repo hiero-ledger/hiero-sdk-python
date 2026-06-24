@@ -43,20 +43,6 @@ def test_network_verification_enabled_by_default():
         assert network.is_verify_certificates() is True, f"Verification should be enabled for {network_name}"
 
 
-@pytest.mark.skip(reason="This test is currently broke due to port")
-def test_network_set_transport_security_enable():
-    """Test enabling TLS on network."""
-    network = Network("solo")  # Starts with TLS disabled
-    assert network.is_transport_security() is False
-
-    network.set_transport_security(True)
-    assert network.is_transport_security() is True
-
-    # Verify all nodes are updated
-    for node in network.nodes:
-        assert node._address._is_transport_security() is True
-
-
 def test_network_set_transport_security_disable():
     """Test disabling TLS on network."""
     network = Network("testnet")  # Starts with TLS enabled

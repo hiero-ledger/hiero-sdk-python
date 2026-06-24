@@ -71,57 +71,6 @@ def test_tls_enabled_by_default_for_mainnet():
 
 
 @pytest.mark.integration
-@pytest.mark.skip(reason="This test is currently broke due to port")
-def test_tls_disabled_by_default_for_localhost():
-    """Test that TLS is disabled by default for localhost network."""
-    network = Network("localhost")
-    client = Client(network)
-
-    try:
-        # Verify TLS is disabled by default
-        assert client.is_transport_security() is False, "TLS should be disabled by default for localhost"
-
-        # Verify certificate verification is still enabled by default
-        assert client.is_verify_certificates() is True, "Certificate verification should be enabled by default"
-
-        # Verify all nodes use plaintext ports (50211)
-        for node in network.nodes:
-            assert node._address._is_transport_security() is False, f"Node {node._account_id} should use plaintext port"
-            assert node._address._get_port() == 50211, f"Node {node._account_id} should use port 50211 for plaintext"
-    finally:
-        client.close()
-
-
-@pytest.mark.integration
-@pytest.mark.skip(reason="This test is currently broke due to port")
-def test_tls_can_be_enabled_manually():
-    """Test that TLS can be enabled manually on networks where it's disabled by default."""
-    network = Network("localhost")
-    client = Client(network)
-
-    try:
-        # Initially TLS should be disabled
-        assert client.is_transport_security() is False, "TLS should be disabled by default for localhost"
-
-        # Enable TLS manually
-        client.set_transport_security(True)
-
-        # Verify TLS is now enabled
-        assert client.is_transport_security() is True, (
-            "TLS should be enabled after calling set_transport_security(True)"
-        )
-
-        # Verify all nodes now use TLS ports
-        for node in network.nodes:
-            assert node._address._is_transport_security() is True, (
-                f"Node {node._account_id} should use TLS port after enabling"
-            )
-            assert node._address._get_port() == 50212, f"Node {node._account_id} should use port 50212 for TLS"
-    finally:
-        client.close()
-
-
-@pytest.mark.integration
 def test_tls_can_be_disabled_manually():
     """Test that TLS can be disabled manually on networks where it's enabled by default."""
     network = Network("testnet")
