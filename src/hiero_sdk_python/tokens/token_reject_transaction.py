@@ -138,9 +138,7 @@ class TokenRejectTransaction(Transaction):
             transaction.token_ids = [
                 TokenId._from_proto(e.fungible_token) for e in body.rejections if e.HasField("fungible_token")
             ]
-            transaction.nft_ids = [
-                NftId._from_proto(e.nft) for e in body.rejections if e.HasField("nft")
-            ]
+            transaction.nft_ids = [NftId._from_proto(e.nft) for e in body.rejections if e.HasField("nft")]
         return transaction
 
     def _from_proto(self, proto: TokenRejectTransactionBody) -> TokenRejectTransaction:

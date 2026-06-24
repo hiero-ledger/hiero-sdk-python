@@ -76,7 +76,9 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
                     if not t.HasField("accountID"):
                         continue
                     account_id = AccountId._from_proto(t.accountID)
-                    expected_decimals = transfer.expected_decimals.value if transfer.HasField("expected_decimals") else None
+                    expected_decimals = (
+                        transfer.expected_decimals.value if transfer.HasField("expected_decimals") else None
+                    )
                     transaction.token_transfers[token_id].append(
                         TokenTransfer(token_id, account_id, t.amount, expected_decimals, t.is_approval)
                     )

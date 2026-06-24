@@ -120,9 +120,7 @@ class TokenClaimAirdropTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("tokenClaimAirdrop"):
             body = transaction_body.tokenClaimAirdrop
-            transaction._pending_airdrop_ids = [
-                PendingAirdropId._from_proto(a) for a in body.pending_airdrops
-            ]
+            transaction._pending_airdrop_ids = [PendingAirdropId._from_proto(a) for a in body.pending_airdrops]
             transaction._validate_all(transaction._pending_airdrop_ids)
         return transaction
 

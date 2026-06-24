@@ -400,7 +400,9 @@ class ContractCreateTransaction(Transaction):
             if body.HasField("proxyAccountID"):
                 transaction.proxy_account_id = AccountId._from_proto(body.proxyAccountID)
             transaction.auto_renew_period = (
-                Duration._from_proto(body.autoRenewPeriod) if body.HasField("autoRenewPeriod") else Duration(DEFAULT_AUTO_RENEW_PERIOD)
+                Duration._from_proto(body.autoRenewPeriod)
+                if body.HasField("autoRenewPeriod")
+                else Duration(DEFAULT_AUTO_RENEW_PERIOD)
             )
             transaction.parameters = body.constructorParameters if body.constructorParameters else None
             transaction.contract_memo = body.memo if body.memo else None

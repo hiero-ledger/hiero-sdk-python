@@ -319,7 +319,9 @@ class AccountCreateTransaction(Transaction):
             # triggers an INVALID_INITIAL_BALANCE pre-check error instead of a local error.
             initialBalance=ctypes.c_uint64(initial_balance_tinybars).value,
             receiverSigRequired=self.receiver_signature_required,
-            autoRenewPeriod=(duration_pb2.Duration(seconds=self.auto_renew_period.seconds) if self.auto_renew_period else None),
+            autoRenewPeriod=(
+                duration_pb2.Duration(seconds=self.auto_renew_period.seconds) if self.auto_renew_period else None
+            ),
             memo=self.account_memo,
             max_automatic_token_associations=self.max_automatic_token_associations,
             alias=self.alias.address_bytes if self.alias else None,

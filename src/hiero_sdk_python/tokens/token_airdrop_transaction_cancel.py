@@ -105,9 +105,7 @@ class TokenCancelAirdropTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("tokenCancelAirdrop"):
             body = transaction_body.tokenCancelAirdrop
-            transaction.pending_airdrops = [
-                PendingAirdropId._from_proto(a) for a in body.pending_airdrops
-            ]
+            transaction.pending_airdrops = [PendingAirdropId._from_proto(a) for a in body.pending_airdrops]
         return transaction
 
     def _get_method(self, channel):
