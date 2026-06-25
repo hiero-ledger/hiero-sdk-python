@@ -541,3 +541,28 @@ def test_chunk_transaction_id_nanosecond_overflow(topic_id):
     # Second chunk seconds=base_seconds + 1, nanos=0
     assert tx._transaction_ids[1].valid_start.seconds == base_seconds + 1
     assert tx._transaction_ids[1].valid_start.nanos == 0
+
+
+def test_build_proto_body_omits_topic_id_when_not_provided():
+    """Test that transaction body created without topic id when no topic id provided."""
+    transaction = TopicMessageSubmitTransaction().set_message("Hello Hiero")
+    tx_body = transaction._build_proto_body()
+
+    assert tx_body is not None
+    assert not tx_body.HasField("topicID")
+
+
+def test_execute_raises_when_message_is_not_set(topic_id, mock_client):
+    """Test that transaction fails when no message is set."""
+    transaction = TopicMessageSubmitTransaction().set_topic_id(topic_id)
+
+    with pytest.raises(ValueError, match="Missing required fields: message"):
+        transaction.freeze_with(mock_client)
+
+
+def test_execute_raises_when_message_is_empty(topic_id, mock_client):
+    """Test that transaction fails when empty message is set."""
+    transaction = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("")
+
+    with pytest.raises(ValueError, match="Missing required fields: message"):
+        transaction.freeze_with(mock_client)

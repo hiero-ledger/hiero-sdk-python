@@ -1,10 +1,11 @@
 """Unit tests for compute-time-until-meeting.py helper.
 
-Run with:
-    python3 -m unittest .github/scripts/tests/test_compute_time_until_meeting.py -v
+Run from .github/scripts:
+    npm run test:py
 
-Or from the tests directory:
-    python3 -m unittest test_compute_time_until_meeting -v
+Or directly:
+    pytest .github/scripts/__tests__/pytest/test_compute_time_until_meeting.py
+
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from importlib import import_module
 
 
 # Add the utils directory to sys.path so we can import the helper
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "utils"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "utils"))
 
 # Import the module using importlib since the filename has hyphens
 _mod = import_module("compute-time-until-meeting")
@@ -130,7 +131,7 @@ class TestComputeTimeUntilMeeting(unittest.TestCase):
         """CLI: calling via subprocess produces expected output."""
         import subprocess
 
-        helper_path = os.path.join(os.path.dirname(__file__), "..", "utils", "compute-time-until-meeting.py")
+        helper_path = os.path.join(os.path.dirname(__file__), "..", "..", "utils", "compute-time-until-meeting.py")
         result = subprocess.run(
             ["python3", helper_path, "today", "14", "10:00"], capture_output=True, text=True, check=True
         )
@@ -141,7 +142,7 @@ class TestComputeTimeUntilMeeting(unittest.TestCase):
         """CLI: missing arguments should exit with error."""
         import subprocess
 
-        helper_path = os.path.join(os.path.dirname(__file__), "..", "utils", "compute-time-until-meeting.py")
+        helper_path = os.path.join(os.path.dirname(__file__), "..", "..", "utils", "compute-time-until-meeting.py")
         result = subprocess.run(["python3", helper_path], capture_output=True, text=True, check=False)
         self.assertEqual(result.returncode, 1)
 

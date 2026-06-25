@@ -51,14 +51,8 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
 
         Returns:
             TokenAirdropTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If transfer list is invalid.
         """
         token_transfers = self.build_token_transfers()
-
-        if len(token_transfers) < 1 or len(token_transfers) > 10:
-            raise ValueError("Airdrop transfer list must contain minimum 1 and maximum 10 transfers.")
 
         return token_airdrop_pb2.TokenAirdropTransactionBody(token_transfers=token_transfers)
 
