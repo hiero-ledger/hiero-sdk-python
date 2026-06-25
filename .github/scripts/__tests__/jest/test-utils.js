@@ -1,79 +1,9 @@
-// SPDX-License-Identifier: Apache-2.0
+// __tests__/jest/test-utils.js
 //
-// tests/test-utils.js
-//
-// Shared test utilities for review-sync test suites.
-// Adapted from hiero-sdk-cpp/.github/scripts/tests/test-utils.js
+// Shared Jest test utilities
 //
 // Provides:
-//   - runTestSuite()      — CLI-aware test runner with summary
-//   - printSummaryAndExit() — formatted results + exit code
 //   - createMockGithub()  — mock GitHub API factory with call tracking
-
-// =============================================================================
-// SUMMARY & RUNNER
-// =============================================================================
-
-/**
- * Prints a summary table and exits with the appropriate code.
- *
- * @param {{ label: string, total: number, passed: number, failed: number }[]} sections
- */
-function printSummaryAndExit(sections) {
-  console.log('\n' + '='.repeat(70));
-  console.log('📈 SUMMARY');
-  console.log('='.repeat(70));
-
-  let anyFailed = false;
-  for (const { label, total, passed, failed } of sections) {
-    if (failed > 0) anyFailed = true;
-    console.log(
-      `   ${label}: ${total} total, ${passed} passed` +
-      `${failed > 0 ? `, ${failed} failed ❌` : ' ✅'}`
-    );
-  }
-
-  console.log('='.repeat(70));
-  process.exit(anyFailed ? 1 : 0);
-}
-
-/**
- * Parses the optional test-index CLI argument and either runs a single
- * test or all tests, then prints a summary and exits.
- *
- * @param {string} suiteName - Display name (e.g. "PERMISSIONS TEST SUITE")
- * @param {object[]} scenarios - Array of scenario objects (unused for unit-only suites, pass [])
- * @param {function} runScenario - Async function that runs one scenario (pass async () => true for unit-only)
- * @param {{ label: string, run: () => Promise<{ total: number, passed: number, failed: number }> }[]} extraSections
- */
-async function runTestSuite(suiteName, scenarios, runScenario, extraSections = []) {
-  console.log(`🧪 ${suiteName}`);
-  console.log('='.repeat(suiteName.length + 3) + '\n');
-
-  const summaries = [];
-
-  for (const section of extraSections) {
-    const result = await section.run();
-    summaries.push({ label: section.label, ...result });
-  }
-
-  // Only run integration scenarios if there are any
-  if (scenarios.length > 0) {
-    console.log('\n\n🔗 INTEGRATION TESTS');
-    console.log('='.repeat(70));
-
-    let passed = 0;
-    let failed = 0;
-    for (let i = 0; i < scenarios.length; i++) {
-      const ok = await runScenario(scenarios[i], i);
-      if (ok) passed++;
-      else failed++;
-    }
-    summaries.push({ label: 'Integration Tests', total: scenarios.length, passed, failed });
-  }
-
-  printSummaryAndExit(summaries);
-}
 
 // =============================================================================
 // MOCK GITHUB FACTORY
@@ -156,7 +86,6 @@ function createMockGithub(options = {}) {
     },
     paginate: async (fn, opts) => {
       const result = await fn(opts);
-      // github.paginate automatically unwraps the array from the response data
       if (result.data && result.data.check_runs) return result.data.check_runs;
       return result.data || result || [];
     },
@@ -165,4 +94,4 @@ function createMockGithub(options = {}) {
   return mock;
 }
 
-module.exports = { runTestSuite, printSummaryAndExit, createMockGithub };
+module.exports = { createMockGithub };
