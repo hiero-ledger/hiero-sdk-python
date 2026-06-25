@@ -57,15 +57,15 @@ jobs:
         run: npm ci
         working-directory: .github/scripts
 
-      - name: Test script
-        run: npm test
-        working-directory: .github/scripts
-
       - name: Install uv
         uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
 
       - name: Install dependencies
         run: uv sync --frozen --all-groups --all-packages --all-extras
+
+      - name: Test script
+        run: npm test
+        working-directory: .github/scripts
 
       - name: Generate Proto Files
         run: uv run python generate_proto.py
