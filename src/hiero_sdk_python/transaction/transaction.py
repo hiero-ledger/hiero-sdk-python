@@ -64,8 +64,8 @@ class Transaction(_Executable):
         # This allows us to maintain the signatures for each unique transaction
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
-        # changed from int: 2_000_000 to Hbar: 0.02
-        self._default_transaction_fee = Hbar(0.02)
+        # changed from int: 2_000_000 to Hbar: 2
+        self._default_transaction_fee = Hbar(2)
         self.operator_account_id = None
         self.batch_key: Key | None = None
 

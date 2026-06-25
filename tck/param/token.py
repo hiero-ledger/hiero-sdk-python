@@ -5,114 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from tck.param.base import BaseTransactionParams
+from tck.param.custom_fee import CustomFeeParams
 from tck.util.param_utils import (
     parse_common_transaction_params,
     parse_session_id,
     to_bool,
     to_int,
 )
-
-
-@dataclass
-class FixedFeeParams:
-    """Fixed custom fee parameters."""
-
-    amount: str | None = None
-    denominatingTokenId: str | None = None
-
-    @classmethod
-    def parse_json_params(cls, params: dict) -> FixedFeeParams:
-        return cls(
-            amount=params.get("amount"),
-            denominatingTokenId=params.get("denominatingTokenId"),
-        )
-
-
-@dataclass
-class FractionalFeeParams:
-    """Fractional custom fee parameters."""
-
-    numerator: str | None = None
-    denominator: str | None = None
-    minimumAmount: str | None = None
-    maximumAmount: str | None = None
-    assessmentMethod: str | None = None
-
-    @classmethod
-    def parse_json_params(cls, params: dict) -> FractionalFeeParams:
-        return cls(
-            numerator=params.get("numerator"),
-            denominator=params.get("denominator"),
-            minimumAmount=params.get("minimumAmount"),
-            maximumAmount=params.get("maximumAmount"),
-            assessmentMethod=params.get("assessmentMethod"),
-        )
-
-
-@dataclass
-class RoyaltyFeeParams:
-    """Royalty custom fee parameters."""
-
-    numerator: str | None = None
-    denominator: str | None = None
-    fallbackFee: FixedFeeParams | None = None
-
-    @classmethod
-    def parse_json_params(cls, params: dict) -> RoyaltyFeeParams:
-        fallback_fee = params.get("fallbackFee")
-        if fallback_fee is not None and not isinstance(fallback_fee, dict):
-            raise ValueError("fallbackFee must be an object")
-
-        return cls(
-            numerator=params.get("numerator"),
-            denominator=params.get("denominator"),
-            fallbackFee=FixedFeeParams.parse_json_params(fallback_fee) if fallback_fee is not None else None,
-        )
-
-
-@dataclass
-class CustomFeeParams:
-    """Token custom fee parameters."""
-
-    feeCollectorAccountId: str | None = None
-    feeCollectorsExempt: bool | None = None
-    fixedFee: FixedFeeParams | None = None
-    fractionalFee: FractionalFeeParams | None = None
-    royaltyFee: RoyaltyFeeParams | None = None
-
-    @classmethod
-    def parse_json_params(cls, params: dict) -> CustomFeeParams:
-        if not isinstance(params, dict):
-            raise ValueError("each customFees item must be an object")
-
-        fee_values = {
-            "fixedFee": params.get("fixedFee"),
-            "fractionalFee": params.get("fractionalFee"),
-            "royaltyFee": params.get("royaltyFee"),
-        }
-        present_fees = [name for name, value in fee_values.items() if value is not None]
-        if len(present_fees) != 1:
-            raise ValueError("custom fee must contain exactly one fee type")
-        if not isinstance(fee_values[present_fees[0]], dict):
-            raise ValueError(f"{present_fees[0]} must be an object")
-
-        return cls(
-            feeCollectorAccountId=params.get("feeCollectorAccountId"),
-            feeCollectorsExempt=to_bool(params.get("feeCollectorsExempt")),
-            fixedFee=(
-                FixedFeeParams.parse_json_params(fee_values["fixedFee"]) if fee_values["fixedFee"] is not None else None
-            ),
-            fractionalFee=(
-                FractionalFeeParams.parse_json_params(fee_values["fractionalFee"])
-                if fee_values["fractionalFee"] is not None
-                else None
-            ),
-            royaltyFee=(
-                RoyaltyFeeParams.parse_json_params(fee_values["royaltyFee"])
-                if fee_values["royaltyFee"] is not None
-                else None
-            ),
-        )
 
 
 @dataclass
