@@ -2,6 +2,8 @@
 
 // dryRun env var: any case-insensitive 'true' value will enable dry-run
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
+const immediateCheck =
+  (process.env.IMMEDIATE_CHECK || 'false').toLowerCase() === 'true';
 const hoursBeforeClose = parseInt(process.env.HOURS_BEFORE_CLOSE || '2', 10);
 const requireAuthorAssigned = (process.env.REQUIRE_AUTHOR_ASSIGNED || 'true').toLowerCase() === 'true';
 
@@ -88,6 +90,14 @@ async function closePR(github, pr, owner, repo, reason) {
       owner, repo, issue_number: pr.number,
       body: messages[reason]
     });
+
+    if (immediateCheck) {
+      console.log(
+        `✓ Commented on PR #${pr.number} (${reason}) link: ${pr.html_url}`
+      );
+      return;
+    }
+
     await github.rest.pulls.update({
       owner, repo, pull_number: pr.number, state: 'closed'
     });
@@ -119,8 +129,10 @@ module.exports = async ({ github, context }) => {
       }
 
       const hours = getHoursOpen(pr);
-      if (hours < hoursBeforeClose) {
-        console.log(`PR #${pr.number} link: ${pr.html_url} is only ${hours} hours old. Skipping.`);
+      if (!immediateCheck && hours < hoursBeforeClose) {
+        console.log(
+          `PR #${pr.number} link: ${pr.html_url} is only ${hours} hours old. Skipping.`
+        );
         continue;
       }
 
