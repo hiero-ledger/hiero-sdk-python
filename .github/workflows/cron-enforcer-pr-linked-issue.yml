@@ -39,7 +39,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: ${{ env.DRY_RUN }}
-          HOURS_BEFORE_CLOSE: "0"
+          HOURS_BEFORE_CLOSE: "2"
           REQUIRE_AUTHOR_ASSIGNED: "true"
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9.0.0
         with:

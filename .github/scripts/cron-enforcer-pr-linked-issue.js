@@ -1,8 +1,12 @@
-// A script to  closes pull requests without a linked issue automatically.
+// A script to  closes pull requests without a linked issue after 2 hours automatically.
 
 // dryRun env var: any case-insensitive 'true' value will enable dry-run
 const dryRun = (process.env.DRY_RUN || 'false').toString().toLowerCase() === 'true';
+const hoursBeforeClose = parseInt(process.env.HOURS_BEFORE_CLOSE || '2', 10);
 const requireAuthorAssigned = (process.env.REQUIRE_AUTHOR_ASSIGNED || 'true').toLowerCase() === 'true';
+
+const getHoursOpen = (pr) =>
+  Math.floor((Date.now() - new Date(pr.created_at)) / (60 * 60 * 1000));
 
 // Check if the PR author is a bot
 const isBotAuthor = (pr) => pr.user?.type === 'Bot';
@@ -114,6 +118,11 @@ module.exports = async ({ github, context }) => {
         continue;
       }
 
+      const hours = getHoursOpen(pr);
+      if (hours < hoursBeforeClose) {
+        console.log(`PR #${pr.number} link: ${pr.html_url} is only ${hours} hours old. Skipping.`);
+        continue;
+      }
 
       const { valid, reason } = await validatePR(github, pr, owner, repo);
       if (valid) {
