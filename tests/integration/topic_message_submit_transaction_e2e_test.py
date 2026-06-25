@@ -32,6 +32,7 @@ def create_topic(client, admin_key=None, submit_key=None, custom_fees=None):
         tx.set_submit_key(submit_key)
     if custom_fees:
         tx.set_custom_fees(custom_fees)
+        tx.transaction_fee = Hbar(30).to_tinybars()
 
     receipt = tx.execute(client)
     assert receipt.status == ResponseCode.SUCCESS, f"Topic creation failed: {ResponseCode(receipt.status).name}"
@@ -109,11 +110,10 @@ def test_topic_message_submit_transaction_fails_if_max_chunks_less_than_requied(
         .set_topic_id(topic_id)
         .set_message(message)
         .set_max_chunks(2)
-        .freeze_with(env.client)
     )
 
     with pytest.raises(ValueError):
-        message_tx.execute(env.client)
+        message_tx.freeze_with(env.client)
 
     delete_topic(env.client, topic_id)
 
@@ -291,11 +291,10 @@ def test_integration_topic_message_submit_transaction_fails_if_required_chunk_gr
         message="A" * (1024 * 4),  # requires 4 chunks
     )
     message_transaction.set_max_chunks(2)
-    message_transaction.freeze_with(env.client)
     with pytest.raises(
         ValueError, match="Message requires 4 chunks but max_chunks=2. Increase limit with set_max_chunks()."
     ):
-        message_transaction.execute(env.client)
+        message_transaction.freeze_with(env.client)
 
     delete_topic(env.client, topic_id)
 
