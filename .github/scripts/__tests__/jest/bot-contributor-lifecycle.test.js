@@ -22,6 +22,7 @@ function makeEnv(spec) {
     prsByNum = {},
     reviewsByPr = {},
     commitDateBySha = {},
+    failUnassignFor = [], // logins whose removeAssignees call should throw
   } = spec;
 
   const github = {
@@ -35,6 +36,9 @@ function makeEnv(spec) {
           mut.comments.push({ number: issue_number, body });
         },
         removeAssignees: async ({ issue_number, assignees }) => {
+          if (assignees.some((a) => failUnassignFor.includes(a))) {
+            throw new Error(`removeAssignees failed for ${assignees.join(",")}`);
+          }
           mut.unassigned.push({ issue_number, assignees });
         },
       },
@@ -59,15 +63,22 @@ function makeEnv(spec) {
   return { github, context: { repo: { owner: "o", repo: "r" } }, mut };
 }
 
-function gqlIssue({ assignedEvents = [], prNumbers = [] }) {
+// prNumbers: linked (closing) PRs. mentionPrNumbers: bare cross-references that do
+// NOT close the issue (willCloseTarget=false) and must not count as a linked PR.
+function gqlIssue({ assignedEvents = [], prNumbers = [], mentionPrNumbers = [] }) {
+  const crossRefNode = (n, willCloseTarget) => ({
+    willCloseTarget,
+    source: { number: n, state: "OPEN", repository: { nameWithOwner: "o/r" } },
+  });
   return {
     repository: {
       issue: {
         assignedEvents: { nodes: assignedEvents },
         crossRefs: {
-          nodes: prNumbers.map((n) => ({
-            source: { number: n, state: "OPEN", repository: { nameWithOwner: "o/r" } },
-          })),
+          nodes: [
+            ...prNumbers.map((n) => crossRefNode(n, true)),
+            ...mentionPrNumbers.map((n) => crossRefNode(n, false)),
+          ],
         },
         closedByPullRequestsReferences: { nodes: [] },
       },
@@ -135,7 +146,7 @@ const botReview = (d) => ({ user: { login: "coderabbitai[bot]", type: "Bot" }, s
 
 const THRESHOLD_KEYS = ["DRY_RUN", "ISSUE_REMIND_DAYS", "ISSUE_UNASSIGN_DAYS", "PR_REMIND_DAYS", "PR_CLOSE_DAYS", "SKIP_PR_LABELS"];
 
-async function run(spec, env = {}) {
+async function run(spec, env = {}, { expectThrow = false } = {}) {
   // Snapshot the keys we touch and restore them afterwards so we never pollute
   // process.env for other test files / cases.
   const saved = {};
@@ -148,6 +159,12 @@ async function run(spec, env = {}) {
   const spy = jest.spyOn(console, "log").mockImplementation(() => {});
   try {
     await bot({ github, context });
+  } catch (err) {
+    // The bot fails loudly when any issue errors (stats.errors > 0). Tests that
+    // exercise that path opt in via expectThrow so they can still inspect `mut`;
+    // otherwise an unexpected throw propagates and fails the test.
+    if (!expectThrow) throw err;
+    mut.threw = err;
   } finally {
     spy.mockRestore();
     for (const k of THRESHOLD_KEYS) {
@@ -415,5 +432,31 @@ describe("bot-contributor-lifecycle", () => {
     const m = await run(spec, { DRY_RUN: "false" });
     expect(m.unassigned).toHaveLength(0); // no real assignment date -> never unassign
     expect(commentedOn(m, 126, "<!-- issue-reminder-bot -->")).toBe(true); // but still nudges (created 30d ago)
+  });
+
+  test("a bare mention (willCloseTarget=false) is NOT a linked PR -> stale assignee is unassigned", async () => {
+    // An unrelated open PR merely cross-references the issue without a closing keyword.
+    // It must not exempt the idle assignee from the no-PR escalation.
+    const spec = {
+      issues: [{ number: 127, assignees: [{ login: "alice" }] }],
+      commentsByIssue: { 127: [] },
+      graphqlByIssue: {
+        127: gqlIssue({
+          assignedEvents: [{ createdAt: daysAgo(30), assignee: { login: "alice" } }],
+          mentionPrNumbers: [427],
+        }),
+      },
+    };
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(unassignedFrom(m, 127, "alice")).toBe(true);
+    expect(commentedOn(m, 127, "<!-- inactivity-unassign:alice -->")).toBe(true);
+  });
+
+  test("one assignee's unassign failure does not block the other (per-assignee isolation)", async () => {
+    const spec = { ...specNoPR(128, ["alice", "bob"], 30), failUnassignFor: ["alice"] };
+    const m = await run(spec, { DRY_RUN: "false" }, { expectThrow: true });
+    expect(m.threw).toBeDefined(); // run still fails loudly so the failure is visible
+    expect(unassignedFrom(m, 128, "alice")).toBe(false); // alice's removal threw
+    expect(unassignedFrom(m, 128, "bob")).toBe(true); // ...but bob is still processed
   });
 });
