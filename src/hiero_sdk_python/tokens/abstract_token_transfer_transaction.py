@@ -310,15 +310,9 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         a list of TokenTransferList objects, where each TokenTransferList groups
         transfers for a specific token ID.
 
-        Performs validation to ensure all fungible token transfers for a given
-        token ID are balanced (net change must be zero).
-
         Returns:
             list[basic_types_pb2.TokenTransferList]: A list of TokenTransferList objects,
             each grouping transfers for a specific token ID.
-
-        Raises:
-            ValueError: If fungible transfers for any token ID are not balanced.
         """
         token_transfer_list: list[TokenTransferList] = []
 
@@ -340,17 +334,4 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
 
             token_transfer_list.append(nft_list)
 
-        token_transfer_proto: list[basic_types_pb2.TokenTransferList] = []
-
-        # Verify net amount
-        for transfer in token_transfer_list:
-            net_amount = 0
-            for token_transfer in transfer.transfers:
-                net_amount += token_transfer.amount
-
-            if net_amount != 0:
-                raise ValueError("All fungible token transfers must be balanced, debits must equal credits.")
-
-            token_transfer_proto.append(transfer._to_proto())
-
-        return token_transfer_proto
+        return [transfer._to_proto() for transfer in token_transfer_list]
