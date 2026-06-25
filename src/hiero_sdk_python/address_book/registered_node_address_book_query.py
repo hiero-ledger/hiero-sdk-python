@@ -144,11 +144,11 @@ class RegisteredNodeAddressBookQuery:
 
     def _build_base_url(self, client) -> str:
         """Derive the mirror-node base URL (without ``/api/v1``)."""
-        rest_url = client.network.get_mirror_rest_url()  # e.g. http://localhost:5551/api/v1
+        rest_url = client.network.get_mirror_rest_url()  # e.g. http://localhost:38081/api/v1
 
         # For localhost / solo, use port 8084 for registered-node calls
-        if "localhost:5551" in rest_url or "127.0.0.1:5551" in rest_url:
-            rest_url = rest_url.replace(":5551", ":8084")
+        if "localhost:38081" in rest_url or "127.0.0.1:38081" in rest_url:
+            rest_url = rest_url.replace(":38081", ":8084")
 
         # Strip /api/v1 suffix so we can append full paths from pagination links
         return rest_url.removesuffix("/api/v1")
