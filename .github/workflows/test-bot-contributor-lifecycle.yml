@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - ".github/scripts/bot-contributor-lifecycle.js"
-      - ".github/scripts/__tests__/bot-contributor-lifecycle.test.js"
+      - ".github/scripts/__tests__/jest/bot-contributor-lifecycle.test.js"
       - ".github/scripts/jest.config.js"
       - ".github/scripts/package.json"
       - ".github/scripts/package-lock.json"
@@ -12,7 +12,7 @@ on:
   pull_request:
     paths:
       - ".github/scripts/bot-contributor-lifecycle.js"
-      - ".github/scripts/__tests__/bot-contributor-lifecycle.test.js"
+      - ".github/scripts/__tests__/jest/bot-contributor-lifecycle.test.js"
       - ".github/scripts/jest.config.js"
       - ".github/scripts/package.json"
       - ".github/scripts/package-lock.json"
@@ -48,4 +48,4 @@ jobs:
 
       - name: Run tests
         working-directory: .github/scripts
-        run: npx jest __tests__/bot-contributor-lifecycle.test.js --verbose
+        run: npx jest __tests__/jest/bot-contributor-lifecycle.test.js --verbose
