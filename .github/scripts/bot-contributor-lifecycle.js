@@ -139,8 +139,12 @@ function assignmentDateFor(graph, assignee) {
   return latest;
 }
 
-// Open PRs in THIS repo linked to the issue — unified detector combining
-// closedBy references (closing keywords) and cross-references (any mention).
+// Open PRs in THIS repo that actually LINK this issue — combining closedBy
+// references with cross-references that will close the issue. A bare mention
+// (e.g. "see also #123" with no closing keyword / dev-link) is NOT a link: it
+// must not block unassignment, or an unrelated PR could exempt an idle assignee
+// forever. willCloseTarget is GitHub's own signal that the source PR closes this
+// issue, so it's the same notion of "linked" as closedByPullRequestsReferences.
 function linkedOpenPRNumbers(graph, nameWithOwner) {
   const issue = graph?.repository?.issue;
   const set = new Set();
@@ -150,7 +154,8 @@ function linkedOpenPRNumbers(graph, nameWithOwner) {
     }
   }
   for (const n of issue?.crossRefs?.nodes || []) {
-    const s = n?.source;
+    if (!n?.willCloseTarget) continue; // mere mention, not a closing link — ignore
+    const s = n.source;
     if (s?.state === "OPEN" && s?.repository?.nameWithOwner === nameWithOwner && s.number) {
       set.add(s.number);
     }
@@ -191,6 +196,7 @@ async function fetchIssueGraph(github, owner, repo, number) {
           crossRefs: timelineItems(itemTypes:[CROSS_REFERENCED_EVENT], last:100) {
             nodes {
               ... on CrossReferencedEvent {
+                willCloseTarget
                 source { ... on PullRequest { number state repository { nameWithOwner } } }
               }
             }
@@ -214,7 +220,7 @@ async function lastHumanReviewDate(github, owner, repo, prNumber, prAuthor) {
   });
   let latest = null;
   for (const r of reviews) {
-    if (!r.user || r.user.type === "Bot") continue;
+    if (!r.user || isBotAuthored(r)) continue;
     if (r.user.login === prAuthor) continue;
     if (!r.submitted_at) continue;
     const d = new Date(r.submitted_at);
@@ -383,13 +389,21 @@ async function handleNoPRStage(github, owner, repo, issue, graph, comments, nowM
 
   // Unassign each stale assignee individually (their dates differ). The personalized
   // comment is guarded by a per-user marker so a failed removal won't re-comment.
+  // Isolate each assignee in its own try/catch: one failed removal must not block the
+  // other assignees' actions (or the reminder below). The error is still counted so the
+  // run fails loudly at the end; the marker guard makes the next run's retry safe.
   for (const { assignee, ageDays } of toUnassign) {
-    console.log(`    [RESULT] @${assignee}: stale (~${ageDays}d >= ${cfg.issueUnassignDays}d, no PR) -> unassign`);
-    if (!hasMarker(comments, unassignMarkerFor(assignee))) {
-      await postComment(github, owner, repo, issue.number, issueUnassignBody(assignee, ageDays), cfg);
+    try {
+      console.log(`    [RESULT] @${assignee}: stale (~${ageDays}d >= ${cfg.issueUnassignDays}d, no PR) -> unassign`);
+      if (!hasMarker(comments, unassignMarkerFor(assignee))) {
+        await postComment(github, owner, repo, issue.number, issueUnassignBody(assignee, ageDays), cfg);
+      }
+      await removeAssignee(github, owner, repo, issue.number, assignee, cfg);
+      stats.unassigned++;
+    } catch (err) {
+      console.log(`    [ERROR] @${assignee}: unassign failed:`, err.message || err);
+      stats.errors++;
     }
-    await removeAssignee(github, owner, repo, issue.number, assignee, cfg);
-    stats.unassigned++;
   }
 
   // Remind everyone in the remind window with a single comment (marker-guarded).
