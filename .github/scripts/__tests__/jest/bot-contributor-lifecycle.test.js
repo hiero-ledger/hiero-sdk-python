@@ -7,7 +7,7 @@
  * mutations (comments / unassign / close) would happen.
  */
 
-const bot = require("../bot-contributor-lifecycle.js");
+const bot = require("../../bot-contributor-lifecycle.js");
 
 const DAY = 24 * 60 * 60 * 1000;
 const daysAgo = (d) => new Date(Date.now() - d * DAY).toISOString();
