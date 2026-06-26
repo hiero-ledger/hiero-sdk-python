@@ -3,12 +3,6 @@
 name: Linked Issue Enforcer
 
 on:
-  pull_request:
-    types:
-      - opened
-      - edited
-      - synchronize
-      - reopened
   schedule:
     - cron: "0 2 * * *" # Every day at 2:00 AM
   workflow_dispatch:
