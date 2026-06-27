@@ -91,27 +91,22 @@ class _Executable(ABC):
 
         self._used_node_account_id: AccountId | None = None
         self._node_account_ids_index: int = 0
-    
+
     @property
     def node_account_id(self) -> AccountId | None:
         warnings.warn(
-            "'node_account_id' is deprecated; use 'node_account_ids' instead.",
-            DeprecationWarning,
-            stacklevel=2
+            "'node_account_id' is deprecated; use 'node_account_ids' instead.", DeprecationWarning, stacklevel=2
         )
 
-        return self._node_account_id
+        return self.node_account_ids[0] if len(self.node_account_ids) > 0 else None
 
     @node_account_id.setter
     def node_account_id(self, account_id: AccountId) -> None:
         warnings.warn(
-            "'node_account_id' is deprecated; use 'node_account_ids' instead.",
-            DeprecationWarning,
-            stacklevel=2
+            "'node_account_id' is deprecated; use 'node_account_ids' instead.", DeprecationWarning, stacklevel=2
         )
 
         self.node_account_ids = [account_id] if account_id is not None else []
-
 
     def set_node_account_ids(self, node_account_ids: list[AccountId]):
         """
@@ -139,7 +134,7 @@ class _Executable(ABC):
         warnings.warn(
             "Method 'set_node_account_id()' is deprecated; use 'set_node_account_ids()' instead.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
 
         return self.set_node_account_ids([node_account_id])
@@ -374,9 +369,7 @@ class _Executable(ABC):
                 setattr(self, attr, default)
 
         if not self.node_account_ids:
-            self.node_account_ids = [
-                node._account_id for node in client.network.nodes
-            ]
+            self.node_account_ids = [node._account_id for node in client.network.nodes]
 
         if not self.node_account_ids:
             raise RuntimeError("No healthy nodes available for execution")
