@@ -179,15 +179,11 @@ class Query(_Executable):
             header.responseType = query_header_pb2.ResponseType.COST_ANSWER
             return header
 
-        if (
-            self.operator is not None
-            and self.node_account_ids[self._node_account_ids_index] is not None
-            and self.payment_amount is not None
-        ):
+        if self.operator is not None and self._node_account_id is not None and self.payment_amount is not None:
             payment_tx = self._build_query_payment_transaction(
                 payer_account_id=self.operator.account_id,
                 payer_private_key=self.operator.private_key,
-                node_account_id=self.node_account_ids[self._node_account_ids_index],
+                node_account_id=self._node_account_id,
                 amount=self.payment_amount,
             )
             header.payment.CopyFrom(payment_tx)
