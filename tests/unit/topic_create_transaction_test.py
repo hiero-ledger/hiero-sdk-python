@@ -220,9 +220,6 @@ def test_build_scheduled_body(mock_account_ids, custom_fixed_fee, key_type, use_
     )
 
 
-# TODO: Test for the freeze set the node/transaction id
-
-
 # This test uses fixtures (mock_account_ids, private_key) as parameters
 def test_sign_topic_create_transaction(mock_account_ids, private_key):
     """

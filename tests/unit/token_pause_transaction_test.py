@@ -54,9 +54,6 @@ def test_build_transaction_body_nft(mock_account_ids, nft_id):
     assert transaction_body.token_pause.token == base_token_id._to_proto()
 
 
-# TODO: Test that freeze set the transactionId and the nodeId to transaction_proto_body
-
-
 # This test uses fixture (token_id, mock_client) as parameter
 def test__to_proto(token_id, mock_client):
     """Test converting the token pause transaction to protobuf format after signing."""
