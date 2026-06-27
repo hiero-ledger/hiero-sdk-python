@@ -838,11 +838,12 @@ def test_executable_overrides_client_config(mock_client):
 
 def test_no_healthy_nodes_raises(mock_client):
     """Test that execution fails if no healthy nodes are available."""
-    mock_client.network._healthy_nodes = []
-
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
 
-    with pytest.raises(RuntimeError, match="No healthy nodes available"):
+    for node in mock_client.network.nodes:
+        node.is_healthy = lambda: False
+
+    with pytest.raises(RuntimeError, match="All nodes are unhealthy"):
         tx.execute(mock_client)
 
 

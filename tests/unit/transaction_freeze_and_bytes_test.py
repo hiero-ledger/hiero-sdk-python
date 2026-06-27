@@ -663,7 +663,7 @@ def test_transaction_freeze_without_node_ids(mock_client):
     tx = TransferTransaction()
     tx.freeze_with(mock_client)
 
-    assert tx.node_account_ids == []
+    assert tx.node_account_ids == [node._account_id for node in mock_client.network.nodes]
     # Verify creates transaction_bytes for client network nodes
     assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
     assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
