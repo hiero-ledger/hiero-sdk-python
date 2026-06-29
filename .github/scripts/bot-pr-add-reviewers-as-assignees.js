@@ -145,7 +145,11 @@ async function removeReviewerFromAssignees({ github, context }) {
 
     const owner = context.repo.owner;
     const repo = context.repo.repo;
-    const currentAssignees = (pr.assignees || []).map(a => a.login);
+
+    // Fetch live PR data rather than relying on the event payload snapshot,
+    // which may be stale if review_requested ran concurrently and added the assignee after this event fired.
+    const livePr = (await github.rest.pulls.get({ owner, repo, pull_number: prNumber })).data;
+    const currentAssignees = (livePr.assignees || []).map(a => a.login);
 
     if (!currentAssignees.includes(reviewer)) {
       logger.log(`${reviewer} is not an assignee on PR #${prNumber}. Nothing to remove.`);
