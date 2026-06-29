@@ -4,6 +4,7 @@ import pytest
 
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from tests.integration.utils import IntegrationTestEnv
@@ -30,7 +31,8 @@ def test_integration_topic_info_query_can_execute():
 
         assert topic_info.memo == "Topic for info query"
         assert topic_info.sequence_number == 0
-        assert env.client.operator_private_key.public_key()._to_proto() == topic_info.admin_key
+        assert isinstance(topic_info.admin_key, PublicKey)
+        assert env.client.operator_private_key.public_key().to_bytes_raw() == topic_info.admin_key.to_bytes_raw()
 
         delete_transaction = TopicDeleteTransaction(topic_id=topic_id)
         delete_transaction.freeze_with(env.client)

@@ -3,10 +3,11 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_info import TopicInfo
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
-from hiero_sdk_python.hapi.services import consensus_topic_info_pb2
+from hiero_sdk_python.hapi.services import consensus_get_topic_info_pb2, consensus_topic_info_pb2
 from hiero_sdk_python.hapi.services.basic_types_pb2 import AccountID, Key
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
@@ -44,6 +45,7 @@ def topic_info():
     )
 
     return TopicInfo(
+        topic_id=TopicId.from_string("0.0.101"),
         memo="Test topic memo",
         running_hash=b"\x01\x02\x03\x04\x05\x06\x07\x08",
         sequence_number=42,
@@ -87,19 +89,25 @@ def proto_topic_info():
         all_collectors_are_exempt=False,
     )
 
-    proto = consensus_topic_info_pb2.ConsensusTopicInfo()
-    proto.memo = "Test topic memo"
-    proto.runningHash = b"\x01\x02\x03\x04\x05\x06\x07\x08"
-    proto.sequenceNumber = 42
-    proto.expirationTime.CopyFrom(timestamp)
-    proto.adminKey.CopyFrom(key)
-    proto.submitKey.CopyFrom(key)
-    proto.autoRenewPeriod.seconds = 7776000
-    proto.autoRenewAccount.CopyFrom(account_id)
-    proto.ledger_id = b"\x09\x0a\x0b\x0c"
-    proto.fee_schedule_key.CopyFrom(public_key._to_proto())
-    proto.fee_exempt_key_list.append(public_key._to_proto())
-    proto.custom_fees.append(custom_fee._to_topic_fee_proto())
+    proto = consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse()
+
+    proto.topicID.CopyFrom(TopicId(0, 0, 1)._to_proto())
+
+    topic_info_proto = consensus_topic_info_pb2.ConsensusTopicInfo()
+    topic_info_proto.memo = "Test topic memo"
+    topic_info_proto.runningHash = b"\x01\x02\x03\x04\x05\x06\x07\x08"
+    topic_info_proto.sequenceNumber = 42
+    topic_info_proto.expirationTime.CopyFrom(timestamp)
+    topic_info_proto.adminKey.CopyFrom(key)
+    topic_info_proto.submitKey.CopyFrom(key)
+    topic_info_proto.autoRenewPeriod.seconds = 7776000
+    topic_info_proto.autoRenewAccount.CopyFrom(account_id)
+    topic_info_proto.ledger_id = b"\x09\x0a\x0b\x0c"
+    topic_info_proto.fee_schedule_key.CopyFrom(public_key._to_proto())
+    topic_info_proto.fee_exempt_key_list.append(public_key._to_proto())
+    topic_info_proto.custom_fees.append(custom_fee._to_topic_fee_proto())
+
+    proto.topicInfo.CopyFrom(topic_info_proto)
     return proto
 
 
@@ -123,6 +131,7 @@ def test_topic_info_initialization(topic_info):
 def test_topic_info_initialization_with_none_values():
     """Test the initialization of the TopicInfo class with None values for optional parameters."""
     topic_info = TopicInfo(
+        topic_id=TopicId.from_string("0.0.101"),
         memo="Test memo",
         running_hash=b"\x01\x02",
         sequence_number=1,
@@ -154,6 +163,7 @@ def test_topic_info_initialization_with_none_values():
 def test_topic_info_initialization_with_empty_lists():
     """Test the initialization of the TopicInfo class with empty lists."""
     topic_info = TopicInfo(
+        topic_id=TopicId.from_string("0.0.101"),
         memo="Test memo",
         running_hash=b"\x01\x02",
         sequence_number=1,
@@ -193,11 +203,16 @@ def test_from_proto(proto_topic_info):
 
 def test_from_proto_with_auto_renew_period():
     """Test the _from_proto method with auto renew period."""
-    proto = consensus_topic_info_pb2.ConsensusTopicInfo()
-    proto.memo = "Test memo"
-    proto.runningHash = b"\x01\x02"
-    proto.sequenceNumber = 1
-    proto.autoRenewPeriod.seconds = 86400  # 1 day
+    proto = consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse()
+    proto.topicID.CopyFrom(TopicId(0, 0, 1)._to_proto())
+
+    topic_info_proto = consensus_topic_info_pb2.ConsensusTopicInfo()
+    topic_info_proto.memo = "Test memo"
+    topic_info_proto.runningHash = b"\x01\x02"
+    topic_info_proto.sequenceNumber = 1
+    topic_info_proto.autoRenewPeriod.seconds = 86400  # 1 day
+
+    proto.topicInfo.CopyFrom(topic_info_proto)
 
     topic_info = TopicInfo._from_proto(proto)
 
@@ -208,12 +223,18 @@ def test_from_proto_with_fee_exempt_keys():
     """Test the _from_proto method with fee exempt keys."""
     public_key = PrivateKey.generate_ed25519().public_key()
 
-    proto = consensus_topic_info_pb2.ConsensusTopicInfo()
-    proto.memo = "Test memo"
-    proto.runningHash = b"\x01\x02"
-    proto.sequenceNumber = 1
-    proto.fee_exempt_key_list.append(public_key._to_proto())
-    proto.fee_exempt_key_list.append(public_key._to_proto())
+    proto = consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse()
+
+    proto.topicID.CopyFrom(TopicId(0, 0, 1)._to_proto())
+
+    topic_info_proto = consensus_topic_info_pb2.ConsensusTopicInfo()
+    topic_info_proto.memo = "Test memo"
+    topic_info_proto.runningHash = b"\x01\x02"
+    topic_info_proto.sequenceNumber = 1
+    topic_info_proto.fee_exempt_key_list.append(public_key._to_proto())
+    topic_info_proto.fee_exempt_key_list.append(public_key._to_proto())
+
+    proto.topicInfo.CopyFrom(topic_info_proto)
 
     topic_info = TopicInfo._from_proto(proto)
 
@@ -232,12 +253,17 @@ def test_from_proto_with_custom_fees():
         all_collectors_are_exempt=False,
     )
 
-    proto = consensus_topic_info_pb2.ConsensusTopicInfo()
-    proto.memo = "Test memo"
-    proto.runningHash = b"\x01\x02"
-    proto.sequenceNumber = 1
-    proto.custom_fees.append(custom_fee._to_topic_fee_proto())
-    proto.custom_fees.append(custom_fee._to_topic_fee_proto())
+    proto = consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse()
+
+    proto.topicID.CopyFrom(TopicId(0, 0, 1)._to_proto())
+
+    topic_info_proto = consensus_topic_info_pb2.ConsensusTopicInfo()
+    topic_info_proto.memo = "Test memo"
+    topic_info_proto.runningHash = b"\x01\x02"
+    topic_info_proto.sequenceNumber = 1
+    topic_info_proto.custom_fees.append(custom_fee._to_topic_fee_proto())
+    topic_info_proto.custom_fees.append(custom_fee._to_topic_fee_proto())
+    proto.topicInfo.CopyFrom(topic_info_proto)
 
     topic_info = TopicInfo._from_proto(proto)
 
@@ -282,6 +308,7 @@ def test_str_formatting(topic_info):
 def test_str_with_none_values():
     """Test the string formatting of the TopicInfo class with None values."""
     topic_info = TopicInfo(
+        topic_id=TopicId(0, 0, 101),
         memo="Test memo",
         running_hash=b"\x01\x02",
         sequence_number=1,
@@ -299,6 +326,7 @@ def test_str_with_none_values():
     str_output = str(topic_info)
 
     assert "TopicInfo(" in str_output
+    assert "topic_id=0.0.101" in str_output
     assert "memo='Test memo'" in str_output
     assert "running_hash=0x0102" in str_output
     assert "sequence_number=1" in str_output
