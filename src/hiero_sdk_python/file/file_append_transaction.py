@@ -10,6 +10,7 @@ smaller chunks if the content exceeds the chunk size limit.
 Inherits from the base Transaction class and implements the required methods
 to build and execute a file append transaction.
 """
+
 from __future__ import annotations
 
 import math

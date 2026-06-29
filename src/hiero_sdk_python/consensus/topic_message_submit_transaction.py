@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -63,7 +65,6 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
         return self.message.encode("utf-8") if isinstance(self.message, str) else self.message
 
-
     def get_required_chunks(self) -> int:
         """
         Returns the number of chunks required for the current message.
@@ -75,7 +76,6 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             return 1
 
         content = self._message_as_bytes()
-        import math
         return math.ceil(len(content) / self.chunk_size)
 
     def set_topic_id(self, topic_id: TopicId) -> TopicMessageSubmitTransaction:

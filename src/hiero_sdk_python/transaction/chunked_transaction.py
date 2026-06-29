@@ -132,7 +132,6 @@ class ChunkedTransaction(Transaction, ABC):
             )
         return required
 
-
     def freeze_with(self, client: Client) -> ChunkedTransaction:
         """
         Freezes the transaction by building transaction bodies for all chunks.
@@ -189,8 +188,7 @@ class ChunkedTransaction(Transaction, ABC):
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
         validate_status: bool = False,
-    ) -> TransactionReceipt:
-        ...
+    ) -> TransactionReceipt: ...
 
     @overload
     def execute(
@@ -199,8 +197,7 @@ class ChunkedTransaction(Transaction, ABC):
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
         validate_status: bool = False,
-    ) -> TransactionResponse:
-        ...
+    ) -> TransactionResponse: ...
 
     def execute(
         self,
@@ -235,8 +232,7 @@ class ChunkedTransaction(Transaction, ABC):
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
         validate_status: bool = False,
-    ) -> list[TransactionReceipt]:
-        ...
+    ) -> list[TransactionReceipt]: ...
 
     @overload
     def execute_all(
@@ -245,8 +241,7 @@ class ChunkedTransaction(Transaction, ABC):
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
         validate_status: bool = False,
-    ) -> list[TransactionResponse]:
-        ...
+    ) -> list[TransactionResponse]: ...
 
     def execute_all(
         self,
