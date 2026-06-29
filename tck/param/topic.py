@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from tck.param.base import BaseTransactionParams
+from tck.param.base import BaseParams, BaseTransactionParams
 from tck.param.custom_fee import CustomFeeLimitParams, CustomFeeParams
 from tck.util.param_utils import (
     non_empty_string_list,
@@ -90,4 +90,23 @@ class TopicMessageSubmitParams(BaseTransactionParams):
             ),
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class TopicMessageInfoParams(BaseParams):
+    """Request parameters for getTopicInfo endpoint."""
+
+    topicId: str | None = None
+    queryPayment: str | None = None
+    maxQueryPayment: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> TopicMessageInfoParams:
+        """Parse JSON-RPC params into a TopicMessageInfoParams instance."""
+        return cls(
+            topicId=params.get("topicId"),
+            queryPayment=params.get("queryPayment"),
+            maxQueryPayment=params.get("maxQueryPayment"),
+            sessionId=parse_session_id(params),
         )
