@@ -29,11 +29,11 @@ if TYPE_CHECKING:
 
 class FileAppendTransaction(ChunkedTransaction):
     def __init__(
-            self,
-            file_id: FileId | None = None,
-            contents: str | bytes | None = None,
-            max_chunks: int | None = None,
-            chunk_size: int | None = None,
+        self,
+        file_id: FileId | None = None,
+        contents: str | bytes | None = None,
+        max_chunks: int | None = None,
+        chunk_size: int | None = None,
     ):
         super().__init__()
         self.file_id: FileId | None = file_id

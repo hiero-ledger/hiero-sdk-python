@@ -49,7 +49,10 @@ def test_constructor_sets_default_chunk_configuration():
     assert tx._signing_keys == []
 
 
-@pytest.mark.parametrize("setter_name, value, message", [("set_chunk_size", 0, "chunk_size must be positive"), ("set_max_chunks", 0, "max_chunks must be positive")])
+@pytest.mark.parametrize(
+    "setter_name, value, message",
+    [("set_chunk_size", 0, "chunk_size must be positive"), ("set_max_chunks", 0, "max_chunks must be positive")],
+    )
 def test_setters_reject_non_positive_values(mock_client, setter_name, value, message):
     tx = DummyChunkedTransaction()
 

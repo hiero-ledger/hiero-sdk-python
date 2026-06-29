@@ -172,12 +172,10 @@ class ChunkedTransaction(Transaction, ABC):
                     next_nanos = base_timestamp.nanos + i
 
                     chunk_valid_start = timestamp_pb2.Timestamp(
-                        seconds=base_timestamp.seconds + next_nanos // 1_000_000_000,
-                        nanos=next_nanos % 1_000_000_000
+                        seconds=base_timestamp.seconds + next_nanos // 1_000_000_000, nanos=next_nanos % 1_000_000_000
                     )
                     chunk_transaction_id = TransactionId(
-                        account_id=self.transaction_id.account_id,
-                        valid_start=chunk_valid_start
+                        account_id=self.transaction_id.account_id, valid_start=chunk_valid_start
                     )
 
                 self._transaction_ids.append(chunk_transaction_id)
@@ -186,30 +184,30 @@ class ChunkedTransaction(Transaction, ABC):
 
     @overload
     def execute(
-            self,
-            client: Client,
-            timeout: int | float | None = None,
-            wait_for_receipt: Literal[True] = True,
-            validate_status: bool = False,
+        self,
+        client: Client,
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False,
     ) -> TransactionReceipt:
         ...
 
     @overload
     def execute(
-            self,
-            client: Client,
-            timeout: int | float | None = None,
-            wait_for_receipt: Literal[False] = False,
-            validate_status: bool = False,
+        self,
+        client: Client,
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False,
     ) -> TransactionResponse:
         ...
 
     def execute(
-            self,
-            client: Client,
-            timeout: int | float | None = None,
-            wait_for_receipt: bool = True,
-            validate_status: bool = False,
+        self,
+        client: Client,
+        timeout: int | float | None = None,
+        wait_for_receipt: bool = True,
+        validate_status: bool = False,
     ) -> TransactionReceipt | TransactionResponse:
         """
         Executes the chunked transaction.
@@ -232,30 +230,30 @@ class ChunkedTransaction(Transaction, ABC):
 
     @overload
     def execute_all(
-            self,
-            client: Client,
-            timeout: int | float | None = None,
-            wait_for_receipt: Literal[True] = True,
-            validate_status: bool = False,
+        self,
+        client: Client,
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[True] = True,
+        validate_status: bool = False,
     ) -> list[TransactionReceipt]:
         ...
 
     @overload
     def execute_all(
-            self,
-            client: Client,
-            timeout: int | float | None = None,
-            wait_for_receipt: Literal[False] = False,
-            validate_status: bool = False,
+        self,
+        client: Client,
+        timeout: int | float | None = None,
+        wait_for_receipt: Literal[False] = False,
+        validate_status: bool = False,
     ) -> list[TransactionResponse]:
         ...
 
     def execute_all(
-            self,
-            client: Client,
-            timeout: int | float | None = None,
-            wait_for_receipt: bool = True,
-            validate_status: bool = False,
+        self,
+        client: Client,
+        timeout: int | float | None = None,
+        wait_for_receipt: bool = True,
+        validate_status: bool = False,
     ) -> list[TransactionReceipt] | list[TransactionResponse]:
         """
         Executes all chunks of the transaction sequentially.

@@ -105,12 +105,7 @@ def test_topic_message_submit_transaction_fails_if_max_chunks_less_than_requied(
 
     message = "A" * (1024 * 14)  # message with (1024 * 14) bytes ie 14 chunks
 
-    message_tx = (
-        TopicMessageSubmitTransaction()
-        .set_topic_id(topic_id)
-        .set_message(message)
-        .set_max_chunks(2)
-    )
+    message_tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message(message).set_max_chunks(2)
 
     with pytest.raises(ValueError):
         message_tx.freeze_with(env.client)

@@ -23,11 +23,11 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
     """
 
     def __init__(
-            self,
-            topic_id: TopicId | None = None,
-            message: bytes | str | None = None,
-            chunk_size: int | None = None,
-            max_chunks: int | None = None,
+        self,
+        topic_id: TopicId | None = None,
+        message: bytes | str | None = None,
+        chunk_size: int | None = None,
+        max_chunks: int | None = None,
     ) -> None:
         """
         Initializes a new TopicMessageSubmitTransaction instance.
