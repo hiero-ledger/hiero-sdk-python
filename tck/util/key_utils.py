@@ -48,7 +48,8 @@ def get_key_from_string(key_string: str) -> Key:
     raise ValueError("Invalid key string")
 
 
-def key_to_string(key) -> str | None:
+def key_to_string(key: Key) -> str | None:
+    """Convert Ket to string representation."""
     if key is None:
         return None
 
