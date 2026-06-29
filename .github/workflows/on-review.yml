@@ -25,7 +25,12 @@ jobs:
     runs-on: hl-sdk-py-lin-md
 
     concurrency:
-      group: reviewer-assignee-${{ github.event.pull_request.number || inputs.pr_number || github.run_id }}
+      group: >-
+        ${{
+          github.event_name == 'pull_request_review'
+          && format('reviewer-removal-{0}-{1}', github.event.pull_request.number, github.event.review.user.login)
+          || format('reviewer-assignee-{0}', github.event.pull_request.number || inputs.pr_number || github.run_id)
+        }}
       cancel-in-progress: false
 
     steps:
