@@ -192,14 +192,14 @@ def _map_topic_info_response(topic_info: TopicInfo) -> TopicInfoResponse:
         feeScheduleKey=key_to_string(topic_info.fee_schedule_key) if topic_info.fee_schedule_key is not None else None,
         feeExemptKeys=[key_to_string(key) for key in topic_info.fee_exempt_keys],
         customFees=[_map_custom_fee_response(fee) for fee in topic_info.custom_fees],
-        ledgerId=topic_info.ledger_id.decode() if topic_info is not None else None,
+        ledgerId=topic_info.ledger_id.hex() if topic_info is not None else None,
     )
 
 
 def _map_custom_fee_response(custom_fee: CustomFixedFee) -> CustomFeeResponse:
     """Map CustomFixedFee to JSON-RPC CustomFeeResponse."""
     fixed_fee = FixedFeeResponse(
-        amount=custom_fee.amount,
+        amount=str(custom_fee.amount),
         denominatingTokenId=str(custom_fee.denominating_token_id)
         if custom_fee.denominating_token_id is not None
         else None,
