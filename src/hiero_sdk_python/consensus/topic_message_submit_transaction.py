@@ -183,11 +183,9 @@ class TopicMessageSubmitTransaction(Transaction):
             ConsensusSubmitMessageTransactionBody: The protobuf body for this transaction.
 
         Raises:
-            ValueError: If required fields (topic_id, message) are missing.
+            ValueError: If required fields (message) are missing.
         """
-        if self.topic_id is None:
-            raise ValueError("Missing required fields: topic_id.")
-        if self.message is None:
+        if self.message is None or self.message == "":
             raise ValueError("Missing required fields: message.")
 
         content = self.message.encode("utf-8")
@@ -197,7 +195,7 @@ class TopicMessageSubmitTransaction(Transaction):
         chunk_content = content[start_index:end_index]
 
         body = consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
-            topicID=self.topic_id._to_proto(), message=chunk_content
+            topicID=self.topic_id._to_proto() if self.topic_id else None, message=chunk_content
         )
 
         # Multi-chunk metadata
