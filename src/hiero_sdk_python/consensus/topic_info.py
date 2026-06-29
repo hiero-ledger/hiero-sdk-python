@@ -165,7 +165,7 @@ class TopicInfo:
 
         return (
             "TopicInfo(\n"
-            f"  topic_id={self.topic_id}"
+            f"  topic_id={self.topic_id},\n"
             f"  memo='{self.memo}',\n"
             f"  running_hash={running_hash_str},\n"
             f"  sequence_number={self.sequence_number},\n"

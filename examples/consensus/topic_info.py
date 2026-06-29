@@ -27,10 +27,11 @@ Run with:
 """
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_info import TopicInfo
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
-from hiero_sdk_python.hapi.services import consensus_topic_info_pb2
+from hiero_sdk_python.hapi.services import consensus_get_topic_info_pb2, consensus_topic_info_pb2
 from hiero_sdk_python.hapi.services.basic_types_pb2 import AccountID, Key
 from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
@@ -92,6 +93,7 @@ def mock_ledger_id() -> bytes:
 def build_mock_topic_info() -> TopicInfo:
     """Manually construct a TopicInfo instance with mock data."""
     return TopicInfo(
+        topic_id=TopicId.from_string("0.0.101"),
         memo="Example topic memo",
         running_hash=mock_running_hash(),
         sequence_number=42,
@@ -109,17 +111,22 @@ def build_mock_topic_info() -> TopicInfo:
 
 def build_topic_info_from_proto() -> TopicInfo:
     """Build a TopicInfo from a mocked protobuf message using _from_proto()."""
-    proto = consensus_topic_info_pb2.ConsensusTopicInfo()
-    proto.memo = "Topic from protobuf"
-    proto.runningHash = mock_running_hash()
-    proto.sequenceNumber = 100
-    proto.expirationTime.CopyFrom(mock_expiration_time())
-    proto.adminKey.CopyFrom(mock_admin_key())
-    proto.submitKey.CopyFrom(mock_submit_key())
-    proto.autoRenewPeriod.seconds = 7776000
-    proto.autoRenewAccount.CopyFrom(mock_auto_renew_account())
-    proto.ledger_id = mock_ledger_id()
-    proto.custom_fees.append(mock_custom_fee()._to_topic_fee_proto())
+    proto = consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse()
+    proto.topicID.CopyFrom(TopicId(0, 0, 1)._to_proto())
+
+    topic_info_proto = consensus_topic_info_pb2.ConsensusTopicInfo()
+    topic_info_proto.memo = "Topic from protobuf"
+    topic_info_proto.runningHash = mock_running_hash()
+    topic_info_proto.sequenceNumber = 100
+    topic_info_proto.expirationTime.CopyFrom(mock_expiration_time())
+    topic_info_proto.adminKey.CopyFrom(mock_admin_key())
+    topic_info_proto.submitKey.CopyFrom(mock_submit_key())
+    topic_info_proto.autoRenewPeriod.seconds = 7776000
+    topic_info_proto.autoRenewAccount.CopyFrom(mock_auto_renew_account())
+    topic_info_proto.ledger_id = mock_ledger_id()
+    topic_info_proto.custom_fees.append(mock_custom_fee()._to_topic_fee_proto())
+
+    proto.topicInfo.CopyFrom(topic_info_proto)
 
     return TopicInfo._from_proto(proto)
 
@@ -127,6 +134,7 @@ def build_topic_info_from_proto() -> TopicInfo:
 def print_topic_info(topic: TopicInfo) -> None:
     """Display the key attributes of a TopicInfo instance."""
     print("\nTopicInfo Details:")
+    print(f"  TopicId: {topic.topic_id}")
     print(f"  Memo: {topic.memo}")
     print(f"  Sequence Number: {topic.sequence_number}")
     print(f"  Running Hash: {topic.running_hash.hex()}")
