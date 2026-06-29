@@ -93,17 +93,6 @@ def test_topic_info_query(topic_id):
         assert result.admin_key is not None
 
 
-def test_topic_info_query_with_empty_topic_id():
-    """Test that TopicInfoQuery validates topic_id before execution."""
-    with mock_hedera_servers([[None]]) as client:
-        query = TopicInfoQuery()  # No topic ID set
-
-        with pytest.raises(ValueError) as exc_info:
-            query.execute(client)
-
-        assert "Topic ID must be set" in str(exc_info.value)
-
-
 def test_make_request_builds_expected_protobuf(topic_id):
     """
     Covers TopicInfoQuery._make_request() using REAL protobuf classes.
@@ -157,3 +146,14 @@ def test_freeze_prevents_set_topic_id_if_available(topic_id):
         query.set_topic_id(topic_id)
 
     assert "frozen" in str(exc_info.value).lower()
+
+
+def test_topic_id_not_set_when_none():
+    """Test that topicId not set in proto when it is None."""
+    query = TopicInfoQuery()
+    query.set_topic_id(None)
+
+    proto = query._make_request()
+
+    assert proto is not None
+    assert not proto.consensusGetTopicInfo.HasField("topicID")
