@@ -97,7 +97,7 @@ class NodeDeleteTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("nodeDelete"):
             body = transaction_body.nodeDelete
-            transaction.node_id = body.node_id if body.node_id else None
+            transaction.node_id = body.node_id
         return transaction
 
     def _get_method(self, channel: _Channel) -> _Method:

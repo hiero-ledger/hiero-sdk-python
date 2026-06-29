@@ -366,7 +366,7 @@ class NodeUpdateTransaction(Transaction):
 
         if transaction_body.HasField("nodeUpdate"):
             pb = transaction_body.nodeUpdate
-            transaction.node_id = pb.node_id if pb.node_id else None
+            transaction.node_id = pb.node_id
             if pb.HasField("account_id"):
                 transaction.account_id = AccountId._from_proto(pb.account_id)
             if pb.HasField("description"):

@@ -396,7 +396,7 @@ class ContractCreateTransaction(Transaction):
             if body.HasField("adminKey"):
                 transaction.admin_key = Key.from_proto_key(body.adminKey)
             transaction.gas = body.gas
-            transaction.initial_balance = body.initialBalance if body.initialBalance else None
+            transaction.initial_balance = body.initialBalance
             if body.HasField("proxyAccountID"):
                 transaction.proxy_account_id = AccountId._from_proto(body.proxyAccountID)
             transaction.auto_renew_period = (
@@ -409,7 +409,7 @@ class ContractCreateTransaction(Transaction):
             transaction.max_automatic_token_associations = body.max_automatic_token_associations
             if body.HasField("auto_renew_account_id"):
                 transaction.auto_renew_account_id = AccountId._from_proto(body.auto_renew_account_id)
-            transaction.decline_reward = body.decline_reward if body.decline_reward else None
+            transaction.decline_reward = body.decline_reward
             initcode_source = body.WhichOneof("initcodeSource")
             if initcode_source == "fileID":
                 transaction.bytecode_file_id = FileId._from_proto(body.fileID)

@@ -474,13 +474,17 @@ class TokenCreateTransaction(Transaction):
             transaction._token_params.freeze_default = body.freezeDefault
             if body.HasField("treasury"):
                 transaction._token_params.treasury_account_id = AccountId._from_proto(body.treasury)
+            else:
+                transaction._token_params.treasury_account_id = None
             if body.HasField("expiry"):
                 transaction._token_params.expiration_time = Timestamp._from_protobuf(body.expiry)
                 transaction._token_params.auto_renew_period = None
+            elif body.HasField("autoRenewPeriod"):
+                transaction._token_params.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
+            else:
+                transaction._token_params.auto_renew_period = None
             if body.HasField("autoRenewAccount"):
                 transaction._token_params.auto_renew_account_id = AccountId._from_proto(body.autoRenewAccount)
-            if body.HasField("autoRenewPeriod"):
-                transaction._token_params.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
             transaction._token_params.memo = body.memo if body.memo else None
             transaction._token_params.metadata = body.metadata if body.metadata else None
             transaction._token_params.custom_fees = [CustomFee._from_proto(f) for f in body.custom_fees]
