@@ -87,14 +87,12 @@ class TopicInfoQuery(Query):
             Exception: If any other error occurs during request construction.
         """
         try:
-            if not self.topic_id:
-                raise ValueError("Topic ID must be set before making the request.")
-
             query_header = self._make_request_header()
 
             topic_info_query = consensus_get_topic_info_pb2.ConsensusGetTopicInfoQuery()
             topic_info_query.header.CopyFrom(query_header)
-            topic_info_query.topicID.CopyFrom(self.topic_id._to_proto())
+            if self.topic_id is not None:
+                topic_info_query.topicID.CopyFrom(self.topic_id._to_proto())
 
             query = query_pb2.Query()
             query.consensusGetTopicInfo.CopyFrom(topic_info_query)
@@ -168,7 +166,7 @@ class TopicInfoQuery(Query):
         self._before_execute(client)
         response = self._execute(client, timeout)
 
-        return TopicInfo._from_proto(response.consensusGetTopicInfo.topicInfo)
+        return TopicInfo._from_proto(response.consensusGetTopicInfo)
 
     def _get_query_response(self, response: Any) -> consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse:
         """
