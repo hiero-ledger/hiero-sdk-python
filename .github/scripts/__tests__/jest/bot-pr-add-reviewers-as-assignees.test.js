@@ -251,6 +251,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
 
   test('removes reviewer from assignees when they submit a review', async () => {
     const state = createTestState();
+    state.currentPrData = { assignees: [{ login: 'alice' }, { login: 'bob' }] };
     const ctx = createMockReviewContext({
       reviewerLogin: 'alice',
       assignees: [{ login: 'alice' }, { login: 'bob' }]
@@ -265,6 +266,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
 
   test('does not call removeAssignees when reviewer is not an assignee', async () => {
     const state = createTestState();
+    state.currentPrData = { assignees: [{ login: 'alice' }] };
     const ctx = createMockReviewContext({
       reviewerLogin: 'carol',
       assignees: [{ login: 'alice' }]
@@ -278,6 +280,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
 
   test('review submitted by someone who was never a reviewer is a no-op', async () => {
     const state = createTestState();
+    state.currentPrData = { assignees: [] };
     const ctx = createMockReviewContext({
       reviewerLogin: 'outsider',
       assignees: []
@@ -296,7 +299,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
 
     const errorMock = {
       rest: {
-        pulls: { get: async () => ({}) },
+        pulls: { get: async () => ({ data: { assignees: [{ login: 'alice' }] } }) },
         issues: {
           addAssignees: async () => {},
           removeAssignees: async () => {
@@ -319,7 +322,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
 
     const errorMock = {
       rest: {
-        pulls: { get: async () => ({}) },
+        pulls: { get: async () => ({ data: { assignees: [{ login: 'alice' }] } }) },
         issues: {
           addAssignees: async () => {},
           removeAssignees: async () => {
