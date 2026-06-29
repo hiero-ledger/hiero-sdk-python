@@ -82,8 +82,7 @@ class TopicInfoQuery(Query):
         Returns:
             query_pb2.Query: The protobuf query message.
 
-        Raises:
-            ValueError: If the topic ID is not set.
+        Raises:]
             Exception: If any other error occurs during request construction.
         """
         try:
