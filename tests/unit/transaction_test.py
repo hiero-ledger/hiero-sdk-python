@@ -6,6 +6,7 @@ from hiero_sdk_python.account.account_create_transaction import AccountCreateTra
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.exceptions import ReceiptStatusError
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
@@ -27,6 +28,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
+from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -553,3 +555,110 @@ def test_transaction_default_max_fee(account_id):
 
     assert tx_body is not None
     assert tx_body.transactionFee == Hbar(2).to_tinybars()
+
+
+def test_build_transaction_body():
+    """Test that build_transaction_body create transaction body with basic fields."""
+    tx = TransferTransaction()
+    transaction_body = tx.build_base_transaction_body()
+
+    assert transaction_body is not None
+    assert transaction_body.high_volume == False
+    assert transaction_body.transactionValidDuration == Duration(120)._to_proto()
+    # TODO: Should be change to 2hbar in future.
+    # Since the deault fee for AbstractTokenTransfer can be remove, a default_fee is now updated to 2-hbar
+    assert transaction_body.transactionFee == Hbar(1).to_tinybars()
+
+    assert not transaction_body.HasField("transactionID")
+    assert not transaction_body.HasField("nodeAccountID")
+
+
+def test_set_node_account_id_updates_node_account_ids():
+    """Test that setting a single node account ID updates node_account_ids."""
+    tx = TransferTransaction().set_transaction_id(TransactionId.generate(AccountId(0, 0, 1)))
+
+    account_node_id1 = AccountId(0, 0, 3)
+    tx.set_node_account_id(account_node_id1)
+
+    assert tx.node_account_ids == [account_node_id1]
+    assert tx.node_account_id == account_node_id1  # Deprecated
+
+    # Test backward compatibility
+    node_account_id2 = AccountId(0, 0, 4)
+    tx.node_account_id = node_account_id2
+
+    assert tx.node_account_ids == [node_account_id2]
+    assert tx.node_account_id == node_account_id2  # Deprecated
+
+
+def test_set_node_account_ids_updates_node_account_ids():
+    """Test that setting a node account ID list updates node_account_ids."""
+    tx = TransferTransaction().set_transaction_id(TransactionId.generate(AccountId(0, 0, 1)))
+
+    node_account_ids1 = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+    tx.set_node_account_ids(node_account_ids1)
+
+    assert tx.node_account_ids == node_account_ids1
+    assert tx.node_account_id == node_account_ids1[0]  # Deprecated, will return 1st element of list
+
+    # Test property setter
+    node_account_ids2 = [AccountId(0, 0, 5), AccountId(0, 0, 6)]
+    tx.node_account_ids = node_account_ids2
+
+    assert tx.node_account_ids == node_account_ids2
+    assert tx.node_account_id == node_account_ids2[0]  # Deprecated, will return 1st element of list
+
+
+def test_freeze_transaction_sets_transaction_id_and_node_ids():
+    """Test that freeze() preserves the transaction ID and builds body bytes for all node IDs."""
+    tx_id = TransactionId.generate(AccountId(0, 0, 1))
+    node_account_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+
+    tx = TransferTransaction().set_transaction_id(tx_id).set_node_account_ids(node_account_ids).freeze()
+
+    assert tx.transaction_id == tx_id
+    assert tx.node_account_ids == node_account_ids
+
+    assert len(tx._transaction_body_bytes) == len(node_account_ids)
+    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+
+    for node_id in node_account_ids:
+        body_bytes = tx._transaction_body_bytes[node_id]
+        assert body_bytes is not None
+        assert len(body_bytes) > 0
+
+
+def test_freeze_with_sets_transaction_id_and_node_ids_from_client(mock_client):
+    """Test that freeze_with() populates the transaction ID and node IDs from the client."""
+    tx = TransferTransaction().freeze_with(mock_client)
+    expected_node_ids = [node._account_id for node in mock_client.network.nodes]
+
+    assert tx.transaction_id is not None
+    assert tx.node_account_ids == expected_node_ids
+
+    assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
+    assert set(tx._transaction_body_bytes.keys()) == set(expected_node_ids)
+
+    for node_id in expected_node_ids:
+        body_bytes = tx._transaction_body_bytes[node_id]
+        assert body_bytes is not None
+        assert len(body_bytes) > 0
+
+
+# Deprecated, Only to test backward compatibility.
+def test_freeze_transaction_sets_transaction_id_and_node_id():
+    """Test that freeze() with a single node account ID builds the transaction body."""
+    tx_id = TransactionId.generate(AccountId(0, 0, 1))
+    node_account_id = AccountId(0, 0, 3)
+
+    tx = TransferTransaction().set_transaction_id(tx_id).set_node_account_id(node_account_id).freeze()
+
+    assert tx.transaction_id == tx_id
+    assert tx.node_account_id == node_account_id
+
+    assert len(tx._transaction_body_bytes) == 1
+    assert set(tx._transaction_body_bytes.keys()) == {node_account_id}
+
+    body_bytes = tx._transaction_body_bytes[node_account_id]
+    assert body_bytes is not None
+    assert len(body_bytes) > 0

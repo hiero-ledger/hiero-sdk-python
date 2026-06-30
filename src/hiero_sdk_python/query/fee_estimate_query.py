@@ -191,7 +191,7 @@ class FeeEstimateQuery:
         raise RuntimeError("Unreachable")
 
     def _execute_single(self, url: str, mode: FeeEstimateMode) -> FeeEstimateResponse:
-        data = self._post(url, self._transaction.to_bytes())
+        data = self._post(url, self._transaction._to_proto().SerializeToString())
         return self._to_response(data, mode)
 
     def _execute_chunked(self, client, url: str, mode: FeeEstimateMode) -> FeeEstimateResponse:
@@ -224,7 +224,7 @@ class FeeEstimateQuery:
 
                 self._transaction.freeze_with(client)
 
-                tx_bytes = self._transaction.to_bytes()
+                tx_bytes = self._transaction._to_proto().SerializeToString()
                 data = self._post(url, tx_bytes)
                 response = self._to_response(data, mode)
 

@@ -62,8 +62,8 @@ class RegisteredNodeDeleteTransaction(Transaction):
         return _Method(transaction_func=channel.address_book.deleteRegisteredNode, query_func=None)
 
     @classmethod
-    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
-        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+    def _from_protobuf(cls, transaction_body):
+        transaction = super()._from_protobuf(transaction_body)
 
         # Extract registered node fields if the body contains a registeredNodeDelete message
         if transaction_body.HasField("registeredNodeDelete"):

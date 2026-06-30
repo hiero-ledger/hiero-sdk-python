@@ -149,7 +149,7 @@ def test_request_header_payment_zero(query, mock_client):
     """Test that payment field is not present in request header when payment amount is 0"""
     # Set up operator and node account ID from mock client
     query.operator = mock_client.operator
-    query.node_account_id = mock_client.network.current_node._account_id
+    query._node_account_id = mock_client.network.current_node._account_id
 
     # Test with payment amount set to 0 Hbar
     query.payment_amount = Hbar(0)
@@ -160,7 +160,7 @@ def test_request_header_payment_zero(query, mock_client):
 def test_make_request_header_with_payment(query_requires_payment, mock_client):
     """Test making request header with payment transaction for queries that require payment"""
     query_requires_payment.operator = mock_client.operator
-    query_requires_payment.node_account_id = mock_client.network.current_node._account_id
+    query_requires_payment._node_account_id = mock_client.network.current_node._account_id
     query_requires_payment.set_query_payment(Hbar(1))
 
     header = query_requires_payment._make_request_header()
@@ -175,7 +175,7 @@ def test_make_request_header_with_payment(query_requires_payment, mock_client):
 def test_request_header_excludes_payment_for_free_query(query, mock_client):
     """Test that payment is not included in request header for queries that don't require payment"""
     query.operator = mock_client.operator
-    query.node_account_id = mock_client.network.current_node._account_id
+    query._node_account_id = mock_client.network.current_node._account_id
     # Set query payment to 1 Hbar
     query.set_query_payment(Hbar(1))
 
