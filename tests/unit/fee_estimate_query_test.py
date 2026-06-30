@@ -338,6 +338,7 @@ def test_port_replacement_for_localhost_execute_single():
     """Test localhost:38081 is replaced with :8084."""
     client_1 = MagicMock()
     client_1.network.get_mirror_rest_url.return_value = "http://localhost:38081/api/v1"
+    client_1.default_max_transaction_fee = Hbar(1)
 
     tx = (
         TransferTransaction()
@@ -355,6 +356,7 @@ def test_port_replacement_for_localhost_execute_single():
 
     client_2 = MagicMock()
     client_2.network.get_mirror_rest_url.return_value = "http://127.0.0.1:38081/api/v1"
+    client_2.default_max_transaction_fee = Hbar(1)
 
     with patch.object(query, "_execute_single") as mock_execute_single:
         query.execute(client_2)
@@ -367,6 +369,7 @@ def test_port_replacement_for_localhost_execute_multiple():
     """Test localhost:38081 is replaced with :8084 for chunked tx."""
     client_1 = MagicMock()
     client_1.network.get_mirror_rest_url.return_value = "http://localhost:38081/api/v1"
+    client_1.default_max_transaction_fee = Hbar(1)
 
     tx = (
         TopicMessageSubmitTransaction()
@@ -387,9 +390,11 @@ def test_port_replacement_for_localhost_execute_multiple():
 
     client_2 = MagicMock()
     client_2.network.get_mirror_rest_url.return_value = "http://127.0.0.1:38081/api/v1"
+    client_2.default_max_transaction_fee = Hbar(1)
 
     with patch.object(query, "_execute_chunked", return_value=MagicMock()) as mock_execute_chunked:
         query.execute(client_2)
+
         called_url = mock_execute_chunked.call_args[0][1]
         assert ":8084" in called_url
         assert ":38081" not in called_url
