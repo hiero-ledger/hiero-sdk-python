@@ -69,7 +69,7 @@ async function addItemToProject(github, projectId, contentId) {
  * @param {string} projectId - Global node ID of the project
  * @returns {Promise<Record<string, { id: string, options: Record<string, string> }>>}
  */
-async function fetchProjectFields(github, projectId) {
+async function addItemToProject(github, projectId, contentId) {
   const result = await github.graphql(
     `
     query FetchFields($projectId: ID!) {
