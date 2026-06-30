@@ -22,7 +22,7 @@ permissions:
 jobs:
   add-reviewers-as-assignees:
     name: Add Reviewers as Assignees
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ubuntu-latest
 
     concurrency:
       group: >-
