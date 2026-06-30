@@ -6,6 +6,7 @@ from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTrans
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
@@ -31,7 +32,8 @@ def test_integration_topic_update_transaction_can_execute():
 
         assert info.memo == "Original memo"
         assert info.sequence_number == 0
-        assert env.client.operator_private_key.public_key()._to_proto() == info.admin_key
+        assert isinstance(info.admin_key, PublicKey)
+        assert env.client.operator_private_key.public_key().to_bytes_raw() == info.admin_key.to_bytes_raw()
 
         update_transaction = TopicUpdateTransaction(topic_id=topic_id, memo="Updated memo")
 
@@ -46,7 +48,8 @@ def test_integration_topic_update_transaction_can_execute():
 
         assert info.memo == "Updated memo"
         assert info.sequence_number == 0
-        assert env.client.operator_private_key.public_key()._to_proto() == info.admin_key
+        assert isinstance(info.admin_key, PublicKey)
+        assert env.client.operator_private_key.public_key().to_bytes_raw() == info.admin_key.to_bytes_raw()
 
         transaction = TopicDeleteTransaction(topic_id=topic_id)
         transaction.freeze_with(env.client)
