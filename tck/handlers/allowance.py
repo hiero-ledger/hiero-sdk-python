@@ -1,9 +1,12 @@
-"""TCK RPC handler for the approveAllowance endpoint."""
+"""TCK RPC handlers for allowance endpoints."""
 
 from __future__ import annotations
 
 from hiero_sdk_python.account.account_allowance_approve_transaction import (
     AccountAllowanceApproveTransaction,
+)
+from hiero_sdk_python.account.account_allowance_delete_transaction import (
+    AccountAllowanceDeleteTransaction,
 )
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hbar import Hbar
@@ -12,8 +15,13 @@ from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
-from tck.param.allowance import AllowanceEntry, ApproveAllowanceParams
-from tck.response.allowance import ApproveAllowanceResponse
+from tck.param.allowance import (
+    AllowanceEntry,
+    ApproveAllowanceParams,
+    DeleteAllowanceEntry,
+    DeleteAllowanceParams,
+)
+from tck.response.allowance import ApproveAllowanceResponse, DeleteAllowanceResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 
@@ -24,10 +32,7 @@ def _build_approve_allowance_transaction(
     """Build an AccountAllowanceApproveTransaction from TCK params."""
     transaction = AccountAllowanceApproveTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
-    if not params.allowances:
-        raise ValueError("allowances list cannot be empty")
-
-    for entry in params.allowances:
+    for entry in params.allowances or []:
         _apply_allowance_entry(transaction, entry)
 
     return transaction
@@ -106,7 +111,7 @@ def _apply_allowance_entry(
                         spender_account_id,
                     )
         else:
-            # nft object present with only tokenId — this is DeleteNftAllowanceAllSerials
+            # nft object present with only tokenId - this is DeleteNftAllowanceAllSerials
             # with no approvedForAll field (defaults to delete)
             transaction.delete_token_nft_allowance_all_serials(
                 token_id,
@@ -129,3 +134,51 @@ def approve_allowance(params: ApproveAllowanceParams) -> ApproveAllowanceRespons
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return ApproveAllowanceResponse(status=ResponseCode(receipt.status).name)
+
+
+def _build_delete_allowance_transaction(
+    params: DeleteAllowanceParams,
+) -> AccountAllowanceDeleteTransaction:
+    """Build an AccountAllowanceDeleteTransaction from TCK params."""
+    transaction = AccountAllowanceDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    for entry in params.allowances or []:
+        _apply_delete_allowance_entry(transaction, entry)
+
+    return transaction
+
+
+def _apply_delete_allowance_entry(
+    transaction: AccountAllowanceDeleteTransaction,
+    entry: DeleteAllowanceEntry,
+) -> None:
+    """Apply a single delete allowance entry to the transaction."""
+    owner_account_id = _parse_optional_account_id(entry.ownerAccountId)
+
+    if entry.tokenId is None:
+        raise ValueError("NFT allowance requires a tokenId")
+
+    if not entry.tokenId.strip():
+        raise ValueError("Token ID cannot be an empty string")
+
+    token_id = TokenId.from_string(entry.tokenId)
+
+    for serial in entry.serialNumbers or []:
+        nft_id = NftId(token_id=token_id, serial_number=int(serial))
+        transaction.delete_all_token_nft_allowances(nft_id, owner_account_id)
+
+
+@rpc_method("deleteAllowance")
+def delete_allowance(params: DeleteAllowanceParams) -> DeleteAllowanceResponse:
+    """Delete allowances using TCK deleteAllowance parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_delete_allowance_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return DeleteAllowanceResponse(status=ResponseCode(receipt.status).name)

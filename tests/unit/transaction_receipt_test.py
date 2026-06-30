@@ -30,3 +30,17 @@ def test_transaction_receipt_set_children_updates_property():
     assert len(parent.children) == 2
     assert parent.children[0] is child1
     assert parent.children[1] is child2
+
+
+def test_transaction_receipt_exposes_new_total_supply():
+    proto = transaction_receipt_pb2.TransactionReceipt(newTotalSupply=1234)
+    receipt = TransactionReceipt(receipt_proto=proto, transaction_id=None)
+
+    assert receipt.new_total_supply == 1234
+
+
+def test_transaction_receipt_new_total_supply_defaults_to_zero():
+    proto = transaction_receipt_pb2.TransactionReceipt()
+    receipt = TransactionReceipt(receipt_proto=proto, transaction_id=None)
+
+    assert receipt.new_total_supply == 0

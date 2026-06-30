@@ -7,7 +7,9 @@ from . import (
     allowance,
     key,
     sdk,  # setup, reset
+    token,
     topic,
+    transfer,
 )
 from .registry import (
     get_all_handlers,

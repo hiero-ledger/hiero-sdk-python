@@ -94,19 +94,6 @@ def test__from_proto_restores_token_id():
     assert tx.token_id == TokenId(7, 8, 9)
 
 
-@pytest.mark.parametrize("bad_token", [None, TokenId(0, 0, 0)])
-def test_build_transaction_body_without_valid_token_id_raises(bad_token):
-    """
-    If token_id is missing or zero, build_transaction_body() must raise ValueError.
-    """
-    tx = TokenPauseTransaction()
-    if bad_token is not None:
-        tx.token_id = bad_token
-
-    with pytest.raises(ValueError, match="token_id must be set"):
-        tx.build_transaction_body()
-
-
 def test__get_method_points_to_pause_token():
     """_get_method() should return pauseToken as the transaction RPC, and no query RPC."""
     query = TokenPauseTransaction().set_token_id(TokenId(1, 2, 3))

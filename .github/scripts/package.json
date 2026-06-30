@@ -3,9 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "test": "jest"
+    "test:js": "jest",
+    "test:py": "uv run pytest __tests__/pytest",
+    "test": "npm run test:js && npm run test:py"
   },
   "devDependencies": {
     "jest": "^29.7.0"
+  },
+  "overrides": {
+    "js-yaml": "^4.2.0",
+    "@babel/core": "^7.29.6"
   }
 }

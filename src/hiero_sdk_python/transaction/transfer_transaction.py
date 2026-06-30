@@ -72,8 +72,6 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
             amount = amount.to_tinybars()
         elif not isinstance(amount, int):
             raise TypeError("amount must be an int or Hbar instance.")
-        if amount == 0:
-            raise ValueError("Amount must be a non-zero value.")
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
 

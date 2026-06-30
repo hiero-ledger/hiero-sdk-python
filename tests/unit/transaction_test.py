@@ -541,3 +541,15 @@ def test_transaction_fee_rejects_negative_int():
 
     with pytest.raises(ValueError, match="fee must be greater than or equal to 0"):
         tx.transaction_fee = -1
+
+
+def test_transaction_default_max_fee(account_id):
+    """Test default transaction fee is set if no transaction fee is set."""
+    tx = TopicMessageSubmitTransaction()
+    tx.set_node_account_id(AccountId(0, 0, 3))
+    tx.operator_account_id = account_id
+
+    tx_body = tx.build_base_transaction_body()
+
+    assert tx_body is not None
+    assert tx_body.transactionFee == Hbar(2).to_tinybars()
