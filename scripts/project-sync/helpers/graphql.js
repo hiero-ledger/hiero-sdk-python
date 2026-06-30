@@ -42,24 +42,20 @@ async function fetchProjectFields(github, projectId) {
  * @param {string} optionId  - Node ID of the option to select
  * @returns {Promise<void>}
  */
-async function updateSingleSelectField(github, projectId, itemId, fieldId, optionId) {
-  await github.graphql(
+async function addItemToProject(github, projectId, contentId) {
+  const result = await github.graphql(
     `
-    mutation UpdateField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-      updateProjectV2ItemFieldValue(input: {
-        projectId: $projectId,
-        itemId: $itemId,
-        fieldId: $fieldId,
-        value: { singleSelectOptionId: $optionId }
-      }) {
-        projectV2Item {
+    mutation AddItemToProject($projectId: ID!, $contentId: ID!) {
+      addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+        item {
           id
         }
       }
     }
   `,
-    { projectId, itemId, fieldId, optionId }
+    { projectId, contentId }
   );
+  return result.addProjectV2ItemById.item.id;
 }
 
 /**

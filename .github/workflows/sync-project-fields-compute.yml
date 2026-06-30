@@ -5,7 +5,6 @@ on:
     types: [opened, edited, reopened, synchronize]
 
 permissions:
-  issues: read          # Needed to fetch labels from linked issues
   contents: read        # Needed for checkout
   pull-requests: read   # Needed to read PR body for linked-issue extraction
 
@@ -39,14 +38,8 @@ jobs:
             const prNodeId = context.payload.pull_request.node_id;
             console.log(`--- Processing PR #${prNumber} (node: ${prNodeId}) ---`);
 
-            const { data: prData } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
+            const prAuthor = context.payload.pull_request.user.login;
 
-            // Skip bot-authored PRs — they are not linked to labelled issues
-            const prAuthor = prData.user.login;
             if (/\[bot\]$/i.test(prAuthor) || /dependabot/i.test(prAuthor)) {
               console.log(`Skipping bot-authored PR (author: ${prAuthor}).`);
               return;

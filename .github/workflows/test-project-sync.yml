@@ -3,15 +3,16 @@ name: Test Project Sync
 on:
   push:
     paths:
-      - 'scripts/project-sync/**'           # fix both occurrences
+      - 'scripts/project-sync/**'
       - '.github/workflows/test-project-sync.yml'
   pull_request:
     paths:
-      - 'scripts/project-sync/**'           # fix both occurrences
+      - 'scripts/project-sync/**'
       - '.github/workflows/test-project-sync.yml'
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
