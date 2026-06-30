@@ -192,7 +192,7 @@ def _map_topic_info_response(topic_info: TopicInfo) -> TopicInfoResponse:
         feeScheduleKey=key_to_string(topic_info.fee_schedule_key) if topic_info.fee_schedule_key is not None else None,
         feeExemptKeys=[key_to_string(key) for key in topic_info.fee_exempt_keys],
         customFees=[_map_custom_fee_response(fee) for fee in topic_info.custom_fees],
-        ledgerId=topic_info.ledger_id.hex() if topic_info is not None else None,
+        ledgerId=topic_info.ledger_id.hex() if topic_info.ledger_id is not None else None,
     )
 
 

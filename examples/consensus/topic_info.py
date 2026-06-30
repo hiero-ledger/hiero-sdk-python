@@ -112,7 +112,7 @@ def build_mock_topic_info() -> TopicInfo:
 def build_topic_info_from_proto() -> TopicInfo:
     """Build a TopicInfo from a mocked protobuf message using _from_proto()."""
     proto = consensus_get_topic_info_pb2.ConsensusGetTopicInfoResponse()
-    proto.topicID.CopyFrom(TopicId(0, 0, 1)._to_proto())
+    proto.topicID.CopyFrom(TopicId.from_string("0.0.101")._to_proto())
 
     topic_info_proto = consensus_topic_info_pb2.ConsensusTopicInfo()
     topic_info_proto.memo = "Topic from protobuf"

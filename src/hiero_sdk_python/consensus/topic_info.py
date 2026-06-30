@@ -109,7 +109,7 @@ class TopicInfo:
             auto_renew_account=(
                 AccountId._from_proto(topic_info.autoRenewAccount) if topic_info.HasField("autoRenewAccount") else None
             ),
-            ledger_id=getattr(topic_info, "ledger_id", None),
+            ledger_id=topic_info.ledger_id if topic_info.ledger_id else None,
             fee_schedule_key=(
                 Key.from_proto_key(topic_info.fee_schedule_key) if topic_info.HasField("fee_schedule_key") else None
             ),
