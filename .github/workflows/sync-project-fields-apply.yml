@@ -100,4 +100,8 @@ jobs:
             );
 
             const setupSync = require('./scripts/project-sync/index.js');
+            const syncPR = await setupSync({ github, context, core });
+            if (typeof syncPR === 'function') {
+              await syncPR({ prNodeId, priority, type });
+              console.log('Project fields synced successfully.');
             }
