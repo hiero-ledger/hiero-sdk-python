@@ -204,3 +204,31 @@ class AirdropTokenParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class ClaimTokenParams(BaseTransactionParams):
+    """Request parameters for the claimToken endpoint."""
+
+    senderAccountId: str | None = None
+    receiverAccountId: str | None = None
+    tokenId: str | None = None
+    serialNumbers: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> ClaimTokenParams:
+        """Parse JSON-RPC params into a ClaimTokenParams instance."""
+        serial_numbers = params.get("serialNumbers")
+        if serial_numbers is not None and not isinstance(serial_numbers, list):
+            raise ValueError("serialNumbers must be a list")
+        if serial_numbers is not None and any(not isinstance(serial_number, str) for serial_number in serial_numbers):
+            raise ValueError("each serialNumbers item must be a string")
+
+        return cls(
+            senderAccountId=params.get("senderAccountId"),
+            receiverAccountId=params.get("receiverAccountId"),
+            tokenId=params.get("tokenId"),
+            serialNumbers=serial_numbers,
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
