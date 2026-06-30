@@ -1,0 +1,107 @@
+name: Sync PR Project Fields - Apply
+
+on:
+  workflow_run:
+    workflows: ["Sync PR Project Fields - Compute"]
+    types: [completed]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  apply:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read # Required to download artifacts from the compute workflow
+      issues: write # Required by ensureAllLabels() to create missing priority/type labels
+      # Note: 'projects: write' requires the GITHUB_TOKEN to be granted this
+      # permission in the repository or organisation settings, or a PAT/App
+      # token with the project scope must be passed via secrets.PROJECT_TOKEN.
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout scripts
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Download Artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        continue-on-error: true
+        with:
+          name: project-sync-payload
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Apply Project Field Values
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PROJECT_NODE_ID: ${{ secrets.PROJECT_NODE_ID }}
+        with:
+          github-token: ${{ secrets.PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+
+            if (!fs.existsSync('project-sync-payload.json')) {
+              console.log('No payload file found. Compute phase had nothing to sync.');
+              return;
+            }
+
+            const payload = JSON.parse(
+              fs.readFileSync('project-sync-payload.json', 'utf8')
+            );
+
+            const { prNumber, prNodeId } = payload;
+
+            if (!prNumber || !prNodeId) {
+              console.log('Payload is missing required fields. Skipping.');
+              return;
+            }
+
+            const { data: prData } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            const {
+              getLinkedIssueLabels,
+            } = require('./scripts/project-sync/helpers/linked-issues');
+
+            const {
+              deriveFieldValues,
+            } = require('./scripts/project-sync/helpers/mapping');
+
+            const issueLabels = await getLinkedIssueLabels(
+              prData.body,
+              github,
+              context.repo.owner,
+              context.repo.repo
+            );
+
+            const { priority, type } = deriveFieldValues(issueLabels);
+
+            console.log(`Applying project fields for PR node: ${prNodeId}`);
+            console.log(
+              `  priority="${priority || 'none'}"  type="${type || 'none'}"`
+            );
+
+            const setupSync = require('./scripts/project-sync/index.js');
+            const syncPR = await setupSync({ github, context, core });
+            if (typeof syncPR === 'function') {
+              await syncPR({ prNodeId, priority, type });
+              console.log('Project fields synced successfully.');
+            }
