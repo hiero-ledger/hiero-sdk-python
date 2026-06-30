@@ -1,5 +1,9 @@
 name: Test Project Sync
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     paths:
@@ -9,10 +13,6 @@ on:
     paths:
       - 'scripts/project-sync/**'
       - '.github/workflows/test-project-sync.yml'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 permissions:
   contents: read
