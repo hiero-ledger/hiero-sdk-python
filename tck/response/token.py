@@ -42,3 +42,13 @@ class FreezeTokenResponse(StatusOnlyResponse):
 @dataclass
 class PauseTokenResponse(StatusOnlyResponse):
     """Response payload for pauseToken."""
+
+
+@dataclass
+class AirdropTokenResponse(StatusOnlyResponse):
+    """Response payload for airdropToken."""
+
+
+@dataclass
+class ClaimTokenResponse(StatusOnlyResponse):
+    """Response payload for claimToken."""

@@ -1,3 +1,8 @@
+// __tests__/jest/pr-check-secondary-examples.test.js
+//
+// Run from .github/scripts:
+// npm run test:js -- pr-check-secondary-examples.test.js
+
 jest.mock("child_process", () => ({
     execSync: jest.fn(),
     spawnSync: jest.fn(),
@@ -12,7 +17,7 @@ const {
     runExample,
     runAll,
     computeExecutionPlan,
-} = require("../pr-check-secondary-examples");
+} = require("../../pr-check-secondary-examples");
 
 // ---------------------------------------------------------------------------
 // toModule

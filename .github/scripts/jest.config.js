@@ -1,4 +1,6 @@
+// .github/scripts/jest.config.js
 /** @type {import('jest').Config} */
 module.exports = {
-    testMatch: ["**/__tests__/**/*.test.js"],
+    testEnvironment: 'node',
+    testMatch: ['<rootDir>/__tests__/jest/**/*.test.js'],
 };
