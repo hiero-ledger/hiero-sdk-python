@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.node_create_pb2 import NodeCreateTransactionBody
@@ -317,7 +318,7 @@ class NodeCreateTransaction(Transaction):
             if pb.grpc_certificate_hash:
                 transaction.grpc_certificate_hash = pb.grpc_certificate_hash
             if pb.HasField("admin_key"):
-                transaction.admin_key = PublicKey._from_proto(pb.admin_key)
+                transaction.admin_key = Key.from_proto_key(pb.admin_key)
             if pb.decline_reward:
                 transaction.decline_reward = pb.decline_reward
             if pb.HasField("grpc_proxy_endpoint"):
