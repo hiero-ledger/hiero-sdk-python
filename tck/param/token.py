@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from tck.param.base import BaseTransactionParams
+from tck.param.base import BaseParams, BaseTransactionParams
 from tck.param.custom_fee import CustomFeeParams
 from tck.util.param_utils import (
     parse_common_transaction_params,
@@ -231,4 +231,23 @@ class ClaimTokenParams(BaseTransactionParams):
             serialNumbers=serial_numbers,
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class GetTokenInfoParams(BaseParams):
+    """Request parameters for the getTokenInfo endpoint."""
+
+    tokenId: str | None = None
+    queryPayment: str | None = None
+    maxQueryPayment: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GetTokenInfoParams:
+        """Parse JSON-RPC params into a GetTokenInfoParams instance."""
+        return cls(
+            tokenId=params.get("tokenId"),
+            queryPayment=params.get("queryPayment"),
+            maxQueryPayment=params.get("maxQueryPayment"),
+            sessionId=parse_session_id(params),
         )
