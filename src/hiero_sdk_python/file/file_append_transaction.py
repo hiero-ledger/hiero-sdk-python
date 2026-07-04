@@ -39,10 +39,15 @@ class FileAppendTransaction(ChunkedTransaction):
         super().__init__()
         self.file_id: FileId | None = file_id
         self.contents: bytes | None = self._encode_contents(contents)
-        self.max_chunks: int = max_chunks if max_chunks is not None else 20
-        self.chunk_size: int = chunk_size if chunk_size is not None else 4096
+        self.max_chunks: int = 20
+        self.chunk_size: int = 4096
         self._default_transaction_fee = Hbar(5).to_tinybars()
 
+        if max_chunks is not None:
+            self.set_max_chunks(max_chunks)
+        if chunk_size is not None:
+            self.set_chunk_size(chunk_size)
+ 
         self._total_chunks = self._calculate_total_chunks()
 
     def _encode_contents(self, contents: str | bytes | None) -> bytes | None:
@@ -121,8 +126,7 @@ class FileAppendTransaction(ChunkedTransaction):
         Returns:
             FileAppendTransaction: This transaction instance.
         """
-        self._require_not_frozen()
-        self.max_chunks = max_chunks
+        super().set_max_chunks(max_chunks)
         return self
 
     def set_chunk_size(self, chunk_size: int) -> FileAppendTransaction:
@@ -135,8 +139,7 @@ class FileAppendTransaction(ChunkedTransaction):
         Returns:
             FileAppendTransaction: This transaction instance.
         """
-        self._require_not_frozen()
-        self.chunk_size = chunk_size
+        super().set_max_chunks(max_chunks)
         self._total_chunks = self._calculate_total_chunks()
         return self
 

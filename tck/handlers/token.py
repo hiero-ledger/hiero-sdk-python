@@ -13,6 +13,8 @@ from hiero_sdk_python.tokens.custom_royalty_fee import CustomRoyaltyFee
 from hiero_sdk_python.tokens.fee_assessment_method import FeeAssessmentMethod
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.supply_type import SupplyType
+from hiero_sdk_python.tokens.token_airdrop_claim import TokenClaimAirdropTransaction
+from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
@@ -28,6 +30,7 @@ from tck.param.custom_fee import CustomFeeParams, FixedFeeParams
 from tck.param.token import (
     AirdropTokenParams,
     AssociateTokenParams,
+    ClaimTokenParams,
     CreateTokenParams,
     DeleteTokenParams,
     FreezeTokenParams,
@@ -37,6 +40,7 @@ from tck.param.token import (
 from tck.response.token import (
     AirdropTokenResponse,
     AssociateTokenResponse,
+    ClaimTokenResponse,
     CreateTokenResponse,
     DeleteTokenResponse,
     FreezeTokenResponse,
@@ -429,3 +433,48 @@ def airdrop_token(params: AirdropTokenParams) -> AirdropTokenResponse:
     )
 
     return AirdropTokenResponse(status=ResponseCode(receipt.status).name)
+
+
+def _build_claim_token_transaction(params: ClaimTokenParams) -> TokenClaimAirdropTransaction:
+    """Build a TokenClaimAirdropTransaction from TCK params."""
+    transaction = TokenClaimAirdropTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    sender_id = AccountId.from_string(params.senderAccountId)
+    receiver_id = AccountId.from_string(params.receiverAccountId)
+    token_id = TokenId.from_string(params.tokenId)
+
+    if params.serialNumbers:
+        for serial_number in params.serialNumbers:
+            transaction.add_pending_airdrop_id(
+                PendingAirdropId(
+                    sender_id=sender_id,
+                    receiver_id=receiver_id,
+                    nft_id=NftId(token_id=token_id, serial_number=int(serial_number)),
+                )
+            )
+    else:
+        transaction.add_pending_airdrop_id(
+            PendingAirdropId(
+                sender_id=sender_id,
+                receiver_id=receiver_id,
+                token_id=token_id,
+            )
+        )
+
+    return transaction
+
+
+@rpc_method("claimToken")
+def claim_token(params: ClaimTokenParams) -> ClaimTokenResponse:
+    """Claim pending token airdrops using TCK claimToken parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_claim_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return ClaimTokenResponse(status=ResponseCode(receipt.status).name)

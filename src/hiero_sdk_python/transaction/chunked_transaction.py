@@ -12,10 +12,6 @@ from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
 
 
-if TYPE_CHECKING:
-    pass
-
-
 class ChunkedTransaction(Transaction, ABC):
     """
     Abstract base class for transactions that support chunking.
@@ -43,17 +39,6 @@ class ChunkedTransaction(Transaction, ABC):
         self.chunk_size: int = 1024
         self.max_chunks: int = 20
 
-    @abstractmethod
-    def get_required_chunks(self) -> int:
-        """
-        Returns the number of chunks required for the current content.
-
-        Subclasses must implement this based on their content type.
-
-        Returns:
-            int: Number of chunks required.
-        """
-        pass
 
     @abstractmethod
     def _build_proto_body(self):
@@ -148,10 +133,9 @@ class ChunkedTransaction(Transaction, ABC):
         if self._transaction_body_bytes:
             return self
 
-        self._validate_chunking()
         self._resolve_transaction_id(client)
 
-        if self.transaction_id is None or self.transaction_id.valid_start is None:
+        if self.transaction_id.valid_start is None:
             raise ValueError("Transaction ID with valid_start must be set before freezing chunked transaction.")
 
         # Generate transaction IDs for all chunks if not already done
@@ -265,11 +249,10 @@ class ChunkedTransaction(Transaction, ABC):
             List[TransactionReceipt]: If wait_for_receipt is True (default)
             List[TransactionResponse]: If wait_for_receipt is False
         """
-        self._validate_chunking()
+        self._validate_chunking() # Moved here
 
-        required_chunks = self.get_required_chunks()
-
-        if required_chunks == 1:
+        # For single-chunk transactions, delegate to the standard execution flow.
+        if self.get_required_chunks() == 1:
             return [
                 super().execute(
                     client,
@@ -279,13 +262,14 @@ class ChunkedTransaction(Transaction, ABC):
                 )
             ]
 
-        # Ensure the initial transaction ID and chunk transaction IDs exist.
-        if not self._transaction_ids:
+        # For multi-chunk transactions, ensure we are frozen before proceeding.
+        if not self._transaction_body_bytes:
             self.freeze_with(client)
 
         responses = []
+        required_chunks = self.get_required_chunks()
 
-        for chunk_index in range(required_chunks):
+        for chunk_index in range(self.get_required_chunks()):
             self._current_chunk_index = chunk_index
 
             if chunk_index < len(self._transaction_ids):
