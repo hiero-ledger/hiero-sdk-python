@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Literal, overload
+from typing import Literal, overload
 
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -267,7 +267,7 @@ class ChunkedTransaction(Transaction, ABC):
             self.freeze_with(client)
 
         responses = []
-        required_chunks = self.get_required_chunks()
+        self.get_required_chunks()
 
         for chunk_index in range(self.get_required_chunks()):
             self._current_chunk_index = chunk_index
