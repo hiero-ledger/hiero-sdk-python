@@ -47,7 +47,7 @@ class FileAppendTransaction(ChunkedTransaction):
             self.set_max_chunks(max_chunks)
         if chunk_size is not None:
             self.set_chunk_size(chunk_size)
- 
+
         self._total_chunks = self._calculate_total_chunks()
 
     def _encode_contents(self, contents: str | bytes | None) -> bytes | None:
@@ -139,7 +139,7 @@ class FileAppendTransaction(ChunkedTransaction):
         Returns:
             FileAppendTransaction: This transaction instance.
         """
-        super().set_max_chunks(max_chunks)
+        super().set_chunk_size(chunk_size)
         self._total_chunks = self._calculate_total_chunks()
         return self
 
