@@ -39,7 +39,6 @@ class ChunkedTransaction(Transaction, ABC):
         self.chunk_size: int = 1024
         self.max_chunks: int = 20
 
-
     @abstractmethod
     def _build_proto_body(self):
         """
@@ -133,6 +132,7 @@ class ChunkedTransaction(Transaction, ABC):
         if self._transaction_body_bytes:
             return self
 
+        self._validate_chunking()
         self._resolve_transaction_id(client)
 
         if self.transaction_id.valid_start is None:
@@ -249,7 +249,7 @@ class ChunkedTransaction(Transaction, ABC):
             List[TransactionReceipt]: If wait_for_receipt is True (default)
             List[TransactionResponse]: If wait_for_receipt is False
         """
-        self._validate_chunking() # Moved here
+        self._validate_chunking()
 
         # For single-chunk transactions, delegate to the standard execution flow.
         if self.get_required_chunks() == 1:
