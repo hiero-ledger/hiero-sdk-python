@@ -85,7 +85,7 @@ class GetTokenInfoResponse:
     metadataKey: str | None = None
     defaultFreezeStatus: bool | None = None
     defaultKycStatus: bool | None = None
-    pauseStatus: str | None = None
+    pauseStatus: bool | None = None
     isDeleted: bool | None = None
     autoRenewAccountId: str | None = None
     autoRenewPeriod: str | None = None

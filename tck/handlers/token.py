@@ -489,10 +489,10 @@ def claim_token(params: ClaimTokenParams) -> ClaimTokenResponse:
     return ClaimTokenResponse(status=ResponseCode(receipt.status).name)
 
 
-def _serialize_key(key) -> str | None:
+def _serialize_key(key) -> str:
     """Serialize a key to its DER-encoded hex string representation."""
     if key is None:
-        return None
+        return ""
 
     to_string_der = getattr(key, "to_string_der", None)
     if callable(to_string_der):
@@ -537,14 +537,13 @@ def _serialize_custom_fee(fee: CustomFee) -> CustomFeeResponse:
     return response
 
 
-def _map_pause_status(pause_status: TokenPauseStatus) -> str:
-    """Map TokenPauseStatus enum to TCK string representation."""
+def _map_pause_status(pause_status: TokenPauseStatus) -> bool | None:
+    """Map TokenPauseStatus enum to TCK boolean representation."""
     mapping = {
-        TokenPauseStatus.PAUSED: "PAUSED",
-        TokenPauseStatus.UNPAUSED: "UNPAUSED",
-        TokenPauseStatus.PAUSE_NOT_APPLICABLE: "NOT_APPLICABLE",
+        TokenPauseStatus.PAUSED: True,
+        TokenPauseStatus.UNPAUSED: False,
     }
-    return mapping.get(pause_status, "NOT_APPLICABLE")
+    return mapping.get(pause_status)
 
 
 def _map_token_type(token_type: TokenType | None) -> str | None:
