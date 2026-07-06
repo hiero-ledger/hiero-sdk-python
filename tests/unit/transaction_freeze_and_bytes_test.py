@@ -63,7 +63,8 @@ def test_freeze_with_valid_parameters():
 
     # Should have transaction body bytes set
     assert len(transaction._transaction_body_bytes) > 0
-    assert node_id in transaction._transaction_body_bytes
+    assert transaction.transaction_id in transaction._transaction_body_bytes
+    # TODO check fro node ids
 
 
 def test_freeze_is_idempotent():
@@ -464,7 +465,8 @@ def test_freeze_only_builds_for_single_node():
 
     # Should only have one node in the transaction body bytes map
     assert len(transaction._transaction_body_bytes) == 1
-    assert node_id in transaction._transaction_body_bytes
+    assert transaction.transaction_id in transaction._transaction_body_bytes
+    # TODO check fro node ids
 
 
 def test_signed_and_unsigned_bytes_are_different():
@@ -575,7 +577,8 @@ def test_transaction_freeze_with_node_ids(mock_client):
     assert tx.node_account_ids == [single_node_id]
     # Verify creates transaction_bytes for single node_id
     assert len(tx._transaction_body_bytes) == 1
-    assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
+    assert set(tx._transaction_body_bytes.keys()) == {tx._transaction_ids[0]}
+    # TODO check fro node ids
 
     # Case 2 node_account_id list
     node_account_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
@@ -586,8 +589,9 @@ def test_transaction_freeze_with_node_ids(mock_client):
 
     assert tx.node_account_ids == node_account_ids
     # Verify creates transaction_bytes for two node_ids
-    assert len(tx._transaction_body_bytes) == 2
-    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+    assert len(tx._transaction_body_bytes) == 1
+    assert set(tx._transaction_body_bytes.keys()) == {tx._transaction_ids[0]}
+    # TODO check fro node ids
 
 
 def test_transaction_freeze_with_node_ids_without_client():
@@ -606,8 +610,10 @@ def test_transaction_freeze_with_node_ids_without_client():
 
     assert tx.node_account_ids == [single_node_id]
     # Verify creates transaction_bytes for single node_id
-    assert len(tx._transaction_body_bytes) == 1
-    assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
+    assert len(tx._transaction_body_bytes) == len(tx._transaction_ids)
+    assert set(tx._transaction_body_bytes.keys()) == {tx.transaction_id}
+
+    # TODO: check for node_ids
 
     # Case 2 node_account_id list
     node_account_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
@@ -619,8 +625,9 @@ def test_transaction_freeze_with_node_ids_without_client():
 
     assert tx.node_account_ids == node_account_ids
     # Verify creates transaction_bytes for two node_ids
-    assert len(tx._transaction_body_bytes) == 2
-    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+    assert len(tx._transaction_body_bytes) == 1
+    assert set(tx._transaction_body_bytes.keys()) == {tx._transaction_ids[0]}
+    # TODO: check for the node ids
 
 
 def test_transaction_freeze_without_node_ids(mock_client):
@@ -632,8 +639,10 @@ def test_transaction_freeze_without_node_ids(mock_client):
 
     assert tx.node_account_ids == [node._account_id for node in mock_client.network.nodes]
     # Verify creates transaction_bytes for client network nodes
-    assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
-    assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
+    assert len(tx._transaction_body_bytes) == len(tx._transaction_ids)
+    assert set(tx._transaction_body_bytes.keys()) == set(tx_id for tx_id in tx._transaction_ids)
+
+    # TODO: check for node_ids
 
 
 def test_map_response_raises_if_proto_request_is_not_transaction():

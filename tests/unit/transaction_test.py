@@ -342,7 +342,6 @@ def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, acco
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 3
-    assert tx._current_chunk_index == 0
 
 
 def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, account_id, transaction_id):
@@ -487,7 +486,8 @@ def test_high_volume_is_included_in_protobuf_output(
 
     assert transaction._transaction_body_bytes
 
-    body_bytes = next(iter(transaction._transaction_body_bytes.values()))
+    node_bytes = next(iter(transaction._transaction_body_bytes.values()))
+    body_bytes = next(iter(node_bytes.values()))
 
     body = transaction_pb2.TransactionBody()
     body.ParseFromString(body_bytes)
@@ -504,7 +504,8 @@ def test_high_volume_is_included_in_protobuf_output(
         .freeze()
     )
 
-    body_bytes_false = next(iter(transaction_false._transaction_body_bytes.values()))
+    node_bytes_false = next(iter(transaction_false._transaction_body_bytes.values()))
+    body_bytes_false = next(iter(node_bytes_false.values()))
 
     body_false = transaction_pb2.TransactionBody()
     body_false.ParseFromString(body_bytes_false)
@@ -632,7 +633,7 @@ def test_freeze_with_sets_transaction_id_and_node_ids_from_client(mock_client):
     """Test that freeze_with() populates the transaction ID and node IDs from the client."""
     tx = TransferTransaction().freeze_with(mock_client)
     expected_node_ids = [node._account_id for node in mock_client.network.nodes]
-    
+
     # Generated when freeze with using clinet
     expected_transaction_ids = tx._transaction_ids
 

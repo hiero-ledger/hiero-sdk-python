@@ -392,18 +392,19 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         self._require_frozen()
         sizes = []
 
-        original_index = self._current_chunk_index
-        original_transaction_id = self.transaction_id
+        original_transaction_index = self._current_transaction_id_index
 
         try:
-            for i, transaction_id in enumerate(self._transaction_ids):
-                self._current_chunk_index = i
-                self.transaction_id = transaction_id
-
+            for i, _ in enumerate(self._transaction_ids):
+                self._current_transaction_id_index = i
+                self._chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+                    initialTransactionID=self._initial_transaction_id._to_proto(),
+                    total=self._total_chunks,
+                    number=i + 1,
+                )
                 sizes.append(self.body_size)
         finally:
-            self._current_chunk_index = original_index
-            self.transaction_id = original_transaction_id
+            self._current_transaction_id_index = original_transaction_index
 
         return sizes
 

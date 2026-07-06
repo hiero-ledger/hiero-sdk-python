@@ -410,9 +410,9 @@ class Transaction(_Executable):
         for i in range(count):
             self._transaction_ids.append(transaction_id)
 
-            next_nanos = transaction_id.valid_start.nanos + (i + 1)
+            next_nanos = initial_transaction.valid_start.nanos + (i + 1)
             next_valid_start = timestamp_pb2.Timestamp(
-                seconds=transaction_id.valid_start.seconds + next_nanos // 1_000_000_000,
+                seconds=initial_transaction.valid_start.seconds + next_nanos // 1_000_000_000,
                 nanos=next_nanos % 1_000_000_000,
             )
 
@@ -430,7 +430,7 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
 
-        sig_map = self._signature_map.get(self._transaction_body_bytes.get(self._node_account_id))
+        sig_map = self._signature_map.get(self._transaction_body_bytes[self.transaction_id][self._node_account_id])
 
         if sig_map is None:
             return False

@@ -412,18 +412,15 @@ class FileAppendTransaction(ChunkedTransaction):
         self._require_frozen()
         sizes = []
 
-        original_index = self._current_chunk_index
-        original_transaction_id = self.transaction_id
+        original_transaction_index = self._current_transaction_id_index
 
         try:
-            for i, transaction_id in enumerate(self._transaction_ids):
+            for i, _ in enumerate(self._transaction_ids):
+                self._current_transaction_id_index = i
                 self._current_chunk_index = i
-                self.transaction_id = transaction_id
-
                 sizes.append(self.body_size)
         finally:
-            self._current_chunk_index = original_index
-            self.transaction_id = original_transaction_id
+            self._current_transaction_id_index = original_transaction_index
 
         return sizes
 
