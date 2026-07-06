@@ -32,7 +32,6 @@ def create_topic(client, admin_key=None, submit_key=None, custom_fees=None):
         tx.set_submit_key(submit_key)
     if custom_fees:
         tx.set_custom_fees(custom_fees)
-        tx.transaction_fee = Hbar(30).to_tinybars()
 
     receipt = tx.execute(client)
     assert receipt.status == ResponseCode.SUCCESS, f"Topic creation failed: {ResponseCode(receipt.status).name}"
