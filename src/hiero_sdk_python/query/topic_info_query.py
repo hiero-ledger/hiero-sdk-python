@@ -82,7 +82,7 @@ class TopicInfoQuery(Query):
         Returns:
             query_pb2.Query: The protobuf query message.
 
-        Raises:]
+        Raises:
             Exception: If any other error occurs during request construction.
         """
         try:
