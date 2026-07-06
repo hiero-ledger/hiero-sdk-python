@@ -22,6 +22,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -274,13 +275,15 @@ def test_missing_topic_id_in_update(mock_account_ids):
 # This test uses fixtures (mock_account_ids, topic_id, private_key) as parameters
 def test_sign_topic_update_transaction(mock_account_ids, topic_id, private_key):
     """Test signing the TopicUpdateTransaction with a private key."""
-    _, _, node_account_id, _, _ = mock_account_ids
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    transaction_id = TransactionId.generate(operator_id)
+
     tx = TopicUpdateTransaction(topic_id=topic_id, memo="Signature test")
     tx.operator_account_id = AccountId(0, 0, 2)
     tx.node_account_id = node_account_id
 
     body_bytes = tx.build_transaction_body().SerializeToString()
-    tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
+    tx._transaction_body_bytes.setdefault(transaction_id, dict(node_account_id=body_bytes))
 
     tx.sign(private_key)
     assert len(tx._signature_map[body_bytes].sigPair) == 1

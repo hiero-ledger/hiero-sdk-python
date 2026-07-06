@@ -619,11 +619,11 @@ def test_freeze_transaction_sets_transaction_id_and_node_ids():
     assert tx.transaction_id == tx_id
     assert tx.node_account_ids == node_account_ids
 
-    assert len(tx._transaction_body_bytes) == len(node_account_ids)
-    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+    assert len(tx._transaction_body_bytes) == 1
+    assert set(tx._transaction_body_bytes.keys()) == {tx_id}
 
     for node_id in node_account_ids:
-        body_bytes = tx._transaction_body_bytes[node_id]
+        body_bytes = tx._transaction_body_bytes[tx_id][node_id]
         assert body_bytes is not None
         assert len(body_bytes) > 0
 
@@ -632,15 +632,18 @@ def test_freeze_with_sets_transaction_id_and_node_ids_from_client(mock_client):
     """Test that freeze_with() populates the transaction ID and node IDs from the client."""
     tx = TransferTransaction().freeze_with(mock_client)
     expected_node_ids = [node._account_id for node in mock_client.network.nodes]
+    
+    # Generated when freeze with using clinet
+    expected_transaction_ids = tx._transaction_ids
 
     assert tx.transaction_id is not None
     assert tx.node_account_ids == expected_node_ids
 
-    assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
-    assert set(tx._transaction_body_bytes.keys()) == set(expected_node_ids)
+    assert len(tx._transaction_body_bytes) == len(expected_node_ids)
+    assert set(tx._transaction_body_bytes.keys()) == set(expected_transaction_ids)
 
     for node_id in expected_node_ids:
-        body_bytes = tx._transaction_body_bytes[node_id]
+        body_bytes = tx._transaction_body_bytes[expected_transaction_ids[0]][node_id]
         assert body_bytes is not None
         assert len(body_bytes) > 0
 
@@ -654,11 +657,13 @@ def test_freeze_transaction_sets_transaction_id_and_node_id():
     tx = TransferTransaction().set_transaction_id(tx_id).set_node_account_id(node_account_id).freeze()
 
     assert tx.transaction_id == tx_id
+    assert tx._transaction_ids == [tx_id]
     assert tx.node_account_id == node_account_id
 
     assert len(tx._transaction_body_bytes) == 1
-    assert set(tx._transaction_body_bytes.keys()) == {node_account_id}
+    assert set(tx._transaction_body_bytes.keys()) == {tx_id}
+    assert set(tx._transaction_body_bytes[tx_id].keys()) == {node_account_id}
 
-    body_bytes = tx._transaction_body_bytes[node_account_id]
+    body_bytes = tx._transaction_body_bytes[tx_id][node_account_id]
     assert body_bytes is not None
     assert len(body_bytes) > 0

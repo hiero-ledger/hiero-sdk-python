@@ -307,7 +307,7 @@ def test_sign_transaction(mock_client):
     node_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = node_tx._transaction_body_bytes[node_id]
+    body_bytes = node_tx._transaction_body_bytes[node_tx.transaction_id][node_id]
 
     assert len(node_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = node_tx._signature_map[body_bytes].sigPair[0]

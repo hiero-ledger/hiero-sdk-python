@@ -19,6 +19,7 @@ from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -321,3 +322,33 @@ def test_topic_message_submit_transaction_can_submit_a_large_message_manual_free
     assert info.sequence_number == 14
 
     delete_topic(env.client, topic_id)
+
+
+@pytest.mark.integration
+def test(env):
+    topic_id = create_topic(client=env.client, admin_key=env.operator_key)
+
+    info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
+    assert info.sequence_number == 0
+
+    message = "ABCD"  # message with (1024 * 14) bytes ie 14 chunks
+
+    message_tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_chunk_size(1)
+        .set_message(message)
+        .freeze_with(env.client)
+    )
+    print(len(message_tx._transaction_ids))
+    print(len(message_tx._transaction_body_bytes.keys()))
+
+    bytestx = message_tx.to_bytes()
+    tx = Transaction.from_bytes(bytestx)
+
+    print(isinstance(tx, TopicMessageSubmitTransaction))
+    print(len(tx._transaction_ids))
+    print(len(tx._transaction_body_bytes.keys()))
+    tx.execute(env.client)
+
+    print(tx.message)

@@ -130,7 +130,7 @@ def test_sign_transaction(mock_client, schedule_id):
     schedule_sign_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = schedule_sign_tx._transaction_body_bytes[node_id]
+    body_bytes = schedule_sign_tx._transaction_body_bytes[schedule_sign_tx.transaction_id][node_id]
 
     assert len(schedule_sign_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = schedule_sign_tx._signature_map[body_bytes].sigPair[0]

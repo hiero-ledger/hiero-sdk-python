@@ -225,13 +225,16 @@ def test_sign_topic_create_transaction(mock_account_ids, private_key):
     """
     Test signing the TopicCreateTransaction with a private key.
     """
-    _, _, node_account_id, _, _ = mock_account_ids
+    opertor_id, _, node_account_id, _, _ = mock_account_ids
+    transaction_id = TransactionId.generate(opertor_id)
+
     tx = TopicCreateTransaction(memo="Signing test")
     tx.operator_account_id = AccountId(0, 0, 2)
     tx.node_account_id = node_account_id
+    tx.transaction_id = transaction_id
 
     body_bytes = tx.build_transaction_body().SerializeToString()
-    tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
+    tx._transaction_body_bytes.setdefault(transaction_id, dict(node_account_id=body_bytes))
 
     tx.sign(private_key)
     assert len(tx._signature_map[body_bytes].sigPair) == 1

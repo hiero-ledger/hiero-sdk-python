@@ -153,7 +153,7 @@ def test_sign_transaction_fungible(mock_account_ids, amount, mock_client):
     mint_tx.sign(supply_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = mint_tx._transaction_body_bytes[node_id]
+    body_bytes = mint_tx._transaction_body_bytes[mint_tx.transaction_id][node_id]
 
     assert len(mint_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = mint_tx._signature_map[body_bytes].sigPair[0]
@@ -180,7 +180,7 @@ def test_sign_transaction_nft(mock_account_ids, metadata, mock_client):
     mint_tx.sign(supply_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = mint_tx._transaction_body_bytes[node_id]
+    body_bytes = mint_tx._transaction_body_bytes[mint_tx.transaction_id][node_id]
 
     assert len(mint_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = mint_tx._signature_map[body_bytes].sigPair[0]

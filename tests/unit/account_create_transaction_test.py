@@ -108,6 +108,7 @@ def test_account_create_transaction_build_scheduled_body(mock_account_ids):
 def test_account_create_transaction_sign(mock_account_ids, mock_client):
     """Test signing the account create transaction."""
     operator_id, node_account_id = mock_account_ids
+    transaction_id = generate_transaction_id(operator_id)
 
     new_private_key = PrivateKey.generate()
     new_public_key = new_private_key.public_key()
@@ -119,20 +120,20 @@ def test_account_create_transaction_sign(mock_account_ids, mock_client):
         .set_initial_balance(100000000)
         .set_account_memo("Test account")
     )
-    account_tx.transaction_id = generate_transaction_id(operator_id)
+    account_tx.transaction_id = transaction_id
     account_tx.node_account_id = node_account_id
     account_tx.freeze_with(mock_client)
 
     # Add first signiture
     account_tx.sign(mock_client.operator_private_key)
-    body_bytes = account_tx._transaction_body_bytes[node_account_id]
+    body_bytes = account_tx._transaction_body_bytes[transaction_id][node_account_id]
 
     assert body_bytes in account_tx._signature_map, "Body bytes should be a key in the signature map dictionary"
     assert len(account_tx._signature_map[body_bytes].sigPair) == 1, "Transaction should have exactly one signature"
 
     # Add second signiture
     account_tx.sign(operator_private_key)
-    body_bytes = account_tx._transaction_body_bytes[node_account_id]
+    body_bytes = account_tx._transaction_body_bytes[transaction_id][node_account_id]
 
     assert body_bytes in account_tx._signature_map, "Body bytes should be a key in the signature map dictionary"
     assert len(account_tx._signature_map[body_bytes].sigPair) == 2, "Transaction should have exactly two signatures"
