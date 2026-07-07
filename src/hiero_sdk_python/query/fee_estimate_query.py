@@ -137,7 +137,7 @@ class FeeEstimateQuery:
         self._ensure_frozen(self._transaction, client)
 
         if self._is_chunked():
-            return self._execute_chunked(client, url, mode)
+            return self._execute_chunked(url, mode)
 
         return self._execute_single(url, mode)
 
