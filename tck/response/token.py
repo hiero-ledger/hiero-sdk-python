@@ -61,7 +61,7 @@ class CustomFeeResponse:
     fixedFee: dict | None = None
     fractionalFee: dict | None = None
     royaltyFee: dict | None = None
-    feeCollectorAccountId: str | None = None
+    feeCollectorAccountId: dict | None = None
     feeCollectorsExempt: bool | None = None
 
 
@@ -83,9 +83,9 @@ class GetTokenInfoResponse:
     supplyKey: str | None = None
     feeScheduleKey: str | None = None
     metadataKey: str | None = None
-    defaultFreezeStatus: bool | None = None
-    defaultKycStatus: bool | None = None
-    pauseStatus: bool | None = None
+    defaultFreezeStatus: bool | None = field(metadata={"nullable": True}, default=None)
+    defaultKycStatus: bool | None = field(metadata={"nullable": True}, default=None)
+    pauseStatus: bool | None = field(metadata={"nullable": True}, default=None)
     isDeleted: bool | None = None
     autoRenewAccountId: str | None = None
     autoRenewPeriod: str | None = None

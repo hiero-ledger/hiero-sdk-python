@@ -493,12 +493,7 @@ def _serialize_key(key) -> str:
     """Serialize a key to its DER-encoded hex string representation."""
     if key is None:
         return ""
-
-    to_string_der = getattr(key, "to_string_der", None)
-    if callable(to_string_der):
-        return to_string_der()
-
-    return key.to_bytes().hex()
+    return key.to_string_der()
 
 
 def _serialize_custom_fee(fee: CustomFee) -> CustomFeeResponse:
@@ -506,7 +501,12 @@ def _serialize_custom_fee(fee: CustomFee) -> CustomFeeResponse:
     response = CustomFeeResponse()
 
     if fee.fee_collector_account_id is not None:
-        response.feeCollectorAccountId = str(fee.fee_collector_account_id)
+        aid = fee.fee_collector_account_id
+        response.feeCollectorAccountId = {
+            "realm": str(aid.realm),
+            "shard": str(aid.shard),
+            "num": str(aid.num),
+        }
     response.feeCollectorsExempt = fee.all_collectors_are_exempt
 
     if isinstance(fee, CustomFixedFee):
@@ -539,11 +539,11 @@ def _serialize_custom_fee(fee: CustomFee) -> CustomFeeResponse:
 
 def _map_pause_status(pause_status: TokenPauseStatus) -> bool | None:
     """Map TokenPauseStatus enum to TCK boolean representation."""
-    mapping = {
-        TokenPauseStatus.PAUSED: True,
-        TokenPauseStatus.UNPAUSED: False,
-    }
-    return mapping.get(pause_status)
+    if pause_status == TokenPauseStatus.PAUSED:
+        return True
+    if pause_status == TokenPauseStatus.UNPAUSED:
+        return False
+    return None
 
 
 def _map_token_type(token_type: TokenType | None) -> str | None:
@@ -568,22 +568,26 @@ def _map_supply_type(supply_type: SupplyType | None) -> str | None:
     return mapping.get(supply_type)
 
 
+def _map_freeze_status(freeze_status: TokenFreezeStatus) -> bool | None:
+    """Map TokenFreezeStatus enum to TCK boolean representation."""
+    if freeze_status == TokenFreezeStatus.FROZEN:
+        return True
+    if freeze_status == TokenFreezeStatus.UNFROZEN:
+        return False
+    return None
+
+
+def _map_kyc_status(kyc_status: TokenKycStatus) -> bool | None:
+    """Map TokenKycStatus enum to TCK boolean representation."""
+    if kyc_status == TokenKycStatus.GRANTED:
+        return True
+    if kyc_status == TokenKycStatus.REVOKED:
+        return False
+    return None
+
+
 def _build_token_info_response(info: TokenInfo) -> GetTokenInfoResponse:
     """Build a GetTokenInfoResponse from a TokenInfo object."""
-    # Map default freeze status to boolean
-    default_freeze: bool | None = None
-    if info.default_freeze_status == TokenFreezeStatus.FROZEN:
-        default_freeze = True
-    elif info.default_freeze_status == TokenFreezeStatus.UNFROZEN:
-        default_freeze = False
-
-    # Map default KYC status to boolean
-    default_kyc: bool | None = None
-    if info.default_kyc_status == TokenKycStatus.GRANTED:
-        default_kyc = True
-    elif info.default_kyc_status == TokenKycStatus.REVOKED:
-        default_kyc = False
-
     # Serialize custom fees
     custom_fees = [_serialize_custom_fee(fee) for fee in info.custom_fees] if info.custom_fees else []
 
@@ -602,8 +606,8 @@ def _build_token_info_response(info: TokenInfo) -> GetTokenInfoResponse:
         supplyKey=_serialize_key(info.supply_key),
         feeScheduleKey=_serialize_key(info.fee_schedule_key),
         metadataKey=_serialize_key(info.metadata_key),
-        defaultFreezeStatus=default_freeze,
-        defaultKycStatus=default_kyc,
+        defaultFreezeStatus=_map_freeze_status(info.default_freeze_status),
+        defaultKycStatus=_map_kyc_status(info.default_kyc_status),
         pauseStatus=_map_pause_status(info.pause_status),
         isDeleted=info.is_deleted,
         autoRenewAccountId=str(info.auto_renew_account) if info.auto_renew_account else None,

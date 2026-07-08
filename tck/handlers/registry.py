@@ -82,5 +82,15 @@ def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -
 
 
 def parse_result(result: Any) -> dict:
-    """Parse the result from the methods to dict containing non none key:values"""
-    return {k: v for k, v in asdict(result).items() if v is not None}
+    """Parse the result from the methods to dict containing non none key:values.
+
+    Fields with metadata={"nullable": True} are preserved even when None.
+    """
+    from dataclasses import fields as dc_fields
+
+    nullable_fields: set[str] = set()
+    for f in dc_fields(result):
+        if f.metadata.get("nullable"):
+            nullable_fields.add(f.name)
+
+    return {k: v for k, v in asdict(result).items() if v is not None or k in nullable_fields}
