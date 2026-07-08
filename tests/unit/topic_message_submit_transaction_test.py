@@ -8,6 +8,7 @@ import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
@@ -22,6 +23,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -566,3 +568,165 @@ def test_execute_raises_when_message_is_empty(topic_id, mock_client):
 
     with pytest.raises(ValueError, match="Missing required fields: message"):
         transaction.freeze_with(mock_client)
+
+
+def test_frezee_with_client_generate_all_transaction_body_bytes(topic_id, mock_client):
+    """Test freeze_with() generate all required transaction body bytes."""
+    message = "A" * 40  # will create 4 chunks
+
+    transaction = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(message)
+
+    assert len(transaction._transaction_ids) == 0
+    assert not transaction._transaction_body_bytes
+
+    transaction.freeze_with(mock_client)
+
+    # generated transaction ids == number of chunks i.e 4 (40/10)
+    assert len(transaction._transaction_ids) == 4
+
+    transaction_ids = transaction._transaction_ids
+    initial_transaction = transaction_ids[0]
+
+    for i, _ in enumerate(transaction_ids):
+        assert transaction_ids[i].account_id == initial_transaction.account_id
+        assert transaction_ids[i].valid_start.nanos == initial_transaction.valid_start.nanos + i
+
+    # create body bytes for each transaction_id and every node_account_ids
+    assert len(transaction._transaction_body_bytes) == 4
+    for transaction_id in transaction._transaction_ids:
+        assert len(transaction._transaction_body_bytes[transaction_id]) == len(mock_client.network.nodes)
+
+
+def test_manual_frezee_generate_all_transaction_body_bytes(topic_id):
+    """Test freeze() generate all required transaction body bytes."""
+    transaction_id = TransactionId.generate(AccountId(0, 0, 1))
+    node_account_ids = [AccountId(0, 0, 4), AccountId(0, 0, 5)]
+
+    message = "A" * 20  # will create 2 chunks
+
+    transaction = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_chunk_size(10)
+        .set_message(message)
+        .set_transaction_id(transaction_id)
+        .set_node_account_ids(node_account_ids)
+    )
+
+    # single transaction_id which is set
+    assert len(transaction._transaction_ids) == 1
+    assert not transaction._transaction_body_bytes
+
+    transaction.freeze()
+
+    # generated transaction ids == number of chunks i.e 2 (20/10)
+    assert len(transaction._transaction_ids) == 2
+
+    transaction_ids = transaction._transaction_ids
+
+    assert transaction_ids[0] == transaction_id
+
+    for i, _ in enumerate(transaction_ids):
+        assert transaction_ids[i].account_id == transaction_id.account_id
+        assert transaction_ids[i].valid_start.nanos == transaction_id.valid_start.nanos + i
+
+    # create body bytes for each transaction_id and every node_account_ids
+    assert len(transaction._transaction_body_bytes) == 2
+    for transaction_id in transaction._transaction_ids:
+        assert len(transaction._transaction_body_bytes[transaction_id]) == len(node_account_ids)
+
+
+def test_serialize_chunk_transaction_preserve_signature_map(topic_id):
+    """Test serialize chunk transaction preserve signature maps."""
+    transaction_id = TransactionId.generate(AccountId(0, 0, 1))
+    node_account_ids = [AccountId(0, 0, 4), AccountId(0, 0, 5)]
+    key = PrivateKey.generate_ecdsa()
+
+    message = "A" * 20  # will create 2 chunks
+
+    tx1 = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_chunk_size(10)
+        .set_message(message)
+        .set_transaction_id(transaction_id)
+        .set_node_account_ids(node_account_ids)
+        .freeze()
+        .sign(key)
+    )
+
+    assert tx1._signature_map
+
+    for transaction_id in tx1._transaction_ids:
+        for node_id in node_account_ids:
+            body_bytes = tx1._transaction_body_bytes[transaction_id][node_id]
+            sig_pairs = tx1._signature_map[body_bytes].sigPair
+
+            assert len(sig_pairs) == 1
+
+            pubkey_prefixes = {sp.pubKeyPrefix for sp in sig_pairs}
+            assert pubkey_prefixes == {key.public_key().to_bytes_raw()}
+
+    # will create transaction_bytes like
+    # {tx_id1: {node_id1: bytes, node_id2: bytes}, tx_id2: {node_id1: bytes, node_id2: bytes}}
+
+    tx_bytes = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, TopicMessageSubmitTransaction)
+
+    assert tx2._signature_map
+
+    for transaction_id in tx2._transaction_ids:
+        for node_id in node_account_ids:
+            body_bytes = tx2._transaction_body_bytes[transaction_id][node_id]
+            sig_pairs = tx2._signature_map[body_bytes].sigPair
+
+            assert len(sig_pairs) == 1
+
+            pubkey_prefixes = {sp.pubKeyPrefix for sp in sig_pairs}
+            assert pubkey_prefixes == {key.public_key().to_bytes_raw()}
+
+
+def test_signing_serialize_chunk_transaction_sign_all_available_bytes(topic_id):
+    """Test that signing the serialize chunk transaction sign all available bytes."""
+    transaction_id = TransactionId.generate(AccountId(0, 0, 1))
+    node_account_ids = [AccountId(0, 0, 4), AccountId(0, 0, 5)]
+
+    message = "A" * 20  # will create 2 chunks
+
+    tx1 = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_chunk_size(10)
+        .set_message(message)
+        .set_transaction_id(transaction_id)
+        .set_node_account_ids(node_account_ids)
+        .freeze()
+    )
+
+    assert not tx1._signature_map
+
+    # will create transaction_bytes like
+    # {tx_id1: {node_id1: bytes, node_id2: bytes}, tx_id2: {node_id1: bytes, node_id2: bytes}}
+
+    tx_bytes = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, TopicMessageSubmitTransaction)
+
+    key = PrivateKey.generate_ecdsa()
+
+    tx2.sign(key)
+
+    assert tx2._signature_map
+
+    for transaction_id in tx2._transaction_ids:
+        for node_id in node_account_ids:
+            body_bytes = tx2._transaction_body_bytes[transaction_id][node_id]
+            sig_pairs = tx2._signature_map[body_bytes].sigPair
+
+            assert len(sig_pairs) == 1
+
+            pubkey_prefixes = {sp.pubKeyPrefix for sp in sig_pairs}
+            assert pubkey_prefixes == {key.public_key().to_bytes_raw()}

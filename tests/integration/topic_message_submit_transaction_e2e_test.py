@@ -325,30 +325,71 @@ def test_topic_message_submit_transaction_can_submit_a_large_message_manual_free
 
 
 @pytest.mark.integration
-def test(env):
+def test_non_freeze_serialize_chunk_topic_message_submit_transaction_can_be_executed(env):
+    """Test topic message submit transaction can execute serialize chunk transaction."""
     topic_id = create_topic(client=env.client, admin_key=env.operator_key)
 
     info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
     assert info.sequence_number == 0
 
-    message = "ABCD"  # message with (1024 * 14) bytes ie 14 chunks
+    message = "A" * (1024 * 14)  # message with (1024 * 14) bytes ie 14 chunks
 
-    message_tx = (
-        TopicMessageSubmitTransaction()
-        .set_topic_id(topic_id)
-        .set_chunk_size(1)
-        .set_message(message)
-        .freeze_with(env.client)
-    )
-    print(len(message_tx._transaction_ids))
-    print(len(message_tx._transaction_body_bytes.keys()))
+    tx1 = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message(message)
 
-    bytestx = message_tx.to_bytes()
-    tx = Transaction.from_bytes(bytestx)
+    tx_bytes = tx1.to_bytes()
 
-    print(isinstance(tx, TopicMessageSubmitTransaction))
-    print(len(tx._transaction_ids))
-    print(len(tx._transaction_body_bytes.keys()))
-    tx.execute(env.client)
+    tx2 = Transaction.from_bytes(tx_bytes)
 
-    print(tx.message)
+    assert isinstance(tx2, TopicMessageSubmitTransaction)
+    assert tx2.topic_id == tx1.topic_id
+    assert tx2.message == tx1.message
+
+    receipt = tx2.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS
+
+    info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
+    assert info.sequence_number == 14
+
+    delete_topic(env.client, topic_id)
+
+
+@pytest.mark.integration
+def test_freeze_serialize_chunk_topic_message_submit_transaction_can_be_executed(env):
+    """Test topic message submit transaction can execute frozen serialize chunk transaction."""
+    topic_id = create_topic(client=env.client, admin_key=env.operator_key)
+
+    info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
+    assert info.sequence_number == 0
+
+    message = "A" * (1024 * 14)  # message with (1024 * 14) bytes ie 14 chunks
+
+    tx1 = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message(message).freeze_with(env.client)
+
+    tx_bytes = tx1.to_bytes()
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, TopicMessageSubmitTransaction)
+    assert tx2.topic_id == tx1.topic_id
+    # if transaction is frozen the serialization uses the transaction_body_bytes
+    # so the message will only contain the text for the first chunk
+    assert tx2.message != tx1.message
+    assert tx2._transaction_ids == tx1._transaction_ids
+    assert len(tx2._transaction_body_bytes) == len(tx1._transaction_body_bytes)
+
+    for transaction_id, node_bytes in tx2._transaction_body_bytes.items():
+        for node_id, _ in node_bytes.items():
+            assert (
+                tx1._transaction_body_bytes[transaction_id][node_id]
+                == tx2._transaction_body_bytes[transaction_id][node_id]
+            )
+
+    receipt = tx2.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS
+
+    info = TopicInfoQuery().set_topic_id(topic_id).execute(env.client)
+    assert info.sequence_number == 14
+
+    delete_topic(env.client, topic_id)

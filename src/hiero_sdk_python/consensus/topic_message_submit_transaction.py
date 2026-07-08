@@ -69,7 +69,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
         return self.message.encode("utf-8") if isinstance(self.message, str) else self.message
         self._initial_transaction_id: TransactionId | None = None
-        self._chunk_info: consensus_submit_message_pb2.ConsensusMessageChunkInfo | None = None
+        self._current_chunk_index: int | None = None
 
     def get_required_chunks(self) -> int:
         """
@@ -183,8 +183,14 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
         content = self._message_as_bytes()
 
-        if self._chunk_info is not None:
-            start_index = (self._chunk_info.number - 1) * self.chunk_size
+        if self._current_chunk_index is not None:
+            chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+                initialTransactionID=self._initial_transaction_id._to_proto(),
+                total=self._total_chunks,
+                number=self._current_chunk_index + 1,
+            )
+
+            start_index = (self._current_chunk_index) * self.chunk_size
             end_index = min(start_index + self.chunk_size, len(content))
 
             chunk_content = content[start_index:end_index]
@@ -192,7 +198,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
                 topicID=self.topic_id._to_proto() if self.topic_id else None,
                 message=chunk_content,
-                chunkInfo=self._chunk_info,
+                chunkInfo=chunk_info,
             )
 
         return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
@@ -262,11 +268,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
         for chunk in range(self.get_required_chunks()):
             self._current_transaction_id_index = chunk
-            self._chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
-                initialTransactionID=self._initial_transaction_id._to_proto(),
-                total=required_chunks,
-                number=chunk + 1,
-            )
+            self._current_chunk_index = chunk
 
             node_bytes = {}
 
@@ -396,7 +398,9 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
         try:
             for i, _ in enumerate(self._transaction_ids):
+                self._current_chunk_index = i
                 self._current_transaction_id_index = i
+
                 self._chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
                     initialTransactionID=self._initial_transaction_id._to_proto(),
                     total=self._total_chunks,

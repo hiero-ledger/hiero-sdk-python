@@ -47,12 +47,13 @@ def test_freeze_with_valid_parameters():
     operator_id = AccountId.from_string("0.0.1234")
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
+    transaction_id = TransactionId.generate(operator_id)
 
     transaction = (
         TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
-    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.transaction_id = transaction_id
     transaction.node_account_id = node_id
 
     # Should not raise any errors
@@ -64,7 +65,6 @@ def test_freeze_with_valid_parameters():
     # Should have transaction body bytes set
     assert len(transaction._transaction_body_bytes) > 0
     assert transaction.transaction_id in transaction._transaction_body_bytes
-    # TODO check fro node ids
 
 
 def test_freeze_is_idempotent():
@@ -466,7 +466,6 @@ def test_freeze_only_builds_for_single_node():
     # Should only have one node in the transaction body bytes map
     assert len(transaction._transaction_body_bytes) == 1
     assert transaction.transaction_id in transaction._transaction_body_bytes
-    # TODO check fro node ids
 
 
 def test_signed_and_unsigned_bytes_are_different():

@@ -20,6 +20,7 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
+from hiero_sdk_python.hapi.services.transaction_contents_pb2 import SignedTransaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
@@ -668,3 +669,66 @@ def test_freeze_transaction_sets_transaction_id_and_node_id():
     body_bytes = tx._transaction_body_bytes[tx_id][node_account_id]
     assert body_bytes is not None
     assert len(body_bytes) > 0
+
+
+def test_generate_transaction_ids():
+    """Test _generate_transaction_ids create all transaction_id for given count."""
+    count = 2
+    initial_transaction = TransactionId.generate(AccountId(0, 0, 3))
+
+    tx = TopicMessageSubmitTransaction()
+    tx._generate_transaction_ids(initial_transaction, count)
+
+    assert len(tx._transaction_ids) == count
+
+    transaction_ids = tx._transaction_ids
+
+    assert transaction_ids[0] == initial_transaction
+    for i in range(count):
+        assert transaction_ids[i].account_id == initial_transaction.account_id
+        assert transaction_ids[i].valid_start.nanos == initial_transaction.valid_start.nanos + i
+
+
+def test_setter_and_getter_for_transaction_id():
+    """Test the getter and setter for the transaction_id,"""
+    transaction_id = TransactionId.generate(AccountId(0, 0, 3))
+
+    tx1 = AccountCreateTransaction()
+
+    assert tx1.transaction_id is None
+    tx1.set_transaction_id(transaction_id)
+    assert tx1.transaction_id == transaction_id
+
+    # Test backward compatiblity
+    tx2 = AccountCreateTransaction()
+
+    assert tx2.transaction_id is None
+    tx2.transaction_id = transaction_id
+    assert tx2.transaction_id == transaction_id
+
+
+# Test backward comptiblity
+def test_serialization_of_single_transaction():
+    """Test serialization of single transaction."""
+    key = PrivateKey.generate_ecdsa()
+    transaction_id = TransactionId.generate(AccountId(0, 0, 5))
+    node_account_id = AccountId(0, 0, 3)
+
+    tx1 = AccountCreateTransaction().set_key_without_alias(key).set_initial_balance(1).set_account_memo("test account")
+
+    tx_body = tx1.build_transaction_body()
+    tx_body.transactionID.CopyFrom(transaction_id._to_proto())
+    tx_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
+
+    tx_bytes = transaction_pb2.Transaction(
+        signedTransactionBytes=SignedTransaction(
+            bodyBytes=tx_body.SerializeToString()
+        ).SerializeToString()
+    ).SerializeToString()
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+    assert isinstance(tx2, AccountCreateTransaction)
+    assert tx1.account_memo == tx2.account_memo
+    assert tx1.initial_balance == tx2.initial_balance
+    assert tx2.node_account_id == node_account_id 
+    assert tx2.transaction_id == transaction_id

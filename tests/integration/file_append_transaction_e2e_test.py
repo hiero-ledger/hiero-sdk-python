@@ -331,7 +331,7 @@ def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
 
 
 @pytest.mark.integration
-def test(env):
+def test_serialize_chunked_file_append_transaction_can_be_executed(env):
     create_receipt = (
         FileCreateTransaction()
         .set_keys(env.client.operator_private_key.public_key())
@@ -345,25 +345,28 @@ def test(env):
     file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
     assert file_contents == b""
 
-    content = "A" * (8192)  # content with (4000/1024) bytes ie approx 4 chunks
+    content = "A" * (8192)  # content with (8192/4096) bytes ie approx 2 chunks
 
-    tx = (
+    tx1 = (
         FileAppendTransaction()
         .set_file_id(file_id)
         .set_contents(content)
-        .set_transaction_id(TransactionId.generate(AccountId(0, 0, 101)))
-        .set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
+        .freeze_with(env.client)
     )
 
-    tx._default_transaction_fee = Hbar.from_hbars(10).to_tinybars()
+    tx1._default_transaction_fee = Hbar.from_hbars(10).to_tinybars()
+    tx_bytes = tx1.to_bytes()
 
-    print(tx.get_required_chunks())
-    print(tx.transaction_id)
-    print(tx.node_account_ids)
+    tx2 = Transaction.from_bytes(tx_bytes)
 
-    bytestx = tx.to_bytes()
-    ntx = Transaction.from_bytes(bytestx)
+    assert isinstance(tx2, FileAppendTransaction)
+    assert tx2.get_required_chunks() == 2
+    assert len(tx2._transaction_ids) == 2
+    assert len(tx2.node_account_ids) == len(env.client.network.nodes)
 
-    print(ntx.get_required_chunks())
-    print(ntx.transaction_id)
-    print(ntx.node_account_ids)
+    receipt = tx2.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS
+    
+    file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
+    assert file_contents == bytes(content, "utf-8")
