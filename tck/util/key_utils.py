@@ -46,3 +46,15 @@ def get_key_from_string(key_string: str) -> Key:
         pass  # nosec B110
 
     raise ValueError("Invalid key string")
+
+
+def key_to_string(key: Key) -> str | None:
+    """Convert Ket to string representation."""
+    if key is None:
+        return None
+
+    to_string_der = getattr(key, "to_string_der", None)
+    if callable(to_string_der):
+        return to_string_der()
+
+    return key.to_bytes().hex()

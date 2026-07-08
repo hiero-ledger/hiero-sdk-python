@@ -46,7 +46,9 @@ def test_integration_topic_create_transaction_can_execute():
 
         assert topic_info.memo == topic_memo
         assert topic_info.sequence_number == 0
-        assert env.client.operator_private_key.public_key()._to_proto() == topic_info.admin_key
+
+        assert isinstance(topic_info.admin_key, PublicKey)
+        assert env.client.operator_private_key.public_key().to_bytes_raw() == topic_info.admin_key.to_bytes_raw()
 
         delete_transaction = TopicDeleteTransaction(topic_id=topic_id)
 
@@ -90,12 +92,8 @@ def test_integration_topic_create_with_private_key():
         assert topic_info is not None
         assert topic_info.admin_key is not None
 
-        # Convert proto Key to PublicKey for comparison
-        admin_key_from_network = PublicKey._from_proto(topic_info.admin_key)
-        admin_key_bytes = admin_key_from_network.to_bytes_raw()
-        public_key_bytes = admin_public_key.to_bytes_raw()
-
-        assert admin_key_bytes == public_key_bytes, (
+        assert isinstance(topic_info.admin_key, PublicKey)
+        assert topic_info.admin_key.to_bytes_raw() == admin_public_key.to_bytes_raw(), (
             "Admin key on network should match the public key derived from PrivateKey"
         )
 
@@ -161,13 +159,8 @@ def test_integration_topic_create_non_custodial_workflow():
         assert topic_info.admin_key is not None
 
         # This is the STRONG assertion:
-        # Compare the bytes of the key from the network
-        # with the bytes of the key we originally used.
-        admin_key_from_network = PublicKey._from_proto(topic_info.admin_key)
-        admin_key_bytes = admin_key_from_network.to_bytes_raw()
-        public_key_bytes = user_public_key.to_bytes_raw()
-
-        assert admin_key_bytes == public_key_bytes, (
+        assert isinstance(topic_info.admin_key, PublicKey)
+        assert topic_info.admin_key.to_bytes_raw() == user_public_key.to_bytes_raw(), (
             "Admin key on network should match the PublicKey used in transaction"
         )
 
@@ -211,12 +204,8 @@ def test_integration_topic_create_with_ecdsa_private_key():
         assert topic_info is not None
         assert topic_info.admin_key is not None
 
-        # Convert proto Key to PublicKey for comparison
-        admin_key_from_network = PublicKey._from_proto(topic_info.admin_key)
-        admin_key_bytes = admin_key_from_network.to_bytes_raw()
-        public_key_bytes = admin_public_key.to_bytes_raw()
-
-        assert admin_key_bytes == public_key_bytes, (
+        assert isinstance(topic_info.admin_key, PublicKey)
+        assert topic_info.admin_key.to_bytes_raw() == admin_public_key.to_bytes_raw(), (
             "Admin key on network should match the public key derived from ECDSA PrivateKey"
         )
 
