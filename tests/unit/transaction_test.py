@@ -721,14 +721,12 @@ def test_serialization_of_single_transaction():
     tx_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
 
     tx_bytes = transaction_pb2.Transaction(
-        signedTransactionBytes=SignedTransaction(
-            bodyBytes=tx_body.SerializeToString()
-        ).SerializeToString()
+        signedTransactionBytes=SignedTransaction(bodyBytes=tx_body.SerializeToString()).SerializeToString()
     ).SerializeToString()
 
     tx2 = Transaction.from_bytes(tx_bytes)
     assert isinstance(tx2, AccountCreateTransaction)
     assert tx1.account_memo == tx2.account_memo
     assert tx1.initial_balance == tx2.initial_balance
-    assert tx2.node_account_id == node_account_id 
+    assert tx2.node_account_id == node_account_id
     assert tx2.transaction_id == transaction_id

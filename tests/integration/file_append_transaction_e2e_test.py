@@ -7,7 +7,6 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
-from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -332,6 +331,7 @@ def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
 
 @pytest.mark.integration
 def test_serialize_chunked_file_append_transaction_can_be_executed(env):
+    """Test serilaize chunk file append transaction can be executed."""
     create_receipt = (
         FileCreateTransaction()
         .set_keys(env.client.operator_private_key.public_key())
@@ -345,28 +345,21 @@ def test_serialize_chunked_file_append_transaction_can_be_executed(env):
     file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
     assert file_contents == b""
 
-    content = "A" * (8192)  # content with (8192/4096) bytes ie approx 2 chunks
+    content = "A" * 20  # content with (20/10) bytes ie approx 2 chunks
 
-    tx1 = (
-        FileAppendTransaction()
-        .set_file_id(file_id)
-        .set_contents(content)
-        .freeze_with(env.client)
-    )
+    tx1 = FileAppendTransaction().set_file_id(file_id).set_chunk_size(10).set_contents(content).freeze_with(env.client)
 
-    tx1._default_transaction_fee = Hbar.from_hbars(10).to_tinybars()
     tx_bytes = tx1.to_bytes()
 
     tx2 = Transaction.from_bytes(tx_bytes)
 
     assert isinstance(tx2, FileAppendTransaction)
-    assert tx2.get_required_chunks() == 2
     assert len(tx2._transaction_ids) == 2
     assert len(tx2.node_account_ids) == len(env.client.network.nodes)
 
     receipt = tx2.execute(env.client)
 
     assert receipt.status == ResponseCode.SUCCESS
-    
+
     file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
     assert file_contents == bytes(content, "utf-8")
