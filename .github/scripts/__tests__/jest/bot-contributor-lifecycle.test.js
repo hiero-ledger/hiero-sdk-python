@@ -459,4 +459,75 @@ describe("bot-contributor-lifecycle", () => {
     expect(unassignedFrom(m, 128, "alice")).toBe(false); // alice's removal threw
     expect(unassignedFrom(m, 128, "bob")).toBe(true); // ...but bob is still processed
   });
+
+  test("recently co-assigned teammate is spared when a stale PR closes", async () => {
+    // alice's PR went stale (70d); bob was co-assigned 2 days ago. The PR still closes,
+    // alice is unassigned, but bob keeps his fresh assignment.
+    const spec = specWithPR(129, 261, ["alice", "bob"], { author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) });
+    spec.graphqlByIssue[129] = gqlIssue({
+      assignedEvents: [
+        { createdAt: daysAgo(120), assignee: { login: "alice" } },
+        { createdAt: daysAgo(2), assignee: { login: "bob" } },
+      ],
+      prNumbers: [261],
+    });
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.closed.some((c) => c.pull_number === 261)).toBe(true);
+    expect(unassignedFrom(m, 129, "alice")).toBe(true);
+    expect(unassignedFrom(m, 129, "bob")).toBe(false);
+    const closeComment = m.comments.find((c) => c.number === 261);
+    expect(closeComment.body).toContain("unassigning @alice");
+    expect(closeComment.body).toContain("recently-assigned contributors remain assigned");
+  });
+
+  test("PR-stage unassign failure does not block the other assignee", async () => {
+    const spec = {
+      ...specWithPR(130, 262, ["alice", "bob"], { author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) }),
+      failUnassignFor: ["alice"],
+    };
+    const m = await run(spec, { DRY_RUN: "false" }, { expectThrow: true });
+    expect(m.threw).toBeDefined(); // still fails loudly at the end
+    expect(m.closed.some((c) => c.pull_number === 262)).toBe(true); // close already happened
+    expect(unassignedFrom(m, 130, "alice")).toBe(false); // alice's removal threw
+    expect(unassignedFrom(m, 130, "bob")).toBe(true); // ...but bob is still processed
+  });
+
+  test("reminder marker from a PREVIOUS assignment cycle does not suppress a new reminder", async () => {
+    // alice was reminded 20d ago (previous cycle), then re-assigned 10d ago and idled again.
+    const m = await run(
+      specNoPR(131, "alice", 10, [
+        { user: { login: "github-actions[bot]" }, body: "<!-- issue-reminder-bot -->\nold cycle", created_at: daysAgo(20) },
+      ]),
+      { DRY_RUN: "false" },
+    );
+    expect(commentedOn(m, 131, "<!-- issue-reminder-bot -->")).toBe(true);
+  });
+
+  test("unassign marker from a PREVIOUS cycle -> fresh comment before unassigning again", async () => {
+    // alice was unassigned 40d ago, re-assigned 30d ago, idled again: she must get a NEW
+    // notice, not a silent removal suppressed by the stale marker.
+    const m = await run(
+      specNoPR(132, "alice", 30, [
+        { user: { login: "github-actions[bot]" }, body: "<!-- inactivity-unassign:alice -->\nold cycle", created_at: daysAgo(40) },
+      ]),
+      { DRY_RUN: "false" },
+    );
+    expect(commentedOn(m, 132, "<!-- inactivity-unassign:alice -->")).toBe(true);
+    expect(unassignedFrom(m, 132, "alice")).toBe(true);
+  });
+
+  test("PR reminder is re-issued for a NEW inactivity cycle", async () => {
+    // Reminder posted 30d ago; the author then pushed (20d ago) and a review landed (15d
+    // ago); now idle past the remind threshold again -> the old marker is stale.
+    const m = await run(
+      specWithPR(133, 263, "alice", {
+        author: "alice",
+        reviews: [humanReview(15)],
+        commitDate: daysAgo(20),
+        prComments: [{ user: { login: "github-actions[bot]" }, body: "<!-- pr-inactivity-bot-marker -->\nold cycle", created_at: daysAgo(30) }],
+      }),
+      { DRY_RUN: "false" },
+    );
+    expect(commentedOn(m, 263, "<!-- pr-inactivity-bot-marker -->")).toBe(true);
+  });
 });
