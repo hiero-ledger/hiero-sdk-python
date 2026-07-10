@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable
-from dataclasses import asdict
+from dataclasses import asdict, fields as dc_fields
 from typing import Any, get_type_hints
 
 from tck.errors import JsonRpcError, handle_sdk_errors
@@ -86,8 +86,6 @@ def parse_result(result: Any) -> dict:
 
     Fields with metadata={"nullable": True} are preserved even when None.
     """
-    from dataclasses import fields as dc_fields
-
     nullable_fields: set[str] = set()
     for f in dc_fields(result):
         if f.metadata.get("nullable"):
