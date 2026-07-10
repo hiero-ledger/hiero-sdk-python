@@ -44,21 +44,26 @@ Now that your fork has the updated logic, you need to create an event to trigger
 Real-world conditions (like "21 days of inactivity") are impractical for testing. You should temporarily modify the code in your feature branch (Step 1) to simulate these conditions immediately.
 
 ### 1. Shortening Time Thresholds
-If a bot waits for **21 days**, change the variable to **0 days** or **minutes** in your script.
+The contributor-lifecycle bot (`.github/workflows/bot-contributor-lifecycle.yml` →
+`.github/scripts/bot-contributor-lifecycle.js`) reads its thresholds from environment
+variables, so you do **not** need to edit any code — just trigger the workflow manually
+with the thresholds set to `0` (and `dry_run` off) so everything is treated as immediately
+stale. (For PRs, reminders/closes only apply once there is at least one human review.)
 
-**Before (Production Code):**
-```bash
-# Wait for 21 days before marking as stale
-DAYS="${DAYS:-21}"
+```text
+Actions tab → bot-contributor-lifecycle → Run workflow:
+  dry_run             = false
+  issue_remind_days   = 0
+  issue_unassign_days = 0
+  pr_remind_days      = 0
+  pr_close_days       = 0
 ```
 
-**After (Testing Code):**
-```bash
-# Set to 0 to treat everything as immediately stale for testing
-DAYS="${DAYS:-0}"
-```
+The thresholds are `ISSUE_REMIND_DAYS` (7), `ISSUE_UNASSIGN_DAYS` (21),
+`PR_REMIND_DAYS` (10), and `PR_CLOSE_DAYS` (60). Leave `dry_run = true` (the default) to log
+intended actions without commenting / unassigning / closing anything.
 
-### 2. accelerating Cron Schedules
+### 2. Accelerating Cron Schedules
 If a workflow runs once a day, you don't want to wait 24 hours. Modify the `.yml` file to run frequently or allow manual triggers.
 
 **Before:**
@@ -95,15 +100,18 @@ on:
 3.  **Verify:** Wait a moment and check the PR timeline. The bot should post a comment or fail the check indicating the commit is unverified.
 
 ### Example 2: Testing the Inactivity Bot
-**Goal:** Verify the bot unassigns users after a period of inactivity.
+**Goal:** Verify the contributor-lifecycle bot unassigns users after a period of inactivity.
 
-1.  **Modify Logic:** In your script (Step 1), set `DAYS=0` so the bot considers any issue created "now" as stale.
-2.  **Deploy:** Merge this change to your fork's `main`.
-3.  **Trigger Scenario:**
+1.  **Deploy:** Make sure `bot-contributor-lifecycle.yml` is on your fork's `main`.
+2.  **Trigger Scenario:**
     *   Create a dummy Issue in your fork.
     *   Assign yourself to the Issue.
-    *   Wait for the scheduled workflow to run (e.g., the 5-minute cron you set up) or manually trigger it via the Actions tab.
-4.  **Verify:** Check if the bot posted a comment on the issue and removed you from the assignee list.
+    *   Manually trigger the workflow (Actions tab → **bot-contributor-lifecycle** → Run
+        workflow) with `dry_run = false` and `issue_unassign_days = 0` so the assignment is
+        treated as immediately stale.
+3.  **Verify:** Check if the bot posted a comment on the issue and removed you from the
+    assignee list. (Tip: run once with `dry_run = true` first to preview the decision in the
+    workflow logs without changing anything.)
 
 ## Cleanup
 
@@ -111,5 +119,5 @@ Once you have verified the functionality works as expected:
 
 1.  Delete your test branches (`test/trigger-bot`, etc.).
 2.  Close any dummy Pull Requests and Issues in your fork.
-3.  **Revert the timescale changes** in your feature branch (e.g., change `DAYS=0` back to `DAYS=21`, remove the `*/5` cron).
+3.  **Revert any timescale changes.** If you edited a workflow's `cron` to run more often, change it back; threshold overrides passed via *Run workflow* inputs are one-off and need no cleanup.
 4.  Create a final Pull Request from your clean feature branch to the official upstream repository.
