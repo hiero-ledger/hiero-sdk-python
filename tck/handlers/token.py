@@ -489,7 +489,7 @@ def claim_token(params: ClaimTokenParams) -> ClaimTokenResponse:
     return ClaimTokenResponse(status=ResponseCode(receipt.status).name)
 
 
-def _serialize_key(key) -> str:
+def _serialize_key(key) -> str | None:
     """Serialize a key to its DER-encoded hex string representation."""
     if key is None:
         return ""

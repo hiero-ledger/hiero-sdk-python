@@ -81,14 +81,29 @@ def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -
         return build_json_rpc_error_response(error, request_id)
 
 
+def _strip_none(obj: Any, nullable_keys: set[str] | None = None) -> Any:
+    """Recursively strip None values from nested dicts and lists."""
+    if isinstance(obj, dict):
+        return {
+            k: _strip_none(v)
+            for k, v in obj.items()
+            if v is not None or (nullable_keys is not None and k in nullable_keys)
+        }
+    if isinstance(obj, list):
+        return [_strip_none(item) for item in obj]
+    return obj
+
+
 def parse_result(result: Any) -> dict:
     """Parse the result from the methods to dict containing non none key:values.
 
     Fields with metadata={"nullable": True} are preserved even when None.
+    Recursively strips None from nested structures.
     """
     nullable_fields: set[str] = set()
     for f in dc_fields(result):
         if f.metadata.get("nullable"):
             nullable_fields.add(f.name)
 
-    return {k: v for k, v in asdict(result).items() if v is not None or k in nullable_fields}
+    raw = asdict(result)
+    return _strip_none(raw, nullable_keys=nullable_fields)
