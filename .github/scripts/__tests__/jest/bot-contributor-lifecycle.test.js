@@ -626,6 +626,19 @@ describe("bot-contributor-lifecycle", () => {
     expect(m.unassigned).toHaveLength(0);
   });
 
+  test("a reopen also prevents a premature reminder (remind-window case)", async () => {
+    // Last review is inside the remind window (15d) but the PR was manually closed
+    // and reopened 2 days ago — the reopen is the newest activity, so no action.
+    const spec = {
+      ...specWithPR(146, 274, "alice", { author: "alice", reviews: [humanReview(15)], commitDate: daysAgo(20) }),
+      reopenedAtByPr: { 274: daysAgo(2) },
+    };
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.closed).toHaveLength(0);
+    expect(m.comments).toHaveLength(0);
+    expect(m.unassigned).toHaveLength(0);
+  });
+
   test("a reopened PR idle past the remind threshold gets a reminder, not a close", async () => {
     const spec = {
       ...specWithPR(144, 272, "alice", { author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) }),

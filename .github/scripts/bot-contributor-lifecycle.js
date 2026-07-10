@@ -291,7 +291,8 @@ async function lastCommitDate(github, pr) {
 // human signal — server-timestamped and works no matter who/what closed the PR
 // (including the pre-consolidation bots, whose close comments carried no marker) —
 // so it resets the inactivity clock and grants a full fresh remind/close cycle.
-// Only called for PRs already past the close threshold, so the extra API call is rare.
+// Only called when a PR is old enough that the bot is about to act on it
+// (remind or close), so the extra API call stays rare.
 async function lastReopenedDate(github, owner, repo, prNumber) {
   try {
     const events = await github.paginate(github.rest.issues.listEvents, {
@@ -530,11 +531,13 @@ async function handlePRStage(github, owner, repo, issue, graph, prNumbers, comme
     let ageDays = daysSince(activityAt, nowMs);
     console.log(`    [INFO] PR #${prNum} reviewed; last activity ~${ageDays}d ago`);
 
-    // Before closing, honour a deliberate reopen: if the PR was reopened after its
-    // last review/commit activity, the reopen timestamp becomes the activity
-    // baseline, so a revived PR gets a full new remind/close cycle instead of being
-    // re-closed on the next run (a silent close/reopen war the human can't win).
-    if (ageDays >= cfg.prCloseDays) {
+    // Before reminding/closing, honour a deliberate reopen: if the PR was reopened
+    // after its last review/commit activity, the reopen timestamp becomes the
+    // activity baseline, so a revived PR gets a full new remind/close cycle instead
+    // of a premature reminder or an immediate re-close (a silent close/reopen war
+    // the human can't win). Checked whenever the bot is about to take ANY action.
+    const actionThreshold = Math.min(cfg.prRemindDays, cfg.prCloseDays);
+    if (ageDays >= actionThreshold) {
       const reopenedAt = await lastReopenedDate(github, owner, repo, prNum);
       if (reopenedAt && (!activityAt || reopenedAt > activityAt)) {
         activityAt = maxDate([activityAt, reopenedAt]);
