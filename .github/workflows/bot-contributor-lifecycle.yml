@@ -41,6 +41,11 @@ on:
         required: false
         default: "status: discussion"
         type: string
+      skip_issue_labels:
+        description: "Comma-separated issue labels that exempt the whole issue (and its linked PRs) from all lifecycle actions"
+        required: false
+        default: "status: discussion, dev: blocked"
+        type: string
 
 permissions:
   contents: read # checkout the repo to load the script
@@ -78,6 +83,7 @@ jobs:
           PR_REMIND_DAYS: ${{ inputs.pr_remind_days || '10' }}
           PR_CLOSE_DAYS: ${{ inputs.pr_close_days || '60' }}
           SKIP_PR_LABELS: "${{ inputs.skip_pr_labels || 'status: discussion' }}"
+          SKIP_ISSUE_LABELS: "${{ inputs.skip_issue_labels || 'status: discussion, dev: blocked' }}"
         with:
           script: |
             const script = require('./.github/scripts/bot-contributor-lifecycle.js');

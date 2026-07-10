@@ -158,7 +158,7 @@ const botReview = (d) => ({ user: { login: "coderabbitai[bot]", type: "Bot" }, s
 
 // GITHUB_STEP_SUMMARY is cleared too: CI sets it for real, and the bot under test
 // must not append to the actual workflow summary during unit runs.
-const THRESHOLD_KEYS = ["DRY_RUN", "ISSUE_REMIND_DAYS", "ISSUE_UNASSIGN_DAYS", "PR_REMIND_DAYS", "PR_CLOSE_DAYS", "SKIP_PR_LABELS", "GITHUB_STEP_SUMMARY"];
+const THRESHOLD_KEYS = ["DRY_RUN", "ISSUE_REMIND_DAYS", "ISSUE_UNASSIGN_DAYS", "PR_REMIND_DAYS", "PR_CLOSE_DAYS", "SKIP_PR_LABELS", "SKIP_ISSUE_LABELS", "GITHUB_STEP_SUMMARY"];
 
 async function run(spec, env = {}, { expectThrow = false } = {}) {
   // Snapshot the keys we touch and restore them afterwards so we never pollute
@@ -581,6 +581,33 @@ describe("bot-contributor-lifecycle", () => {
     const m = await run(spec, { DRY_RUN: "false" }, { expectThrow: true });
     expect(m.threw).toBeDefined();
     expect(commentedOn(m, 269, "<!-- pr-inactivity-bot-marker -->")).toBe(true); // second reminder proceeds
+  });
+
+  test("issue labeled 'status: discussion' is skipped entirely (no reminder, no unassign)", async () => {
+    // 30d idle would normally unassign; the skip label (matched case-insensitively)
+    // exempts the issue from all lifecycle actions.
+    const spec = specNoPR(140, "alice", 30);
+    spec.issues[0].labels = [{ name: "Status: Discussion" }];
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.comments).toHaveLength(0);
+    expect(m.unassigned).toHaveLength(0);
+  });
+
+  test("'dev: blocked' issue exempts its stale linked PR from close/unassign", async () => {
+    const spec = specWithPR(141, 270, "alice", { author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) });
+    spec.issues[0].labels = [{ name: "dev: blocked" }];
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.closed).toHaveLength(0);
+    expect(m.comments).toHaveLength(0);
+    expect(m.unassigned).toHaveLength(0);
+  });
+
+  test("custom SKIP_ISSUE_LABELS env replaces the defaults", async () => {
+    const spec = specNoPR(142, "alice", 30);
+    spec.issues[0].labels = [{ name: "on hold" }];
+    const m = await run(spec, { DRY_RUN: "false", SKIP_ISSUE_LABELS: "on hold" });
+    expect(m.comments).toHaveLength(0);
+    expect(m.unassigned).toHaveLength(0);
   });
 
   test("writes a markdown stats table to GITHUB_STEP_SUMMARY when set", async () => {

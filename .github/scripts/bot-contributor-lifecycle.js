@@ -33,10 +33,16 @@ active and then stale again is re-reminded.
 
 DRY_RUN=true logs intended actions and mutates nothing.
 
+Issues carrying a skip label (SKIP_ISSUE_LABELS, default "status: discussion,
+dev: blocked") are exempt from ALL lifecycle actions, including their linked PRs —
+a blocked assignee must not be nagged or unassigned for inactivity they can't help.
+
 Config (env, all override-able via the workflow's "Run workflow" inputs):
   ISSUE_REMIND_DAYS=7  ISSUE_UNASSIGN_DAYS=21  PR_REMIND_DAYS=10  PR_CLOSE_DAYS=60
   SKIP_PR_LABELS="status: discussion"   comma-separated; a linked PR carrying any
                                         of these labels is never reminded or closed
+  SKIP_ISSUE_LABELS="status: discussion, dev: blocked"   comma-separated; an issue
+                                        carrying any of these labels is skipped entirely
 ------------------------------------------------------------------------------
 */
 
@@ -53,6 +59,12 @@ const WORKING_RE = /(^|\s)\/working(\s|$)/i;
 // Default set of PR labels that exempt a PR from reminder/close. Override with the
 // SKIP_PR_LABELS env var (comma-separated). Matched case-insensitively.
 const DEFAULT_SKIP_PR_LABELS = "status: discussion";
+
+// Default set of ISSUE labels that exempt the whole issue (and its linked PRs) from
+// any lifecycle action — an assignee who is blocked or mid-discussion must not be
+// nagged or unassigned for "inactivity" they can't help. Override with the
+// SKIP_ISSUE_LABELS env var (comma-separated). Matched case-insensitively.
+const DEFAULT_SKIP_ISSUE_LABELS = "status: discussion, dev: blocked";
 
 const DISCORD_LINK =
   "[Discord](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/discord.md)";
@@ -74,8 +86,8 @@ function intEnv(name, def) {
   return parseInt(trimmed, 10);
 }
 
-function parseSkipLabels(raw) {
-  return (raw === undefined || raw === null || raw === "" ? DEFAULT_SKIP_PR_LABELS : raw)
+function parseSkipLabels(raw, defaults) {
+  return (raw === undefined || raw === null || raw === "" ? defaults : raw)
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
@@ -87,7 +99,8 @@ function readConfig() {
     issueUnassignDays: intEnv("ISSUE_UNASSIGN_DAYS", 21),
     prRemindDays: intEnv("PR_REMIND_DAYS", 10),
     prCloseDays: intEnv("PR_CLOSE_DAYS", 60),
-    skipPrLabels: parseSkipLabels(process.env.SKIP_PR_LABELS),
+    skipPrLabels: parseSkipLabels(process.env.SKIP_PR_LABELS, DEFAULT_SKIP_PR_LABELS),
+    skipIssueLabels: parseSkipLabels(process.env.SKIP_ISSUE_LABELS, DEFAULT_SKIP_ISSUE_LABELS),
     dryRun: (process.env.DRY_RUN || "false").toString().toLowerCase() === "true",
   };
 }
@@ -177,7 +190,7 @@ function linkedOpenPRNumbers(graph, nameWithOwner) {
   return [...set];
 }
 
-// First skip label found on the PR (string) or null.
+// First skip label found on the PR or issue (string) or null.
 function prSkipLabel(pr, skipLabels) {
   for (const l of pr.labels || []) {
     const name = (l.name || "").trim().toLowerCase();
@@ -597,7 +610,8 @@ function writeStepSummary(stats, cfg) {
     ["PR reminders", stats.prReminders],
     ["Unassigned", stats.unassigned],
     ["PRs closed", stats.closed],
-    ["Skipped (skip label)", stats.skipLabel],
+    ["Skipped (PR label)", stats.skipLabel],
+    ["Skipped (issue label)", stats.skipIssueLabel],
     ["Skipped (no review)", stats.skipNoReview],
     ["Skipped (no assign event)", stats.skipNoAssignEvent],
     ["Errors", stats.errors],
@@ -644,6 +658,7 @@ module.exports = async ({ github, context }) => {
     unassigned: 0,
     closed: 0,
     skipLabel: 0,
+    skipIssueLabel: 0,
     skipNoReview: 0,
     skipNoAssignEvent: 0,
     errors: 0,
@@ -662,6 +677,15 @@ module.exports = async ({ github, context }) => {
     stats.scanned++;
 
     console.log(`\n== ISSUE #${issue.number} (assignees: ${mentions(issue.assignees.map((a) => a.login))}) ==`);
+
+    // A blocked or in-discussion issue exempts the whole issue AND its linked PRs:
+    // the assignee can't make progress, so inactivity is not their signal to act on.
+    const issueSkipLabel = prSkipLabel(issue, cfg.skipIssueLabels);
+    if (issueSkipLabel) {
+      console.log(`    [SKIP] issue has skip label '${issueSkipLabel}'`);
+      stats.skipIssueLabel++;
+      continue;
+    }
 
     try {
       const comments = await listIssueComments(github, owner, repo, issue.number);
@@ -686,7 +710,8 @@ module.exports = async ({ github, context }) => {
   console.log(`  PR reminders:          ${stats.prReminders}`);
   console.log(`  Unassigned:            ${stats.unassigned}`);
   console.log(`  PRs closed:            ${stats.closed}`);
-  console.log(`  Skipped (skip label):  ${stats.skipLabel}`);
+  console.log(`  Skipped (PR label):    ${stats.skipLabel}`);
+  console.log(`  Skipped (issue label): ${stats.skipIssueLabel}`);
   console.log(`  Skipped (no review):   ${stats.skipNoReview}`);
   console.log(`  Skipped (no assign ev):${stats.skipNoAssignEvent}`);
   console.log(`  Errors:                ${stats.errors}`);
