@@ -10,6 +10,5 @@ const constants = require('./constants.js');
 
 module.exports = {
   createLogger,
-  MAX_ASSIGNEES: constants.MAX_ASSIGNEES,
   BOT_NAME_ASSIGNEES: constants.BOT_NAME_ASSIGNEES,
 };
