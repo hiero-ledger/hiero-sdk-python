@@ -7,6 +7,10 @@
  * mutations (comments / unassign / close) would happen.
  */
 
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
 const bot = require("../../bot-contributor-lifecycle.js");
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -23,6 +27,8 @@ function makeEnv(spec) {
     reviewsByPr = {},
     commitDateBySha = {},
     failUnassignFor = [], // logins whose removeAssignees call should throw
+    failCommentOn = [], // issue/PR numbers whose createComment call should throw
+    failCloseFor = [], // PR numbers whose pulls.update (close) call should throw
   } = spec;
 
   const github = {
@@ -33,6 +39,9 @@ function makeEnv(spec) {
         listForRepo: () => issues,
         listComments: ({ issue_number }) => commentsByIssue[issue_number] || [],
         createComment: async ({ issue_number, body }) => {
+          if (failCommentOn.includes(issue_number)) {
+            throw new Error(`createComment failed for #${issue_number}`);
+          }
           mut.comments.push({ number: issue_number, body });
         },
         removeAssignees: async ({ issue_number, assignees }) => {
@@ -49,6 +58,9 @@ function makeEnv(spec) {
         },
         listReviews: ({ pull_number }) => reviewsByPr[pull_number] || [],
         update: async ({ pull_number, state }) => {
+          if (failCloseFor.includes(pull_number)) {
+            throw new Error(`pulls.update failed for #${pull_number}`);
+          }
           mut.closed.push({ pull_number, state });
         },
       },
@@ -144,7 +156,9 @@ function specWithPRs(issueNum, assignees, prSpecs) {
 const humanReview = (d) => ({ user: { login: "maintainer", type: "User" }, submitted_at: daysAgo(d) });
 const botReview = (d) => ({ user: { login: "coderabbitai[bot]", type: "Bot" }, submitted_at: daysAgo(d) });
 
-const THRESHOLD_KEYS = ["DRY_RUN", "ISSUE_REMIND_DAYS", "ISSUE_UNASSIGN_DAYS", "PR_REMIND_DAYS", "PR_CLOSE_DAYS", "SKIP_PR_LABELS"];
+// GITHUB_STEP_SUMMARY is cleared too: CI sets it for real, and the bot under test
+// must not append to the actual workflow summary during unit runs.
+const THRESHOLD_KEYS = ["DRY_RUN", "ISSUE_REMIND_DAYS", "ISSUE_UNASSIGN_DAYS", "PR_REMIND_DAYS", "PR_CLOSE_DAYS", "SKIP_PR_LABELS", "GITHUB_STEP_SUMMARY"];
 
 async function run(spec, env = {}, { expectThrow = false } = {}) {
   // Snapshot the keys we touch and restore them afterwards so we never pollute
@@ -529,5 +543,59 @@ describe("bot-contributor-lifecycle", () => {
       { DRY_RUN: "false" },
     );
     expect(commentedOn(m, 263, "<!-- pr-inactivity-bot-marker -->")).toBe(true);
+  });
+
+  test("one PR's close failure does not block the other close or the unassign", async () => {
+    const spec = {
+      ...specWithPRs(134, "alice", [
+        { num: 264, author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) },
+        { num: 265, author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) },
+      ]),
+      failCloseFor: [264],
+    };
+    const m = await run(spec, { DRY_RUN: "false" }, { expectThrow: true });
+    expect(m.threw).toBeDefined(); // still fails loudly at the end
+    expect(m.closed.some((c) => c.pull_number === 265)).toBe(true); // second close proceeds
+    expect(unassignedFrom(m, 134, "alice")).toBe(true); // unassign still happens
+  });
+
+  test("a failed close comment still lets the unassign proceed (reliability guarantee)", async () => {
+    const spec = {
+      ...specWithPR(135, 266, "alice", { author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) }),
+      failCommentOn: [266],
+    };
+    const m = await run(spec, { DRY_RUN: "false" }, { expectThrow: true });
+    expect(m.threw).toBeDefined();
+    expect(m.closed).toHaveLength(0); // this PR's close is retried next run (marker-safe)
+    expect(unassignedFrom(m, 135, "alice")).toBe(true); // the important action still happens
+  });
+
+  test("one PR's reminder failure does not block the other reminder", async () => {
+    const spec = {
+      ...specWithPRs(136, "alice", [
+        { num: 268, author: "alice", reviews: [humanReview(15)], commitDate: daysAgo(20) },
+        { num: 269, author: "alice", reviews: [humanReview(15)], commitDate: daysAgo(20) },
+      ]),
+      failCommentOn: [268],
+    };
+    const m = await run(spec, { DRY_RUN: "false" }, { expectThrow: true });
+    expect(m.threw).toBeDefined();
+    expect(commentedOn(m, 269, "<!-- pr-inactivity-bot-marker -->")).toBe(true); // second reminder proceeds
+  });
+
+  test("writes a markdown stats table to GITHUB_STEP_SUMMARY when set", async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "lifecycle-summary-"));
+    const summaryFile = path.join(dir, "summary.md");
+    try {
+      const m = await run(specNoPR(137, "alice", 10), { DRY_RUN: "false", GITHUB_STEP_SUMMARY: summaryFile });
+      expect(commentedOn(m, 137, "<!-- issue-reminder-bot -->")).toBe(true);
+
+      const summary = fs.readFileSync(summaryFile, "utf8");
+      expect(summary).toContain("Contributor Lifecycle Bot");
+      expect(summary).toContain("| Issue reminders | 1 |");
+      expect(summary).toContain("| Errors | 0 |");
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

@@ -516,40 +516,53 @@ async function handlePRStage(github, owner, repo, issue, graph, prNumbers, comme
     });
   }
 
-  // Pass 2 — close stale PRs (marker-guarded comment, then close).
+  // Pass 2 — close stale PRs (marker-guarded comment, then close). Each PR is isolated
+  // in its own try/catch so one failed comment/close can't abort the remaining closes,
+  // the reminders, or — most importantly — the unassign loop below. The error is still
+  // counted so the run fails loudly at the end; markers make the next run's retry safe.
   for (const { prNum, ageDays, activityAt } of toClose) {
-    let prComments = [];
     try {
-      prComments = await listIssueComments(github, owner, repo, prNum);
+      let prComments = [];
+      try {
+        prComments = await listIssueComments(github, owner, repo, prNum);
+      } catch (err) {
+        console.log(`    [WARN] PR #${prNum}: could not list comments (close note may duplicate):`, err.message || err);
+      }
+      console.log(`    [RESULT] PR #${prNum} stale (>= ${cfg.prCloseDays}d) -> close${unassignees.length > 0 ? " + unassign" : " (keep assignees)"}`);
+      if (!hasMarker(prComments, MARK_CLOSE, activityAt)) {
+        await postComment(github, owner, repo, prNum, prCloseBody(assignees, ageDays, unassignees, survivingOpenPR), cfg);
+      }
+      await closePR(github, owner, repo, prNum, cfg);
+      stats.closed++;
     } catch (err) {
-      console.log(`    [WARN] PR #${prNum}: could not list comments (close note may duplicate):`, err.message || err);
+      console.log(`    [ERROR] PR #${prNum}: close failed:`, err.message || err);
+      stats.errors++;
     }
-    console.log(`    [RESULT] PR #${prNum} stale (>= ${cfg.prCloseDays}d) -> close${unassignees.length > 0 ? " + unassign" : " (keep assignees)"}`);
-    if (!hasMarker(prComments, MARK_CLOSE, activityAt)) {
-      await postComment(github, owner, repo, prNum, prCloseBody(assignees, ageDays, unassignees, survivingOpenPR), cfg);
-    }
-    await closePR(github, owner, repo, prNum, cfg);
-    stats.closed++;
   }
 
   // Pass 2 — remind on inactive (but not yet closeable) PRs. Cycle-scoped: a reminder
   // older than the PR's latest activity is stale, so a PR that went active and idled
-  // again gets a fresh reminder.
+  // again gets a fresh reminder. Per-PR isolation for the same reason as the close loop.
   for (const { prNum, author, ageDays, activityAt } of toRemind) {
-    let prComments;
     try {
-      prComments = await listIssueComments(github, owner, repo, prNum);
+      let prComments;
+      try {
+        prComments = await listIssueComments(github, owner, repo, prNum);
+      } catch (err) {
+        console.log(`    [SKIP] PR #${prNum}: could not list comments (avoid duplicate):`, err.message || err);
+        continue;
+      }
+      if (hasMarker(prComments, MARK_PR_REMIND, activityAt)) {
+        console.log(`    [SKIP] PR #${prNum} already has an inactivity reminder this cycle`);
+        continue;
+      }
+      console.log(`    [RESULT] PR #${prNum} inactive (>= ${cfg.prRemindDays}d) -> remind`);
+      await postComment(github, owner, repo, prNum, prReminderBody(author || assignees[0], ageDays), cfg);
+      stats.prReminders++;
     } catch (err) {
-      console.log(`    [SKIP] PR #${prNum}: could not list comments (avoid duplicate):`, err.message || err);
-      continue;
+      console.log(`    [ERROR] PR #${prNum}: reminder failed:`, err.message || err);
+      stats.errors++;
     }
-    if (hasMarker(prComments, MARK_PR_REMIND, activityAt)) {
-      console.log(`    [SKIP] PR #${prNum} already has an inactivity reminder this cycle`);
-      continue;
-    }
-    console.log(`    [RESULT] PR #${prNum} inactive (>= ${cfg.prRemindDays}d) -> remind`);
-    await postComment(github, owner, repo, prNum, prReminderBody(author || assignees[0], ageDays), cfg);
-    stats.prReminders++;
   }
 
   // Unassign the eligible assignees, isolating each removal so one API failure doesn't
@@ -569,6 +582,41 @@ async function handlePRStage(github, owner, repo, issue, graph, prNumbers, comme
         ? `    [INFO] Closed stale PR(s) but another linked PR is still open -> keeping assignees`
         : `    [INFO] Closed stale PR(s); recently-assigned assignee(s) keep the issue`,
     );
+  }
+}
+
+// Surface the daily stats in the Actions run summary (same pattern as
+// pr-check-test-files.js). No-op outside CI: GITHUB_STEP_SUMMARY is unset locally.
+function writeStepSummary(stats, cfg) {
+  const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+  if (!summaryPath) return;
+
+  const rows = [
+    ["Issues scanned", stats.scanned],
+    ["Issue reminders", stats.issueReminders],
+    ["PR reminders", stats.prReminders],
+    ["Unassigned", stats.unassigned],
+    ["PRs closed", stats.closed],
+    ["Skipped (skip label)", stats.skipLabel],
+    ["Skipped (no review)", stats.skipNoReview],
+    ["Skipped (no assign event)", stats.skipNoAssignEvent],
+    ["Errors", stats.errors],
+  ];
+
+  const summary = [
+    `## 🤖 Contributor Lifecycle Bot${cfg.dryRun ? " (dry run)" : ""}`,
+    "",
+    "| Metric | Count |",
+    "| --- | ---: |",
+    ...rows.map(([label, count]) => `| ${label} | ${count} |`),
+    "",
+  ].join("\n");
+
+  try {
+    require("fs").appendFileSync(summaryPath, summary);
+  } catch (err) {
+    // Never let a cosmetic summary failure fail the bot itself.
+    console.log(`  [WARN] Could not write step summary:`, err.message || err);
   }
 }
 
@@ -643,6 +691,9 @@ module.exports = async ({ github, context }) => {
   console.log(`  Skipped (no assign ev):${stats.skipNoAssignEvent}`);
   console.log(`  Errors:                ${stats.errors}`);
   console.log(`  Dry run:               ${cfg.dryRun}`);
+
+  // Written before the fail-loudly throw so the summary shows up even on red runs.
+  writeStepSummary(stats, cfg);
 
   // A per-issue error (e.g. a permission/API failure) silently disables actions for that
   // issue. Process the rest, then fail the run so the failure is visible instead of silent.
