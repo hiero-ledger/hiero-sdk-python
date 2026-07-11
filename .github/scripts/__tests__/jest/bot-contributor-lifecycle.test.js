@@ -29,6 +29,7 @@ function makeEnv(spec) {
     failUnassignFor = [], // logins whose removeAssignees call should throw
     failCommentOn = [], // issue/PR numbers whose createComment call should throw
     failCloseFor = [], // PR numbers whose pulls.update (close) call should throw
+    reopenedAtByPr = {}, // PR number -> ISO date of its latest `reopened` event
   } = spec;
 
   const github = {
@@ -50,6 +51,8 @@ function makeEnv(spec) {
           }
           mut.unassigned.push({ issue_number, assignees });
         },
+        listEvents: ({ issue_number }) =>
+          reopenedAtByPr[issue_number] ? [{ event: "reopened", created_at: reopenedAtByPr[issue_number] }] : [],
       },
       pulls: {
         get: async ({ pull_number }) => {
@@ -608,6 +611,53 @@ describe("bot-contributor-lifecycle", () => {
     const m = await run(spec, { DRY_RUN: "false", SKIP_ISSUE_LABELS: "on hold" });
     expect(m.comments).toHaveLength(0);
     expect(m.unassigned).toHaveLength(0);
+  });
+
+  test("a recently reopened stale PR is NOT re-closed — the clock restarts from the reopen", async () => {
+    // The maintainer-recovery flow: PR closed for staleness weeks ago, contributor is
+    // re-assigned and the PR reopened 2 days ago with no new commits yet. Must survive.
+    const spec = {
+      ...specWithPR(143, 271, "alice", { author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) }),
+      reopenedAtByPr: { 271: daysAgo(2) },
+    };
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.closed).toHaveLength(0);
+    expect(m.comments).toHaveLength(0);
+    expect(m.unassigned).toHaveLength(0);
+  });
+
+  test("a reopen also prevents a premature reminder (remind-window case)", async () => {
+    // Last review is inside the remind window (15d) but the PR was manually closed
+    // and reopened 2 days ago — the reopen is the newest activity, so no action.
+    const spec = {
+      ...specWithPR(146, 274, "alice", { author: "alice", reviews: [humanReview(15)], commitDate: daysAgo(20) }),
+      reopenedAtByPr: { 274: daysAgo(2) },
+    };
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.closed).toHaveLength(0);
+    expect(m.comments).toHaveLength(0);
+    expect(m.unassigned).toHaveLength(0);
+  });
+
+  test("a reopened PR idle past the remind threshold gets a reminder, not a close", async () => {
+    const spec = {
+      ...specWithPR(144, 272, "alice", { author: "alice", reviews: [humanReview(70)], commitDate: daysAgo(80) }),
+      reopenedAtByPr: { 272: daysAgo(15) },
+    };
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.closed).toHaveLength(0);
+    expect(commentedOn(m, 272, "<!-- pr-inactivity-bot-marker -->")).toBe(true);
+    expect(m.unassigned).toHaveLength(0);
+  });
+
+  test("a reopened PR that idles past the close threshold again IS closed", async () => {
+    const spec = {
+      ...specWithPR(145, 273, "alice", { author: "alice", reviews: [humanReview(90)], commitDate: daysAgo(95) }),
+      reopenedAtByPr: { 273: daysAgo(70) },
+    };
+    const m = await run(spec, { DRY_RUN: "false" });
+    expect(m.closed.some((c) => c.pull_number === 273)).toBe(true);
+    expect(unassignedFrom(m, 145, "alice")).toBe(true);
   });
 
   test("writes a markdown stats table to GITHUB_STEP_SUMMARY when set", async () => {
