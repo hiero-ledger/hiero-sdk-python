@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import traceback
+import logging
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
@@ -16,6 +16,9 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.hapi.services.contract_get_info_pb2 import ContractGetInfoResponse
 from hiero_sdk_python.query.query import Query
+
+
+logger = logging.getLogger(__name__)
 
 
 class ContractInfoQuery(Query):
@@ -76,8 +79,7 @@ class ContractInfoQuery(Query):
 
             return query
         except Exception as e:
-            print(f"Exception in _make_request: {e}")
-            traceback.print_exc()
+            logger.error("Exception in _make_request: %s", e, exc_info=True)
             raise
 
     def _get_method(self, channel: _Channel) -> _Method:

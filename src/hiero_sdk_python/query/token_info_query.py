@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.executable import _Method
@@ -7,6 +9,9 @@ from hiero_sdk_python.hapi.services import query_pb2, response_pb2, token_get_in
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_info import TokenInfo
+
+
+logger = logging.getLogger(__name__)
 
 
 class TokenInfoQuery(Query):
@@ -69,7 +74,7 @@ class TokenInfoQuery(Query):
 
             return query
         except Exception as e:
-            print(f"Exception in _make_request: {e}")
+            logging.error("Exception in _make_request: %s", e)
             raise
 
     def _get_method(self, channel: _Channel) -> _Method:

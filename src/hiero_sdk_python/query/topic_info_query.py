@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import traceback
+import logging
 from typing import Any
 
 from hiero_sdk_python.channels import _Channel
@@ -11,6 +11,9 @@ from hiero_sdk_python.executable import _ExecutionState, _Method
 from hiero_sdk_python.hapi.services import consensus_get_topic_info_pb2, query_pb2
 from hiero_sdk_python.query.query import Query
 from hiero_sdk_python.response_code import ResponseCode
+
+
+logger = logging.getLogger(__name__)
 
 
 class TopicInfoQuery(Query):
@@ -99,8 +102,7 @@ class TopicInfoQuery(Query):
             return query
 
         except Exception as e:
-            print(f"Exception in _make_request: {e}")
-            traceback.print_exc()
+            logging.error("Exception in _make_request: %s", e, exc_info=True)
             raise
 
     def _get_method(self, channel: _Channel) -> _Method:
