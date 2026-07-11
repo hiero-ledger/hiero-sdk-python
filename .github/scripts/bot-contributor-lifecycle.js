@@ -24,6 +24,10 @@ assignees (not PRs). For each issue it applies a staged escalation:
 "age" is measured from the most recent activity, which always includes a recent
 `/working` comment from an assignee — so `/working` resets every timer. PR age
 also includes the last commit and the last human (non-bot, non-author) review.
+Reopening a closed PR also counts as activity: the reopen timestamp restarts the
+clock, so a deliberately revived PR gets a full fresh remind/close cycle instead
+of being re-closed on the next run (works for PRs closed by the pre-consolidation
+bots too, whose close comments carried no marker).
 
 Markers are cycle-scoped: a bot marker comment only suppresses a repeat action if it
 was posted AFTER the current cycle began (the assignee's latest assignment for issue
@@ -283,6 +287,33 @@ async function lastCommitDate(github, pr) {
   }
 }
 
+// Most recent `reopened` event on the PR (Date or null). A reopen is a deliberate
+// human signal — server-timestamped and works no matter who/what closed the PR
+// (including the pre-consolidation bots, whose close comments carried no marker) —
+// so it resets the inactivity clock and grants a full fresh remind/close cycle.
+// Only called when a PR is old enough that the bot is about to act on it
+// (remind or close), so the extra API call stays rare.
+async function lastReopenedDate(github, owner, repo, prNumber) {
+  try {
+    const events = await github.paginate(github.rest.issues.listEvents, {
+      owner,
+      repo,
+      issue_number: prNumber,
+      per_page: 100,
+    });
+    let latest = null;
+    for (const e of events) {
+      if (e?.event !== "reopened" || !e.created_at) continue;
+      const d = new Date(e.created_at);
+      if (!latest || d > latest) latest = d;
+    }
+    return latest;
+  } catch (err) {
+    console.log(`  [WARN] Could not fetch events for PR #${prNumber}:`, err.message || err);
+    return null;
+  }
+}
+
 // ---- message builders ----
 
 function issueReminderBody(assignees) {
@@ -496,9 +527,24 @@ async function handlePRStage(github, owner, repo, issue, graph, prNumbers, comme
       continue;
     }
     const commitDate = await lastCommitDate(github, pr);
-    const activityAt = maxDate([reviewDate, commitDate, workingAt]);
-    const ageDays = daysSince(activityAt, nowMs);
+    let activityAt = maxDate([reviewDate, commitDate, workingAt]);
+    let ageDays = daysSince(activityAt, nowMs);
     console.log(`    [INFO] PR #${prNum} reviewed; last activity ~${ageDays}d ago`);
+
+    // Before reminding/closing, honour a deliberate reopen: if the PR was reopened
+    // after its last review/commit activity, the reopen timestamp becomes the
+    // activity baseline, so a revived PR gets a full new remind/close cycle instead
+    // of a premature reminder or an immediate re-close (a silent close/reopen war
+    // the human can't win). Checked whenever the bot is about to take ANY action.
+    const actionThreshold = Math.min(cfg.prRemindDays, cfg.prCloseDays);
+    if (ageDays >= actionThreshold) {
+      const reopenedAt = await lastReopenedDate(github, owner, repo, prNum);
+      if (reopenedAt && (!activityAt || reopenedAt > activityAt)) {
+        activityAt = maxDate([activityAt, reopenedAt]);
+        ageDays = daysSince(activityAt, nowMs);
+        console.log(`    [INFO] PR #${prNum} was reopened ~${ageDays}d ago; clock restarted from the reopen`);
+      }
+    }
 
     // Close takes priority over remind so an (unusual) close < remind config still closes.
     if (ageDays >= cfg.prCloseDays) {
