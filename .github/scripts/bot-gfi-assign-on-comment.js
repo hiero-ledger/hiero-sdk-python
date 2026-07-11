@@ -305,19 +305,61 @@ module.exports = async ({ github, context }) => {
         const requesterUsername = comment.user.login;
         const issueNumber = issue.number;
 
-        console.log('[gfi-assign] Requester:', requesterUsername);
-        console.log('[gfi-assign] Current assignees:', issue.assignees?.map(a => a.login));
+        // -------------------------------
+        // REFETCH ISSUE STATE
+        // -------------------------------
+        // context.payload.issue is a snapshot from the original issue_comment
+        // webhook. In a queued/concurrent run, an earlier run may have already
+        // assigned the issue by the time this run executes, so we refetch the
+        // current issue state from the API instead of trusting the stale payload.
+        let freshIssue;
+        try {
+            const { data } = await github.rest.issues.get({
+                owner,
+                repo,
+                issue_number: issueNumber,
+            });
+            freshIssue = data;
+        } catch (error) {
+            console.error('[gfi-assign] Failed to refetch issue state, aborting to avoid a stale assignment decision:', {
+                message: error.message,
+                status: error.status,
+                issueNumber,
+            });
+            return;
+        }
 
-        // Reject if issue is already assigned
+        console.log('[gfi-assign] Fresh issue snapshot:', {
+            state: freshIssue.state,
+            assignees: freshIssue.assignees?.map(a => a.login),
+            labels: freshIssue.labels?.map(l => l.name ?? l),
+        });
+
+        // Reject if the issue was closed between the comment and now
+        if (freshIssue.state === 'closed') {
+            console.log('[gfi-assign] Exit: issue is closed');
+            return;
+        }
+
+        // Reject if the Good First Issue label was removed between the comment and now
+        if (!issueIsGoodFirstIssue(freshIssue)) {
+            console.log('[gfi-assign] Exit: issue no longer labeled Good First Issue');
+            return;
+        }
+
+        console.log('[gfi-assign] Requester:', requesterUsername);
+        console.log('[gfi-assign] Current assignees (fresh):', freshIssue.assignees?.map(a => a.login));
+
+        // Reject if issue is already assigned (checked against fresh state)
         // Comment failure to the requester
-        if (issue.assignees?.length > 0) {
+        if (freshIssue.assignees?.length > 0) {
             console.log('[gfi-assign] Exit: issue already assigned');
 
             await github.rest.issues.createComment({
                 owner,
                 repo,
                 issue_number: issueNumber,
-                body: commentAlreadyAssigned(requesterUsername, issue),
+                body: commentAlreadyAssigned(requesterUsername, freshIssue),
             });
 
             console.log('[gfi-assign] Posted already-assigned comment');

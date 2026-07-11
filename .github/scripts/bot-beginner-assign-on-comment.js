@@ -256,9 +256,48 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
       }
 
       // --- ASSIGNMENT LOGIC ---
-      if (issue.assignees && issue.assignees.length > 0) {
+
+      // Refetch current issue state to avoid race conditions from a stale
+      // webhook payload: an earlier queued run may have already assigned
+      // this issue by the time this run executes.
+      let freshIssue;
+      try {
+        const { data } = await github.rest.issues.get({
+          owner: repo.owner.login,
+          repo: repo.name,
+          issue_number: issue.number,
+        });
+        freshIssue = data;
+      } catch (error) {
+        console.error("[Beginner Bot] Failed to refetch issue state, aborting to avoid a stale assignment decision:", {
+          issue: issue.number,
+          message: error.message,
+        });
+        return;
+      }
+
+      console.log("[Beginner Bot] Fresh issue snapshot:", {
+        state: freshIssue.state,
+        assignees: freshIssue.assignees?.map((a) => a.login),
+      });
+
+      if (freshIssue.state === "closed") {
+        console.log(`[Beginner Bot] Issue #${issue.number} is closed. Skipping assignment.`);
+        return;
+      }
+
+      const freshHasBeginnerLabel =
+        Array.isArray(freshIssue.labels) &&
+        freshIssue.labels.some((label) => label.name?.toLowerCase() === beginnerLabel);
+
+      if (!freshHasBeginnerLabel) {
+        console.log(`[Beginner Bot] Issue #${issue.number} no longer has '${BEGINNER_LABEL}' label. Exiting.`);
+        return;
+      }
+
+      if (freshIssue.assignees && freshIssue.assignees.length > 0) {
         try{
-          const currentAssignee = issue.assignees[0]?.login ?? "another contributor";
+          const currentAssignee = freshIssue.assignees[0]?.login ?? "another contributor";
           await github.rest.issues.createComment({
             owner: repo.owner.login,
             repo: repo.name,
