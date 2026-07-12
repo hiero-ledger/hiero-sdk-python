@@ -39,6 +39,7 @@ class DummyChunkedTransaction(ChunkedTransaction):
 
 
 def test_constructor_sets_default_chunk_configuration():
+    """Test that the constructor sets the default chunk configuration."""
     tx = DummyChunkedTransaction()
 
     assert tx.chunk_size == 1024
@@ -61,6 +62,8 @@ def test_setters_reject_non_positive_values(mock_client, setter_name, value, mes
 
 
 def test_validate_chunking_rejects_zero_required_chunks():
+    """Test that _validate_chunking raises a ValueError when the required chunks is zero.
+    """
     tx = DummyChunkedTransaction(required_chunks=0)
 
     with pytest.raises(ValueError, match="Transaction must require at least one chunk"):
@@ -68,6 +71,7 @@ def test_validate_chunking_rejects_zero_required_chunks():
 
 
 def test_validate_chunking_rejects_too_many_chunks():
+    """Test that _validate_chunking raises a ValueError when the required chunks exceeds max_chunks."""
     tx = DummyChunkedTransaction(required_chunks=4).set_max_chunks(2)
 
     with pytest.raises(
@@ -76,7 +80,16 @@ def test_validate_chunking_rejects_too_many_chunks():
     ):
         tx._validate_chunking()
 
+def test_freeze_with_rejects_too_many_chunks(mock_client):
+    """Test that freeze_with raises a ValueError when the required chunks exceeds max_chunks."""
+    tx = DummyChunkedTransaction(required_chunks=5).set_max_chunks(3)
 
+    with pytest.raises(
+        ValueError,
+        match=r"Message requires 5 chunks but max_chunks=3\. Increase limit with set_max_chunks\(\)\.",
+    ):
+        tx.freeze_with(mock_client)
+    
 def test_freeze_with_builds_chunk_transaction_ids(mock_client):
     tx = DummyChunkedTransaction(required_chunks=3)
     base_timestamp = timestamp_pb2.Timestamp(seconds=123, nanos=456)

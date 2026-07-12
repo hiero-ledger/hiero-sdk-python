@@ -36,7 +36,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
         Args:
             topic_id (TopicId, optional): The ID of the topic.
-            message (str, optional): The message to submit.
+            message (str or bytes, optional): The message to submit to the topic.
             chunk_size (int, optional): The maximum chunk size in bytes. Default: 1024.
             max_chunks (int, optional): The maximum number of chunks allowed. Default: 20.
         """
@@ -46,10 +46,10 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         self.chunk_size: int = 1024
         self.max_chunks: int = 20
         if chunk_size is not None:
-            super().set_chunk_size(chunk_size)
+            self.set_chunk_size(chunk_size)
 
         if max_chunks is not None:
-            super().set_max_chunks(max_chunks)
+            self.set_max_chunks(max_chunks)
 
         self._total_chunks = self.get_required_chunks()
 
@@ -97,7 +97,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         Sets the message to submit to the topic.
 
         Args:
-            message (str): The message to submit to the topic.
+            message (str or bytes): The message to submit to the topic.
 
         Returns:
             TopicMessageSubmitTransaction: This transaction instance (for chaining).
@@ -172,7 +172,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         Raises:
             ValueError: If required fields (message) are missing.
         """
-        if self.message is None or self.message == "":
+        if not self.message:
             raise ValueError("Missing required fields: message.")
 
         content = self._message_as_bytes()

@@ -119,7 +119,7 @@ def test_validate_chunking():
     file_tx = FileAppendTransaction(contents=large_content, chunk_size=100, max_chunks=5)
 
     # Should raise error when required chunks > max_chunks
-    with pytest.raises(ValueError, match="Cannot execute FileAppendTransaction with more than 5 chunks"):
+    with pytest.raises(ValueError, match="Message requires 140 chunks but max_chunks=5. Increase limit with set_max_chunks()."):
         file_tx._validate_chunking()
 
 

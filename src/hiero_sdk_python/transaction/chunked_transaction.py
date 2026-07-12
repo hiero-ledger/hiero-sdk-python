@@ -267,7 +267,6 @@ class ChunkedTransaction(Transaction, ABC):
             self.freeze_with(client)
 
         responses = []
-        self.get_required_chunks()
 
         for chunk_index in range(self.get_required_chunks()):
             self._current_chunk_index = chunk_index

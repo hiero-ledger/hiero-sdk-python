@@ -7,7 +7,7 @@ all keys must sign to modify its contents.
 The transaction supports chunking for large files, automatically breaking content into
 smaller chunks if the content exceeds the chunk size limit.
 
-Inherits from the base Transaction class and implements the required methods
+Inherits from the base ChunkedTransaction class and implements the required methods
 to build and execute a file append transaction.
 """
 
@@ -29,6 +29,18 @@ if TYPE_CHECKING:
 
 
 class FileAppendTransaction(ChunkedTransaction):
+    """
+    Represents a file append transaction on the network.
+
+    This transaction appends data to an existing file on the network. If a file has multiple keys,
+    all keys must sign to modify its contents.
+
+    The transaction supports chunking for large files, automatically breaking content into
+    smaller chunks if the content exceeds the chunk size limit.
+
+    Inherits from the base ChunkedTransaction class and implements the required methods
+    to build and execute a file append transaction.
+    """
     def __init__(
         self,
         file_id: FileId | None = None,
@@ -140,7 +152,6 @@ class FileAppendTransaction(ChunkedTransaction):
             FileAppendTransaction: This transaction instance.
         """
         super().set_chunk_size(chunk_size)
-        self._total_chunks = self._calculate_total_chunks()
         return self
 
     def _build_proto_body(self) -> file_append_pb2.FileAppendTransactionBody:
@@ -223,16 +234,3 @@ class FileAppendTransaction(ChunkedTransaction):
         self.contents = proto.contents
         self._total_chunks = self._calculate_total_chunks()
         return self
-
-    def _validate_chunking(self) -> None:
-        """
-        Validates that the transaction doesn't exceed the maximum number of chunks.
-
-        Raises:
-            ValueError: If the transaction exceeds the maximum number of chunks.
-        """
-        if self.max_chunks and self.get_required_chunks() > self.max_chunks:
-            raise ValueError(
-                f"Cannot execute FileAppendTransaction with more than {self.max_chunks} chunks. "
-                f"Required: {self.get_required_chunks()}"
-            )
