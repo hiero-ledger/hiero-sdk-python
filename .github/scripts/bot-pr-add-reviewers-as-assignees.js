@@ -4,8 +4,10 @@
  * @fileoverview
  * Manages requested individual reviewers as PR assignees.
  *
- * - On `review_requested`: adds the reviewer as an assignee (no cap).
- * - On `pull_request_review` submitted: removes the reviewer from assignees.
+ * - On `review_requested` (pull_request_target): adds the reviewer as an assignee (no cap).
+ * - On `workflow_run` (triggered by Bot - Capture PR Review): removes the reviewer from
+ *   assignees using a write-token that works for fork PRs. The reviewer login and PR number
+ *   are read from the artifact written by the capture workflow.
  * - Team reviewers are intentionally ignored (only individual users are assigned).
  */
 
@@ -125,18 +127,22 @@ async function addReviewersAsAssignees({ github, context }) {
 }
 
 /**
- * Removes a reviewer from PR assignees when they submit their review.
- * Any review state (approved, changes_requested, commented) triggers removal.
+ * Removes a reviewer from PR assignees after they submit their review.
+ * Called from the workflow_run removal job via named export, passing reviewer
+ * login and PR number read from the capture workflow's artifact.
+ *
+ * Explicit params take priority; falls back to context.payload for direct calls.
  *
  * @param {Object} params
  * @param {Object} params.github - GitHub Octokit client instance
  * @param {Object} params.context - GitHub Actions context object
+ * @param {string} [params.reviewer] - Reviewer login (overrides context payload)
+ * @param {number} [params.prNumber] - PR number (overrides context payload)
  */
-async function removeReviewerFromAssignees({ github, context }) {
+async function removeReviewerFromAssignees({ github, context, reviewer: explicitReviewer, prNumber: explicitPrNumber }) {
   try {
-    const reviewer = context.payload.review?.user?.login;
-    const pr = context.payload.pull_request;
-    const prNumber = pr?.number;
+    const reviewer = explicitReviewer ?? context.payload?.review?.user?.login;
+    const prNumber = explicitPrNumber ?? context.payload?.pull_request?.number;
 
     if (!reviewer || !Number.isInteger(prNumber) || prNumber <= 0) {
       logger.warn('Missing reviewer login or PR number. Skipping removal.');
@@ -146,8 +152,7 @@ async function removeReviewerFromAssignees({ github, context }) {
     const owner = context.repo.owner;
     const repo = context.repo.repo;
 
-    // Fetch live PR data rather than relying on the event payload snapshot,
-    // which may be stale if review_requested ran concurrently and added the assignee after this event fired.
+    // Fetch live PR data to avoid acting on a stale event payload snapshot.
     const livePr = (await github.rest.pulls.get({ owner, repo, pull_number: prNumber })).data;
     const currentAssignees = (livePr.assignees || []).map(a => a.login);
 
@@ -178,7 +183,8 @@ async function removeReviewerFromAssignees({ github, context }) {
 }
 
 /**
- * Entry point. Routes to add or remove flow based on the triggering event.
+ * Entry point for the add flow (pull_request_target + workflow_dispatch).
+ * The remove flow is invoked directly via the named export from the workflow_run job.
  *
  * @param {Object} params
  * @param {Object} params.github - GitHub Octokit client instance
@@ -189,9 +195,7 @@ module.exports = async ({ github, context }) => {
   const { eventName } = context;
   const action = context.payload.action;
 
-  if (eventName === 'pull_request_review' && action === 'submitted') {
-    await removeReviewerFromAssignees({ github, context });
-  } else if (
+  if (
     (eventName === 'pull_request_target' && action === 'review_requested') ||
     eventName === 'workflow_dispatch'
   ) {
@@ -200,3 +204,5 @@ module.exports = async ({ github, context }) => {
     logger.warn(`Unhandled event: ${eventName} / ${action}. Skipping.`);
   }
 };
+
+module.exports.removeReviewerFromAssignees = removeReviewerFromAssignees;
