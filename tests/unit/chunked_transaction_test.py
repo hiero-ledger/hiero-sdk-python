@@ -89,7 +89,7 @@ def test_freeze_with_rejects_too_many_chunks(mock_client):
         match=r"Message requires 5 chunks but max_chunks=3\. Increase limit with set_max_chunks\(\)\.",
     ):
         tx.freeze_with(mock_client)
-    
+
 
 def test_freeze_with_builds_chunk_transaction_ids(mock_client):
     tx = DummyChunkedTransaction(required_chunks=3)
