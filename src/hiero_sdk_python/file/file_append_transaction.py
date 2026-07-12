@@ -41,6 +41,7 @@ class FileAppendTransaction(ChunkedTransaction):
     Inherits from the base ChunkedTransaction class and implements the required methods
     to build and execute a file append transaction.
     """
+
     def __init__(
         self,
         file_id: FileId | None = None,
