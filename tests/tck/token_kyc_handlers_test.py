@@ -89,6 +89,17 @@ class TestRevokeTokenKycParamsParsing:
         with pytest.raises(ValueError, match="sessionId"):
             RevokeTokenKycParams.parse_json_params({"tokenId": "0.0.9999", "accountId": "0.0.5555"})
 
+    def test_empty_session_id_raises(self):
+        with pytest.raises(ValueError, match="sessionId"):
+            RevokeTokenKycParams.parse_json_params({"tokenId": "0.0.9999", "accountId": "0.0.5555", "sessionId": ""})
+
+    def test_missing_token_and_account_id_parse_as_none(self):
+        """tokenId/accountId are optional at parse time; the TCK spec uses
+        their absence to test the endpoint's own validation errors."""
+        params = RevokeTokenKycParams.parse_json_params({"sessionId": "session-1"})
+        assert params.tokenId is None
+        assert params.accountId is None
+
 
 class TestBuildGrantTokenKycTransaction:
     def test_sets_both_fields_when_present(self):
@@ -114,6 +125,18 @@ class TestBuildGrantTokenKycTransaction:
         with pytest.raises(ValueError, match="Missing account ID"):
             tx._build_proto_body()
 
+    def test_leaves_token_id_none_when_absent(self):
+        params = GrantTokenKycParams.parse_json_params({"accountId": "0.0.5555", "sessionId": "s"})
+        tx = _build_grant_token_kyc_transaction(params)
+        assert tx.token_id is None
+        assert tx.account_id == ACCOUNT_ID
+
+    def test_missing_token_id_fails_at_proto_build_not_silently(self):
+        params = GrantTokenKycParams.parse_json_params({"accountId": "0.0.5555", "sessionId": "s"})
+        tx = _build_grant_token_kyc_transaction(params)
+        with pytest.raises(ValueError, match="Missing token ID"):
+            tx._build_proto_body()
+
 
 class TestBuildRevokeTokenKycTransaction:
     def test_sets_both_fields_when_present(self):
@@ -128,6 +151,18 @@ class TestBuildRevokeTokenKycTransaction:
         params = RevokeTokenKycParams.parse_json_params({"accountId": "0.0.5555", "sessionId": "s"})
         tx = _build_revoke_token_kyc_transaction(params)
         with pytest.raises(ValueError, match="Missing token ID"):
+            tx._build_proto_body()
+
+    def test_leaves_account_id_none_when_absent(self):
+        params = RevokeTokenKycParams.parse_json_params({"tokenId": "0.0.9999", "sessionId": "s"})
+        tx = _build_revoke_token_kyc_transaction(params)
+        assert tx.token_id == TOKEN_ID
+        assert tx.account_id is None
+
+    def test_missing_account_id_fails_at_proto_build_not_silently(self):
+        params = RevokeTokenKycParams.parse_json_params({"tokenId": "0.0.9999", "sessionId": "s"})
+        tx = _build_revoke_token_kyc_transaction(params)
+        with pytest.raises(ValueError, match="Missing account ID"):
             tx._build_proto_body()
 
 
