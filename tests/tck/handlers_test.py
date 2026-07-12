@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from unittest.mock import MagicMock
 
 import pytest
@@ -55,6 +55,24 @@ class DummyResult:
 
     value: int | None = None
     other: str | None = None
+
+
+@dataclass
+class NestedChild:
+    """Nested dataclass for testing recursive None stripping."""
+
+    amount: str | None = None
+    label: str | None = None
+
+
+@dataclass
+class DummyResultWithNested:
+    """Dataclass with nested fields for testing recursive parse_result."""
+
+    name: str | None = None
+    child: NestedChild | None = None
+    children: list[NestedChild] | None = None
+    nullable_field: str | None = field(metadata={"nullable": True}, default=None)
 
 
 class TestHandlerRegistration:
@@ -265,3 +283,46 @@ class TestParseResult:
         parsed = parse_result(result)
 
         assert parsed == {"value": 10}, "Expected filtered dataclass result"
+
+    def test_parse_result_strips_none_in_nested_dicts(self):
+        """None values in nested dataclass dicts should be stripped."""
+        result = DummyResultWithNested(
+            name="test",
+            child=NestedChild(amount="5", label=None),
+        )
+
+        parsed = parse_result(result)
+
+        assert parsed == {"name": "test", "child": {"amount": "5"}, "nullable_field": None}
+
+    def test_parse_result_strips_none_in_nested_lists(self):
+        """None values inside list items should be stripped."""
+        result = DummyResultWithNested(
+            name="test",
+            children=[
+                NestedChild(amount="1", label=None),
+                NestedChild(amount="2", label="ok"),
+            ],
+        )
+
+        parsed = parse_result(result)
+
+        assert parsed == {
+            "name": "test",
+            "children": [
+                {"amount": "1"},
+                {"amount": "2", "label": "ok"},
+            ],
+            "nullable_field": None,
+        }
+
+    def test_parse_result_preserves_nullable_field_when_none(self):
+        """Fields marked nullable should be preserved even when None."""
+        result = DummyResultWithNested(
+            name="test",
+            nullable_field=None,
+        )
+
+        parsed = parse_result(result)
+
+        assert parsed == {"name": "test", "nullable_field": None}
