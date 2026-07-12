@@ -5,9 +5,12 @@
 
 describe('Bot: Add Reviewers as Assignees', () => {
   let handler;
+  let removeReviewerFromAssignees;
 
   beforeAll(() => {
-    handler = require('../../bot-pr-add-reviewers-as-assignees.js');
+    const mod = require('../../bot-pr-add-reviewers-as-assignees.js');
+    handler = mod;
+    removeReviewerFromAssignees = mod.removeReviewerFromAssignees;
   });
 
   beforeEach(() => {
@@ -36,20 +39,8 @@ describe('Bot: Add Reviewers as Assignees', () => {
     }
   });
 
-  const createMockReviewContext = ({ reviewerLogin, assignees = [] } = {}) => ({
-    repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-python' },
-    eventName: 'pull_request_review',
-    payload: {
-      action: 'submitted',
-      review: {
-        user: { login: reviewerLogin }
-      },
-      pull_request: {
-        number: 123,
-        assignees
-      }
-    }
-  });
+  // Minimal context for remove flow: only repo is required when explicit params are passed
+  const minimalContext = { repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-python' } };
 
   const createMockGithub = (state) => ({
     rest: {
@@ -247,56 +238,81 @@ describe('Bot: Add Reviewers as Assignees', () => {
     await expect(handler({ github: errorMock, context: ctx })).rejects.toHaveProperty('status', 500);
   });
 
-  // ─── Remove flow ─────────────────────────────────────────────────────────────
+  // ─── Remove flow (named export — called from workflow_run job) ────────────────
 
-  test('removes reviewer from assignees when they submit a review', async () => {
+  test('removes reviewer from assignees when called with explicit params', async () => {
     const state = createTestState();
     state.currentPrData = { assignees: [{ login: 'alice' }, { login: 'bob' }] };
-    const ctx = createMockReviewContext({
-      reviewerLogin: 'alice',
-      assignees: [{ login: 'alice' }, { login: 'bob' }]
-    });
 
-    await handler({ github: createMockGithub(state), context: ctx });
+    await removeReviewerFromAssignees({
+      github: createMockGithub(state),
+      context: minimalContext,
+      reviewer: 'alice',
+      prNumber: 123
+    });
 
     expect(state.removeAssigneesCalls).toHaveLength(1);
     expect(state.removeAssigneesCalls[0].assignees).toEqual(['alice']);
     expect(state.addAssigneesCalls).toHaveLength(0);
   });
 
-  test('does not call removeAssignees when reviewer is not an assignee', async () => {
+  test('does not remove when reviewer is not an assignee', async () => {
     const state = createTestState();
     state.currentPrData = { assignees: [{ login: 'alice' }] };
-    const ctx = createMockReviewContext({
-      reviewerLogin: 'carol',
-      assignees: [{ login: 'alice' }]
+
+    await removeReviewerFromAssignees({
+      github: createMockGithub(state),
+      context: minimalContext,
+      reviewer: 'carol',
+      prNumber: 123
     });
 
-    await handler({ github: createMockGithub(state), context: ctx });
-
     expect(state.removeAssigneesCalls).toHaveLength(0);
-    expect(state.addAssigneesCalls).toHaveLength(0);
   });
 
-  test('review submitted by someone who was never a reviewer is a no-op', async () => {
+  test('is a no-op when reviewer was never an assignee', async () => {
     const state = createTestState();
     state.currentPrData = { assignees: [] };
-    const ctx = createMockReviewContext({
-      reviewerLogin: 'outsider',
-      assignees: []
+
+    await removeReviewerFromAssignees({
+      github: createMockGithub(state),
+      context: minimalContext,
+      reviewer: 'outsider',
+      prNumber: 123
     });
 
-    await handler({ github: createMockGithub(state), context: ctx });
+    expect(state.removeAssigneesCalls).toHaveLength(0);
+  });
+
+  test('skips when reviewer is missing', async () => {
+    const state = createTestState();
+
+    await removeReviewerFromAssignees({
+      github: createMockGithub(state),
+      context: minimalContext,
+      reviewer: undefined,
+      prNumber: 123
+    });
 
     expect(state.removeAssigneesCalls).toHaveLength(0);
+    expect(state.pullsGetCalls).toBe(0);
+  });
+
+  test('skips when prNumber is invalid', async () => {
+    const state = createTestState();
+
+    await removeReviewerFromAssignees({
+      github: createMockGithub(state),
+      context: minimalContext,
+      reviewer: 'alice',
+      prNumber: 0
+    });
+
+    expect(state.removeAssigneesCalls).toHaveLength(0);
+    expect(state.pullsGetCalls).toBe(0);
   });
 
   test('gracefully handles 403 permission errors on remove', async () => {
-    const ctx = createMockReviewContext({
-      reviewerLogin: 'alice',
-      assignees: [{ login: 'alice' }]
-    });
-
     const errorMock = {
       rest: {
         pulls: { get: async () => ({ data: { assignees: [{ login: 'alice' }] } }) },
@@ -311,15 +327,12 @@ describe('Bot: Add Reviewers as Assignees', () => {
       }
     };
 
-    await expect(handler({ github: errorMock, context: ctx })).resolves.not.toThrow();
+    await expect(
+      removeReviewerFromAssignees({ github: errorMock, context: minimalContext, reviewer: 'alice', prNumber: 123 })
+    ).resolves.not.toThrow();
   });
 
   test('rethrows non-403 errors on remove', async () => {
-    const ctx = createMockReviewContext({
-      reviewerLogin: 'alice',
-      assignees: [{ login: 'alice' }]
-    });
-
     const errorMock = {
       rest: {
         pulls: { get: async () => ({ data: { assignees: [{ login: 'alice' }] } }) },
@@ -334,6 +347,24 @@ describe('Bot: Add Reviewers as Assignees', () => {
       }
     };
 
-    await expect(handler({ github: errorMock, context: ctx })).rejects.toHaveProperty('status', 500);
+    await expect(
+      removeReviewerFromAssignees({ github: errorMock, context: minimalContext, reviewer: 'alice', prNumber: 123 })
+    ).rejects.toHaveProperty('status', 500);
+  });
+
+  // ─── Routing ─────────────────────────────────────────────────────────────────
+
+  test('unhandled event logs warning and does nothing', async () => {
+    const state = createTestState();
+    const ctx = {
+      repo: { owner: 'hiero-ledger', repo: 'hiero-sdk-python' },
+      eventName: 'pull_request_review',
+      payload: { action: 'submitted' }
+    };
+
+    await handler({ github: createMockGithub(state), context: ctx });
+
+    expect(state.addAssigneesCalls).toHaveLength(0);
+    expect(state.removeAssigneesCalls).toHaveLength(0);
   });
 });
