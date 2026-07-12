@@ -25,10 +25,18 @@ jobs:
         with:
           script: |
             const fs = require('fs');
+            const reviewer = context.payload.review?.user?.login;
+            const prNumber = context.payload.pull_request?.number;
+            if (
+              typeof reviewer !== 'string' ||
+              reviewer.length === 0 ||
+              !Number.isInteger(prNumber) ||
+              prNumber <= 0
+            ) {
+              throw new Error(`Invalid pull_request_review payload: reviewer=${reviewer}, pr_number=${prNumber}`);
+            }
             fs.mkdirSync('review-data', { recursive: true });
-            const reviewer = context.payload.review?.user?.login ?? null;
-            const pr_number = context.payload.pull_request?.number ?? null;
-            fs.writeFileSync('review-data/review.json', JSON.stringify({ reviewer, pr_number }));
+            fs.writeFileSync('review-data/review.json', JSON.stringify({ reviewer, pr_number: prNumber }));
 
       - name: Upload review metadata
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
