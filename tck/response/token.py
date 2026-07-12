@@ -45,6 +45,11 @@ class PauseTokenResponse(StatusOnlyResponse):
 
 
 @dataclass
+class RevokeTokenKycResponse(StatusOnlyResponse):
+    """Response payload for revokeTokenKyc."""
+
+
+@dataclass
 class AirdropTokenResponse(StatusOnlyResponse):
     """Response payload for airdropToken."""
 

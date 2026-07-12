@@ -23,6 +23,7 @@ from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransact
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
+from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
@@ -36,6 +37,7 @@ from tck.param.token import (
     FreezeTokenParams,
     MintTokenParams,
     PauseTokenParams,
+    RevokeKycTokenParams,
 )
 from tck.response.token import (
     AirdropTokenResponse,
@@ -46,6 +48,7 @@ from tck.response.token import (
     FreezeTokenResponse,
     MintTokenResponse,
     PauseTokenResponse,
+    RevokeTokenKycResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
@@ -369,6 +372,35 @@ def pause_token(params: PauseTokenParams) -> PauseTokenResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return PauseTokenResponse(status=ResponseCode(receipt.status).name)
+
+
+def _build_revoke_kyc_token_transaction(params: RevokeKycTokenParams) -> TokenRevokeKycTransaction:
+    """Build a TokenRevokeKycTransaction from TCK params."""
+    transaction = TokenRevokeKycTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    if params.accountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.accountId))
+
+    return transaction
+
+
+@rpc_method("revokeTokenKyc")
+def revoke_token_kyc(params: RevokeKycTokenParams) -> RevokeTokenKycResponse:
+    """Revoke KYC for an account on a token using TCK revokeTokenKyc parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_revoke_kyc_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return RevokeTokenKycResponse(status=ResponseCode(receipt.status).name)
 
 
 def _build_airdrop_token_transaction(params: AirdropTokenParams) -> TokenAirdropTransaction:
