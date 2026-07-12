@@ -29,12 +29,13 @@ def test_constructor(token_id):
 
 
 # This test uses fixture mock_client as parameter
-def test_execute_fails_with_missing_token_id(mock_client):
-    """Test request creation with missing Token ID."""
+def test_make_request_without_token_id():
+    """Test that a request can be built without a token ID (network will reject it)."""
     query = TokenInfoQuery()
-
-    with pytest.raises(ValueError, match="Token ID must be set before making the request."):
-        query.execute(mock_client)
+    request = query._make_request()
+    # Should build a valid query proto without a token ID set
+    assert request.HasField("tokenGetInfo")
+    assert not request.tokenGetInfo.HasField("token")
 
 
 def test_get_method():
