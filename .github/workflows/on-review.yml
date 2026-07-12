@@ -90,6 +90,14 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const { reviewer, pr_number: prNumber } = JSON.parse(fs.readFileSync('review.json', 'utf8'));
+            const raw = JSON.parse(fs.readFileSync('review.json', 'utf8'));
+            const reviewer = typeof raw.reviewer === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9-]*$/.test(raw.reviewer)
+              ? raw.reviewer : null;
+            const prNumber = Number.isInteger(raw.pr_number) && raw.pr_number > 0
+              ? raw.pr_number : null;
+            if (!reviewer || !prNumber) {
+              core.setFailed(`Invalid artifact contents: reviewer=${raw.reviewer}, pr_number=${raw.pr_number}`);
+              return;
+            }
             const { removeReviewerFromAssignees } = require('./.github/scripts/bot-pr-add-reviewers-as-assignees.js');
             await removeReviewerFromAssignees({ github, context, reviewer, prNumber });
