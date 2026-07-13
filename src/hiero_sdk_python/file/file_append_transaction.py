@@ -221,6 +221,13 @@ class FileAppendTransaction(ChunkedTransaction):
 
         return _Method(transaction_func=channel.file.appendContent, query_func=None)
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("fileAppend"):
+            transaction._from_proto(transaction_body.fileAppend)
+        return transaction
+
     def _from_proto(self, proto: file_append_pb2.FileAppendTransactionBody) -> FileAppendTransaction:
         """
         Initializes a new FileAppendTransaction instance from a protobuf object.
@@ -231,7 +238,7 @@ class FileAppendTransaction(ChunkedTransaction):
         Returns:
             FileAppendTransaction: This transaction instance.
         """
-        self.file_id = FileId._from_proto(proto.fileID) if proto.fileID else None
-        self.contents = proto.contents
+        self.file_id = FileId._from_proto(proto.fileID) if proto.HasField("fileID") else None
+        self.contents = proto.contents if proto.contents else None
         self._total_chunks = self._calculate_total_chunks()
         return self

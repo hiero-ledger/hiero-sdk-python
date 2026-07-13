@@ -155,6 +155,17 @@ class TokenUpdateNftsTransaction(Transaction):
         """
         return _Method(transaction_func=channel.token.updateNfts, query_func=None)
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("token_update_nfts"):
+            body = transaction_body.token_update_nfts
+            if body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(body.token)
+            transaction.serial_numbers = list(body.serial_numbers)
+            transaction.metadata = body.metadata.value if body.HasField("metadata") else None
+        return transaction
+
     def _from_proto(self, proto: token_update_nfts_pb2.TokenUpdateNftsTransactionBody) -> TokenUpdateNftsTransaction:
         """
         Deserializes a TokenUpdateNftsTransactionBody from a protobuf object.

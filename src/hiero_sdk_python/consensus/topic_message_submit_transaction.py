@@ -170,7 +170,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             ConsensusSubmitMessageTransactionBody: The protobuf body for this transaction.
 
         Raises:
-            ValueError: If required fields (message) are missing.
+            ValueError: If required fields (topic_id, message) are missing.
         """
         if not self.message:
             raise ValueError("Missing required fields: message.")
@@ -232,6 +232,17 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             _Method: The method object with bound transaction execution.
         """
         return _Method(transaction_func=channel.topic.submitMessage, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("consensusSubmitMessage"):
+            body = transaction_body.consensusSubmitMessage
+            if body.HasField("topicID"):
+                transaction.topic_id = TopicId._from_proto(body.topicID)
+            transaction.message = body.message.decode("utf-8") if body.message else None
+            transaction._total_chunks = transaction.get_required_chunks()
+        return transaction
 
     def sign(self, private_key: PrivateKey) -> TopicMessageSubmitTransaction:
         """
