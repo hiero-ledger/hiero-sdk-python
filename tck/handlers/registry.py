@@ -5,12 +5,16 @@ requests to handlers and transform exceptions into JSON-RPC errors.
 from __future__ import annotations
 
 import inspect
+import logging
 from collections.abc import Callable
 from dataclasses import asdict, fields as dc_fields
 from typing import Any, get_type_hints
 
 from tck.errors import JsonRpcError, handle_sdk_errors
 from tck.protocol import build_json_rpc_error_response
+
+
+logger = logging.getLogger(__name__)
 
 
 # A global _HANDLERS dict to store method name -> handler function mappings
@@ -67,7 +71,8 @@ def dispatch(method_name: str, params: Any) -> Any:
     except JsonRpcError:
         raise
     except Exception as e:
-        raise JsonRpcError.internal_error(data=str(e)) from e
+        logger.exception(f"Unexpected error executing {method_name}")
+        raise JsonRpcError.internal_error(message="An unexpected system error occurred.") from e
 
 
 def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -> Any | dict[str, Any]:
@@ -76,8 +81,9 @@ def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -
         return dispatch(method_name, params)
     except JsonRpcError as e:
         return build_json_rpc_error_response(e, request_id)
-    except Exception as e:
-        error = JsonRpcError.internal_error(data=str(e))
+    except Exception:
+        logger.exception("Fatal runtime dispatch error")
+        error = JsonRpcError.internal_error(message="An unexpected system error occurred.")
         return build_json_rpc_error_response(error, request_id)
 
 

@@ -113,8 +113,8 @@ def handle_sdk_errors(func):
             raise JsonRpcError.hiero_error({"status": ResponseCode(e.status).name}) from e
 
         except MaxAttemptsError as e:
-            logger.error(f"MaxAttemptsError (method: {func.__name__})")
-            raise JsonRpcError.hiero_error(message=str(e)) from e
+            logger.error(f"MaxAttemptsError in {func.__name__}: {e.message}")
+            raise JsonRpcError.hiero_error(message=e.message) from e
 
         except Exception as e:
             logger.exception("Unhandled error in RPC handler")
