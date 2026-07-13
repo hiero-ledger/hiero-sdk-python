@@ -9,6 +9,7 @@ from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTrans
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -23,6 +24,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -651,3 +653,31 @@ def test_topic_memo_reflected_in_protobuf_independent_of_transaction_memo(mock_c
 
     assert body.consensusCreateTopic.memo == "my topic memo"
     assert body.memo == "some unrelated audit note"
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for TopicCreateTransaction."""
+    account_id_sender, _, node_account_id, _, _ = mock_account_ids
+
+    admin_key = PrivateKey.generate_ed25519().public_key()
+    submit_key = PrivateKey.generate_ed25519().public_key()
+    auto_renew_period = Duration(8000000)
+
+    tx = TopicCreateTransaction()
+    tx.set_memo("hello")
+    tx.set_auto_renew_account(account_id_sender)
+    tx.set_admin_key(admin_key)
+    tx.set_submit_key(submit_key)
+    tx.set_auto_renew_period(auto_renew_period)
+    tx.transaction_id = TransactionId.generate(account_id_sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TopicCreateTransaction)
+    assert reconstructed.topic_memo == "hello"
+    assert reconstructed.auto_renew_account == account_id_sender
+    assert reconstructed.admin_key == admin_key
+    assert reconstructed.submit_key == submit_key
+    assert reconstructed.auto_renew_period == auto_renew_period

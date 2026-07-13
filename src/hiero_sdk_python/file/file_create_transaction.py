@@ -201,6 +201,8 @@ class FileCreateTransaction(Transaction):
         """
         self.keys = KeyList.from_proto(proto.keys).keys
         self.contents = proto.contents
-        self.expiration_time = Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None
+        self.expiration_time = (
+            Timestamp._from_protobuf(proto.expirationTime) if proto.HasField("expirationTime") else None
+        )
         self.file_memo = proto.memo
         return self

@@ -145,5 +145,5 @@ class TokenMintTransaction(Transaction):
             if body.HasField("token"):
                 transaction.token_id = TokenId._from_proto(body.token)
             transaction.amount = body.amount if body.amount else None
-            transaction.metadata = list(body.metadata)
+            transaction.metadata = list(body.metadata) if body.metadata else None
         return transaction

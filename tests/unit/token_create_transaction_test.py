@@ -963,3 +963,38 @@ def test_to_proto_key_wrapper_still_works():
     with pytest.raises(TypeError) as e:
         tx._to_proto_key("this is not a key")
     assert "Key must be of type PrivateKey or PublicKey" in str(e.value)
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.crypto.private_key import PrivateKey
+    from hiero_sdk_python.transaction.transaction import Transaction
+
+    treasury_account, _, node_account_id, _, _ = mock_account_ids
+
+    admin_key = PrivateKey.generate_ed25519().public_key()
+    supply_key = PrivateKey.generate_ed25519().public_key()
+
+    tx = (
+        TokenCreateTransaction()
+        .set_token_name("TestToken")
+        .set_token_symbol("TT")
+        .set_decimals(2)
+        .set_initial_supply(1000)
+        .set_treasury_account_id(treasury_account)
+        .set_admin_key(admin_key)
+        .set_supply_key(supply_key)
+    )
+    tx.transaction_id = TransactionId.generate(treasury_account)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenCreateTransaction)
+    assert reconstructed._token_params.token_name == "TestToken"
+    assert reconstructed._token_params.token_symbol == "TT"
+    assert reconstructed._token_params.decimals == 2
+    assert reconstructed._token_params.initial_supply == 1000
+    assert reconstructed._token_params.treasury_account_id == treasury_account
+    assert reconstructed._keys.admin_key is not None
+    assert reconstructed._keys.supply_key is not None

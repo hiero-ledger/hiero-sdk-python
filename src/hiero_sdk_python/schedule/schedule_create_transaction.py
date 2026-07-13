@@ -238,7 +238,7 @@ class ScheduleCreateTransaction(Transaction):
             if body.HasField("payerAccountID"):
                 transaction.payer_account_id = AccountId._from_proto(body.payerAccountID)
             if body.HasField("adminKey"):
-                transaction.admin_key = PublicKey._from_proto(body.adminKey)
+                transaction.admin_key = Key.from_proto_key(body.adminKey)
             if body.HasField("scheduledTransactionBody"):
                 transaction.schedulable_body = body.scheduledTransactionBody
             transaction.schedule_memo = body.memo
