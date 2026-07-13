@@ -48,7 +48,7 @@ def dispatch(method_name: str, params: Any) -> Any:
 
     if handler is None:
         logger.warning(
-            f"MethodNotFoundError (method: {method_name}) error: The requested RPC method is not registered."
+            f"MethodNotFoundError (method: {repr(method_name)}) error: The requested RPC method is not registered."
         )
         raise JsonRpcError.method_not_found_error(message=f"Method not found: {method_name}")
 
@@ -65,7 +65,7 @@ def dispatch(method_name: str, params: Any) -> Any:
             param_type = hints.get(param_name, parameters[0].annotation)
             params = param_type.parse_json_params(params)
         except (TypeError, ValueError) as e:
-            logger.error(f"InvalidParamsError (method: {method_name}) error: {str(e)}")
+            logger.error(f"InvalidParamsError (method: {repr(method_name)}) error: {str(e)}")
             raise JsonRpcError.invalid_params_error(data=str(e)) from e
 
         result = handler(params)
@@ -75,7 +75,7 @@ def dispatch(method_name: str, params: Any) -> Any:
     except JsonRpcError:
         raise
     except Exception as e:
-        logger.error(f"InternalError (method: {method_name}) error: {str(e)}")
+        logger.error(f"InternalError (method: {repr(method_name)}) error: {str(e)}")
         raise JsonRpcError.internal_error(message="An unexpected system error occurred.") from e
 
 
@@ -86,7 +86,7 @@ def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -
     except JsonRpcError as e:
         return build_json_rpc_error_response(e, request_id)
     except Exception as e:
-        logger.error(f"InternalError (method: {method_name}) error: {str(e)}")
+        logger.error(f"InternalError (method: {repr(method_name)}) error: {str(e)}")
         error = JsonRpcError.internal_error(message="An unexpected system error occurred.")
         return build_json_rpc_error_response(error, request_id)
 
