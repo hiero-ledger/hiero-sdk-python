@@ -153,6 +153,21 @@ class ContractDeleteTransaction(Transaction):
         transaction_body.contractDeleteInstance.CopyFrom(contract_delete_body)
         return transaction_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("contractDeleteInstance"):
+            body = transaction_body.contractDeleteInstance
+            if body.HasField("contractID"):
+                transaction.contract_id = ContractId._from_proto(body.contractID)
+            transaction.permanent_removal = body.permanent_removal if body.permanent_removal else None
+            obtainers = body.WhichOneof("obtainers")
+            if obtainers == "transferAccountID":
+                transaction.transfer_account_id = AccountId._from_proto(body.transferAccountID)
+            elif obtainers == "transferContractID":
+                transaction.transfer_contract_id = ContractId._from_proto(body.transferContractID)
+        return transaction
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the contract delete transaction.
