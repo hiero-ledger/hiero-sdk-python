@@ -67,10 +67,38 @@ class TokenRejectTransaction(Transaction):
         self.token_ids = token_ids
         return self
 
+    def add_token_id(self, token_id: TokenId) -> TokenRejectTransaction:
+        """
+        Appends a fungible token ID to the list of tokens to reject.
+
+        Args:
+            token_id (TokenId): The fungible token ID to add.
+
+        Returns:
+            TokenRejectTransaction: This transaction instance (for chaining).
+        """
+        self._require_not_frozen()
+        self.token_ids.append(token_id)
+        return self
+
     def set_nft_ids(self, nft_ids: list[NftId]) -> TokenRejectTransaction:
         """Set the list of NFT IDs to reject."""
         self._require_not_frozen()
         self.nft_ids = nft_ids
+        return self
+
+    def add_nft_id(self, nft_id: NftId) -> TokenRejectTransaction:
+        """
+        Appends an NFT ID to the list of NFTs to reject.
+
+        Args:
+            nft_id (NftId): The NFT ID to add.
+
+        Returns:
+            TokenRejectTransaction: This transaction instance (for chaining).
+        """
+        self._require_not_frozen()
+        self.nft_ids.append(nft_id)
         return self
 
     def _build_proto_body(self):

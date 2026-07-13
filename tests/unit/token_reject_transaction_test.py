@@ -142,6 +142,64 @@ def test_set_methods_require_not_frozen(mock_account_ids, nft_id, mock_client):
         reject_tx.set_nft_ids(nft_ids)
 
 
+def test_add_token_id(mock_account_ids):
+    """Test appending fungible token IDs one at a time."""
+    _, _, _, token_id_1, token_id_2 = mock_account_ids
+
+    reject_tx = TokenRejectTransaction()
+
+    # First append starts from the default empty list and returns self for chaining
+    tx_after_add = reject_tx.add_token_id(token_id_1)
+    assert tx_after_add is reject_tx
+    assert reject_tx.token_ids == [token_id_1]
+
+    # Second append preserves the existing entry and keeps insertion order
+    reject_tx.add_token_id(token_id_2)
+    assert reject_tx.token_ids == [token_id_1, token_id_2]
+
+
+def test_add_token_id_appends_to_preset_list(mock_account_ids):
+    """Test that add_token_id appends onto a list provided via the constructor/setter."""
+    _, _, _, token_id_1, token_id_2 = mock_account_ids
+
+    reject_tx = TokenRejectTransaction(token_ids=[token_id_1])
+    reject_tx.add_token_id(token_id_2)
+
+    assert reject_tx.token_ids == [token_id_1, token_id_2]
+
+
+def test_add_nft_id(mock_account_ids):
+    """Test appending NFT IDs one at a time."""
+    _, _, _, token_id, _ = mock_account_ids
+    nft_id_1 = NftId(token_id=token_id, serial_number=1)
+    nft_id_2 = NftId(token_id=token_id, serial_number=2)
+
+    reject_tx = TokenRejectTransaction()
+
+    # First append starts from the default empty list and returns self for chaining
+    tx_after_add = reject_tx.add_nft_id(nft_id_1)
+    assert tx_after_add is reject_tx
+    assert reject_tx.nft_ids == [nft_id_1]
+
+    # Second append preserves the existing entry and keeps insertion order
+    reject_tx.add_nft_id(nft_id_2)
+    assert reject_tx.nft_ids == [nft_id_1, nft_id_2]
+
+
+def test_add_methods_require_not_frozen(mock_account_ids, nft_id, mock_client):
+    """Test that add_token_id and add_nft_id are rejected once the transaction is frozen."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    reject_tx = TokenRejectTransaction()
+    reject_tx.freeze_with(mock_client)
+
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
+        reject_tx.add_token_id(token_id)
+
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
+        reject_tx.add_nft_id(nft_id)
+
+
 def test_reject_transaction_can_execute(mock_account_ids):
     """Test that a reject transaction can be executed successfully."""
     account_id, owner_account_id, _, token_id, _ = mock_account_ids
