@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from hiero_sdk_python import TokenWipeTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
@@ -51,6 +52,7 @@ from tck.param.token import (
     PauseTokenParams,
     RejectTokenParams,
     RevokeTokenKycParams,
+    WipeTokenParams,
 )
 from tck.response.token import (
     AirdropTokenResponse,
@@ -67,6 +69,7 @@ from tck.response.token import (
     PauseTokenResponse,
     RejectTokenResponse,
     RevokeTokenKycResponse,
+    WipeTokenResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
@@ -776,3 +779,42 @@ def reject_token(params: RejectTokenParams) -> RejectTokenResponse:
     return RejectTokenResponse(
         status=ResponseCode(receipt.status).name,
     )
+
+
+def _build_wipe_token_transaction(params: WipeTokenParams) -> TokenWipeTransaction:
+    """Build a TokenWipeTransaction from TCK params."""
+
+    transaction = TokenWipeTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    if params.accountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.accountId))
+
+    if params.amount is not None:
+        transaction.set_amount(to_int(params.amount))
+
+    if params.serialNumbers is not None:
+        serialNumberList = [int(serial_number) for serial_number in params.serialNumbers]
+
+        transaction.set_serial(serialNumberList)
+
+    return transaction
+
+
+@rpc_method("wipeToken")
+def wipe_token(params: WipeTokenParams) -> WipeTokenResponse:
+    """Wipes the provided amount of fungible or non-fungible tokens from the specified Hedera account"""
+
+    client = get_client(params.sessionId)
+
+    transaction = _build_wipe_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return WipeTokenResponse(status=ResponseCode(receipt.status).name)

@@ -337,6 +337,29 @@ class RejectTokenParams(BaseTransactionParams):
         return cls(
             ownerId=params.get("ownerId"),
             tokenIds=token_ids,
+
+@dataclass
+class WipeTokenParams(BaseTransactionParams):
+    """Wipes the provided amount of fungible or non-fungible tokens from the specified Hedera account."""
+
+    tokenId: str | None = None
+    accountId: str | None = None
+    amount: str | None = None
+    serialNumbers: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> WipeTokenParams:
+        """Parse JSON-RPC params into a WipeTokenParams instance."""
+        serial_numbers = params.get("serialNumbers")
+        if serial_numbers is not None and not isinstance(serial_numbers, list):
+            raise ValueError("serialNumbers must be a list")
+        if serial_numbers is not None and any(not isinstance(serial_number, str) for serial_number in serial_numbers):
+            raise ValueError("Each serialNumbers item must be a string")
+
+        return cls(
+            tokenId=params.get("tokenId"),
+            accountId=params.get("accountId"),
+            amount=params.get("amount"),
             serialNumbers=serial_numbers,
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
