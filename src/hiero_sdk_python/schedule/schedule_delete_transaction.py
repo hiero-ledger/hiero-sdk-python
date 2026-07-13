@@ -103,3 +103,12 @@ class ScheduleDeleteTransaction(Transaction):
             _Method: An object containing the transaction function to delete a schedule.
         """
         return _Method(transaction_func=channel.schedule.deleteSchedule, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("scheduleDelete"):
+            body = transaction_body.scheduleDelete
+            if body.HasField("scheduleID"):
+                transaction.schedule_id = ScheduleId._from_proto(body.scheduleID)
+        return transaction

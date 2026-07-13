@@ -264,6 +264,8 @@ class CustomFixedFee(CustomFee):
         Raises:
             ValueError: If the `fixed_fee` field is not set in the protobuf message.
         """
+        if not proto_fee.HasField("fixed_fee"):
+            raise ValueError("fixed_fee is required in CustomFee proto")
         fixed_fee_proto = proto_fee.fixed_fee
 
         denominating_token_id = None
@@ -281,6 +283,29 @@ class CustomFixedFee(CustomFee):
             denominating_token_id=denominating_token_id,
             fee_collector_account_id=fee_collector_account_id,
             all_collectors_are_exempt=collectors_are_exempt,
+        )
+
+    @classmethod
+    def _from_topic_fee_proto(cls, proto_fee: custom_fees_pb2.FixedCustomFee) -> CustomFixedFee:
+        """Creates a CustomFixedFee from a FixedCustomFee protobuf (used for topic fees)."""
+        from hiero_sdk_python.tokens.token_id import TokenId
+
+        if not proto_fee.HasField("fixed_fee"):
+            raise ValueError("fixed_fee is required in FixedCustomFee proto")
+        fixed_fee_proto = proto_fee.fixed_fee
+
+        denominating_token_id = None
+        if fixed_fee_proto.HasField("denominating_token_id"):
+            denominating_token_id = TokenId._from_proto(fixed_fee_proto.denominating_token_id)
+
+        fee_collector_account_id = None
+        if proto_fee.HasField("fee_collector_account_id"):
+            fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
+
+        return cls(
+            amount=fixed_fee_proto.amount,
+            denominating_token_id=denominating_token_id,
+            fee_collector_account_id=fee_collector_account_id,
         )
 
     def __eq__(self, other: CustomFixedFee) -> bool:

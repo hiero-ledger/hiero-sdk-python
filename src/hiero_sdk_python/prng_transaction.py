@@ -74,6 +74,14 @@ class PrngTransaction(Transaction):
         transaction_body.util_prng.CopyFrom(prng_body)
         return transaction_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("util_prng"):
+            body = transaction_body.util_prng
+            transaction.range = body.range if body.range else None
+        return transaction
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the appropriate gRPC method for the prng transaction.
