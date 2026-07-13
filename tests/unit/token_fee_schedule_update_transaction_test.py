@@ -7,6 +7,8 @@ from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import (
     TokenFeeScheduleUpdateTransaction,
 )
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 pytestmark = pytest.mark.unit
@@ -102,3 +104,30 @@ def test_build_transaction_body_with_empty_custom_fees(mock_account_ids):
     assert transaction_body.HasField("token_fee_schedule_update")
     assert transaction_body.token_fee_schedule_update.token_id == token_id._to_proto()
     assert len(transaction_body.token_fee_schedule_update.custom_fees) == 0
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for TokenFeeScheduleUpdateTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, token_id_2 = mock_account_ids
+
+    fee = CustomFixedFee(
+        amount=100,
+        denominating_token_id=token_id_2,
+        fee_collector_account_id=account_id_sender,
+    )
+
+    tx = TokenFeeScheduleUpdateTransaction(token_id=token_id_1, custom_fees=[fee])
+    tx.transaction_id = TransactionId.generate(account_id_sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenFeeScheduleUpdateTransaction)
+    assert reconstructed.token_id == token_id_1
+    assert len(reconstructed.custom_fees) == 1
+    restored_fee = reconstructed.custom_fees[0]
+    assert isinstance(restored_fee, CustomFixedFee)
+    assert restored_fee.amount == 100
+    assert restored_fee.denominating_token_id == token_id_2
+    assert restored_fee.fee_collector_account_id == account_id_sender

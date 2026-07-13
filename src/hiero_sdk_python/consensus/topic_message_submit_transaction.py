@@ -240,8 +240,15 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             body = transaction_body.consensusSubmitMessage
             if body.HasField("topicID"):
                 transaction.topic_id = TopicId._from_proto(body.topicID)
-            transaction.message = body.message.decode("utf-8") if body.message else None
-            transaction._total_chunks = transaction.get_required_chunks()
+            transaction.message = body.message.decode("utf-8", errors="replace") if body.message else None
+            if body.HasField("chunkInfo"):
+                chunk = body.chunkInfo
+                transaction._total_chunks = chunk.total
+                transaction._current_chunk_index = chunk.number - 1
+                if chunk.HasField("initialTransactionID"):
+                    transaction._initial_transaction_id = TransactionId._from_proto(chunk.initialTransactionID)
+            else:
+                transaction._total_chunks = transaction.get_required_chunks()
         return transaction
 
     def sign(self, private_key: PrivateKey) -> TopicMessageSubmitTransaction:

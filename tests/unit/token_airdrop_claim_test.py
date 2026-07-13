@@ -313,3 +313,26 @@ def test_str_and_repr():
     tx.add_pending_airdrop_id(PendingAirdropId(sender, receiver, TokenId(0, 0, 10), None))
     assert "Pending Airdrops to claim:" in str(tx)
     assert repr(tx).startswith("TokenClaimAirdropTransaction(")
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    sender, receiver, node_account_id, token_id_1, _ = mock_account_ids
+
+    pending = PendingAirdropId(sender, receiver, token_id_1, None)
+    tx = TokenClaimAirdropTransaction(pending_airdrop_ids=[pending])
+    tx.transaction_id = TransactionId.generate(sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenClaimAirdropTransaction)
+    assert len(reconstructed._pending_airdrop_ids) == 1
+    airdrop = reconstructed._pending_airdrop_ids[0]
+    assert airdrop.sender_id == sender
+    assert airdrop.receiver_id == receiver
+    assert airdrop.token_id == token_id_1
+    assert airdrop.nft_id is None
