@@ -34,7 +34,7 @@ poetry add --dev ruff
 # Using Conda
 conda install -c conda-forge ruff
 ```
->**TIP!**
+>[!TIP]
 >Make sure `ruff` is available in the same virtual environment (`.venv`) you use to run the Hiero SDK. If using **uv**, simply running `uv sync` will set everything up for you automatically.
 
 
@@ -131,7 +131,6 @@ Each error has a code. You can look up the full details of any code in the [Ruff
 **When issues are found:**
 
 If Ruff detects violations, it provides the file path, line number, and a specific error code (e.g., ARG001 or I001).
-Plaintext
 
 ```text
 src/hiero_sdk_python/tokens/nft_id.py:14:4: ARG001 Unused function argument: `tokenId`

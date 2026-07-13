@@ -13,6 +13,7 @@ defaults:
 
 permissions:
   issues: write
+  contents: read
 
 concurrency:
   group: approve-issues-${{ github.event.issue.number }}
@@ -26,7 +27,7 @@ jobs:
 
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@fe104658747b27e96e4f7e80cd0a94068e53901d # v2.16.1
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
@@ -50,3 +51,17 @@ jobs:
           issue-number: ${{ github.event.issue.number }}
           body: |
             Approved by @hiero-ledger/hiero-sdk-python-triage and @hiero-ledger/hiero-sdk-python-committers and @hiero-ledger/hiero-sdk-python-maintainers.
+
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Trigger CodeRabbit Plan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const script = require('./.github/scripts/coderabbit_plan_trigger.js');
+            await script({ github, context });

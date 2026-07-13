@@ -7,7 +7,9 @@
 
 A Python SDK for interacting with the Hedera Hashgraph platform.
 
->**Python compatibility:**
+> [!NOTE]
+>**Python compatibility**
+>
 > The SDK supports Python ≥ 3.10 and is tested on Python 3.10–3.14. Newer Python versions may work but have not yet been validated.
 
 ## Quick Start
@@ -74,6 +76,7 @@ print(f"Balance: {balance.hbars} HBAR")
 - **[Merge Conflicts Guide](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md)** - Resolve conflicts
 - **[Typing Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/types.md)** - Python type hints
 - **[Linting Guide](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/docs/sdk_developers/ruff.md)** - Code quality tools
+- **[Security Analysis](docs/sdk_developers/bandit.md)** - Security analysis & vulnerability scanning
 
 ### Hedera Network Resources
 

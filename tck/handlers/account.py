@@ -2,24 +2,40 @@
 
 from __future__ import annotations
 
+from hiero_sdk_python.account.account_balance import AccountBalance
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_info import AccountInfo
+from hiero_sdk_python.account.account_update_transaction import AccountUpdateTransaction
+from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
-from tck.param.account import CreateAccountParams, GetAccountInfoParams
+from tck.param.account import (
+    CreateAccountParams,
+    DeleteAccountParams,
+    GetAccountBalanceParams,
+    GetAccountInfoParams,
+    UpdateAccountParams,
+)
 from tck.response.account import (
     CreateAccountResponse,
+    DeleteAccountResponse,
+    GetAccountBalanceResponse,
     GetAccountInfoResponse,
     StakingInfoResponse,
     TokenRelationshipResponse,
+    UpdateAccountResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
-from tck.util.key_utils import get_key_from_string
+from tck.util.key_utils import get_key_from_string, key_to_string
 
 
 def _build_create_account_transaction(params: CreateAccountParams) -> AccountCreateTransaction:
@@ -78,21 +94,63 @@ def create_account(params: CreateAccountParams) -> CreateAccountResponse:
     return CreateAccountResponse(account_id, ResponseCode(receipt.status).name)
 
 
+def _build_update_account_transaction(params: UpdateAccountParams) -> AccountUpdateTransaction:
+    transaction = AccountUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+    transaction.set_auto_renew_period(None)
+
+    if params.accountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.accountId))
+
+    if params.key is not None:
+        transaction.set_key(get_key_from_string(params.key))
+
+    if params.expirationTime is not None:
+        transaction.set_expiration_time(Timestamp(params.expirationTime, 0))
+
+    if params.receiverSignatureRequired is not None:
+        transaction.set_receiver_signature_required(params.receiverSignatureRequired)
+
+    if params.maxAutoTokenAssociations is not None:
+        transaction.set_max_automatic_token_associations(params.maxAutoTokenAssociations)
+
+    if params.stakedAccountId is not None:
+        transaction.set_staked_account_id(AccountId.from_string(params.stakedAccountId))
+
+    if params.stakedNodeId is not None:
+        transaction.set_staked_node_id(params.stakedNodeId)
+
+    if params.declineStakingReward is not None:
+        transaction.set_decline_staking_reward(params.declineStakingReward)
+
+    if params.memo is not None:
+        transaction.set_account_memo(params.memo)
+
+    if params.autoRenewPeriod is not None:
+        transaction.set_auto_renew_period(Duration(params.autoRenewPeriod))
+
+    return transaction
+
+
+@rpc_method("updateAccount")
+def update_account(params: UpdateAccountParams) -> UpdateAccountResponse:
+    """Update an account using TCK updateAccount parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_update_account_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UpdateAccountResponse(ResponseCode(receipt.status).name)
+
+
 def _enum_name(value) -> str | None:
     if value is None:
         return None
     return getattr(value, "name", str(value))
-
-
-def _serialize_key(key) -> str | None:
-    if key is None:
-        return None
-
-    to_string_der = getattr(key, "to_string_der", None)
-    if callable(to_string_der):
-        return to_string_der()
-
-    return key.to_bytes().hex()
 
 
 def _to_staking_info_response(info: AccountInfo) -> StakingInfoResponse | None:
@@ -142,7 +200,7 @@ def _build_account_info_response(info: AccountInfo) -> GetAccountInfoResponse:
         isDeleted=bool(info.is_deleted),
         proxyAccountId="",
         proxyReceived=str(info.proxy_received.to_tinybars()) if info.proxy_received is not None else "0",
-        key=_serialize_key(info.key),
+        key=key_to_string(info.key),
         balance=str(info.balance.to_tinybars()) if info.balance is not None else "0",
         sendRecordThreshold="0",
         receiveRecordThreshold="0",
@@ -173,3 +231,52 @@ def get_account_info(params: GetAccountInfoParams) -> GetAccountInfoResponse:
 
     info = query.execute(client)
     return _build_account_info_response(info)
+
+
+@rpc_method("deleteAccount")
+def delete_account(params: DeleteAccountParams) -> DeleteAccountResponse:
+    """Delete an account using TCK deleteAccount parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = AccountDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.deleteAccountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.deleteAccountId))
+
+    if params.transferAccountId is not None:
+        transaction.set_transfer_account_id(AccountId.from_string(params.transferAccountId))
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return DeleteAccountResponse(status=ResponseCode(receipt.status).name)
+
+
+@rpc_method("getAccountBalance")
+def get_account_balance(params: GetAccountBalanceParams) -> GetAccountBalanceResponse:
+    """Get account balance for an account."""
+    client = get_client(params.sessionId)
+
+    query = CryptoGetAccountBalanceQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.accountId is not None:
+        query.set_account_id(AccountId.from_string(params.accountId))
+    if params.contractId is not None:
+        query.set_contract_id(ContractId.from_string(params.contractId))
+
+    account_balance = query.execute(client)
+    return map_account_balance_response(account_balance)
+
+
+def map_account_balance_response(account_balance: AccountBalance) -> GetAccountBalanceResponse:
+    """Map AccountBalance class to the GetAccountBalanceResponse."""
+    token_balances = {str(token_id): int(balance) for token_id, balance in account_balance.token_balances.items()}
+
+    token_decimals = {str(token_id): int(decimals) for token_id, decimals in account_balance.token_decimals.items()}
+
+    return GetAccountBalanceResponse(
+        hbars=str(account_balance.hbars.to_tinybars()), tokenBalances=token_balances, tokenDecimals=token_decimals
+    )

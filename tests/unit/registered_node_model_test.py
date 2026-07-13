@@ -512,16 +512,16 @@ class TestRegisteredNodeAddressBookQueryExecution:
         assert q._build_base_url(client) == "http://mirror.example.com"
 
     def test_build_base_url_localhost_port_replacement(self):
-        """Verify localhost:5551 is replaced with :8084."""
+        """Verify localhost:38081 is replaced with :8084."""
         q = RegisteredNodeAddressBookQuery()
-        client = self._make_client("http://localhost:5551/api/v1")
+        client = self._make_client("http://localhost:38081/api/v1")
         assert ":8084" in q._build_base_url(client)
-        assert ":5551" not in q._build_base_url(client)
+        assert ":38081" not in q._build_base_url(client)
 
     def test_build_base_url_127_port_replacement(self):
-        """Verify 127.0.0.1:5551 is replaced with :8084."""
+        """Verify 127.0.0.1:38081 is replaced with :8084."""
         q = RegisteredNodeAddressBookQuery()
-        client = self._make_client("http://127.0.0.1:5551/api/v1")
+        client = self._make_client("http://127.0.0.1:38081/api/v1")
         assert ":8084" in q._build_base_url(client)
 
     @patch("hiero_sdk_python.address_book.registered_node_address_book_query.requests.get")

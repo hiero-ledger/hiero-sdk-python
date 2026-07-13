@@ -4,9 +4,12 @@
 # Import all handler modules to trigger @rpc_method decorators
 from . import (
     account,
+    allowance,
     key,
     sdk,  # setup, reset
+    token,
     topic,
+    transfer,
 )
 from .registry import (
     get_all_handlers,

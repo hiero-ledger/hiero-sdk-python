@@ -31,7 +31,7 @@ class Network:
         "mainnet": "https://mainnet-public.mirrornode.hedera.com",
         "testnet": "https://testnet.mirrornode.hedera.com",
         "previewnet": "https://previewnet.mirrornode.hedera.com",
-        "solo": "http://localhost:5551",  # Local development only
+        "solo": "http://localhost:38081",  # Local development only
     }
 
     DEFAULT_NODES: dict[str, list[_Node]] = {
@@ -61,9 +61,9 @@ class Network:
             ("2.previewnet.hedera.com:50211", AccountId(0, 0, 5)),
             ("3.previewnet.hedera.com:50211", AccountId(0, 0, 6)),
         ],
-        "solo": [("localhost:50211", AccountId(0, 0, 3))],
-        "localhost": [("localhost:50211", AccountId(0, 0, 3))],
-        "local": [("localhost:50211", AccountId(0, 0, 3))],
+        "solo": [("localhost:35211", AccountId(0, 0, 3))],
+        "localhost": [("localhost:35211", AccountId(0, 0, 3))],
+        "local": [("localhost:35211", AccountId(0, 0, 3))],
     }
 
     LEDGER_ID: dict[str, bytes] = {

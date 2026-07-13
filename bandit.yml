@@ -1,0 +1,5 @@
+exclude_dirs: ['.clusterfuzzlite/**']
+
+assert_used:
+  skips:
+    - '**/tests/**/*.py'

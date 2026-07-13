@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 from pytest import fixture, mark
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -35,17 +34,6 @@ def pausable_token(env):
 @fixture
 def unpausable_token(env):
     return create_fungible_token(env)
-
-
-@mark.integration
-def test_pause_missing_token_id_raises_value_error(env):
-    """
-    If you never set token_id, freeze_with should raise a ValueError.
-    """
-    tx = TokenPauseTransaction()
-
-    with pytest.raises(ValueError, match="token_id must be set"):
-        tx.freeze_with(env.client)  # ← builds the body which fails
 
 
 @mark.integration

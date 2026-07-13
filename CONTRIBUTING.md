@@ -107,6 +107,7 @@ We welcome blog posts! Whether you're sharing a tutorial, case study, or your ex
 | [Merge Conflicts](https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md) | Resolving conflicts |
 | [Types](docs/sdk_developers/types.md) | Python type hints |
 | [Linting](docs/sdk_developers/ruff.md) | Code quality tools |
+| [Security Analysis](docs/sdk_developers/bandit.md) | Security analysis & vulnerability scanning |
 
 ---
 

@@ -2,53 +2,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from tck.param.base import BaseTransactionParams
+from tck.param.base import BaseParams, BaseTransactionParams
+from tck.param.custom_fee import CustomFeeLimitParams, CustomFeeParams
 from tck.util.param_utils import (
     non_empty_string_list,
     non_empty_string_or_none,
     parse_common_transaction_params,
     parse_session_id,
-    to_bool,
     to_int,
 )
-
-
-@dataclass
-class CreateTopicFixedFeeParams:
-    """Parameters for a fixed fee custom fee in topic creation."""
-
-    amount: int | None = None
-    denominatingTokenId: str | None = None
-
-    @classmethod
-    def parse_json_params(cls, params: dict) -> CreateTopicFixedFeeParams:
-        return cls(
-            amount=to_int(params.get("amount")),
-            denominatingTokenId=non_empty_string_or_none(params.get("denominatingTokenId")),
-        )
-
-
-@dataclass
-class CreateTopicCustomFeeParams:
-    """Parameters for a custom fee in topic creation."""
-
-    feeCollectorAccountId: str | None = None
-    feeCollectorsExempt: bool | None = None
-    fixedFee: CreateTopicFixedFeeParams | None = None
-
-    @classmethod
-    def parse_json_params(cls, params: dict) -> CreateTopicCustomFeeParams:
-        fixed_fee = params.get("fixedFee")
-
-        fee_collector_account_id = params.get("feeCollectorAccountId")
-        if isinstance(fee_collector_account_id, str):
-            fee_collector_account_id = fee_collector_account_id.strip()
-
-        return cls(
-            feeCollectorAccountId=fee_collector_account_id,
-            feeCollectorsExempt=to_bool(params.get("feeCollectorsExempt")),
-            fixedFee=(CreateTopicFixedFeeParams.parse_json_params(fixed_fee) if isinstance(fixed_fee, dict) else None),
-        )
 
 
 @dataclass
@@ -62,7 +24,7 @@ class CreateTopicParams(BaseTransactionParams):
     autoRenewAccountId: str | None = None
     feeScheduleKey: str | None = None
     feeExemptKeys: list[str] | None = None
-    customFees: list[CreateTopicCustomFeeParams] | None = None
+    customFees: list[CustomFeeParams] | None = None
 
     @classmethod
     def parse_json_params(cls, params: dict) -> CreateTopicParams:
@@ -75,6 +37,7 @@ class CreateTopicParams(BaseTransactionParams):
             raise ValueError("customFees must be a list")
         if custom_fees is not None and any(not isinstance(custom_fee, dict) for custom_fee in custom_fees):
             raise ValueError("each customFees item must be an object")
+
         return cls(
             memo=params.get("memo"),
             adminKey=non_empty_string_or_none(params.get("adminKey")),
@@ -84,10 +47,66 @@ class CreateTopicParams(BaseTransactionParams):
             feeScheduleKey=non_empty_string_or_none(params.get("feeScheduleKey")),
             feeExemptKeys=non_empty_string_list(fee_exempt_keys),
             customFees=(
-                [CreateTopicCustomFeeParams.parse_json_params(custom_fee) for custom_fee in custom_fees]
+                [CustomFeeParams.parse_json_params(custom_fee) for custom_fee in custom_fees]
                 if custom_fees is not None
                 else None
             ),
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class TopicMessageSubmitParams(BaseTransactionParams):
+    """Request parameters for submitTopicMessage endpoint."""
+
+    topicId: str | None = None
+    message: str | None = None
+    maxChunks: int | None = None
+    chunkSize: int | None = None
+    customFeeLimits: list[CustomFeeLimitParams] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> TopicMessageSubmitParams:
+        """Parse JSON-RPC params into a TopicMessageSubmitParams instance."""
+        custom_fee_limits = params.get("customFeeLimits")
+
+        if custom_fee_limits is not None and not isinstance(custom_fee_limits, list):
+            raise ValueError("customFeeLimits must be a list")
+        if custom_fee_limits is not None and any(
+            not isinstance(custom_fee_limit, dict) for custom_fee_limit in custom_fee_limits
+        ):
+            raise ValueError("each customFeeLimits item must be an object")
+
+        return cls(
+            topicId=params.get("topicId"),
+            message=params.get("message"),
+            maxChunks=to_int(params.get("maxChunks")),
+            chunkSize=to_int(params.get("chunkSize")),
+            customFeeLimits=(
+                [CustomFeeLimitParams.parse_json_params(custom_fee_limit) for custom_fee_limit in custom_fee_limits]
+                if custom_fee_limits is not None
+                else None
+            ),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class TopicMessageInfoParams(BaseParams):
+    """Request parameters for getTopicInfo endpoint."""
+
+    topicId: str | None = None
+    queryPayment: str | None = None
+    maxQueryPayment: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> TopicMessageInfoParams:
+        """Parse JSON-RPC params into a TopicMessageInfoParams instance."""
+        return cls(
+            topicId=params.get("topicId"),
+            queryPayment=params.get("queryPayment"),
+            maxQueryPayment=params.get("maxQueryPayment"),
+            sessionId=parse_session_id(params),
         )

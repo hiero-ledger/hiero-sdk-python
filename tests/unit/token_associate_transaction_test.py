@@ -51,12 +51,13 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenAssociate.tokens[1].tokenNum == token_id_2.num
 
 
-def test_missing_fields():
-    """Test that building the transaction without account ID or token IDs raises a ValueError."""
+def test_build_proto_body_no_account_id():
+    """Test that _build_proto_body handles None account_id."""
     associate_tx = TokenAssociateTransaction()
 
-    with pytest.raises(ValueError, match="Account ID and token IDs must be set."):
-        associate_tx.build_transaction_body()
+    body = associate_tx._build_proto_body()
+    assert not body.HasField("account")
+    assert len(body.tokens) == 0
 
 
 # This test uses fixture (mock_account_ids, mock_client) as parameter

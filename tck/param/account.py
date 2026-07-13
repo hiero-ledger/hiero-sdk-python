@@ -48,6 +48,62 @@ class CreateAccountParams(BaseTransactionParams):
 
 
 @dataclass
+class UpdateAccountParams(BaseTransactionParams):
+    """Request parameters for the updateAccount endpoint."""
+
+    accountId: str | None = None
+    key: str | None = None
+    receiverSignatureRequired: bool | None = None
+    autoRenewPeriod: int | None = None
+    expirationTime: int | None = None
+    memo: str | None = None
+    maxAutoTokenAssociations: int | None = None
+    stakedAccountId: str | None = None
+    stakedNodeId: int | None = None
+    declineStakingReward: bool | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UpdateAccountParams:
+        """Parse JSON-RPC params into an UpdateAccountParams instance."""
+        decline_staking_reward = params.get("declineStakingReward")
+        if decline_staking_reward is None:
+            decline_staking_reward = params.get("declineStakingRewards")
+
+        return cls(
+            accountId=params.get("accountId"),
+            key=params.get("key"),
+            receiverSignatureRequired=to_bool(params.get("receiverSignatureRequired")),
+            autoRenewPeriod=to_int(params.get("autoRenewPeriod")),
+            expirationTime=to_int(params.get("expirationTime")),
+            memo=params.get("memo"),
+            maxAutoTokenAssociations=to_int(params.get("maxAutoTokenAssociations")),
+            stakedAccountId=params.get("stakedAccountId"),
+            stakedNodeId=to_int(params.get("stakedNodeId")),
+            declineStakingReward=to_bool(decline_staking_reward),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class DeleteAccountParams(BaseTransactionParams):
+    """Request parameters for the deleteAccount endpoint."""
+
+    deleteAccountId: str | None = None
+    transferAccountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteAccountParams:
+        """Parse JSON-RPC params into a DeleteAccountParams instance."""
+        return cls(
+            deleteAccountId=params.get("deleteAccountId"),
+            transferAccountId=params.get("transferAccountId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class GetAccountInfoParams(BaseParams):
     """Request parameters for the getAccountInfo endpoint."""
 
@@ -57,3 +113,18 @@ class GetAccountInfoParams(BaseParams):
     def parse_json_params(cls, params: dict) -> GetAccountInfoParams:
         """Parse JSON-RPC params into a GetAccountInfoParams instance."""
         return cls(accountId=params.get("accountId"), sessionId=parse_session_id(params))
+
+
+@dataclass
+class GetAccountBalanceParams(BaseParams):
+    """Request parameters for the getAccountBalance endpoint."""
+
+    accountId: str | None = None
+    contractId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params):
+        """Parse JSON-RPC params into a GetAccountBalanceParams instance."""
+        return cls(
+            accountId=params.get("accountId"), contractId=params.get("contractId"), sessionId=parse_session_id(params)
+        )

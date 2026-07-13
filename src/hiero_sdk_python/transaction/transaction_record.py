@@ -89,6 +89,7 @@ class TransactionRecord:
     transaction_hash: bytes | None = None
     transaction_memo: str | None = None
     transaction_fee: int | None = None
+    high_volume_pricing_multiplier: int | None = None
     receipt: TransactionReceipt | None = None
     call_result: ContractFunctionResult | None = None
 
@@ -144,6 +145,7 @@ class TransactionRecord:
             f"transaction_hash={self.transaction_hash}, "
             f"transaction_memo='{self.transaction_memo}', "
             f"transaction_fee={self.transaction_fee}, "
+            f"high_volume_pricing_multiplier={self.high_volume_pricing_multiplier}, "
             f"receipt_status='{status}', "
             f"token_transfers={dict(self.token_transfers)}, "
             f"nft_transfers={dict(self.nft_transfers)}, "
@@ -240,6 +242,7 @@ class TransactionRecord:
             if proto.HasField("contractCreateResult")
             else None
         )
+
         alias = proto.alias if proto.alias else None
         ethereum_hash = proto.ethereum_hash if proto.ethereum_hash else None
         evm_address = proto.evm_address if proto.evm_address else None
@@ -279,6 +282,7 @@ class TransactionRecord:
             paid_staking_rewards=paid_staking_rewards,
             evm_address=evm_address,
             contract_create_result=contract_create_result,
+            high_volume_pricing_multiplier=proto.high_volume_pricing_multiplier,
         )
 
     @staticmethod
@@ -458,5 +462,8 @@ class TransactionRecord:
 
         if self.contract_create_result is not None:
             record_proto.contractCreateResult.CopyFrom(self.contract_create_result._to_proto())
+
+        if self.high_volume_pricing_multiplier is not None:
+            record_proto.high_volume_pricing_multiplier = self.high_volume_pricing_multiplier
 
         return record_proto

@@ -131,8 +131,8 @@ class FeeEstimateQuery:
         mode = self._mode or FeeEstimateMode.INTRINSIC
         url = self._build_url(client, mode)
 
-        if "localhost:5551" in url or "127.0.0.1:5551" in url:
-            url = url.replace(":5551", ":8084")
+        if "localhost:38081" in url or "127.0.0.1:38081" in url:
+            url = url.replace(":38081", ":8084")
 
         self._ensure_frozen(self._transaction, client)
 
