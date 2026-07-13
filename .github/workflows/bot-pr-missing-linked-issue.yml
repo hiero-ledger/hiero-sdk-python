@@ -1,6 +1,6 @@
 # This workflow checks PRs for missing linked issues and posts reminder comments when needed.
-# Uses pull_request_target to enable write permissions for fork PRs while checking out
-# only the base branch code (ref: main) to avoid executing untrusted fork code.
+# Uses pull_request_target to enable write permissions for fork PRs while relying
+# on the trusted base-branch checkout to avoid executing untrusted fork code.
 name: PR Missing Linked Issue Reminder
 
 on:
@@ -39,8 +39,6 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: ${{ github.event.pull_request.base.sha || github.sha }}
 
       - name: Check PR for missing linked issue
         env:
