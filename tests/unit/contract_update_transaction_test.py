@@ -383,3 +383,25 @@ def test_decline_reward_false(contract_id):
     tx = ContractUpdateTransaction().set_contract_id(contract_id).set_decline_reward(False)
 
     assert tx.decline_reward is False
+
+
+def test_from_bytes(mock_account_ids, contract_id):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = ContractUpdateTransaction()
+    tx.set_contract_id(contract_id)
+    tx.set_contract_memo("updated memo")
+    tx.set_auto_renew_period(Duration(7_776_000))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractUpdateTransaction)
+    assert reconstructed.contract_id == contract_id
+    assert reconstructed.contract_memo == "updated memo"
+    assert reconstructed.auto_renew_period.seconds == 7_776_000

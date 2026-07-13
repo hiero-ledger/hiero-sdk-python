@@ -162,3 +162,21 @@ def test_prng_transaction_can_execute():
         receipt = transaction.execute(client)
 
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = PrngTransaction()
+    tx.set_range(500)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, PrngTransaction)
+    assert reconstructed.range == 500

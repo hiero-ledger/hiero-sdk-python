@@ -384,3 +384,25 @@ def test_contract_execute_transaction_can_execute():
 
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
         assert str(receipt.contract_id) == str(contract_id)
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = ContractExecuteTransaction()
+    tx.set_contract_id(ContractId(0, 0, 777))
+    tx.set_gas(200_000)
+    tx.set_function_parameters(b"\x01\x02\x03")
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractExecuteTransaction)
+    assert reconstructed.contract_id == ContractId(0, 0, 777)
+    assert reconstructed.gas == 200_000
+    assert reconstructed.function_parameters == b"\x01\x02\x03"

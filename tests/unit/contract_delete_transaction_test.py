@@ -410,3 +410,46 @@ def test_constructor_parameter_combinations():
     assert delete_tx.transfer_contract_id is None
     assert delete_tx.transfer_account_id is None
     assert delete_tx.permanent_removal is True
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = ContractDeleteTransaction()
+    tx.set_contract_id(ContractId(0, 0, 999))
+    tx.set_transfer_account_id(AccountId(0, 0, 1))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractDeleteTransaction)
+    assert reconstructed.contract_id == ContractId(0, 0, 999)
+    assert reconstructed.transfer_account_id == AccountId(0, 0, 1)
+    assert reconstructed.transfer_contract_id is None
+
+
+def test_from_bytes_with_permanent_removal(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = ContractDeleteTransaction()
+    tx.set_contract_id(ContractId(0, 0, 123))
+    tx.set_permanent_removal(True)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractDeleteTransaction)
+    assert reconstructed.contract_id == ContractId(0, 0, 123)
+    assert reconstructed.permanent_removal is True
+    assert reconstructed.transfer_account_id is None
+    assert reconstructed.transfer_contract_id is None

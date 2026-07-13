@@ -284,7 +284,7 @@ class TopicCreateTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
         if transaction_body.HasField("consensusCreateTopic"):
             body = transaction_body.consensusCreateTopic
-            transaction.memo = body.memo if body.memo else ""
+            transaction.topic_memo = body.memo if body.memo else ""
             if body.HasField("adminKey"):
                 transaction.admin_key = Key.from_proto_key(body.adminKey)
             if body.HasField("submitKey"):

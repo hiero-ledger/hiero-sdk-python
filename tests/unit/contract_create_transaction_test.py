@@ -427,3 +427,25 @@ def test_contract_create_params_dataclass():
     assert params_default.staked_account_id is None
     assert params_default.staked_node_id is None
     assert params_default.decline_reward is None
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = ContractCreateTransaction()
+    tx.set_gas(100_000)
+    tx.set_bytecode(b"\x60\x80\x60\x40")
+    tx.set_contract_memo("hello")
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractCreateTransaction)
+    assert reconstructed.gas == 100_000
+    assert reconstructed.bytecode == b"\x60\x80\x60\x40"
+    assert reconstructed.contract_memo == "hello"
