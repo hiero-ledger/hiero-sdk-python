@@ -453,3 +453,25 @@ def test_from_bytes_with_permanent_removal(mock_account_ids):
     assert reconstructed.permanent_removal is True
     assert reconstructed.transfer_account_id is None
     assert reconstructed.transfer_contract_id is None
+
+
+def test_from_bytes_with_transfer_contract_id(mock_account_ids):
+    """Covers transferContractID branch in _from_protobuf."""
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = ContractDeleteTransaction()
+    tx.set_contract_id(ContractId(0, 0, 10))
+    tx.set_transfer_contract_id(ContractId(0, 0, 20))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractDeleteTransaction)
+    assert reconstructed.contract_id == ContractId(0, 0, 10)
+    assert reconstructed.transfer_contract_id == ContractId(0, 0, 20)
+    assert reconstructed.transfer_account_id is None

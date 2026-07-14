@@ -503,3 +503,41 @@ def test_from_bytes(mock_account_ids, new_token_data):
     assert reconstructed.auto_renew_period.seconds == new_token_data["auto_renew_period"].seconds
     assert reconstructed.expiration_time.seconds == new_token_data["expiration_time"].seconds
     assert reconstructed.admin_key.to_bytes_raw() == key.to_bytes_raw()
+
+
+def test_from_bytes_with_all_optional_keys(mock_account_ids):
+    """Covers freeze_key, wipe_key, supply_key, metadata_key, pause_key, kyc_key, fee_schedule_key branches."""
+
+    operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    freeze_key = PrivateKey.generate().public_key()
+    wipe_key = PrivateKey.generate().public_key()
+    supply_key = PrivateKey.generate().public_key()
+    metadata_key = PrivateKey.generate().public_key()
+    pause_key = PrivateKey.generate().public_key()
+    kyc_key = PrivateKey.generate().public_key()
+    fee_schedule_key = PrivateKey.generate().public_key()
+
+    tx = TokenUpdateTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_freeze_key(freeze_key)
+    tx.set_wipe_key(wipe_key)
+    tx.set_supply_key(supply_key)
+    tx.set_metadata_key(metadata_key)
+    tx.set_pause_key(pause_key)
+    tx.set_kyc_key(kyc_key)
+    tx.set_fee_schedule_key(fee_schedule_key)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenUpdateTransaction)
+    assert reconstructed.freeze_key is not None
+    assert reconstructed.wipe_key is not None
+    assert reconstructed.supply_key is not None
+    assert reconstructed.metadata_key is not None
+    assert reconstructed.pause_key is not None
+    assert reconstructed.kyc_key is not None
+    assert reconstructed.fee_schedule_key is not None

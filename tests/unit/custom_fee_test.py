@@ -293,3 +293,38 @@ def test_set_amount_in_tinybars_deprecation():
     # Verify the method still works correctly
     assert fee.amount == 100
     assert fee.denominating_token_id is None
+
+
+def test_custom_fixed_fee_from_proto_raises_without_fixed_fee():
+    """_from_proto raises ValueError when proto has no fixed_fee field."""
+    from hiero_sdk_python.hapi.services.custom_fees_pb2 import CustomFee as CustomFeeProto
+
+    proto = CustomFeeProto()
+    with pytest.raises(ValueError, match="fixed_fee is required"):
+        CustomFixedFee._from_proto(proto)
+
+
+def test_custom_fixed_fee_from_topic_fee_proto():
+    """_from_topic_fee_proto deserializes a FixedCustomFee proto correctly."""
+
+    fee = CustomFixedFee(
+        amount=250,
+        denominating_token_id=TokenId(0, 0, 55),
+        fee_collector_account_id=AccountId(0, 0, 77),
+    )
+    proto = fee._to_topic_fee_proto()
+    result = CustomFixedFee._from_topic_fee_proto(proto)
+
+    assert isinstance(result, CustomFixedFee)
+    assert result.amount == 250
+    assert result.denominating_token_id == TokenId(0, 0, 55)
+    assert result.fee_collector_account_id == AccountId(0, 0, 77)
+
+
+def test_custom_fixed_fee_from_topic_fee_proto_raises_without_fixed_fee():
+    """_from_topic_fee_proto raises ValueError when proto has no fixed_fee."""
+    from hiero_sdk_python.hapi.services.custom_fees_pb2 import FixedCustomFee
+
+    proto = FixedCustomFee()
+    with pytest.raises(ValueError, match="fixed_fee is required"):
+        CustomFixedFee._from_topic_fee_proto(proto)
