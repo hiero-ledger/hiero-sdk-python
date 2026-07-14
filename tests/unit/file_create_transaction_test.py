@@ -259,8 +259,8 @@ def test_file_create_transaction_from_proto():
     from_proto = FileCreateTransaction()._from_proto(file_create_pb2.FileCreateTransactionBody())
 
     # Verify empty protobuf deserializes to empty/default values
-    assert from_proto.contents == b""
-    assert from_proto.file_memo == ""
+    assert from_proto.contents is None
+    assert from_proto.file_memo is None
     assert from_proto.keys == []
 
 

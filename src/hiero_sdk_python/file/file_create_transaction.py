@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import file_create_pb2
@@ -199,10 +200,10 @@ class FileCreateTransaction(Transaction):
         Returns:
             FileCreateTransaction: This transaction instance.
         """
-        self.keys = [PublicKey._from_proto(key) for key in proto.keys.keys] if proto.keys.keys else []
-        self.contents = proto.contents
+        self.keys = [Key.from_proto_key(key) for key in proto.keys.keys] if proto.keys.keys else []
+        self.contents = proto.contents or None
         self.expiration_time = (
             Timestamp._from_protobuf(proto.expirationTime) if proto.HasField("expirationTime") else None
         )
-        self.file_memo = proto.memo
+        self.file_memo = proto.memo or None
         return self
