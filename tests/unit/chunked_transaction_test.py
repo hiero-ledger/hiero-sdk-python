@@ -165,3 +165,12 @@ def test_execute_all_multi_chunk_replays_each_chunk(mock_client, private_key):
     assert responses == ["chunk-1", "chunk-2", "chunk-3"]
     assert mock_execute.call_count == 3
     assert tx._current_chunk_index == 2
+
+
+def test_validate_chunking_allows_required_equal_to_max_chunks():
+    """Test that _validate_chunking does not raise an error when required_chunks equals max_chunks."""
+    tx = DummyChunkedTransaction(required_chunks=3).set_max_chunks(3)
+
+    tx._validate_chunking()
+    assert tx._total_chunks == 3
+    assert tx._current_chunk_index == 0
