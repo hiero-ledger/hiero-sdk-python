@@ -577,3 +577,37 @@ def test_from_bytes_without_auto_renew_period(mock_account_ids):
     assert isinstance(reconstructed, AccountCreateTransaction)
     assert reconstructed.initial_balance == 1000
     assert reconstructed.auto_renew_period is None
+
+
+def test_from_bytes_with_staked_account_id(mock_account_ids):
+    """staked_account_id branch in _from_protobuf is covered."""
+    operator_id, node_account_id = mock_account_ids
+
+    tx = AccountCreateTransaction()
+    tx.set_staked_account_id(AccountId(0, 0, 7))
+    tx.transaction_id = generate_transaction_id(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, AccountCreateTransaction)
+    assert reconstructed.staked_account_id == AccountId(0, 0, 7)
+    assert reconstructed.staked_node_id is None
+
+
+def test_from_bytes_with_staked_node_id(mock_account_ids):
+    """staked_node_id branch in _from_protobuf is covered."""
+    operator_id, node_account_id = mock_account_ids
+
+    tx = AccountCreateTransaction()
+    tx.set_staked_node_id(3)
+    tx.transaction_id = generate_transaction_id(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, AccountCreateTransaction)
+    assert reconstructed.staked_node_id == 3
+    assert reconstructed.staked_account_id is None

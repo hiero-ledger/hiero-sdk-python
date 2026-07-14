@@ -842,3 +842,28 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed.decline_staking_reward == False
     assert reconstructed.receiver_signature_required == False
     assert reconstructed.max_automatic_token_associations == 10
+
+
+def test_from_bytes_with_key_expiration_and_staked_account(mock_account_ids):
+    """Covers key, expiration_time, and staked_account_id branches in _from_protobuf."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    key = PrivateKey.generate().public_key()
+    expiry = Timestamp(seconds=9_999_999_999, nanos=0)
+
+    tx = AccountUpdateTransaction()
+    tx.set_account_id(AccountId(0, 0, 1))
+    tx.set_key(key)
+    tx.set_expiration_time(expiry)
+    tx.set_staked_account_id(AccountId(0, 0, 9))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, AccountUpdateTransaction)
+    assert reconstructed.key.to_bytes_raw() == key.to_bytes_raw()
+    assert reconstructed.expiration_time.seconds == expiry.seconds
+    assert reconstructed.staked_account_id == AccountId(0, 0, 9)
+    assert reconstructed.staked_node_id is None
