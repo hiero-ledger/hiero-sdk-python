@@ -50,7 +50,7 @@ def dispatch(method_name: str, params: Any) -> Any:
         logger.warning(
             f"MethodNotFoundError (method: {repr(method_name)}) error: The requested RPC method is not registered."
         )
-        raise JsonRpcError.method_not_found_error(message=f"Method not found: {method_name}")
+        raise JsonRpcError.method_not_found_error()
 
     try:
         target_func = getattr(handler, "__wrapped__", handler)
@@ -72,11 +72,12 @@ def dispatch(method_name: str, params: Any) -> Any:
 
         return parse_result(result)
 
-    except JsonRpcError:
+    except JsonRpcError as e:
+        logger.error(f"JsonRpcError (method: {repr(method_name)}) error: {str(e)}")
         raise
     except Exception as e:
         logger.error(f"InternalError (method: {repr(method_name)}) error: {str(e)}")
-        raise JsonRpcError.internal_error(message="An unexpected system error occurred.") from e
+        raise JsonRpcError.internal_error() from e
 
 
 def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -> Any | dict[str, Any]:
@@ -84,10 +85,11 @@ def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -
     try:
         return dispatch(method_name, params)
     except JsonRpcError as e:
+        logger.error(f"JsonRpcError (method: {repr(method_name)}) error: {str(e)}")
         return build_json_rpc_error_response(e, request_id)
     except Exception as e:
         logger.error(f"InternalError (method: {repr(method_name)}) error: {str(e)}")
-        error = JsonRpcError.internal_error(message="An unexpected system error occurred.")
+        error = JsonRpcError.internal_error()
         return build_json_rpc_error_response(error, request_id)
 
 

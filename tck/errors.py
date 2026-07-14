@@ -113,11 +113,11 @@ def handle_sdk_errors(func):
             raise JsonRpcError.hiero_error({"status": ResponseCode(e.status).name}) from e
 
         except MaxAttemptsError as e:
-            logger.error(f"MaxAttemptsError (method: {func.__name__}, error: {e.message})")
-            raise JsonRpcError.hiero_error(message=e.message) from e
+            logger.error(f"MaxAttemptsError (method: {func.__name__}, error: {str(e)})")
+            raise JsonRpcError.hiero_error() from e
 
         except Exception as e:
             logger.error(f"InternalError (method: {func.__name__}) error: {str(e)}")
-            raise JsonRpcError.internal_error(message="Internal error") from e
+            raise JsonRpcError.internal_error() from e
 
     return wrapper
