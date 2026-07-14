@@ -302,13 +302,11 @@ def _build_delete_token_transaction(params: DeleteTokenParams) -> TokenDeleteTra
 def _build_freeze_token_transaction(params: FreezeTokenParams) -> TokenFreezeTransaction:
     """Build a TokenFreezeTransaction from TCK params."""
     transaction = TokenFreezeTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
-
     if params.tokenId is not None:
         transaction.set_token_id(TokenId.from_string(params.tokenId))
 
     if params.accountId is not None:
         transaction.set_account_id(AccountId.from_string(params.accountId))
-
     return transaction
 
 
@@ -325,26 +323,22 @@ def _build_pause_token_transaction(params: PauseTokenParams) -> TokenPauseTransa
 def _build_grant_token_kyc_transaction(params: GrantTokenKycParams) -> TokenGrantKycTransaction:
     """Build a TokenGrantKycTransaction from TCK params."""
     transaction = TokenGrantKycTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
-
     if params.tokenId is not None:
         transaction.set_token_id(TokenId.from_string(params.tokenId))
 
     if params.accountId is not None:
         transaction.set_account_id(AccountId.from_string(params.accountId))
-
     return transaction
 
 
 def _build_revoke_token_kyc_transaction(params: RevokeTokenKycParams) -> TokenRevokeKycTransaction:
     """Build a TokenRevokeKycTransaction from TCK params."""
     transaction = TokenRevokeKycTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
-
     if params.tokenId is not None:
         transaction.set_token_id(TokenId.from_string(params.tokenId))
 
     if params.accountId is not None:
         transaction.set_account_id(AccountId.from_string(params.accountId))
-
     return transaction
 
 
