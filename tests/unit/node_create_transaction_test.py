@@ -362,3 +362,27 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed.service_endpoints[0].get_domain_name() == "service.example.com"
     assert reconstructed.gossip_ca_certificate == b"test-ca-cert"
     assert reconstructed.grpc_certificate_hash == b"test-cert-hash"
+
+
+def test_from_bytes_with_admin_key(mock_account_ids):
+    """Covers admin_key branch in _from_protobuf for NodeCreateTransaction."""
+    from hiero_sdk_python.crypto.private_key import PrivateKey
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    admin_key = PrivateKey.generate_ed25519().public_key()
+
+    tx = NodeCreateTransaction()
+    tx.set_account_id(AccountId(0, 0, 99))
+    tx.set_admin_key(admin_key)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, NodeCreateTransaction)
+    assert reconstructed.admin_key is not None
+    assert reconstructed.admin_key.to_bytes_raw() == admin_key.to_bytes_raw()

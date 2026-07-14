@@ -998,3 +998,81 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed._token_params.treasury_account_id == treasury_account
     assert reconstructed._keys.admin_key is not None
     assert reconstructed._keys.supply_key is not None
+
+
+def test_from_bytes_with_all_optional_keys(mock_account_ids):
+    """Covers kyc_key, freeze_key, wipe_key, fee_schedule_key, pause_key, metadata_key branches."""
+    from hiero_sdk_python.transaction.transaction import Transaction
+
+    treasury_account, _, node_account_id, _, _ = mock_account_ids
+
+    kyc_key = PrivateKey.generate_ed25519().public_key()
+    freeze_key = PrivateKey.generate_ed25519().public_key()
+    wipe_key = PrivateKey.generate_ed25519().public_key()
+    fee_schedule_key = PrivateKey.generate_ed25519().public_key()
+    pause_key = PrivateKey.generate_ed25519().public_key()
+    metadata_key = PrivateKey.generate_ed25519().public_key()
+
+    tx = (
+        TokenCreateTransaction()
+        .set_token_name("AllKeys")
+        .set_token_symbol("AK")
+        .set_treasury_account_id(treasury_account)
+        .set_kyc_key(kyc_key)
+        .set_freeze_key(freeze_key)
+        .set_wipe_key(wipe_key)
+        .set_fee_schedule_key(fee_schedule_key)
+        .set_pause_key(pause_key)
+        .set_metadata_key(metadata_key)
+    )
+    tx.transaction_id = TransactionId.generate(treasury_account)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenCreateTransaction)
+    assert reconstructed._keys.kyc_key is not None
+    assert reconstructed._keys.freeze_key is not None
+    assert reconstructed._keys.wipe_key is not None
+    assert reconstructed._keys.fee_schedule_key is not None
+    assert reconstructed._keys.pause_key is not None
+    assert reconstructed._keys.metadata_key is not None
+
+
+def test_from_bytes_without_treasury_and_with_expiry(mock_account_ids):
+    """Covers treasury_account_id=None and expiry branches in _from_protobuf."""
+    from hiero_sdk_python.hapi.services import token_create_pb2, transaction_pb2
+    from hiero_sdk_python.hapi.services.timestamp_pb2 import Timestamp as TimestampProto
+
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    body = token_create_pb2.TokenCreateTransactionBody(
+        name="NoTreasury",
+        symbol="NT",
+    )
+    body.expiry.CopyFrom(TimestampProto(seconds=9_999_999_999))
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.tokenCreation.CopyFrom(body)
+
+    result = TokenCreateTransaction._from_protobuf(tx_body, b"", None)
+
+    assert isinstance(result, TokenCreateTransaction)
+    assert result._token_params.treasury_account_id is None
+    assert result._token_params.expiration_time is not None
+    assert result._token_params.auto_renew_period is None
+
+
+def test_from_bytes_without_expiry_or_auto_renew(mock_account_ids):
+    """Covers the else branch (auto_renew_period=None) when neither expiry nor autoRenewPeriod set."""
+    from hiero_sdk_python.hapi.services import token_create_pb2, transaction_pb2
+
+    body = token_create_pb2.TokenCreateTransactionBody(name="Test", symbol="TST")
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.tokenCreation.CopyFrom(body)
+
+    result = TokenCreateTransaction._from_protobuf(tx_body, b"", None)
+
+    assert isinstance(result, TokenCreateTransaction)
+    assert result._token_params.expiration_time is None
+    assert result._token_params.auto_renew_period is None

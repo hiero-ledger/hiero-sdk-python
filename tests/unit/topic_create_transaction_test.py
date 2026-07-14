@@ -657,3 +657,26 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed.admin_key == admin_key
     assert reconstructed.submit_key == submit_key
     assert reconstructed.auto_renew_period == auto_renew_period
+
+
+def test_from_bytes_with_fee_schedule_key(mock_account_ids):
+    """Covers fee_schedule_key branch in _from_protobuf."""
+    account_id_sender, _, node_account_id, _, _ = mock_account_ids
+
+    fee_schedule_key = PrivateKey.generate_ed25519().public_key()
+    fee_collector = AccountId(0, 0, 77)
+    custom_fee = CustomFixedFee(amount=500, fee_collector_account_id=fee_collector)
+
+    tx = TopicCreateTransaction()
+    tx.set_fee_schedule_key(fee_schedule_key)
+    tx.set_custom_fees([custom_fee])
+    tx.transaction_id = TransactionId.generate(account_id_sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TopicCreateTransaction)
+    assert reconstructed.fee_schedule_key is not None
+    assert len(reconstructed.custom_fees) == 1
+    assert reconstructed.custom_fees[0].amount == 500

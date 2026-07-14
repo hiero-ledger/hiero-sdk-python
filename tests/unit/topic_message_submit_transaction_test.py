@@ -502,6 +502,39 @@ def test_from_bytes(topic_id):
     assert reconstructed.message == "hello world"
 
 
+def test_from_bytes_with_chunk_info(topic_id):
+    """Covers chunkInfo and initialTransactionID branches in _from_protobuf."""
+    from hiero_sdk_python.hapi.services import transaction_pb2
+
+    initial_tx_id = TransactionId.generate(AccountId(0, 0, 1))
+    initial_proto_id = initial_tx_id._to_proto()
+
+    from hiero_sdk_python.hapi.services.consensus_submit_message_pb2 import (
+        ConsensusMessageChunkInfo,
+        ConsensusSubmitMessageTransactionBody,
+    )
+
+    chunk_info = ConsensusMessageChunkInfo(
+        initialTransactionID=initial_proto_id,
+        total=3,
+        number=2,
+    )
+    body = ConsensusSubmitMessageTransactionBody(
+        topicID=topic_id._to_proto(),
+        message=b"chunk payload",
+        chunkInfo=chunk_info,
+    )
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.consensusSubmitMessage.CopyFrom(body)
+
+    result = TopicMessageSubmitTransaction._from_protobuf(tx_body, b"", None)
+
+    assert isinstance(result, TopicMessageSubmitTransaction)
+    assert result._total_chunks == 3
+    assert result._current_chunk_index == 1
+    assert result._initial_transaction_id is not None
+
+
 def test_topic_submit_execute_returns_failed_receipt_by_default(topic_id):
     """Test execute returns the failing receipt by default when validation is disabled."""
     message = "Hello Hiero"

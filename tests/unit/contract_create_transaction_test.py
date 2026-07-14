@@ -449,3 +449,54 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed.gas == 100_000
     assert reconstructed.bytecode == b"\x60\x80\x60\x40"
     assert reconstructed.contract_memo == "hello"
+
+
+def test_from_bytes_with_optional_fields(mock_account_ids):
+    """Covers adminKey, proxyAccountID, auto_renew_account_id, fileID, staked_account_id, staked_node_id."""
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    admin_key = PrivateKey.generate().public_key()
+
+    tx = ContractCreateTransaction()
+    tx.set_admin_key(admin_key)
+    tx.set_bytecode_file_id(FileId(0, 0, 42))
+    tx.set_gas(1000)
+    tx.set_auto_renew_account_id(AccountId(0, 0, 5))
+    tx.set_staked_account_id(AccountId(0, 0, 6))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractCreateTransaction)
+    assert reconstructed.admin_key is not None
+    assert reconstructed.bytecode_file_id == FileId(0, 0, 42)
+    assert reconstructed.auto_renew_account_id == AccountId(0, 0, 5)
+    assert reconstructed.staked_account_id == AccountId(0, 0, 6)
+    assert reconstructed.staked_node_id is None
+
+
+def test_from_bytes_with_staked_node_id(mock_account_ids):
+    """Covers staked_node_id branch in _from_protobuf."""
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = ContractCreateTransaction()
+    tx.set_bytecode(b"\x00")
+    tx.set_gas(1000)
+    tx.set_staked_node_id(7)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractCreateTransaction)
+    assert reconstructed.staked_node_id == 7
+    assert reconstructed.staked_account_id is None
