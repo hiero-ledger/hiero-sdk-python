@@ -200,6 +200,61 @@ def test_add_methods_require_not_frozen(mock_account_ids, nft_id, mock_client):
         reject_tx.add_nft_id(nft_id)
 
 
+def test_add_token_id_rejects_invalid_type(mock_account_ids):
+    """Test that add_token_id rejects a value that is not a TokenId instance."""
+    _, _, _, token_id, _ = mock_account_ids
+    nft_id = NftId(token_id=token_id, serial_number=1)
+
+    reject_tx = TokenRejectTransaction()
+
+    with pytest.raises(TypeError, match="token_id must be a TokenId instance."):
+        reject_tx.add_token_id(nft_id)
+
+    with pytest.raises(TypeError, match="token_id must be a TokenId instance."):
+        reject_tx.add_token_id("0.0.100")
+
+    # The invalid inputs must not have been appended.
+    assert reject_tx.token_ids == []
+
+
+def test_add_nft_id_rejects_invalid_type(mock_account_ids):
+    """Test that add_nft_id rejects a value that is not a NftId instance."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    reject_tx = TokenRejectTransaction()
+
+    with pytest.raises(TypeError, match="nft_id must be a NftId instance."):
+        reject_tx.add_nft_id(token_id)
+
+    with pytest.raises(TypeError, match="nft_id must be a NftId instance."):
+        reject_tx.add_nft_id("0.0.100")
+
+    # The invalid inputs must not have been appended.
+    assert reject_tx.nft_ids == []
+
+
+def test_add_id_methods_do_not_mutate_caller_lists(mock_account_ids):
+    """Test that add_token_id/add_nft_id do not mutate lists passed to the constructor."""
+    _, _, _, token_id_1, token_id_2 = mock_account_ids
+    nft_id_1 = NftId(token_id=token_id_1, serial_number=1)
+    nft_id_2 = NftId(token_id=token_id_1, serial_number=2)
+
+    token_ids = [token_id_1]
+    nft_ids = [nft_id_1]
+
+    reject_tx = TokenRejectTransaction(token_ids=token_ids, nft_ids=nft_ids)
+    reject_tx.add_token_id(token_id_2)
+    reject_tx.add_nft_id(nft_id_2)
+
+    # The transaction reflects the appended IDs.
+    assert reject_tx.token_ids == [token_id_1, token_id_2]
+    assert reject_tx.nft_ids == [nft_id_1, nft_id_2]
+
+    # The caller's original lists remain untouched.
+    assert token_ids == [token_id_1]
+    assert nft_ids == [nft_id_1]
+
+
 def test_reject_transaction_can_execute(mock_account_ids):
     """Test that a reject transaction can be executed successfully."""
     account_id, owner_account_id, _, token_id, _ = mock_account_ids
