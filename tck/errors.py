@@ -105,19 +105,19 @@ def handle_sdk_errors(func):
         except JsonRpcError:
             raise
         except PrecheckError as e:
-            logger.error(f"PrecheckError (status: {ResponseCode(e.status).name}, method: {func.__name__})")
+            logger.error(f"PrecheckError (method: {func.__name__}, status: {ResponseCode(e.status).name})")
             raise JsonRpcError.hiero_error({"status": ResponseCode(e.status).name}) from e
 
         except ReceiptStatusError as e:
-            logger.error(f"ReceiptStatusError (status: {ResponseCode(e.status).name}, method: {func.__name__})")
+            logger.error(f"ReceiptStatusError (method: {func.__name__}, status: {ResponseCode(e.status).name})")
             raise JsonRpcError.hiero_error({"status": ResponseCode(e.status).name}) from e
 
         except MaxAttemptsError as e:
-            logger.error(f"MaxAttemptsError (method: {func.__name__})")
-            raise JsonRpcError.hiero_error(message=str(e)) from e
+            logger.error(f"MaxAttemptsError (method: {func.__name__}, error: {str(e)})")
+            raise JsonRpcError.hiero_error() from e
 
         except Exception as e:
-            logger.exception("Unhandled error in RPC handler")
-            raise JsonRpcError.internal_error(message="Internal error") from e
+            logger.error(f"InternalError (method: {func.__name__}) error: {str(e)}")
+            raise JsonRpcError.internal_error() from e
 
     return wrapper
