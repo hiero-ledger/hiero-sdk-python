@@ -350,16 +350,27 @@ class WipeTokenParams(BaseTransactionParams):
     @classmethod
     def parse_json_params(cls, params: dict) -> WipeTokenParams:
         """Parse JSON-RPC params into a WipeTokenParams instance."""
+        token_id = params.get("tokenId")
+        if token_id is not None and not isinstance(token_id, str):
+            raise ValueError("tokenId must be a string")
+        account_id = params.get("accountId")
+        if account_id is not None and not isinstance(account_id, str):
+            raise ValueError("accountId must be a string")
+        amount = params.get("amount")
+        if amount is not None and not isinstance(amount, str):
+            raise ValueError("amount must be a string")
         serial_numbers = params.get("serialNumbers")
         if serial_numbers is not None and not isinstance(serial_numbers, list):
             raise ValueError("serialNumbers must be a list")
         if serial_numbers is not None and any(not isinstance(serial_number, str) for serial_number in serial_numbers):
             raise ValueError("Each serialNumbers item must be a string")
+        if serial_numbers is not None and any(to_int(serial_number) is None for serial_number in serial_numbers):
+            raise ValueError("Each serialNumbers item must be a valid integer string")
 
         return cls(
-            tokenId=params.get("tokenId"),
-            accountId=params.get("accountId"),
-            amount=params.get("amount"),
+            tokenId=token_id,
+            accountId=account_id,
+            amount=amount,
             serialNumbers=serial_numbers,
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
