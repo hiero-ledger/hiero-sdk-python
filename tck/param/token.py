@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.tokens.token_id import TokenId
 from tck.param.base import BaseParams, BaseTransactionParams
 from tck.param.custom_fee import CustomFeeParams
 from tck.util.param_utils import (
@@ -353,22 +351,14 @@ class WipeTokenParams(BaseTransactionParams):
     def parse_json_params(cls, params: dict) -> WipeTokenParams:
         """Parse JSON-RPC params into a WipeTokenParams instance."""
         token_id = params.get("tokenId")
-        if token_id is not None:
-            token_id = TokenId.from_string(token_id)
 
         account_id = params.get("accountId")
-        if account_id is not None:
-            account_id = AccountId.from_string(account_id)
 
         amount = params.get("amount")
 
         serial_numbers = params.get("serialNumbers")
         if serial_numbers is not None and not isinstance(serial_numbers, list):
             raise ValueError("serialNumbers must be a list")
-        if serial_numbers is not None and any(not isinstance(serial_number, str) for serial_number in serial_numbers):
-            raise ValueError("Each serialNumbers item must be a string")
-        if serial_numbers is not None and any(to_int(serial_number) is None for serial_number in serial_numbers):
-            raise ValueError("Each serialNumbers item must be a valid integer string")
 
         return cls(
             tokenId=token_id,
