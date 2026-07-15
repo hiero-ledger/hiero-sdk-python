@@ -792,11 +792,7 @@ def _build_wipe_token_transaction(params: WipeTokenParams) -> TokenWipeTransacti
     if params.accountId is not None:
         transaction.set_account_id(AccountId.from_string(params.accountId))
 
-    if params.amount is not None:
-        amount = to_int(params.amount)
-        if amount is None:
-            raise ValueError("amount must be a valid integer")
-        transaction.set_amount(amount)
+    transaction.set_amount(to_int(params.amount))
 
     if params.serialNumbers is not None:
         serialNumberList = [int(serial_number) for serial_number in params.serialNumbers]
