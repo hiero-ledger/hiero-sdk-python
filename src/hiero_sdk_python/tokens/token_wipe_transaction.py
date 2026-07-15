@@ -115,21 +115,12 @@ class TokenWipeTransaction(Transaction):
         Returns:
             TokenWipeAccountTransactionBody: The protobuf body for this transaction.
         """
-        if self.token_id is not None:
-            token_wipe_body = TokenWipeAccountTransactionBody(
-                token=self.token_id._to_proto(),
-                account=self.account_id and self.account_id._to_proto(),
-                amount=self.amount,
-                serialNumbers=self.serial,
-            )
-        else:
-            token_wipe_body = TokenWipeAccountTransactionBody(
-                account=self.account_id and self.account_id._to_proto(),
-                amount=self.amount,
-                serialNumbers=self.serial,
-            )
-
-        return token_wipe_body
+        return TokenWipeAccountTransactionBody(
+            token=self.token_id and self.token_id._to_proto(),
+            account=self.account_id and self.account_id._to_proto(),
+            amount=self.amount,
+            serialNumbers=self.serial,
+        )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
