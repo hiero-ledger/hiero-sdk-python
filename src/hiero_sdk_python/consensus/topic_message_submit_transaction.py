@@ -12,6 +12,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.transaction.chunked_transaction import ChunkedTransaction
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 class TopicMessageSubmitTransaction(ChunkedTransaction):
