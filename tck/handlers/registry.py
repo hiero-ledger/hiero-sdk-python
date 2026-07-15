@@ -5,12 +5,16 @@ requests to handlers and transform exceptions into JSON-RPC errors.
 from __future__ import annotations
 
 import inspect
+import logging
 from collections.abc import Callable
-from dataclasses import asdict
+from dataclasses import asdict, fields as dc_fields
 from typing import Any, get_type_hints
 
 from tck.errors import JsonRpcError, handle_sdk_errors
 from tck.protocol import build_json_rpc_error_response
+
+
+logger = logging.getLogger(__name__)
 
 
 # A global _HANDLERS dict to store method name -> handler function mappings
@@ -43,7 +47,10 @@ def dispatch(method_name: str, params: Any) -> Any:
     handler = get_handler(method_name)
 
     if handler is None:
-        raise JsonRpcError.method_not_found_error(message=f"Method not found: {method_name}")
+        logger.warning(
+            f"MethodNotFoundError (method: {repr(method_name)}) error: The requested RPC method is not registered."
+        )
+        raise JsonRpcError.method_not_found_error()
 
     try:
         target_func = getattr(handler, "__wrapped__", handler)
@@ -58,16 +65,19 @@ def dispatch(method_name: str, params: Any) -> Any:
             param_type = hints.get(param_name, parameters[0].annotation)
             params = param_type.parse_json_params(params)
         except (TypeError, ValueError) as e:
+            logger.error(f"InvalidParamsError (method: {repr(method_name)}) error: {str(e)}")
             raise JsonRpcError.invalid_params_error(data=str(e)) from e
 
         result = handler(params)
 
         return parse_result(result)
 
-    except JsonRpcError:
+    except JsonRpcError as e:
+        logger.error(f"JsonRpcError (method: {repr(method_name)}) error: {str(e)}")
         raise
     except Exception as e:
-        raise JsonRpcError.internal_error(data=str(e)) from e
+        logger.error(f"InternalError (method: {repr(method_name)}) error: {str(e)}")
+        raise JsonRpcError.internal_error() from e
 
 
 def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -> Any | dict[str, Any]:
@@ -75,12 +85,37 @@ def safe_dispatch(method_name: str, params: Any, request_id: str | int | None) -
     try:
         return dispatch(method_name, params)
     except JsonRpcError as e:
+        logger.error(f"JsonRpcError (method: {repr(method_name)}) error: {str(e)}")
         return build_json_rpc_error_response(e, request_id)
     except Exception as e:
-        error = JsonRpcError.internal_error(data=str(e))
+        logger.error(f"InternalError (method: {repr(method_name)}) error: {str(e)}")
+        error = JsonRpcError.internal_error()
         return build_json_rpc_error_response(error, request_id)
 
 
+def _strip_none(obj: Any, nullable_keys: set[str] | None = None) -> Any:
+    """Recursively strip None values from nested dicts and lists."""
+    if isinstance(obj, dict):
+        return {
+            k: _strip_none(v)
+            for k, v in obj.items()
+            if v is not None or (nullable_keys is not None and k in nullable_keys)
+        }
+    if isinstance(obj, list):
+        return [_strip_none(item) for item in obj]
+    return obj
+
+
 def parse_result(result: Any) -> dict:
-    """Parse the result from the methods to dict containing non none key:values"""
-    return {k: v for k, v in asdict(result).items() if v is not None}
+    """Parse the result from the methods to dict containing non none key:values.
+
+    Fields with metadata={"nullable": True} are preserved even when None.
+    Recursively strips None from nested structures.
+    """
+    nullable_fields: set[str] = set()
+    for f in dc_fields(result):
+        if f.metadata.get("nullable"):
+            nullable_fields.add(f.name)
+
+    raw = asdict(result)
+    return _strip_none(raw, nullable_keys=nullable_fields)

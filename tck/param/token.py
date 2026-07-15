@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from tck.param.base import BaseTransactionParams
+from tck.param.base import BaseParams, BaseTransactionParams
 from tck.param.custom_fee import CustomFeeParams
 from tck.util.param_utils import (
     parse_common_transaction_params,
@@ -167,6 +167,42 @@ class FreezeTokenParams(BaseTransactionParams):
 
 
 @dataclass
+class GrantTokenKycParams(BaseTransactionParams):
+    """Request parameters for the grantTokenKyc endpoint."""
+
+    tokenId: str | None = None
+    accountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GrantTokenKycParams:
+        """Parse JSON-RPC params into a GrantTokenKycParams instance."""
+        return cls(
+            tokenId=params.get("tokenId"),
+            accountId=params.get("accountId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class RevokeTokenKycParams(BaseTransactionParams):
+    """Request parameters for the revokeTokenKyc endpoint."""
+
+    tokenId: str | None = None
+    accountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> RevokeTokenKycParams:
+        """Parse JSON-RPC params into a RevokeTokenKycParams instance."""
+        return cls(
+            tokenId=params.get("tokenId"),
+            accountId=params.get("accountId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class PauseTokenParams(BaseTransactionParams):
     """Request parameters for the pauseToken endpoint."""
 
@@ -235,30 +271,19 @@ class ClaimTokenParams(BaseTransactionParams):
 
 
 @dataclass
-class RejectTokenParams(BaseTransactionParams):
-    ownerId: str | None = None
-    tokenIds: list[str] | None = None
-    serialNumbers: list[str] | None = None
+class GetTokenInfoParams(BaseParams):
+    """Request parameters for the getTokenInfo endpoint."""
+
+    tokenId: str | None = None
+    queryPayment: str | None = None
+    maxQueryPayment: str | None = None
 
     @classmethod
-    def parse_json_params(cls, params: dict) -> RejectTokenParams:
-        token_ids = params.get("tokenIds")
-        if token_ids is not None and (
-            not isinstance(token_ids, list) or not all(isinstance(token_id, str) for token_id in token_ids)
-        ):
-            raise ValueError("tokenIds must be a list of strings")
-
-        serial_numbers = params.get("serialNumbers")
-        if serial_numbers is not None and (
-            not isinstance(serial_numbers, list)
-            or not all(isinstance(serial_number, str) for serial_number in serial_numbers)
-        ):
-            raise ValueError("serialNumbers must be a list of strings")
-
+    def parse_json_params(cls, params: dict) -> GetTokenInfoParams:
+        """Parse JSON-RPC params into a GetTokenInfoParams instance."""
         return cls(
-            ownerId=params.get("ownerId"),
-            tokenIds=token_ids,
-            serialNumbers=serial_numbers,
+            tokenId=params.get("tokenId"),
+            queryPayment=params.get("queryPayment"),
+            maxQueryPayment=params.get("maxQueryPayment"),
             sessionId=parse_session_id(params),
-            commonTransactionParams=parse_common_transaction_params(params),
         )

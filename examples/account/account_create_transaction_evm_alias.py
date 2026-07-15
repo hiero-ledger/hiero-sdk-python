@@ -24,6 +24,7 @@ from hiero_sdk_python import (
     Hbar,
     PrivateKey,
     PublicKey,
+    ResponseCode,
 )
 
 
@@ -90,7 +91,9 @@ def create_account_with_alias(client: Client, private_key: PrivateKey, public_ke
     # Execute the transaction
     response = transaction.execute(client)
 
-    # Safe retrieval of account ID
+    if response.status != ResponseCode.SUCCESS:
+        raise RuntimeError(f"Transaction failed with status: {ResponseCode(response.status).name}")
+
     new_account_id = response.account_id
     if new_account_id is None:
         raise RuntimeError("AccountID not found in receipt. Account may not have been created.")

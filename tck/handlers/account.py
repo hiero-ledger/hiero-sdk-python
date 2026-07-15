@@ -35,7 +35,7 @@ from tck.response.account import (
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
-from tck.util.key_utils import get_key_from_string
+from tck.util.key_utils import get_key_from_string, key_to_string
 
 
 def _build_create_account_transaction(params: CreateAccountParams) -> AccountCreateTransaction:
@@ -153,17 +153,6 @@ def _enum_name(value) -> str | None:
     return getattr(value, "name", str(value))
 
 
-def _serialize_key(key) -> str | None:
-    if key is None:
-        return None
-
-    to_string_der = getattr(key, "to_string_der", None)
-    if callable(to_string_der):
-        return to_string_der()
-
-    return key.to_bytes().hex()
-
-
 def _to_staking_info_response(info: AccountInfo) -> StakingInfoResponse | None:
     if info.staking_info is None:
         return None
@@ -211,7 +200,7 @@ def _build_account_info_response(info: AccountInfo) -> GetAccountInfoResponse:
         isDeleted=bool(info.is_deleted),
         proxyAccountId="",
         proxyReceived=str(info.proxy_received.to_tinybars()) if info.proxy_received is not None else "0",
-        key=_serialize_key(info.key),
+        key=key_to_string(info.key),
         balance=str(info.balance.to_tinybars()) if info.balance is not None else "0",
         sendRecordThreshold="0",
         receiveRecordThreshold="0",
