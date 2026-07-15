@@ -35,21 +35,21 @@ def test_build_transaction_body(mock_account_ids):
     assert transaction_body.tokenGrantKyc.account == account_id._to_proto()
 
 
-def test_build_transaction_body_validation(mock_account_ids):
-    """Test validation when building transaction body."""
+def test_build_transaction_body_allows_missing_ids(mock_account_ids):
+    """Do not reject missing IDs locally; defer validation to the network per TCK."""
     account_id, _, _, token_id, _ = mock_account_ids
 
-    # Test missing token ID
+    # Missing token ID: build must succeed, with the token field left unset.
     grant_kyc_tx = TokenGrantKycTransaction(account_id=account_id)
+    body = grant_kyc_tx._build_proto_body()
+    assert not body.HasField("token")
+    assert body.account == account_id._to_proto()
 
-    with pytest.raises(ValueError, match="Missing token ID"):
-        grant_kyc_tx.build_transaction_body()
-
-    # Test missing account ID
+    # Missing account ID: build must succeed, with the account field left unset.
     grant_kyc_tx = TokenGrantKycTransaction(token_id=token_id)
-
-    with pytest.raises(ValueError, match="Missing account ID"):
-        grant_kyc_tx.build_transaction_body()
+    body = grant_kyc_tx._build_proto_body()
+    assert body.token == token_id._to_proto()
+    assert not body.HasField("account")
 
 
 def test_constructor_with_parameters(mock_account_ids):
