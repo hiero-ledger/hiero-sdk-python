@@ -287,7 +287,8 @@ def test_integration_topic_message_submit_transaction_fails_if_required_chunk_gr
     )
     message_transaction.set_max_chunks(2)
     with pytest.raises(
-        ValueError, match="Message requires 4 chunks but max_chunks=2. Increase limit with set_max_chunks()."
+        ValueError,
+        match="Cannot execute ChunkedTransaction with more than 2 chunks. Required: 4 Increase limit with set_max_chunks().",
     ):
         message_transaction.execute(env.client)
 
