@@ -15,9 +15,12 @@ pytestmark = pytest.mark.unit
 
 
 class DummyChunkedTransaction(ChunkedTransaction):
+    """Mock ChunkTransaction class with default chunk size as 1024"""
+
     def __init__(self, required_chunks: int = 1) -> None:
         super().__init__()
         self.required_chunks = required_chunks
+        self._total_chunks = self.get_required_chunks()
 
     def _get_method(self, _channel):
         method = type("Method", (), {})()
@@ -44,10 +47,9 @@ def test_constructor_sets_default_chunk_configuration():
 
     assert tx.chunk_size == 1024
     assert tx.max_chunks == 20
-    assert tx._current_chunk_index == 0
+    assert tx._current_chunk_index is None
     assert tx._total_chunks == 1
     assert tx._transaction_ids == []
-    assert tx._signing_keys == []
 
 
 @pytest.mark.parametrize(
@@ -61,21 +63,13 @@ def test_setters_reject_non_positive_values(mock_client, setter_name, value, mes
         getattr(tx, setter_name)(value)
 
 
-def test_validate_chunking_rejects_zero_required_chunks():
-    """Test that _validate_chunking raises a ValueError when the required chunks is zero."""
-    tx = DummyChunkedTransaction(required_chunks=0)
-
-    with pytest.raises(ValueError, match="Transaction must require at least one chunk"):
-        tx._validate_chunking()
-
-
 def test_validate_chunking_rejects_too_many_chunks():
     """Test that _validate_chunking raises a ValueError when the required chunks exceeds max_chunks."""
     tx = DummyChunkedTransaction(required_chunks=4).set_max_chunks(2)
 
     with pytest.raises(
         ValueError,
-        match=r"Message requires 4 chunks but max_chunks=2\. Increase limit with set_max_chunks\(\)\.",
+        match="Cannot execute ChunkedTransaction with more than 2 chunks. Required: 4 Increase limit with set_max_chunks().",
     ):
         tx._validate_chunking()
 
@@ -86,7 +80,7 @@ def test_freeze_with_rejects_too_many_chunks(mock_client):
 
     with pytest.raises(
         ValueError,
-        match=r"Message requires 5 chunks but max_chunks=3\. Increase limit with set_max_chunks\(\)\.",
+        match="Cannot execute ChunkedTransaction with more than 3 chunks. Required: 5 Increase limit with set_max_chunks().",
     ):
         tx.freeze_with(mock_client)
 
@@ -100,23 +94,13 @@ def test_freeze_with_builds_chunk_transaction_ids(mock_client):
 
     assert tx._total_chunks == 3
     assert len(tx._transaction_ids) == 3
-    assert tx._initial_transaction_id == tx.transaction_id
+    assert tx._initial_transaction_id is not None
+    assert tx._initial_transaction_id.valid_start == tx.transaction_id.valid_start
     assert tx._transaction_ids[0] == tx.transaction_id
     assert tx._transaction_ids[1].valid_start.seconds == 123
     assert tx._transaction_ids[1].valid_start.nanos == 457
     assert tx._transaction_ids[2].valid_start.seconds == 123
     assert tx._transaction_ids[2].valid_start.nanos == 458
-
-
-def test_sign_tracks_signing_keys_once(mock_client, private_key):
-    tx = DummyChunkedTransaction(required_chunks=1)
-    tx.freeze_with(mock_client)
-
-    tx.sign(private_key)
-    tx.sign(private_key)
-
-    assert tx._signing_keys == [private_key]
-    assert tx.is_signed_by(private_key.public_key()) is True
 
 
 def test_body_size_all_chunks_restores_state(mock_client):
@@ -173,4 +157,5 @@ def test_validate_chunking_allows_required_equal_to_max_chunks():
 
     tx._validate_chunking()
     assert tx._total_chunks == 3
-    assert tx._current_chunk_index == 0
+    # since not transactionBytes is build
+    assert tx._current_chunk_index is None

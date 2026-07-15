@@ -6,7 +6,6 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, transaction_pb2
-from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -51,10 +50,6 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         if max_chunks is not None:
             self.set_max_chunks(max_chunks)
 
-        self.message: str | None = message
-        self.chunk_size: int = chunk_size or 1024
-        self.max_chunks: int = max_chunks or 20
-
         self._total_chunks = self.get_required_chunks()
 
     def _message_as_bytes(self) -> bytes:
@@ -68,8 +63,6 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             return b""
 
         return self.message.encode("utf-8") if isinstance(self.message, str) else self.message
-        self._initial_transaction_id: TransactionId | None = None
-        self._current_chunk_index: int | None = None
 
     def get_required_chunks(self) -> int:
         """
@@ -111,33 +104,6 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         self._require_not_frozen()
         self.message = message
         self._total_chunks = self.get_required_chunks()
-        return self
-
-    def set_chunk_size(self, chunk_size: int) -> TopicMessageSubmitTransaction:
-        """
-        Set maximum chunk size in bytes.
-
-        Args:
-            chunk_size (int): The size of each chunk in bytes.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().set_chunk_size(chunk_size)
-        self._total_chunks = self.get_required_chunks()
-        return self
-
-    def set_max_chunks(self, max_chunks: int) -> TopicMessageSubmitTransaction:
-        """
-        Set maximum allowed chunks.
-
-        Args:
-            max_chunks (int): The maximum number of chunks allowed.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().set_max_chunks(max_chunks)
         return self
 
     def set_custom_fee_limits(self, custom_fee_limits: list[CustomFeeLimit]) -> TopicMessageSubmitTransaction:
@@ -241,176 +207,6 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             _Method: The method object with bound transaction execution.
         """
         return _Method(transaction_func=channel.topic.submitMessage, query_func=None)
-
-    def sign(self, private_key: PrivateKey) -> TopicMessageSubmitTransaction:
-        """
-        Signs the transaction using the provided private key.
-
-        Args:
-            private_key (PrivateKey): The private key to sign the transaction with.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().sign(private_key)
-        return self
-    def freeze_with(self, client: Client) -> TopicMessageSubmitTransaction:
-        if self._transaction_body_bytes:
-            return self
-
-        self._resolve_transaction_id(client)
-        self._resolve_node_ids(client)
-
-        required_chunks = self.get_required_chunks()
-        self._generate_transaction_ids(self._transaction_ids[0], required_chunks)
-
-        self._initial_transaction_id = self._transaction_ids[0]
-
-        for chunk in range(self.get_required_chunks()):
-            self._current_transaction_id_index = chunk
-            self._current_chunk_index = chunk
-
-            node_bytes = {}
-
-            for node_account_id in self.node_account_ids:
-                self._node_account_id = node_account_id
-
-                transaction_body = self.build_transaction_body()
-                transaction_body.transactionID.CopyFrom(self._transaction_ids[chunk]._to_proto())
-                transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
-
-                node_bytes[node_account_id] = transaction_body.SerializeToString()
-
-            self._transaction_body_bytes[self._transaction_ids[chunk]] = node_bytes
-
-        return super().freeze_with(client)
-
-    @overload
-    def execute(
-        self,
-        client: Client,
-        timeout: int | float | None = None,
-        wait_for_receipt: Literal[True] = True,
-        validate_status: bool = False,
-    ) -> TransactionReceipt: ...
-
-    @overload
-    def execute(
-        self,
-        client: Client,
-        timeout: int | float | None = None,
-        wait_for_receipt: Literal[False] = False,
-        validate_status: bool = False,
-    ) -> TransactionResponse: ...
-
-    def execute(
-        self,
-        client: Client,
-        timeout: int | float | None = None,
-        wait_for_receipt: bool = True,
-        validate_status: bool = False,
-    ) -> TransactionReceipt | TransactionResponse:
-        """
-        Executes the topic message submit transaction.
-
-        For multi-chunk transactions, this method will execute all chunks sequentially and return first response.
-
-        Args:
-            client: The client to execute the transaction with.
-            timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
-            wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
-                If False, the method returns a TransactionResponse immediately after submission.
-            validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
-
-        Returns:
-            TransactionReceipt: If wait_for_receipt is True (default)
-            TransactionResponse: If wait_for_receipt is False
-        """
-        # Return the first response as the JS SDK does
-        return self.execute_all(client, timeout, wait_for_receipt, validate_status)[0]
-
-    @overload
-    def execute_all(
-        self,
-        client: Client,
-        timeout: int | float | None = None,
-        wait_for_receipt: Literal[True] = True,
-        validate_status: bool = False,
-    ) -> list[TransactionReceipt]: ...
-
-    @overload
-    def execute_all(
-        self,
-        client: Client,
-        timeout: int | float | None = None,
-        wait_for_receipt: Literal[False] = False,
-        validate_status: bool = False,
-    ) -> list[TransactionResponse]: ...
-
-    def execute_all(
-        self,
-        client: Client,
-        timeout: int | float | None = None,
-        wait_for_receipt: bool = True,
-        validate_status: bool = False,
-    ) -> list[TransactionReceipt] | list[TransactionResponse]:
-        """
-        Executes the topic message submit transaction.
-
-        This method will execute all chunks sequentially and return list of all responses.
-
-        Args:
-            client: The client to execute the transaction with.
-            timeout (int | float | None, optional): The total execution timeout (in seconds) for this execution.
-            wait_for_receipt (bool, optional): Whether to wait for consensus and return the receipt.
-                If False, the method returns a TransactionResponse immediately after submission.
-            validate_status: (bool):  Whether the query should automatically validate the transaction status (default False).
-
-        Returns:
-            List[TransactionReceipt]: If wait_for_receipt is True (default)
-            List[TransactionResponse]: If wait_for_receipt is False
-        """
-        self._validate_chunking()
-
-        if not self._transaction_body_bytes:
-            self.freeze_with(client)
-
-        if len(self._transaction_ids) == 1:
-            return [super().execute(client, timeout, wait_for_receipt, validate_status)]
-
-        # Multi-chunk transaction - execute all chunks
-        responses = []
-        self._current_transaction_id_index = 0
-        for index in range(len(self._transaction_ids)):
-            self._current_transaction_id_index = index
-            response = super().execute(client, timeout, wait_for_receipt, validate_status)
-            responses.append(response)
-
-        return responses
-
-    @property
-    def body_size_all_chunks(self) -> list[int]:
-        """Returns an array of body sizes for transactions with multiple chunks."""
-        self._require_frozen()
-        sizes = []
-
-        original_transaction_index = self._current_transaction_id_index
-
-        try:
-            for i, _ in enumerate(self._transaction_ids):
-                self._current_chunk_index = i
-                self._current_transaction_id_index = i
-
-                self._chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
-                    initialTransactionID=self._initial_transaction_id._to_proto(),
-                    total=self._total_chunks,
-                    number=i + 1,
-                )
-                sizes.append(self.body_size)
-        finally:
-            self._current_transaction_id_index = original_transaction_index
-
-        return sizes
 
     @classmethod
     def _from_protobuf(cls, transaction_body):

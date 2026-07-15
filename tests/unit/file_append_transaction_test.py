@@ -120,7 +120,8 @@ def test_validate_chunking():
 
     # Should raise error when required chunks > max_chunks
     with pytest.raises(
-        ValueError, match="Message requires 140 chunks but max_chunks=5. Increase limit with set_max_chunks()."
+        ValueError,
+        match="Cannot execute ChunkedTransaction with more than 5 chunks. Required: 140 Increase limit with set_max_chunks().",
     ):
         file_tx._validate_chunking()
 
