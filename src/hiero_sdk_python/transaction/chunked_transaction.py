@@ -149,6 +149,7 @@ class ChunkedTransaction(Transaction, ABC):
 
             self._transaction_body_bytes[self._transaction_ids[chunk]] = node_bytes
 
+        self._current_chunk_index = 0
         self._current_transaction_id_index = 0
 
         return super().freeze_with(client)
