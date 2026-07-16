@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Literal, overload
+from typing import Literal, TypeVar, overload
 
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
+
+
+T = TypeVar("T", bound="ChunkedTransaction")
 
 
 class ChunkedTransaction(Transaction, ABC):
@@ -36,7 +39,7 @@ class ChunkedTransaction(Transaction, ABC):
         self.max_chunks: int = 20
 
     @abstractmethod
-    def _build_proto_body(self):
+    def _build_proto_body(self: T):
         """
         Builds the protobuf body for the current chunk.
 
@@ -52,7 +55,7 @@ class ChunkedTransaction(Transaction, ABC):
         """
         pass
 
-    def set_chunk_size(self, chunk_size: int) -> ChunkedTransaction:
+    def set_chunk_size(self: T, chunk_size: int) -> T:
         """
         Sets the chunk size for this transaction.
 
@@ -73,7 +76,7 @@ class ChunkedTransaction(Transaction, ABC):
         self._total_chunks = self.get_required_chunks()
         return self
 
-    def set_max_chunks(self, max_chunks: int) -> ChunkedTransaction:
+    def set_max_chunks(self: T, max_chunks: int) -> T:
         """
         Sets the maximum number of chunks allowed.
 
@@ -93,7 +96,7 @@ class ChunkedTransaction(Transaction, ABC):
         self.max_chunks = max_chunks
         return self
 
-    def _validate_chunking(self) -> None:
+    def _validate_chunking(self: T) -> None:
         """
         Validates that the transaction doesn't exceed the maximum number of chunks.
 
@@ -106,7 +109,7 @@ class ChunkedTransaction(Transaction, ABC):
                 f"Required: {self.get_required_chunks()} Increase limit with set_max_chunks()."
             )
 
-    def freeze_with(self, client: Client) -> ChunkedTransaction:
+    def freeze_with(self: T, client: Client) -> T:
         """
         Freezes the transaction by building transaction bodies for all chunks.
 
@@ -149,14 +152,14 @@ class ChunkedTransaction(Transaction, ABC):
 
             self._transaction_body_bytes[self._transaction_ids[chunk]] = node_bytes
 
-        self._current_chunk_index = 0
+        self._current_chunk_index = None
         self._current_transaction_id_index = 0
 
         return super().freeze_with(client)
 
     @overload
     def execute(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
@@ -165,7 +168,7 @@ class ChunkedTransaction(Transaction, ABC):
 
     @overload
     def execute(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
@@ -173,7 +176,7 @@ class ChunkedTransaction(Transaction, ABC):
     ) -> TransactionResponse: ...
 
     def execute(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: bool = True,
@@ -200,7 +203,7 @@ class ChunkedTransaction(Transaction, ABC):
 
     @overload
     def execute_all(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
@@ -209,7 +212,7 @@ class ChunkedTransaction(Transaction, ABC):
 
     @overload
     def execute_all(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
@@ -217,7 +220,7 @@ class ChunkedTransaction(Transaction, ABC):
     ) -> list[TransactionResponse]: ...
 
     def execute_all(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: bool = True,
@@ -258,7 +261,7 @@ class ChunkedTransaction(Transaction, ABC):
         return responses
 
     @property
-    def body_size_all_chunks(self) -> list[int]:
+    def body_size_all_chunks(self: T) -> list[int]:
         """
         Returns an array of body sizes for each chunk in the transaction.
 
@@ -273,6 +276,7 @@ class ChunkedTransaction(Transaction, ABC):
         self._require_frozen()
         sizes = []
 
+        original_chunk_index = self._current_chunk_index
         original_transaction_index = self._current_transaction_id_index
 
         try:
@@ -281,6 +285,7 @@ class ChunkedTransaction(Transaction, ABC):
                 self._current_chunk_index = i
                 sizes.append(self.body_size)
         finally:
+            self._current_chunk_index = original_chunk_index
             self._current_transaction_id_index = original_transaction_index
 
         return sizes

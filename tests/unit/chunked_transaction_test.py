@@ -148,7 +148,8 @@ def test_execute_all_multi_chunk_replays_each_chunk(mock_client, private_key):
 
     assert responses == ["chunk-1", "chunk-2", "chunk-3"]
     assert mock_execute.call_count == 3
-    assert tx._current_chunk_index == 2
+    # ensure reset to none once transaction_body_bytes created
+    assert tx._current_chunk_index is None
 
 
 def test_validate_chunking_allows_required_equal_to_max_chunks():

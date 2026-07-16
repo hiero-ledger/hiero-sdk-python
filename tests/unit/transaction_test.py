@@ -410,7 +410,7 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
     assert large_size > 1024
     # The larger chunked transaction should be bigger than the single-chunk transaction
     assert large_size > small_size
-    assert large_tx._current_chunk_index == 0
+    assert large_tx._current_chunk_index is None
 
 
 def test_chunked_tx_differ_size_if_chunk_are_not_equal(topic_id, account_id, transaction_id):
