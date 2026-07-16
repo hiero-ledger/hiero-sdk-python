@@ -2,11 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -159,22 +157,3 @@ def test_transaction_with_secondary_client_without_operator_can_execute_successf
     receipt = tx2.execute(executor_client)
 
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
-
-
-@pytest.mark.integration
-def test(env):
-    key = PrivateKey.generate_ecdsa()
-
-    tx = (
-        AccountCreateTransaction()
-        .set_key_without_alias(key)
-        .set_initial_balance(1)
-        .set_account_memo("test account")
-        .freeze_with(env.client)
-    )
-    print(tx._transaction_body_bytes)
-
-    tx_bytes = tx.to_bytes()
-
-    tx2 = Transaction.from_bytes(tx_bytes)
-    tx2.execute(env.client)
