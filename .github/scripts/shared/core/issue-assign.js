@@ -1,41 +1,40 @@
 // .github/scripts/shared/issue-assign-core.js
 //
 // Shared engine for "/assign"-style comment automation across every
-// difficulty level (beginner, Good First Issue, intermediate, advanced, ...).
+// difficulty level (Good First Issue, beginner, intermediate, advanced, ...).
 //
-// This file intentionally contains NO per-label copy or behavior — that all
-// lives in .github/scripts/configs/assignment-levels.js. This module only
-// knows how to run the generic flow:
+// All level/label data lives in config.js (CONFIG.repos[].labels and
+// CONFIG.skillPrerequisites). This file has no per-label copy hardcoded
+// except generic message templates built from `displayName` — so adding a
+// new level, or pointing a repo at different label text, never requires
+// touching this file.
 //
+// Flow:
 //   1. Validate the webhook payload (real issue comment, not a bot, not a PR)
-//   2. Confirm the issue carries the label this config cares about
+//   2. Resolve which configured repo + skill level the issue belongs to
 //   3. If the comment is a plain "I'd like to help" message with no issue
 //      assigned yet -> maybe post a one-time reminder to use `/assign`
 //   4. If the comment contains `/assign`:
-//        a. Enforce any prerequisite (e.g. "complete 1 GFI before taking a
-//           beginner issue") — post a one-time guard comment if unmet
+//        a. Enforce the prerequisite (completions of `requiredLevel`,
+//           counted against the HOME repo's label/history) — post a
+//           one-time guard comment if unmet
 //        b. Refuse (with a comment) if the issue is already assigned
 //        c. Enforce spam-list handling (hard block, or reduced limit)
 //        d. Enforce the open-assignment cap
 //        e. Assign the commenter
-//        f. Run any post-assignment chain (mentor assignment, CodeRabbit
-//           plan trigger, etc.) — each step is independent and non-fatal
-//
-// Adding a new difficulty level should never require touching this file.
 
-const fs = require('fs');
-
-function isSafeSearchToken(value) {
-  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
-}
+const { CONFIG, LEVEL_KEYS } = require('../config.js');
+const { isSafeSearchToken } = require('../helpers/validation.js');
+const {
+  isSpamUser,
+  spamUsersBlocked,
+  isSpamLimited,
+  buildSpamBlockedMessage,
+  getAssignmentLimit,
+} = require('../helpers/spam.js');
 
 function commentRequestsAssignment(body) {
   return typeof body === 'string' && /(^|\s)\/assign(\s|$)/i.test(body);
-}
-
-function issueHasLabel(issue, label) {
-  const target = label.toLowerCase();
-  return Array.isArray(issue.labels) && issue.labels.some((l) => l.name?.toLowerCase() === target);
 }
 
 function getCurrentAssigneeMention(issue) {
@@ -43,16 +42,36 @@ function getCurrentAssigneeMention(issue) {
   return login ? `@${login}` : 'someone';
 }
 
-function isSpamUser(username, spamListPath) {
-  if (!spamListPath || !fs.existsSync(spamListPath)) return false;
+function findRepoConfig(owner, repo) {
+  return CONFIG.repos.find((r) => r.owner === owner && r.repo === repo) || null;
+}
 
-  const list = fs
-    .readFileSync(spamListPath, 'utf8')
-    .split('\n')
-    .map((l) => l.trim())
-    .filter((l) => l && !l.startsWith('#'));
+function findHomeRepoConfig() {
+  return CONFIG.repos.find((r) => r.isHome) || CONFIG.repos[0];
+}
 
-  return list.includes(username);
+/**
+ * Given an issue's labels and a repo config, returns the matching canonical
+ * level key (highest tier first, so an issue mistakenly double-labeled
+ * resolves to the more restrictive level) or null if none match.
+ */
+function resolveLevelKey(issue, repoConfig) {
+  const issueLabels = new Set((issue.labels || []).map((l) => l.name?.toLowerCase()).filter(Boolean));
+
+  for (let i = CONFIG.skillHierarchy.length - 1; i >= 0; i -= 1) {
+    const levelKey = CONFIG.skillHierarchy[i];
+    const label = repoConfig.labels?.[levelKey];
+    if (label && issueLabels.has(label.toLowerCase())) {
+      return levelKey;
+    }
+  }
+  return null;
+}
+
+function unassignedIssuesUrl(owner, repo, label) {
+  return `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(
+    `is:issue is:open label:"${label}" no:assignee`
+  )}`;
 }
 
 async function getOpenAssignments({ github, owner, repo, username }) {
@@ -67,10 +86,9 @@ async function getOpenAssignments({ github, owner, repo, username }) {
 }
 
 /**
- * Counts closed issues carrying `label` that were assigned to `username`.
- * Used to enforce prerequisites like "finish 1 GFI before taking a beginner
- * issue". Returns null (rather than throwing) on unsafe input or API error
- * so callers can choose to fail open.
+ * Counts closed issues carrying `label` (in the given repo) assigned to
+ * `username`. Returns null (rather than throwing) on unsafe input or API
+ * error so callers can choose to fail open.
  */
 async function countCompletedIssuesWithLabel({ github, owner, repo, username, label }) {
   if (!isSafeSearchToken(owner) || !isSafeSearchToken(repo) || !isSafeSearchToken(username)) {
@@ -126,8 +144,6 @@ async function isRepoCollaborator({ github, owner, repo, username }) {
       console.log('[assign-bot] isRepoCollaborator: not a collaborator', { username, status: error.status });
       return false;
     }
-    // Unexpected error talking to the API — fail closed (don't treat as collaborator)
-    // but don't let it crash the whole run.
     console.error('[assign-bot] isRepoCollaborator: unexpected error', { username, message: error.message });
     return false;
   }
@@ -151,40 +167,54 @@ async function fetchAllComments({ github, owner, repo, issueNumber }) {
   });
 }
 
-/**
- * Runs chained post-assignment steps in order. Each step is:
- *   { name: string, requiresPrevious?: boolean, run: async (ctx) => void }
- * A step throwing is caught and logged; it never fails the overall run
- * (the human assignment has already succeeded by this point). Steps with
- * requiresPrevious=true are skipped if the prior step failed, mirroring the
- * original "only trigger CodeRabbit if mentor assignment succeeded" logic.
- */
-async function runPostAssignChain(chain, ctx) {
-  let previousSucceeded = true;
-  for (const step of chain || []) {
-    if (step.requiresPrevious && !previousSucceeded) {
-      console.log(`[assign-bot] Skipping chained step "${step.name}" (previous step failed).`);
-      continue;
-    }
-    try {
-      await step.run(ctx);
-      previousSucceeded = true;
-      console.log(`[assign-bot] Chained step "${step.name}" succeeded.`);
-    } catch (error) {
-      previousSucceeded = false;
-      console.error(`[assign-bot] Chained step "${step.name}" failed:`, {
-        message: error.message,
-        status: error.status,
-      });
-    }
-  }
+// ---------------------------------------------------------------------------
+// Generic message templates, parameterized only by displayName/label/urls —
+// this is what lets new levels avoid needing bespoke copy in config.js.
+// ---------------------------------------------------------------------------
+
+function reminderMarkerFor(levelKey) {
+  return `<!-- assign-reminder:${levelKey} -->`;
 }
 
-/**
- * Main entry point. `levelConfig` describes everything level-specific;
- * see configs/assignment-levels.js for the shape and examples.
- */
-async function runAssignmentFlow({ github, context, levelConfig }) {
+function guardMarkerFor(levelKey) {
+  return `<!-- assign-guard:${levelKey} -->`;
+}
+
+function buildReminderMessage(commenter) {
+  return `👋 Hi @${commenter}! If you'd like to work on this issue, please comment \`/assign\` to get assigned.`;
+}
+
+function buildAlreadyAssignedMessage(commenter, issue, { owner, repo, label }) {
+  return `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to ${getCurrentAssigneeMention(
+    issue
+  )}, but we'd love your help on another one. You can find more "${label}" issues [here](${unassignedIssuesUrl(
+    owner,
+    repo,
+    label
+  )}).`;
+}
+
+function buildGuardMessage(commenter, { owner, repo, prereqLabel, prereqDisplayName, requiredCount, currentDisplayName }) {
+  const timesPhrase = requiredCount === 1 ? 'one' : requiredCount;
+  const issuePhrase = requiredCount === 1 ? 'issue' : 'issues';
+  return `👋 Hi @${commenter}! Thanks for your interest in contributing 💡\n\nBefore taking on a **${currentDisplayName}** issue, we ask contributors to complete at least ${timesPhrase} **${prereqDisplayName}** ${issuePhrase} first.\n\n👉 [Find one here](${unassignedIssuesUrl(
+    owner,
+    repo,
+    prereqLabel
+  )})\n\nOnce you've done that, come back — we'll be happy to assign this! 😊`;
+}
+
+function buildLimitMessage(commenter, { maxAllowed, spamLimited }) {
+  return spamLimited
+    ? `Hi @${commenter}, you are limited to **${maxAllowed} active issue${maxAllowed === 1 ? '' : 's'}** at a time. Please complete your current assignment before requesting another.`
+    : `👋 Hi @${commenter}, you already have **${maxAllowed} open assignment${maxAllowed === 1 ? '' : 's'}**. Please finish one before requesting another.`;
+}
+
+// ---------------------------------------------------------------------------
+// Main entry point
+// ---------------------------------------------------------------------------
+
+async function runAssignmentFlow({ github, context }) {
   const { payload } = context;
   const issue = payload.issue;
   const comment = payload.comment;
@@ -205,18 +235,31 @@ async function runAssignmentFlow({ github, context, levelConfig }) {
     return;
   }
 
-  if (!issueHasLabel(issue, levelConfig.label)) {
-    console.log(`[assign-bot] Issue #${issue.number} does not have the "${levelConfig.label}" label. Exiting.`);
+  const owner = repo.owner.login;
+  const repoName = repo.name;
+  const repoConfig = findRepoConfig(owner, repoName);
+
+  if (!repoConfig) {
+    console.log(`[assign-bot] ${owner}/${repoName} is not a configured repo. Exiting.`);
     return;
   }
 
-  const owner = repo.owner.login;
-  const repoName = repo.name;
+  const levelKey = resolveLevelKey(issue, repoConfig);
+  if (!levelKey) {
+    console.log(`[assign-bot] Issue #${issue.number} has no recognized skill label. Exiting.`);
+    return;
+  }
+
+  const levelConfig = CONFIG.skillPrerequisites[levelKey];
+  const label = repoConfig.labels[levelKey];
   const commenter = comment.user.login;
   const issueNumber = issue.number;
   const isAssigned = Array.isArray(issue.assignees) && issue.assignees.length > 0;
 
-  // ---- Branch A: plain comment, no /assign — maybe post a reminder ----
+  console.log(`[assign-bot] Issue #${issueNumber} in ${owner}/${repoName} matched level "${levelKey}".`);
+
+  // ---- plain comment, no /assign — post a reminder ----
+
   if (!commentRequestsAssignment(comment.body)) {
     if (isAssigned) {
       console.log(`[assign-bot] Issue #${issueNumber} already assigned. Skipping reminder.`);
@@ -236,36 +279,43 @@ async function runAssignmentFlow({ github, context, levelConfig }) {
       return;
     }
 
-    const reminderAlreadyPosted = comments.some((c) => c.body?.includes(levelConfig.reminderMarker));
-    if (reminderAlreadyPosted) {
+    const marker = reminderMarkerFor(levelKey);
+    if (comments.some((c) => c.body?.includes(marker))) {
       console.log('[assign-bot] Reminder already posted. Skipping.');
       return;
     }
 
-    const body = `${levelConfig.reminderMarker}\n${levelConfig.reminderMessageBuilder(commenter)}`;
+    const body = `${marker}\n${buildReminderMessage(commenter)}`;
     await postComment({ github, owner, repo: repoName, issueNumber, body }, 'assign reminder');
     return;
   }
 
-  // ---- Branch B: /assign command ----
+  // ---- /assign command ----
 
-  // Prerequisite gate (e.g. "must complete 1 GFI before taking a beginner issue")
-  if (levelConfig.prerequisite) {
-    const { label: prereqLabel, count: requiredCount, guardMarker, guardMessageBuilder } = levelConfig.prerequisite;
+  // Prerequisite check, resolved against the HOME repo's history/labels.
+  if (levelConfig.requiredLevel && levelConfig.requiredCount > 0) {
+    const homeRepoConfig = findHomeRepoConfig();
+    const prereqLabel = homeRepoConfig.labels[levelConfig.requiredLevel];
+    const prereqDisplayName = CONFIG.skillPrerequisites[levelConfig.requiredLevel].displayName;
 
     const completedCount = await countCompletedIssuesWithLabel({
       github,
-      owner,
-      repo: repoName,
+      owner: homeRepoConfig.owner,
+      repo: homeRepoConfig.repo,
       username: commenter,
       label: prereqLabel,
     });
 
-    console.log('[assign-bot] Prerequisite check:', { commenter, prereqLabel, requiredCount, completedCount });
+    console.log('[assign-bot] Prerequisite check:', {
+      commenter,
+      prereqLabel,
+      requiredCount: levelConfig.requiredCount,
+      completedCount,
+    });
 
     if (completedCount === null) {
       console.log('[assign-bot] Skipping prerequisite guard due to API error (fail open).');
-    } else if (completedCount < requiredCount) {
+    } else if (completedCount < levelConfig.requiredCount) {
       let comments;
       try {
         comments = await fetchAllComments({ github, owner, repo: repoName, issueNumber });
@@ -274,9 +324,16 @@ async function runAssignmentFlow({ github, context, levelConfig }) {
         return;
       }
 
-      const guardAlreadyPosted = comments.some((c) => c.body?.includes(guardMarker));
-      if (!guardAlreadyPosted) {
-        const body = `${guardMarker}\n${guardMessageBuilder(commenter, { owner, repo: repoName })}`;
+      const marker = guardMarkerFor(levelKey);
+      if (!comments.some((c) => c.body?.includes(marker))) {
+        const body = `${marker}\n${buildGuardMessage(commenter, {
+          owner,
+          repo: repoName,
+          prereqLabel,
+          prereqDisplayName,
+          requiredCount: levelConfig.requiredCount,
+          currentDisplayName: levelConfig.displayName,
+        })}`;
         await postComment({ github, owner, repo: repoName, issueNumber, body }, 'prerequisite guard');
       }
       return;
@@ -285,31 +342,30 @@ async function runAssignmentFlow({ github, context, levelConfig }) {
 
   // Already assigned?
   if (isAssigned) {
-    const body = levelConfig.alreadyAssignedMessageBuilder(commenter, issue, { owner, repo: repoName });
+    const body = buildAlreadyAssignedMessage(commenter, issue, { owner, repo: repoName, label });
     await postComment({ github, owner, repo: repoName, issueNumber, body }, 'already-assigned notice');
     return;
   }
 
   // Spam handling
-  const spamConfig = levelConfig.spam;
-  const spamUser = spamConfig ? isSpamUser(commenter, spamConfig.listPath) : false;
+  const spamUser = isSpamUser(commenter);
 
-  if (spamUser && spamConfig.behavior === 'block') {
-    console.log(`[assign-bot] Spam user @${commenter} blocked from "${levelConfig.label}" issues.`);
-    const body = spamConfig.blockedMessageBuilder(commenter);
+  if (spamUser && spamUsersBlocked(levelKey)) {
+    console.log(`[assign-bot] Spam user @${commenter} blocked from "${levelKey}" issues.`);
+    const gfiDisplayName = CONFIG.skillPrerequisites[LEVEL_KEYS.GFI].displayName;
+    const body = buildSpamBlockedMessage(commenter, { prereqDisplayName: gfiDisplayName });
     await postComment({ github, owner, repo: repoName, issueNumber, body }, 'spam restriction notice');
     return;
   }
 
-  // Open-assignment cap (spam users may get a reduced cap instead of a hard block)
-  const maxAllowed =
-    spamUser && spamConfig?.behavior === 'limit' ? spamConfig.limitTo : levelConfig.maxOpenAssignments;
+  const maxAllowed = getAssignmentLimit(levelKey, spamUser);
 
   const openCount = await getOpenAssignments({ github, owner, repo: repoName, username: commenter });
   console.log('[assign-bot] Limit check:', { commenter, openCount, spamUser, maxAllowed });
 
   if (openCount >= maxAllowed) {
-    const body = levelConfig.limitMessageBuilder(commenter, { maxAllowed, spamLimited: spamUser && spamConfig?.behavior === 'limit' });
+    const spamLimited = isSpamLimited(levelKey, spamUser);
+    const body = buildLimitMessage(commenter, { maxAllowed, spamLimited });
     await postComment({ github, owner, repo: repoName, issueNumber, body }, 'limit warning');
     return;
   }
@@ -320,29 +376,11 @@ async function runAssignmentFlow({ github, context, levelConfig }) {
     console.log(`[assign-bot] Assigned #${issueNumber} to @${commenter}.`);
   } catch (error) {
     console.error('[assign-bot] Failed to assign issue:', { message: error.message });
-    return;
   }
+  return;
 
-  // Post-assignment chain (mentor assignment, CodeRabbit plan, etc.)
-  await runPostAssignChain(levelConfig.postAssignChain, {
-    github,
-    context,
-    owner,
-    repo: repoName,
-    issue,
-    issueNumber,
-    assignee: { login: commenter, type: 'User' },
-  });
 }
 
 module.exports = {
   runAssignmentFlow,
-  isSafeSearchToken,
-  commentRequestsAssignment,
-  issueHasLabel,
-  getCurrentAssigneeMention,
-  isSpamUser,
-  getOpenAssignments,
-  countCompletedIssuesWithLabel,
-  isRepoCollaborator,
 };
