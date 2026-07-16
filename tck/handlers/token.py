@@ -709,14 +709,21 @@ def _build_reject_token_transaction(
 ) -> TokenRejectTransaction:
     transaction = TokenRejectTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
-    if params.ownerId:
+    if params.ownerId is not None:
         transaction.set_owner_id(AccountId.from_string(params.ownerId))
 
-    if params.tokenIds:
-        transaction.set_token_ids([TokenId.from_string(token) for token in params.tokenIds])
+    if params.serialNumbers is not None and params.tokenIds is not None:
+        nft_ids = []
 
-    if params.serialNumbers:
-        transaction.set_nft_ids([NftId.from_string(serial) for serial in params.serialNumbers])
+        for token_id in params.tokenIds:
+            nft_ids.extend(
+                NftId(TokenId.from_string(token_id), int(serial_number)) for serial_number in params.serialNumbers
+            )
+
+        transaction.set_nft_ids(nft_ids)
+
+    elif params.tokenIds is not None:
+        transaction.set_token_ids([TokenId.from_string(token) for token in params.tokenIds])
 
     return transaction
 
@@ -728,7 +735,7 @@ def reject_token(params: RejectTokenParams) -> RejectTokenResponse:
     transaction = _build_reject_token_transaction(params)
 
     if params.commonTransactionParams is not None:
-        params.commonTransactionParams.apply_common_params(transaction, params.commonTransactionParams)
+        params.commonTransactionParams.apply_common_params(transaction, client)
 
     response = transaction.execute(client, wait_for_receipt=False)
     receipt = response.get_receipt(client, validate_status=True)
