@@ -40,6 +40,16 @@ class FreezeTokenResponse(StatusOnlyResponse):
 
 
 @dataclass
+class GrantTokenKycResponse(StatusOnlyResponse):
+    """Response payload for grantTokenKyc."""
+
+
+@dataclass
+class RevokeTokenKycResponse(StatusOnlyResponse):
+    """Response payload for revokeTokenKyc."""
+
+
+@dataclass
 class PauseTokenResponse(StatusOnlyResponse):
     """Response payload for pauseToken."""
 

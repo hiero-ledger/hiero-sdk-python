@@ -167,6 +167,42 @@ class FreezeTokenParams(BaseTransactionParams):
 
 
 @dataclass
+class GrantTokenKycParams(BaseTransactionParams):
+    """Request parameters for the grantTokenKyc endpoint."""
+
+    tokenId: str | None = None
+    accountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GrantTokenKycParams:
+        """Parse JSON-RPC params into a GrantTokenKycParams instance."""
+        return cls(
+            tokenId=params.get("tokenId"),
+            accountId=params.get("accountId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class RevokeTokenKycParams(BaseTransactionParams):
+    """Request parameters for the revokeTokenKyc endpoint."""
+
+    tokenId: str | None = None
+    accountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> RevokeTokenKycParams:
+        """Parse JSON-RPC params into a RevokeTokenKycParams instance."""
+        return cls(
+            tokenId=params.get("tokenId"),
+            accountId=params.get("accountId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class PauseTokenParams(BaseTransactionParams):
     """Request parameters for the pauseToken endpoint."""
 

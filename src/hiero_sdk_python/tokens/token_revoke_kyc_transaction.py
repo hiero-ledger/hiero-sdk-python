@@ -77,17 +77,14 @@ class TokenRevokeKycTransaction(Transaction):
 
         Returns:
             TokenRevokeKycTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If the token ID or account ID is not set.
         """
-        if self.token_id is None:
-            raise ValueError("Missing token ID")
+        kwargs = {}
+        if self.token_id is not None:
+            kwargs["token"] = self.token_id._to_proto()
+        if self.account_id is not None:
+            kwargs["account"] = self.account_id._to_proto()
 
-        if self.account_id is None:
-            raise ValueError("Missing account ID")
-
-        return TokenRevokeKycTransactionBody(token=self.token_id._to_proto(), account=self.account_id._to_proto())
+        return TokenRevokeKycTransactionBody(**kwargs)
 
     def build_transaction_body(self) -> transaction_pb2.AtomicBatchTransactionBody:
         """
