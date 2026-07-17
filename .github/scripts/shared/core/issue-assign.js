@@ -24,7 +24,6 @@
 //        e. Assign the commenter
 
 const { CONFIG, LEVEL_KEYS } = require('../config.js');
-const { isSafeSearchToken } = require('../helpers/validation.js');
 const {
   isSpamUser,
   spamUsersBlocked,
@@ -32,6 +31,14 @@ const {
   buildSpamBlockedMessage,
   getAssignmentLimit,
 } = require('../helpers/spam.js');
+const{
+  getOpenAssignments,
+  countCompletedIssuesWithLabel,
+  isRepoCollaborator,
+  postComment,
+  fetchAllComments,
+  assignIssue,
+} = require('../api/github-api.js')
 
 function commentRequestsAssignment(body) {
   return typeof body === 'string' && /(^|\s)\/assign(\s|$)/i.test(body);
@@ -72,99 +79,6 @@ function unassignedIssuesUrl(owner, repo, label) {
   return `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent(
     `is:issue is:open label:"${label}" no:assignee`
   )}`;
-}
-
-async function getOpenAssignments({ github, owner, repo, username }) {
-  const issues = await github.paginate(github.rest.issues.listForRepo, {
-    owner,
-    repo,
-    assignee: username,
-    state: 'open',
-    per_page: 100,
-  });
-  return issues.length;
-}
-
-/**
- * Counts closed issues carrying `label` (in the given repo) assigned to
- * `username`. Returns null (rather than throwing) on unsafe input or API
- * error so callers can choose to fail open.
- */
-async function countCompletedIssuesWithLabel({ github, owner, repo, username, label }) {
-  if (!isSafeSearchToken(owner) || !isSafeSearchToken(repo) || !isSafeSearchToken(username)) {
-    return null;
-  }
-
-  const searchQuery = [
-    `repo:${owner}/${repo}`,
-    `label:"${label}"`,
-    'is:issue',
-    'is:closed',
-    `assignee:${username}`,
-  ].join(' ');
-
-  try {
-    const result = await github.graphql(
-      `
-      query ($searchQuery: String!) {
-        search(type: ISSUE, query: $searchQuery) {
-          issueCount
-        }
-      }
-      `,
-      { searchQuery }
-    );
-    return result?.search?.issueCount ?? 0;
-  } catch (error) {
-    console.error('[assign-bot] countCompletedIssuesWithLabel failed:', {
-      owner,
-      repo,
-      username,
-      label,
-      message: error.message,
-    });
-    return null;
-  }
-}
-
-async function isRepoCollaborator({ github, owner, repo, username }) {
-  if (username === owner) {
-    console.log(`[assign-bot] @${username} is the repo owner — treated as collaborator.`);
-    return true;
-  }
-
-  try {
-    const response = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username });
-    const permission = response?.data?.permission;
-    const isTeamMember = ['admin', 'write', 'maintain', 'read'].includes(permission);
-    console.log('[assign-bot] isRepoCollaborator:', { username, permission, isTeamMember });
-    return isTeamMember;
-  } catch (error) {
-    if (error?.status === 401 || error?.status === 403 || error?.status === 404) {
-      console.log('[assign-bot] isRepoCollaborator: not a collaborator', { username, status: error.status });
-      return false;
-    }
-    console.error('[assign-bot] isRepoCollaborator: unexpected error', { username, message: error.message });
-    return false;
-  }
-}
-
-async function postComment({ github, owner, repo, issueNumber, body }, logLabel) {
-  try {
-    await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
-    console.log(`[assign-bot] Posted comment: ${logLabel}`);
-  } catch (error) {
-    console.error(`[assign-bot] Failed to post comment (${logLabel}):`, { message: error.message });
-  }
-}
-
-async function fetchAllComments({ github, owner, repo, issueNumber }) {
-  return github.paginate(github.rest.issues.listComments, {
-    owner,
-    repo,
-    issue_number: issueNumber,
-    per_page: 100,
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -372,10 +286,17 @@ async function runAssignmentFlow({ github, context }) {
 
   // Assign
   try {
-    await github.rest.issues.addAssignees({ owner, repo: repoName, issue_number: issueNumber, assignees: [commenter] });
-    console.log(`[assign-bot] Assigned #${issueNumber} to @${commenter}.`);
+    await assignIssue({
+      github,
+      owner,
+      repo: repoName,
+      issueNumber,
+      username: commenter,
+    });
   } catch (error) {
-    console.error('[assign-bot] Failed to assign issue:', { message: error.message });
+    console.error("[assign-bot] Failed to assign issue:", {
+      message: error.message,
+    });
   }
   return;
 
