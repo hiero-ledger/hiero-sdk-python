@@ -81,16 +81,10 @@ function isSpamLimited(levelKey, spamUser) {
     );
 }
 
-function buildSpamBlockedMessage(commenter, { prereqDisplayName }) {
-  return `Hi @${commenter}, your account is currently restricted to **${prereqDisplayName}** issues. Please complete one or contact a maintainer to have restrictions reviewed.`;
-}
-
-
 module.exports = {
   isSpamUser,
   spamUsersBlocked,
   spamAssignmentLimit,
   getAssignmentLimit,
   isSpamLimited,
-  buildSpamBlockedMessage,
 };
