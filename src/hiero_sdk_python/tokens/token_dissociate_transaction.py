@@ -98,9 +98,6 @@ class TokenDissociateTransaction(Transaction):
 
         Returns:
             TokenDissociateTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If account ID or token IDs are not set.
         """
         transaction_body = token_dissociate_pb2.TokenDissociateTransactionBody()
 
