@@ -31,6 +31,7 @@ from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
+from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
 from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
@@ -48,6 +49,7 @@ from tck.param.token import (
     GrantTokenKycParams,
     MintTokenParams,
     PauseTokenParams,
+    RejectTokenParams,
     RevokeTokenKycParams,
 )
 from tck.response.token import (
@@ -63,6 +65,7 @@ from tck.response.token import (
     GrantTokenKycResponse,
     MintTokenResponse,
     PauseTokenResponse,
+    RejectTokenResponse,
     RevokeTokenKycResponse,
 )
 from tck.util.client_utils import get_client
@@ -732,3 +735,44 @@ def get_token_info(params: GetTokenInfoParams) -> GetTokenInfoResponse:
 
     info = query.execute(client)
     return _build_token_info_response(info)
+
+
+def _build_reject_token_transaction(
+    params: RejectTokenParams,
+) -> TokenRejectTransaction:
+    transaction = TokenRejectTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.ownerId is not None:
+        transaction.set_owner_id(AccountId.from_string(params.ownerId))
+
+    if params.serialNumbers is not None and params.tokenIds is not None:
+        nft_ids = []
+
+        for token_id in params.tokenIds:
+            nft_ids.extend(
+                NftId(TokenId.from_string(token_id), int(serial_number)) for serial_number in params.serialNumbers
+            )
+
+        transaction.set_nft_ids(nft_ids)
+
+    elif params.tokenIds is not None:
+        transaction.set_token_ids([TokenId.from_string(token) for token in params.tokenIds])
+
+    return transaction
+
+
+@rpc_method("rejectToken")
+def reject_token(params: RejectTokenParams) -> RejectTokenResponse:
+    client = get_client(params.sessionId)
+
+    transaction = _build_reject_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt = response.get_receipt(client, validate_status=True)
+
+    return RejectTokenResponse(
+        status=ResponseCode(receipt.status).name,
+    )
