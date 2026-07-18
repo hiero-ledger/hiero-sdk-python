@@ -57,6 +57,24 @@ class CreateTopicParams(BaseTransactionParams):
 
 
 @dataclass
+class DeleteTopicParams(BaseTransactionParams):
+    """Parameters for deleting a topic. Extends BaseTransactionParams to include common transaction parameters."""
+
+    topicId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteTopicParams:
+        """Parse JSON-RPC params into a DeleteTopicParams instance."""
+        if "topicId" not in params or not isinstance(params["topicId"], str):
+            raise ValueError("topicId is required and must be a string")
+        return cls(
+            topicId=params.get("topicId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class TopicMessageSubmitParams(BaseTransactionParams):
     """Request parameters for submitTopicMessage endpoint."""
 
