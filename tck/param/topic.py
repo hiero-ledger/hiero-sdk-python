@@ -65,8 +65,6 @@ class DeleteTopicParams(BaseTransactionParams):
     @classmethod
     def parse_json_params(cls, params: dict) -> DeleteTopicParams:
         """Parse JSON-RPC params into a DeleteTopicParams instance."""
-        if "topicId" not in params or not isinstance(params["topicId"], str):
-            raise ValueError("topicId is required and must be a string")
         return cls(
             topicId=params.get("topicId"),
             sessionId=parse_session_id(params),
