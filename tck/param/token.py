@@ -167,6 +167,30 @@ class FreezeTokenParams(BaseTransactionParams):
 
 
 @dataclass
+class DissociateTokenParams(BaseTransactionParams):
+    """Request parameters for the dissociateToken endpoint."""
+
+    accountId: str | None = None
+    tokenIds: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DissociateTokenParams:
+        """Parse JSON-RPC params into a DissociateTokenParams instance."""
+        token_ids = params.get("tokenIds")
+        if token_ids is not None and not isinstance(token_ids, list):
+            raise ValueError("tokenIds must be a list")
+        if token_ids is not None and any(not isinstance(token_id, str) for token_id in token_ids):
+            raise ValueError("each tokenIds item must be a string")
+
+        return cls(
+            accountId=params.get("accountId"),
+            tokenIds=token_ids,
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class GrantTokenKycParams(BaseTransactionParams):
     """Request parameters for the grantTokenKyc endpoint."""
 
@@ -286,4 +310,34 @@ class GetTokenInfoParams(BaseParams):
             queryPayment=params.get("queryPayment"),
             maxQueryPayment=params.get("maxQueryPayment"),
             sessionId=parse_session_id(params),
+        )
+
+
+@dataclass
+class RejectTokenParams(BaseTransactionParams):
+    ownerId: str | None = None
+    tokenIds: list[str] | None = None
+    serialNumbers: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> RejectTokenParams:
+        token_ids = params.get("tokenIds")
+        if token_ids is not None and (
+            not isinstance(token_ids, list) or not all(isinstance(token_id, str) for token_id in token_ids)
+        ):
+            raise ValueError("tokenIds must be a list of strings")
+
+        serial_numbers = params.get("serialNumbers")
+        if serial_numbers is not None and (
+            not isinstance(serial_numbers, list)
+            or not all(isinstance(serial_number, str) for serial_number in serial_numbers)
+        ):
+            raise ValueError("serialNumbers must be a list of strings")
+
+        return cls(
+            ownerId=params.get("ownerId"),
+            tokenIds=token_ids,
+            serialNumbers=serial_numbers,
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
         )

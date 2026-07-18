@@ -52,8 +52,8 @@ class TokenRejectTransaction(Transaction):
         """
         super().__init__()
         self.owner_id: AccountId | None = owner_id
-        self.token_ids: list[TokenId] = token_ids if token_ids else []
-        self.nft_ids: list[NftId] = nft_ids if nft_ids else []
+        self.token_ids: list[TokenId] = list(token_ids) if token_ids else []
+        self.nft_ids: list[NftId] = list(nft_ids) if nft_ids else []
 
     def set_owner_id(self, owner_id: AccountId) -> TokenRejectTransaction:
         """Set the owner account ID for rejected tokens."""
@@ -64,13 +64,51 @@ class TokenRejectTransaction(Transaction):
     def set_token_ids(self, token_ids: list[TokenId]) -> TokenRejectTransaction:
         """Set the list of fungible token IDs to reject."""
         self._require_not_frozen()
-        self.token_ids = token_ids
+        self.token_ids = list(token_ids)
+        return self
+
+    def add_token_id(self, token_id: TokenId) -> TokenRejectTransaction:
+        """
+        Appends a fungible token ID to the list of tokens to reject.
+
+        Args:
+            token_id (TokenId): The fungible token ID to add.
+
+        Returns:
+            TokenRejectTransaction: This transaction instance (for chaining).
+
+        Raises:
+            TypeError: If token_id is not a TokenId instance.
+        """
+        self._require_not_frozen()
+        if not isinstance(token_id, TokenId):
+            raise TypeError("token_id must be a TokenId instance.")
+        self.token_ids.append(token_id)
         return self
 
     def set_nft_ids(self, nft_ids: list[NftId]) -> TokenRejectTransaction:
         """Set the list of NFT IDs to reject."""
         self._require_not_frozen()
-        self.nft_ids = nft_ids
+        self.nft_ids = list(nft_ids)
+        return self
+
+    def add_nft_id(self, nft_id: NftId) -> TokenRejectTransaction:
+        """
+        Appends an NFT ID to the list of NFTs to reject.
+
+        Args:
+            nft_id (NftId): The NFT ID to add.
+
+        Returns:
+            TokenRejectTransaction: This transaction instance (for chaining).
+
+        Raises:
+            TypeError: If nft_id is not a NftId instance.
+        """
+        self._require_not_frozen()
+        if not isinstance(nft_id, NftId):
+            raise TypeError("nft_id must be a NftId instance.")
+        self.nft_ids.append(nft_id)
         return self
 
     def _build_proto_body(self):

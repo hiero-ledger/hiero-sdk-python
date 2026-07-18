@@ -21,6 +21,7 @@ from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransa
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
+from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransaction
 from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
@@ -30,6 +31,7 @@ from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
+from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
 from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
@@ -41,11 +43,13 @@ from tck.param.token import (
     ClaimTokenParams,
     CreateTokenParams,
     DeleteTokenParams,
+    DissociateTokenParams,
     FreezeTokenParams,
     GetTokenInfoParams,
     GrantTokenKycParams,
     MintTokenParams,
     PauseTokenParams,
+    RejectTokenParams,
     RevokeTokenKycParams,
 )
 from tck.response.token import (
@@ -55,11 +59,13 @@ from tck.response.token import (
     CreateTokenResponse,
     CustomFeeResponse,
     DeleteTokenResponse,
+    DissociateTokenResponse,
     FreezeTokenResponse,
     GetTokenInfoResponse,
     GrantTokenKycResponse,
     MintTokenResponse,
     PauseTokenResponse,
+    RejectTokenResponse,
     RevokeTokenKycResponse,
 )
 from tck.util.client_utils import get_client
@@ -289,6 +295,20 @@ def _build_associate_token_transaction(params: AssociateTokenParams) -> TokenAss
     return transaction
 
 
+def _build_dissociate_token_transaction(params: DissociateTokenParams) -> TokenDissociateTransaction:
+    """Build a TokenDissociateTransaction from TCK params."""
+    transaction = TokenDissociateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.accountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.accountId))
+
+    if params.tokenIds is not None:
+        token_ids = [TokenId.from_string(tid) for tid in params.tokenIds]
+        transaction.set_token_ids(token_ids)
+
+    return transaction
+
+
 def _build_delete_token_transaction(params: DeleteTokenParams) -> TokenDeleteTransaction:
     """Build a TokenDeleteTransaction from TCK params."""
     transaction = TokenDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
@@ -372,6 +392,22 @@ def delete_token(params: DeleteTokenParams) -> DeleteTokenResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return DeleteTokenResponse(status=ResponseCode(receipt.status).name)
+
+
+@rpc_method("dissociateToken")
+def dissociate_token(params: DissociateTokenParams) -> DissociateTokenResponse:
+    """Dissociate tokens from an account using TCK dissociateToken parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_dissociate_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return DissociateTokenResponse(status=ResponseCode(receipt.status).name)
 
 
 @rpc_method("freezeToken")
@@ -699,3 +735,44 @@ def get_token_info(params: GetTokenInfoParams) -> GetTokenInfoResponse:
 
     info = query.execute(client)
     return _build_token_info_response(info)
+
+
+def _build_reject_token_transaction(
+    params: RejectTokenParams,
+) -> TokenRejectTransaction:
+    transaction = TokenRejectTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.ownerId is not None:
+        transaction.set_owner_id(AccountId.from_string(params.ownerId))
+
+    if params.serialNumbers is not None and params.tokenIds is not None:
+        nft_ids = []
+
+        for token_id in params.tokenIds:
+            nft_ids.extend(
+                NftId(TokenId.from_string(token_id), int(serial_number)) for serial_number in params.serialNumbers
+            )
+
+        transaction.set_nft_ids(nft_ids)
+
+    elif params.tokenIds is not None:
+        transaction.set_token_ids([TokenId.from_string(token) for token in params.tokenIds])
+
+    return transaction
+
+
+@rpc_method("rejectToken")
+def reject_token(params: RejectTokenParams) -> RejectTokenResponse:
+    client = get_client(params.sessionId)
+
+    transaction = _build_reject_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt = response.get_receipt(client, validate_status=True)
+
+    return RejectTokenResponse(
+        status=ResponseCode(receipt.status).name,
+    )
