@@ -15,14 +15,14 @@ from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.custom_fee import CustomFeeLimitParams, CustomFeeParams
-from tck.param.topic import CreateTopicParams, TopicMessageInfoParams, TopicMessageSubmitParams, DeleteTopicParams
+from tck.param.topic import CreateTopicParams, DeleteTopicParams, TopicMessageInfoParams, TopicMessageSubmitParams
 from tck.response.topic import (
     CreateTopicResponse,
     CustomFeeResponse,
+    DeleteTopicResponse,
     FixedFeeResponse,
     TopicInfoResponse,
     TopicMessageSubmitResponse,
-    DeleteTopicResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
