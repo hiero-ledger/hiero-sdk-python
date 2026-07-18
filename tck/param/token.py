@@ -337,6 +337,11 @@ class RejectTokenParams(BaseTransactionParams):
         return cls(
             ownerId=params.get("ownerId"),
             tokenIds=token_ids,
+            serialNumbers=serial_numbers,
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
 
 @dataclass
 class WipeTokenParams(BaseTransactionParams):

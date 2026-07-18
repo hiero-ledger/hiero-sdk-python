@@ -119,5 +119,6 @@ class GetTokenInfoResponse:
     ledgerId: str | None = None
 
 
+@dataclass
 class WipeTokenResponse(StatusOnlyResponse):
     """Response payload for wipeToken."""

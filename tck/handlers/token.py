@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from hiero_sdk_python import TokenWipeTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
@@ -35,6 +34,7 @@ from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransactio
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
 from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.custom_fee import CustomFeeParams, FixedFeeParams
@@ -793,14 +793,14 @@ def _build_wipe_token_transaction(params: WipeTokenParams) -> TokenWipeTransacti
         transaction.set_account_id(AccountId.from_string(params.accountId))
 
     has_amount = params.amount is not None
-    has_serial = params.serialNumbers is not None
+    has_serial = params.serial_numbers is not None
 
     if has_amount:
         transaction.set_amount(to_int(params.amount))
 
     if has_serial:
-        serialNumberList = [int(serial_number) for serial_number in params.serialNumbers]
-        transaction.set_serial(serialNumberList)
+        serial_number_list = [int(serial_number) for serial_number in params.serial_numbers]
+        transaction.set_serial(serial_number_list)
 
     return transaction
 
