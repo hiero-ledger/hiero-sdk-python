@@ -72,7 +72,7 @@ class AccountInfoQuery(Query):
 
             return query
         except Exception as e:
-            logging.error("Exception in _make_request: %s", e)
+            logger.error("Exception in _make_request: %s", e, exc_info=True)
             raise
 
     def _get_method(self, channel: _Channel) -> _Method:
