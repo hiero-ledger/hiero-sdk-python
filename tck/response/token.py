@@ -35,6 +35,11 @@ class DeleteTokenResponse(StatusOnlyResponse):
 
 
 @dataclass
+class DissociateTokenResponse(StatusOnlyResponse):
+    """Response payload for dissociateToken."""
+
+
+@dataclass
 class FreezeTokenResponse(StatusOnlyResponse):
     """Response payload for freezeToken."""
 
