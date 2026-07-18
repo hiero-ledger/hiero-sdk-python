@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
+from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_info import TopicInfo
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
@@ -14,10 +15,11 @@ from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.custom_fee import CustomFeeLimitParams, CustomFeeParams
-from tck.param.topic import CreateTopicParams, TopicMessageInfoParams, TopicMessageSubmitParams
+from tck.param.topic import CreateTopicParams, DeleteTopicParams, TopicMessageInfoParams, TopicMessageSubmitParams
 from tck.response.topic import (
     CreateTopicResponse,
     CustomFeeResponse,
+    DeleteTopicResponse,
     FixedFeeResponse,
     TopicInfoResponse,
     TopicMessageSubmitResponse,
@@ -93,6 +95,25 @@ def create_topic(params: CreateTopicParams) -> CreateTopicResponse:
         topic_id = str(receipt.topic_id)
 
     return CreateTopicResponse(topic_id, ResponseCode(receipt.status).name)
+
+
+@rpc_method("deleteTopic")
+def delete_topic(params: DeleteTopicParams) -> DeleteTopicResponse:
+    """Delete topic."""
+    client = get_client(params.sessionId)
+
+    transaction = TopicDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.topicId is not None:
+        transaction.set_topic_id(TopicId.from_string(params.topicId))
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return DeleteTopicResponse(ResponseCode(receipt.status).name)
 
 
 def _build_custom_fee_limit(params: CustomFeeLimitParams) -> CustomFeeLimit:
