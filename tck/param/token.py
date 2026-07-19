@@ -362,8 +362,11 @@ class WipeTokenParams(BaseTransactionParams):
         amount = params.get("amount")
 
         serial_numbers = params.get("serialNumbers")
-        if serial_numbers is not None and not isinstance(serial_numbers, list):
-            raise ValueError("serialNumbers must be a list")
+        if serial_numbers is not None and (
+            not isinstance(serial_numbers, list)
+            or not all(isinstance(serial_number, str) for serial_number in serial_numbers)
+        ):
+            raise ValueError("serialNumbers must be a list of strings")
 
         return cls(
             tokenId=token_id,
