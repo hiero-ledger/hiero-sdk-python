@@ -35,12 +35,14 @@ const {
 } = require('../api/github-api.js');
 
 const {
-  buildAlreadyAssignedMessage,
-  buildGuardMessage,
-  buildLimitMessage,
-  buildReminderMessage,
-  buildSpamBlockedMessage,
-} = require('../helpers/message.js');
+  buildAlreadyAssignedComment,
+  buildGuardComment,
+  buildLimitComment,
+  buildReminderComment,
+  buildSpamBlockedComment,
+  reminderMarkerFor,
+  guardMarkerFor,
+} = require('../helpers/comment.js');
 
 const {
   isSpamUser,
@@ -52,8 +54,6 @@ const {
 function commentRequestsAssignment(body) {
   return typeof body === 'string' && /(^|\s)\/assign(\s|$)/i.test(body);
 }
-
-
 
 function findRepoConfig(owner, repo) {
   return CONFIG.repos.find((r) => r.owner === owner && r.repo === repo) || null;
@@ -79,19 +79,6 @@ function resolveLevelKey(issue, repoConfig) {
     }
   }
   return null;
-}
-
-// ---------------------------------------------------------------------------
-// Generic message templates, parameterized only by displayName/label/urls —
-// this is what lets new levels avoid needing bespoke copy in config.js.
-// ---------------------------------------------------------------------------
-
-function reminderMarkerFor(levelKey) {
-  return `<!-- assign-reminder:${levelKey} -->`;
-}
-
-function guardMarkerFor(levelKey) {
-  return `<!-- assign-guard:${levelKey} -->`;
 }
 
 // ---------------------------------------------------------------------------
@@ -169,7 +156,7 @@ async function runAssignmentFlow({ github, context }) {
       return;
     }
 
-    const body = `${marker}\n${buildReminderMessage(commenter)}`;
+    const body = `${marker}\n${buildReminderComment(commenter)}`;
     await postComment({ github, owner, repo: repoName, issueNumber, body }, 'assign reminder');
     return;
   }
@@ -210,7 +197,7 @@ async function runAssignmentFlow({ github, context }) {
 
       const marker = guardMarkerFor(levelKey);
       if (!comments.some((c) => c.body?.includes(marker))) {
-        const body = `${marker}\n${buildGuardMessage(commenter, {
+        const body = `${marker}\n${buildGuardComment(commenter, {
           owner,
           repo: repoName,
           prereqLabel,
@@ -226,7 +213,7 @@ async function runAssignmentFlow({ github, context }) {
 
   // Already assigned?
   if (isAssigned) {
-    const body = buildAlreadyAssignedMessage(commenter, issue, { owner, repo: repoName, label });
+    const body = buildAlreadyAssignedComment(commenter, issue, { owner, repo: repoName, label });
     await postComment({ github, owner, repo: repoName, issueNumber, body }, 'already-assigned notice');
     return;
   }
@@ -237,7 +224,7 @@ async function runAssignmentFlow({ github, context }) {
   if (spamUser && spamUsersBlocked(levelKey)) {
     console.log(`[assign-bot] Spam user @${commenter} blocked from "${levelKey}" issues.`);
     const gfiDisplayName = CONFIG.skillPrerequisites[LEVEL_KEYS.GFI].displayName;
-    const body = buildSpamBlockedMessage(commenter, { prereqDisplayName: gfiDisplayName });
+    const body = buildSpamBlockedComment(commenter, { prereqDisplayName: gfiDisplayName });
     await postComment({ github, owner, repo: repoName, issueNumber, body }, 'spam restriction notice');
     return;
   }
@@ -249,7 +236,7 @@ async function runAssignmentFlow({ github, context }) {
 
   if (openCount >= maxAllowed) {
     const spamLimited = isSpamLimited(levelKey, spamUser);
-    const body = buildLimitMessage(commenter, { maxAllowed, spamLimited });
+    const body = buildLimitComment(commenter, { maxAllowed, spamLimited });
     await postComment({ github, owner, repo: repoName, issueNumber, body }, 'limit warning');
     return;
   }

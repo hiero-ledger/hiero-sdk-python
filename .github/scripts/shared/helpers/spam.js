@@ -50,7 +50,6 @@ function spamUsersBlocked(levelKey) {
  *
  * @param {string} levelKey
  * @param {boolean} spamUser
- * @param {number} defaultLimit
  * @returns {number}
  */
 function getAssignmentLimit(levelKey, spamUser) {
@@ -84,7 +83,6 @@ function isSpamLimited(levelKey, spamUser) {
 module.exports = {
   isSpamUser,
   spamUsersBlocked,
-  spamAssignmentLimit,
   getAssignmentLimit,
   isSpamLimited,
 };
