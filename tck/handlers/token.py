@@ -34,6 +34,7 @@ from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransactio
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
 from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.custom_fee import CustomFeeParams, FixedFeeParams
@@ -51,6 +52,7 @@ from tck.param.token import (
     PauseTokenParams,
     RejectTokenParams,
     RevokeTokenKycParams,
+    WipeTokenParams,
 )
 from tck.response.token import (
     AirdropTokenResponse,
@@ -67,6 +69,7 @@ from tck.response.token import (
     PauseTokenResponse,
     RejectTokenResponse,
     RevokeTokenKycResponse,
+    WipeTokenResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
@@ -776,3 +779,41 @@ def reject_token(params: RejectTokenParams) -> RejectTokenResponse:
     return RejectTokenResponse(
         status=ResponseCode(receipt.status).name,
     )
+
+
+def _build_wipe_token_transaction(params: WipeTokenParams) -> TokenWipeTransaction:
+    """Build a TokenWipeTransaction from TCK params."""
+
+    transaction = TokenWipeTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    if params.accountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.accountId))
+
+    if params.amount is not None:
+        transaction.set_amount(to_int(params.amount))
+
+    if params.serialNumbers is not None:
+        serial_number_list = [int(serial_number) for serial_number in params.serialNumbers]
+        transaction.set_serial(serial_number_list)
+
+    return transaction
+
+
+@rpc_method("wipeToken")
+def wipe_token(params: WipeTokenParams) -> WipeTokenResponse:
+    """Wipes the provided amount of fungible or non-fungible tokens from the specified Hedera account"""
+
+    client = get_client(params.sessionId)
+
+    transaction = _build_wipe_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return WipeTokenResponse(status=ResponseCode(receipt.status).name)

@@ -117,3 +117,8 @@ class GetTokenInfoResponse:
     maxSupply: str | None = None
     metadata: str | None = None
     ledgerId: str | None = None
+
+
+@dataclass
+class WipeTokenResponse(StatusOnlyResponse):
+    """Response payload for wipeToken."""
