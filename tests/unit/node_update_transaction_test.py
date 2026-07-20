@@ -14,6 +14,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.nodes.node_update_transaction import (
     NodeUpdateParams,
     NodeUpdateTransaction,
@@ -364,3 +365,23 @@ def test_node_update_transaction_build_with_private_key():
 
     # In the proto we should have the public key not the private one
     assert body.admin_key.ed25519 == public_key.to_bytes_raw()
+
+
+def test_node_update_transaction_from_protobuf_with_admin_key():
+    """NodeUpdateTransaction should deserialize the admin_key from the proto correctly."""
+    private_key = PrivateKey.generate()
+
+    transaction = NodeUpdateTransaction().set_admin_key(private_key)
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.nodeUpdate.CopyFrom(body)
+
+    parsed_transaction = NodeUpdateTransaction._from_protobuf(
+        transaction_body,
+        b"",
+        None,
+    )
+
+    assert parsed_transaction.admin_key is not None
+    assert parsed_transaction.admin_key.to_proto_key() == body.admin_key
