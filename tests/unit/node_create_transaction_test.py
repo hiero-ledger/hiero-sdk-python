@@ -330,3 +330,16 @@ def test_to_proto(mock_client):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
+
+
+def test_node_create_transaction_build_with_private_key():
+    """NodeCreateTransaction should accept PrivateKey and serialize the PublicKey in the proto."""
+    private_key = PrivateKey.generate()
+    public_key = private_key.public_key()
+
+    tx = NodeCreateTransaction().set_admin_key(private_key)
+
+    body = tx._build_proto_body()
+
+    # In the proto we should have the public key not the private one
+    assert body.admin_key.ed25519 == public_key.to_bytes_raw()

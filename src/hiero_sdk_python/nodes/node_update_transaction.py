@@ -10,7 +10,7 @@ from google.protobuf.wrappers_pb2 import BoolValue, BytesValue, StringValue
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.node_update_pb2 import (
     AssociatedRegisteredNodeList,
@@ -36,7 +36,7 @@ class NodeUpdateParams:
         service_endpoints (list[Endpoint]): The service endpoints of the node.
         gossip_ca_certificate (bytes, None): The gossip ca certificate of the node.
         grpc_certificate_hash (bytes, None): The grpc certificate hash of the node.
-        admin_key (PublicKey, optional): The admin key of the node.
+        admin_key (Key, optional): The admin key of the node.
         decline_reward (bool, optional): The decline reward of the node.
         grpc_web_proxy_endpoint (Endpoint, optional): The grpc web proxy endpoint of the node.
     """
@@ -48,7 +48,7 @@ class NodeUpdateParams:
     service_endpoints: list[Endpoint] = field(default_factory=list)
     gossip_ca_certificate: bytes | None = None
     grpc_certificate_hash: bytes | None = None
-    admin_key: PublicKey | None = None
+    admin_key: Key | None = None
     decline_reward: bool | None = None
     grpc_web_proxy_endpoint: Endpoint | None = None
     associated_registered_nodes: list[int] | None = None
@@ -82,7 +82,7 @@ class NodeUpdateTransaction(Transaction):
         self.service_endpoints: list[Endpoint] = node_update_params.service_endpoints
         self.gossip_ca_certificate: bytes | None = node_update_params.gossip_ca_certificate
         self.grpc_certificate_hash: bytes | None = node_update_params.grpc_certificate_hash
-        self.admin_key: PublicKey | None = node_update_params.admin_key
+        self.admin_key: Key | None = node_update_params.admin_key
         self.decline_reward: bool | None = node_update_params.decline_reward
         self.grpc_web_proxy_endpoint: Endpoint | None = node_update_params.grpc_web_proxy_endpoint
         self.associated_registered_nodes: list[int] | None = node_update_params.associated_registered_nodes
@@ -192,12 +192,12 @@ class NodeUpdateTransaction(Transaction):
         self.grpc_certificate_hash = grpc_certificate_hash
         return self
 
-    def set_admin_key(self, admin_key: PublicKey | None) -> NodeUpdateTransaction:
+    def set_admin_key(self, admin_key: Key | None) -> NodeUpdateTransaction:
         """
         Sets the admin key for this node update transaction.
 
         Args:
-            admin_key (PublicKey):
+            admin_key (Key):
                 The admin key of the node.
 
         Returns:
@@ -306,7 +306,7 @@ class NodeUpdateTransaction(Transaction):
             grpc_certificate_hash=(
                 BytesValue(value=self.grpc_certificate_hash) if self.grpc_certificate_hash is not None else None
             ),
-            admin_key=self._convert_to_proto(self.admin_key),
+            admin_key=self.admin_key.to_proto_key() if self.admin_key else None,
             decline_reward=(BoolValue(value=self.decline_reward) if self.decline_reward is not None else None),
             grpc_proxy_endpoint=self._convert_to_proto(self.grpc_web_proxy_endpoint),
         )
@@ -377,7 +377,7 @@ class NodeUpdateTransaction(Transaction):
             if pb.HasField("grpc_certificate_hash"):
                 transaction.grpc_certificate_hash = pb.grpc_certificate_hash.value
             if pb.HasField("admin_key"):
-                transaction.admin_key = PublicKey._from_proto(pb.admin_key)
+                transaction.admin_key = Key.from_proto_key(pb.admin_key)
             if pb.HasField("decline_reward"):
                 transaction.decline_reward = pb.decline_reward.value
             if pb.HasField("grpc_proxy_endpoint"):
