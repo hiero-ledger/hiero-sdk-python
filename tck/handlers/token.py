@@ -795,8 +795,8 @@ def _build_wipe_token_transaction(params: WipeTokenParams) -> TokenWipeTransacti
     if params.amount is not None:
         transaction.set_amount(to_int(params.amount))
 
-    if params.serial_numbers is not None:
-        serial_number_list = [int(serial_number) for serial_number in params.serial_numbers]
+    if params.serialNumbers is not None:
+        serial_number_list = [int(serial_number) for serial_number in params.serialNumbers]
         transaction.set_serial(serial_number_list)
 
     return transaction
