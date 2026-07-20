@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-from decimal import Decimal
 from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -795,19 +794,10 @@ class Transaction(_Executable):
         )
 
     def set_max_transaction_fee(self, max_transaction_fee):
-        # Accept int, float, Decimal, or Hbar (but not bool)
         self._require_not_frozen()
-
-        if isinstance(max_transaction_fee, bool) or not isinstance(max_transaction_fee, (int, float, Decimal, Hbar)):
-            raise TypeError(
-                f"max_transaction_fee must be int, float, Decimal, or Hbar, got {type(max_transaction_fee).__name__}"
-            )
-
-        value = max_transaction_fee if isinstance(max_transaction_fee, Hbar) else Hbar(max_transaction_fee)
-
-        if value < Hbar(0):
+        value = Hbar._coerce_fee(max_transaction_fee)
+        if value < Hbar.ZERO:
             raise ValueError("max_transaction_fee must be non-negative")
-
         self.transaction_fee = value
         return self
 

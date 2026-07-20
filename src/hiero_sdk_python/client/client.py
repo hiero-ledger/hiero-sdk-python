@@ -293,12 +293,12 @@ class Client:
         self,
         max_transaction_fee: int | float | Decimal | Hbar,
     ) -> Client:
-        """Sets the default maximum Hbar fee allowed for any transaction executed by this client."""
-        value = max_transaction_fee if isinstance(max_transaction_fee, Hbar) else Hbar(max_transaction_fee)
-
-        if value < Hbar(0):
+        """
+        Sets the default maximum Hbar fee allowed for any  transaction executed by this client.
+        """
+        value = Hbar._coerce_fee(max_transaction_fee)
+        if value < Hbar.ZERO:
             raise ValueError("max_transaction_fee must be non-negative")
-
         self.default_max_transaction_fee = value
         return self
 

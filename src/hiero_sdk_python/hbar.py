@@ -83,6 +83,21 @@ class Hbar:
         """
         return Hbar.from_tinybars(-self._amount_in_tinybar)
 
+    @staticmethod
+    def _coerce_fee(value: int | float | Decimal | Hbar) -> Hbar:
+        """
+        Coerce a value to an Hbar instance. Accepts int, float, Decimal, or Hbar (but not bool).
+        Args:
+            value: The value to coerce.
+        Returns:
+            Hbar: An Hbar instance.
+        Raises:
+            TypeError: If value is not a valid type.
+        """
+        if isinstance(value, bool) or not isinstance(value, (int, float, Decimal, Hbar)):
+            raise TypeError(f"value must be int, float, Decimal, or Hbar, got {type(value).__name__}")
+        return value if isinstance(value, Hbar) else Hbar(value)
+
     @classmethod
     def of(cls, amount: int | float | Decimal, unit: HbarUnit) -> Hbar:
         """
