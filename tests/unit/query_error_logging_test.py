@@ -166,3 +166,37 @@ def test_fetch_nodes_from_mirror_node_logs_request_exception(caplog, monkeypatch
     ]
     assert matching
     assert matching[0].name == Network.__module__
+
+
+def test_fetch_nodes_from_mirror_node_logs_malformed_response(caplog, monkeypatch):
+    """Ensure malformed mirror node responses are logged and fall back to an empty list instead of raising."""
+    source = inspect.getsource(Network._fetch_nodes_from_mirror_node)
+    assert "print(" not in source
+
+    network = Network.__new__(Network)
+    network.network = "testnet"
+
+    class _FakeResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            # Missing required fields -> NodeAddress._from_dict raises.
+            return {"nodes": [{"unexpected": "shape"}]}
+
+    monkeypatch.setattr("hiero_sdk_python.client.network.requests.get", lambda *_a, **_k: _FakeResponse())
+
+    with (
+        caplog.at_level(logging.ERROR, logger="hiero_sdk_python"),
+        caplog.at_level(logging.ERROR, logger="hiero_sdk_python.client.network"),
+    ):
+        result = network._fetch_nodes_from_mirror_node()
+
+    assert result == []
+    matching = [
+        record
+        for record in caplog.records
+        if record.levelno == logging.ERROR and "Error parsing mirror node API response" in record.message
+    ]
+    assert matching
+    assert matching[0].name == Network.__module__

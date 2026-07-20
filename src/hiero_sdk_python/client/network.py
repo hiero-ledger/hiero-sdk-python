@@ -215,6 +215,9 @@ class Network:
         except requests.RequestException as e:
             logger.error("Error fetching nodes from mirror node API: %s", e)
             return []
+        except (ValueError, KeyError, TypeError, IndexError, AttributeError) as e:
+            logger.error("Error parsing mirror node API response: %s", e, exc_info=True)
+            return []
 
     def _fetch_nodes_from_default_nodes(self) -> list[_Node]:
         """Fetches the list of nodes from the default nodes for the network."""
