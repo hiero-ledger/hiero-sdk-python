@@ -1,0 +1,83 @@
+{
+  "maintainerTeam": "@hiero-ledger/hiero-sdk-python-maintainers",
+  "goodFirstIssueSupportTeam": "@hiero-ledger/hiero-sdk-good-first-issue-support",
+
+  "labels": {
+    "status": {
+      "awaitingTriage": "status: awaiting triage",
+      "readyForDev": "status: ready for dev",
+      "inProgress": "status: in progress",
+      "blocked": "status: blocked",
+      "needsReview": "status: needs review",
+      "needsRevision": "status: needs revision"
+    },
+    "skill": {
+      "goodFirstIssue": "skill: good first issue",
+      "beginner": "skill: beginner",
+      "intermediate": "skill: intermediate",
+      "advanced": "skill: advanced"
+    },
+    "priority": {
+      "critical": "priority: critical",
+      "high": "priority: high",
+      "medium": "priority: medium",
+      "low": "priority: low"
+    }
+  },
+
+  "skillHierarchy": [
+    "skill: good first issue",
+    "skill: beginner",
+    "skill: intermediate",
+    "skill: advanced"
+  ],
+
+  "priorityHierarchy": [
+    "priority: critical",
+    "priority: high",
+    "priority: medium",
+    "priority: low"
+  ],
+
+  "skillPrerequisites": {
+    "skill: good first issue": {
+      "requiredLabel": null,
+      "requiredCount": 0,
+      "displayName": "Good First Issue"
+    },
+    "skill: beginner": {
+      "requiredLabel": "skill: good first issue",
+      "requiredCount": 2,
+      "displayName": "Beginner",
+      "prerequisiteDisplayName": "Good First Issues"
+    },
+    "skill: intermediate": {
+      "requiredLabel": "skill: beginner",
+      "requiredCount": 3,
+      "displayName": "Intermediate",
+      "prerequisiteDisplayName": "Beginner Issues"
+    },
+    "skill: advanced": {
+      "requiredLabel": "skill: intermediate",
+      "requiredCount": 3,
+      "displayName": "Advanced",
+      "prerequisiteDisplayName": "Intermediate Issues"
+    }
+  },
+
+  "assignmentLimits": {
+    "maxOpenAssignments": 2,
+    "maxGfiCompletions": 5
+  },
+
+  "documentation": {
+    "workflowGuide": "https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/contributor-workflow.md",
+    "readme": "https://github.com/hiero-ledger/hiero-sdk-python/blob/main/README.md",
+    "signingGuide": "https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/signing.md",
+    "mergeConflictsGuide": "https://github.com/hiero-ledger/sdk-collaboration-hub/blob/main/guides/issue-progression/for-developers/merge_conflicts.md"
+  },
+
+  "community": {
+    "discordChannel": "https://discord.com/channels/905194001349627914/1458790070986215567"
+  }
+}
