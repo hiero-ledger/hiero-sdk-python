@@ -1,27 +1,28 @@
 // .github/scripts/shared/issue-assign-core.js
 //
-// Shared engine for "/assign"-style comment automation across every
-// difficulty level (Good First Issue, beginner, intermediate, advanced, ...).
+// Shared engine for issue-comment assignment automation.
 //
-// All level/label data lives in config.js (CONFIG.repos[].labels and
-// CONFIG.skillPrerequisites). This file has no per-label copy hardcoded
-// except generic message templates built from `displayName` — so adding a
-// new level, or pointing a repo at different label text, never requires
-// touching this file.
+// All repository-specific labels, skill levels, and prerequisites are
+// configured in config.js.
+//
+// Handles:
+//   • one-time reminders for contributors who express interest
+//   • "/assign" requests
+//   • prerequisite enforcement
+//   • spam restrictions
+//   • assignment limits
+//   • issue assignment
 //
 // Flow:
-//   1. Validate the webhook payload (real issue comment, not a bot, not a PR)
-//   2. Resolve which configured repo + skill level the issue belongs to
-//   3. If the comment is a plain "I'd like to help" message with no issue
-//      assigned yet -> maybe post a one-time reminder to use `/assign`
-//   4. If the comment contains `/assign`:
-//        a. Enforce the prerequisite (completions of `requiredLevel`,
-//           counted against the HOME repo's label/history) — post a
-//           one-time guard comment if unmet
-//        b. Refuse (with a comment) if the issue is already assigned
-//        c. Enforce spam-list handling (hard block, or reduced limit)
-//        d. Enforce the open-assignment cap
-//        e. Assign the commenter
+//   1. Validate the issue comment event
+//   2. Resolve the configured repository and skill level
+//   3. If the comment is not "/assign", optionally post a one-time reminder
+//   4. Otherwise:
+//      • enforce prerequisites
+//      • reject already-assigned issues
+//      • apply spam restrictions
+//      • enforce assignment limits
+//      • assign the issue
 
 const { CONFIG, LEVEL_KEYS } = require('../config.js');
 
