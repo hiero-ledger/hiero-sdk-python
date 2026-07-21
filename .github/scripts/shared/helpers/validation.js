@@ -15,6 +15,15 @@ function isSafeLabel(label) {
     && !/[\\"]/u.test(label);
 }
 
+/**
+ * Stricter: used for owner/repo/username, which GitHub itself restricts to
+ * a known charset.
+ */
+function isSafeSearchToken(value) {
+  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
+}
+
 module.exports = {
   isSafeLabel,
+  isSafeSearchToken,
 };
