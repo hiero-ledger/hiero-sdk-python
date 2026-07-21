@@ -12,6 +12,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_unpause_transaction import TokenUnpauseTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -167,6 +169,22 @@ def test_from_proto(mock_account_ids):
     assert unpause_tx.token_id.shard == token_id.shard
     assert unpause_tx.token_id.realm == token_id.realm
     assert unpause_tx.token_id.num == token_id.num
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via Transaction.from_bytes() for TokenUnpauseTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenUnpauseTransaction()
+    tx.set_token_id(token_id_1)
+    tx.transaction_id = TransactionId.generate(account_id_sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenUnpauseTransaction)
+    assert reconstructed.token_id == token_id_1
 
 
 def test_upause_transaction_can_execute(mock_account_ids):

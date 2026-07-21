@@ -11,6 +11,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 pytestmark = pytest.mark.unit
@@ -402,3 +404,105 @@ def test_from_proto_without_token_transfer(mock_account_ids):
     assert nft_transfer[0].is_approved == True
 
     assert not airdrop_tx.token_transfers
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenAirdropTransaction."""
+    sender, receiver, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenAirdropTransaction()
+    tx.add_token_transfer(token_id=token_id_1, account_id=sender, amount=-1)
+    tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=1)
+    tx.transaction_id = TransactionId.generate(sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenAirdropTransaction)
+    assert len(reconstructed.token_transfers[token_id_1]) == 2
+    assert reconstructed.token_transfers[token_id_1][0].account_id == sender
+    assert reconstructed.token_transfers[token_id_1][0].amount == -1
+    assert reconstructed.token_transfers[token_id_1][1].account_id == receiver
+    assert reconstructed.token_transfers[token_id_1][1].amount == 1
+
+
+def test_from_bytes_nft(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenAirdropTransaction with NFT transfers."""
+    sender, receiver, node_account_id, token_id_1, _ = mock_account_ids
+    nft_id = NftId(token_id=token_id_1, serial_number=7)
+
+    tx = TokenAirdropTransaction()
+    tx.add_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver, is_approved=False)
+    tx.transaction_id = TransactionId.generate(sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenAirdropTransaction)
+    nft_transfers = reconstructed.nft_transfers[token_id_1]
+    assert len(nft_transfers) == 1
+    assert nft_transfers[0].sender_id == sender
+    assert nft_transfers[0].receiver_id == receiver
+    assert nft_transfers[0].serial_number == 7
+    assert not nft_transfers[0].is_approved
+
+
+def test_from_protobuf_skips_transfer_without_token():
+    """Covers continue branch when token field is missing from a TokenTransferList."""
+    from hiero_sdk_python.hapi.services import transaction_pb2
+    from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenTransferList
+    from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
+
+    body = TokenAirdropTransactionBody()
+    body.token_transfers.append(TokenTransferList())
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.tokenAirdrop.CopyFrom(body)
+
+    result = TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
+
+    assert isinstance(result, TokenAirdropTransaction)
+    assert len(result.token_transfers) == 0
+
+
+def test_from_protobuf_skips_fungible_transfer_without_account_id(mock_account_ids):
+    """Covers continue branch when accountID is missing from a fungible transfer."""
+    from hiero_sdk_python.hapi.services import transaction_pb2
+    from hiero_sdk_python.hapi.services.basic_types_pb2 import AccountAmount, TokenTransferList
+    from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
+
+    _, _, _, token_id_1, _ = mock_account_ids
+
+    body = TokenAirdropTransactionBody()
+    transfer_list = TokenTransferList(token=token_id_1._to_proto())
+    transfer_list.transfers.append(AccountAmount(amount=100))
+    body.token_transfers.append(transfer_list)
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.tokenAirdrop.CopyFrom(body)
+
+    result = TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
+
+    assert isinstance(result, TokenAirdropTransaction)
+    assert len(result.token_transfers[token_id_1]) == 0
+
+
+def test_from_protobuf_skips_nft_transfer_without_sender_or_receiver(mock_account_ids):
+    """Covers continue branch when senderAccountID or receiverAccountID is missing from NFT transfer."""
+    from hiero_sdk_python.hapi.services import transaction_pb2
+    from hiero_sdk_python.hapi.services.basic_types_pb2 import NftTransfer, TokenTransferList
+    from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
+
+    _, _, _, token_id_1, _ = mock_account_ids
+
+    body = TokenAirdropTransactionBody()
+    transfer_list = TokenTransferList(token=token_id_1._to_proto())
+    transfer_list.nftTransfers.append(NftTransfer(serialNumber=1))
+    body.token_transfers.append(transfer_list)
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.tokenAirdrop.CopyFrom(body)
+
+    result = TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
+
+    assert isinstance(result, TokenAirdropTransaction)
+    assert len(result.nft_transfers[token_id_1]) == 0

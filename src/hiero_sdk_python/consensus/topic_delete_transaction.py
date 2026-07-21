@@ -94,3 +94,12 @@ class TopicDeleteTransaction(Transaction):
             _Method: The method to execute the transaction.
         """
         return _Method(transaction_func=channel.topic.deleteTopic, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("consensusDeleteTopic"):
+            body = transaction_body.consensusDeleteTopic
+            if body.HasField("topicID"):
+                transaction.topic_id = TopicId._from_proto(body.topicID)
+        return transaction

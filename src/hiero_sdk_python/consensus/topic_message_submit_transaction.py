@@ -12,6 +12,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.transaction.chunked_transaction import ChunkedTransaction
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 class TopicMessageSubmitTransaction(ChunkedTransaction):
@@ -170,7 +171,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             ConsensusSubmitMessageTransactionBody: The protobuf body for this transaction.
 
         Raises:
-            ValueError: If required fields (message) are missing.
+            ValueError: If required fields (topic_id, message) are missing.
         """
         if not self.message:
             raise ValueError("Missing required fields: message.")
@@ -232,6 +233,24 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             _Method: The method object with bound transaction execution.
         """
         return _Method(transaction_func=channel.topic.submitMessage, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("consensusSubmitMessage"):
+            body = transaction_body.consensusSubmitMessage
+            if body.HasField("topicID"):
+                transaction.topic_id = TopicId._from_proto(body.topicID)
+            transaction.message = body.message.decode("utf-8", errors="replace") if body.message else None
+            if body.HasField("chunkInfo"):
+                chunk = body.chunkInfo
+                transaction._total_chunks = chunk.total
+                transaction._current_chunk_index = chunk.number - 1
+                if chunk.HasField("initialTransactionID"):
+                    transaction._initial_transaction_id = TransactionId._from_proto(chunk.initialTransactionID)
+            else:
+                transaction._total_chunks = transaction.get_required_chunks()
+        return transaction
 
     def sign(self, private_key: PrivateKey) -> TopicMessageSubmitTransaction:
         """

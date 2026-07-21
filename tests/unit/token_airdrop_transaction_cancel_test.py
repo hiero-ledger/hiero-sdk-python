@@ -278,3 +278,25 @@ def test_build_scheduled_body(mock_account_ids):
     assert proto_pending_airdrop.non_fungible_token.token_ID == token_id_2._to_proto()
     assert proto_pending_airdrop.non_fungible_token.serial_number == 10
     assert proto_pending_airdrop.HasField("fungible_token_type") == False
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    sender, receiver, node_account_id, token_id_1, _ = mock_account_ids
+
+    pending = PendingAirdropId(sender, receiver, token_id_1, None)
+    tx = TokenCancelAirdropTransaction(pending_airdrops=[pending])
+    tx.transaction_id = TransactionId.generate(sender)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenCancelAirdropTransaction)
+    assert len(reconstructed.pending_airdrops) == 1
+    airdrop = reconstructed.pending_airdrops[0]
+    assert airdrop.sender_id == sender
+    assert airdrop.receiver_id == receiver
+    assert airdrop.token_id == token_id_1

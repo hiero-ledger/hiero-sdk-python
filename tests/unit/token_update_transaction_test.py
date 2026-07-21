@@ -17,6 +17,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionR
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateKeys, TokenUpdateParams, TokenUpdateTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -466,3 +468,76 @@ def test_build_transaction_body_with_keys(mock_account_ids, key_type, use_privat
     assert transaction_body.tokenUpdate.name == new_token_data["name"]
     verify_key_in_proto(transaction_body.tokenUpdate.adminKey, expected_admin_public, key_type)
     verify_key_in_proto(transaction_body.tokenUpdate.freezeKey, expected_freeze_public, key_type)
+
+
+def test_from_bytes(mock_account_ids, new_token_data):
+    """Test round-trip via _from_protobuf for TokenUpdateTransaction."""
+    operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    key = PrivateKey.generate().public_key()
+
+    tx = TokenUpdateTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_token_name("NewName")
+    tx.set_token_symbol("NNS")
+    tx.set_token_memo(new_token_data["memo"])
+    tx.set_metadata(new_token_data["metadata"])
+    tx.set_treasury_account_id(operator_id)
+    tx.set_auto_renew_account_id(operator_id)
+    tx.set_auto_renew_period(new_token_data["auto_renew_period"])
+    tx.set_expiration_time(new_token_data["expiration_time"])
+    tx.set_admin_key(key)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenUpdateTransaction)
+    assert reconstructed.token_id == token_id_1
+    assert reconstructed.token_name == "NewName"
+    assert reconstructed.token_symbol == "NNS"
+    assert reconstructed.token_memo == new_token_data["memo"]
+    assert reconstructed.metadata == new_token_data["metadata"]
+    assert reconstructed.treasury_account_id == operator_id
+    assert reconstructed.auto_renew_account_id == operator_id
+    assert reconstructed.auto_renew_period.seconds == new_token_data["auto_renew_period"].seconds
+    assert reconstructed.expiration_time.seconds == new_token_data["expiration_time"].seconds
+    assert reconstructed.admin_key.to_bytes_raw() == key.to_bytes_raw()
+
+
+def test_from_bytes_with_all_optional_keys(mock_account_ids):
+    """Covers freeze_key, wipe_key, supply_key, metadata_key, pause_key, kyc_key, fee_schedule_key branches."""
+
+    operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    freeze_key = PrivateKey.generate().public_key()
+    wipe_key = PrivateKey.generate().public_key()
+    supply_key = PrivateKey.generate().public_key()
+    metadata_key = PrivateKey.generate().public_key()
+    pause_key = PrivateKey.generate().public_key()
+    kyc_key = PrivateKey.generate().public_key()
+    fee_schedule_key = PrivateKey.generate().public_key()
+
+    tx = TokenUpdateTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_freeze_key(freeze_key)
+    tx.set_wipe_key(wipe_key)
+    tx.set_supply_key(supply_key)
+    tx.set_metadata_key(metadata_key)
+    tx.set_pause_key(pause_key)
+    tx.set_kyc_key(kyc_key)
+    tx.set_fee_schedule_key(fee_schedule_key)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenUpdateTransaction)
+    assert reconstructed.freeze_key is not None
+    assert reconstructed.wipe_key is not None
+    assert reconstructed.supply_key is not None
+    assert reconstructed.metadata_key is not None
+    assert reconstructed.pause_key is not None
+    assert reconstructed.kyc_key is not None
+    assert reconstructed.fee_schedule_key is not None
