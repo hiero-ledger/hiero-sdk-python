@@ -23,7 +23,7 @@ load_dotenv()
 
 
 def setup_network():
-    """Create and configure the network with logging."""
+    """Create and configure the network with logging test."""
     network_name = os.getenv("NETWORK", "testnet").lower()
 
     print("Step 1: Create the network configuration")
