@@ -2,7 +2,7 @@
 //
 // Assigns user to a issue by commenting /assign
 
-const { runAssignmentFlow } = require('./shared/core/issue-assign-core.js');
+const { runAssignmentFlow } = require('./shared');
 
 module.exports = async ({ github, context }) => {
   try {
