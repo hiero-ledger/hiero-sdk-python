@@ -825,7 +825,7 @@ def _build_update_token_transaction(params: UpdateTokenParams) -> TokenUpdateTra
         transaction.set_metadata_key(get_key_from_string(params.metadataKey))
 
     if params.memo is not None:
-        transaction.set_memo(params.memo)
+        transaction.set_token_memo(params.memo)
 
     if params.expirationTime is not None:
         transaction.set_expiration_time(Timestamp(seconds=to_int(params.expirationTime), nanos=0))
