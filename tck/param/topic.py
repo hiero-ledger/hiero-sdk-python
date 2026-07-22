@@ -81,20 +81,17 @@ class UpdateTopicParams(BaseTransactionParams):
             raise ValueError("customFees must be a list")
         if custom_fees is not None and any(not isinstance(custom_fee, dict) for custom_fee in custom_fees):
             raise ValueError("each customFees item must be an object")
-        topic_id = non_empty_string_or_none(params.get("topicId"))
-        if topic_id is None:
-            raise ValueError("topicId is required")
 
         return cls(
-            topicId=topic_id,
+            topicId=params.get("topicId"),
             memo=params.get("memo"),
             adminKey=params.get("adminKey"),
-            submitKey=non_empty_string_or_none(params.get("submitKey")),
-            autoRenewPeriod=non_empty_string_or_none(params.get("autoRenewPeriod")),
-            autoRenewAccountId=non_empty_string_or_none(params.get("autoRenewAccountId")),
-            expirationTime=non_empty_string_or_none(params.get("expirationTime")),
-            feeScheduleKey=non_empty_string_or_none(params.get("feeScheduleKey")),
-            feeExemptKeys=non_empty_string_list(fee_exempt_keys),
+            submitKey=params.get("submitKey"),
+            autoRenewPeriod=params.get("autoRenewPeriod"),
+            autoRenewAccountId=params.get("autoRenewAccountId"),
+            expirationTime=params.get("expirationTime"),
+            feeScheduleKey=params.get("feeScheduleKey"),
+            feeExemptKeys=fee_exempt_keys,
             customFees=(
                 [CustomFeeParams.parse_json_params(custom_fee) for custom_fee in custom_fees]
                 if custom_fees is not None
