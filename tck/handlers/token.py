@@ -34,6 +34,7 @@ from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransactio
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
 from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
@@ -52,6 +53,7 @@ from tck.param.token import (
     PauseTokenParams,
     RejectTokenParams,
     RevokeTokenKycParams,
+    UpdateTokenParams,
     WipeTokenParams,
 )
 from tck.response.token import (
@@ -69,6 +71,7 @@ from tck.response.token import (
     PauseTokenResponse,
     RejectTokenResponse,
     RevokeTokenKycResponse,
+    UpdateTokenResponse,
     WipeTokenResponse,
 )
 from tck.util.client_utils import get_client
@@ -779,6 +782,80 @@ def reject_token(params: RejectTokenParams) -> RejectTokenResponse:
     return RejectTokenResponse(
         status=ResponseCode(receipt.status).name,
     )
+
+
+def _build_update_token_transaction(params: UpdateTokenParams) -> TokenUpdateTransaction:
+    """Build a TokenUpdateTransaction from TCK params."""
+    transaction = TokenUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    if params.name is not None:
+        transaction.set_token_name(params.name)
+
+    if params.symbol is not None:
+        transaction.set_token_symbol(params.symbol)
+
+    if params.treasuryAccountId is not None:
+        transaction.set_treasury_account_id(AccountId.from_string(params.treasuryAccountId))
+
+    if params.adminKey is not None:
+        transaction.set_admin_key(get_key_from_string(params.adminKey))
+
+    if params.kycKey is not None:
+        transaction.set_kyc_key(get_key_from_string(params.kycKey))
+
+    if params.freezeKey is not None:
+        transaction.set_freeze_key(get_key_from_string(params.freezeKey))
+
+    if params.wipeKey is not None:
+        transaction.set_wipe_key(get_key_from_string(params.wipeKey))
+
+    if params.supplyKey is not None:
+        transaction.set_supply_key(get_key_from_string(params.supplyKey))
+
+    if params.feeScheduleKey is not None:
+        transaction.set_fee_schedule_key(get_key_from_string(params.feeScheduleKey))
+
+    if params.pauseKey is not None:
+        transaction.set_pause_key(get_key_from_string(params.pauseKey))
+
+    if params.metadataKey is not None:
+        transaction.set_metadata_key(get_key_from_string(params.metadataKey))
+
+    if params.memo is not None:
+        transaction.set_memo(params.memo)
+
+    if params.expirationTime is not None:
+        transaction.set_expiration_time(Timestamp(seconds=to_int(params.expirationTime), nanos=0))
+
+    if params.autoRenewAccountId is not None:
+        transaction.set_auto_renew_account_id(AccountId.from_string(params.autoRenewAccountId))
+
+    if params.autoRenewPeriod is not None:
+        transaction.set_auto_renew_period(Duration(seconds=to_int(params.autoRenewPeriod)))
+
+    if params.metadata is not None:
+        transaction.set_metadata(params.metadata.encode())
+
+    return transaction
+
+
+@rpc_method("updateToken")
+def update_token(params: UpdateTokenParams) -> UpdateTokenResponse:
+    """Update a token using TCK updateToken parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_update_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UpdateTokenResponse(status=ResponseCode(receipt.status).name)
 
 
 def _build_wipe_token_transaction(params: WipeTokenParams) -> TokenWipeTransaction:
