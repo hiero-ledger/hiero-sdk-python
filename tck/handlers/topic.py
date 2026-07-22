@@ -36,6 +36,7 @@ from tck.response.topic import (
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string, key_to_string
+from tck.util.param_utils import to_int
 
 
 def _build_custom_fee(custom_fee_params: CustomFeeParams) -> CustomFixedFee:
@@ -104,13 +105,13 @@ def _build_update_topic_transaction(params: UpdateTopicParams) -> TopicUpdateTra
         transaction.set_submit_key(get_key_from_string(params.submitKey))
 
     if params.autoRenewPeriod is not None:
-        transaction.set_auto_renew_period(params.autoRenewPeriod)
+        transaction.set_auto_renew_period(to_int(params.autoRenewPeriod))
 
     if params.autoRenewAccountId is not None:
         transaction.set_auto_renew_account(AccountId.from_string(params.autoRenewAccountId))
 
     if params.expirationTime is not None:
-        transaction.set_expiration_time(Timestamp(params.expirationTime, 0))
+        transaction.set_expiration_time(Timestamp(seconds=to_int(params.expirationTime), nanos=0))
 
     if params.feeScheduleKey is not None:
         transaction.set_fee_schedule_key(get_key_from_string(params.feeScheduleKey))
