@@ -88,7 +88,8 @@ def _build_create_topic_transaction(params: CreateTopicParams) -> TopicCreateTra
 
 
 def _build_update_topic_transaction(params: UpdateTopicParams) -> TopicUpdateTransaction:
-    transaction = TopicUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+    transaction = TopicUpdateTransaction(auto_renew_period=None).set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+    transaction.memo = None
 
     if params.topicId is not None:
         transaction.set_topic_id(TopicId.from_string(params.topicId))
