@@ -1,15 +1,13 @@
-// SPDX-License-Identifier: Apache-2.0
-
-/**
- * @fileoverview
- * Unit tests for the bot-pr-add-reviewers-as-assignees.js script using Jest.
- */
+// __tests__/jest/bot-pr-add-reviewers-as-assignees.test.js
+//
+// Run from .github/scripts:
+// npm run test:js -- bot-pr-add-reviewers-as-assignees.test.js
 
 describe('Bot: Add Reviewers as Assignees', () => {
   let handler;
 
   beforeAll(() => {
-    handler = require('../bot-pr-add-reviewers-as-assignees.js');
+    handler = require('../../bot-pr-add-reviewers-as-assignees.js');
   });
 
   beforeEach(() => {

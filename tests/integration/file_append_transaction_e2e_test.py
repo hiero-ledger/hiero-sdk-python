@@ -233,7 +233,9 @@ def test_integration_file_append_transaction_max_chunks_exceeded(env):
     )
 
     # Should fail with max chunks exceeded
-    with pytest.raises(ValueError, match="more than.*chunks"):
+    with pytest.raises(
+        ValueError, match="Message requires 100 chunks but max_chunks=5. Increase limit with set_max_chunks()."
+    ):
         append_tx.execute(env.client)
 
 

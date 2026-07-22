@@ -1,0 +1,90 @@
+name: bot-contributor-lifecycle
+
+# Unified contributor-lifecycle bot. Replaces:
+#   - cron-reminder-issue-no-pr   (7d issue reminder)
+#   - cron-reminder-pr-inactive   (10d PR reminder)
+#   - bot-inactivity-unassign     (21d unassign / 60d close reviewed PR)
+# One daily scan, one source of truth for thresholds and /working immunity.
+
+on:
+  schedule:
+    - cron: "0 12 * * *" # daily at 12:00 UTC
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (log only, no comments / unassign / close)"
+        required: true
+        default: true
+        type: boolean
+      issue_remind_days:
+        description: "Days assigned with no PR before reminding"
+        required: false
+        default: "7"
+        type: string
+      issue_unassign_days:
+        description: "Days assigned with no PR before unassigning"
+        required: false
+        default: "21"
+        type: string
+      pr_remind_days:
+        description: "Days of PR inactivity before reminding (reviewed PRs)"
+        required: false
+        default: "10"
+        type: string
+      pr_close_days:
+        description: "Days of PR inactivity before closing (reviewed PRs)"
+        required: false
+        default: "60"
+        type: string
+      skip_pr_labels:
+        description: "Comma-separated PR labels that exempt a PR from reminder/close"
+        required: false
+        default: "status: discussion"
+        type: string
+      skip_issue_labels:
+        description: "Comma-separated issue labels that exempt the whole issue (and its linked PRs) from all lifecycle actions"
+        required: false
+        default: "status: discussion, dev: blocked"
+        type: string
+
+permissions:
+  contents: read # checkout the repo to load the script
+  issues: write # comment on and unassign issues
+  pull-requests: write # comment on and close pull requests
+
+# Serialize runs so a manual dispatch can't overlap the scheduled run and double-post
+# before the first run's dedup markers are written.
+concurrency:
+  group: contributor-lifecycle
+  cancel-in-progress: false
+
+jobs:
+  lifecycle:
+    runs-on: hl-sdk-py-lin-md
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 #v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run contributor-lifecycle bot
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 #v9.0.0
+        env:
+          # schedule -> real run; workflow_dispatch -> use the dry_run input
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          ISSUE_REMIND_DAYS: ${{ inputs.issue_remind_days || '7' }}
+          ISSUE_UNASSIGN_DAYS: ${{ inputs.issue_unassign_days || '21' }}
+          PR_REMIND_DAYS: ${{ inputs.pr_remind_days || '10' }}
+          PR_CLOSE_DAYS: ${{ inputs.pr_close_days || '60' }}
+          SKIP_PR_LABELS: "${{ inputs.skip_pr_labels || 'status: discussion' }}"
+          SKIP_ISSUE_LABELS: "${{ inputs.skip_issue_labels || 'status: discussion, dev: blocked' }}"
+        with:
+          script: |
+            const script = require('./.github/scripts/bot-contributor-lifecycle.js');
+            await script({ github, context });

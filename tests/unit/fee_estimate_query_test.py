@@ -331,3 +331,64 @@ def test_setters_are_chainable():
     result = q.set_max_attempts(2).set_max_backoff(1.0).set_high_volume_throttle(100)
 
     assert result is q
+
+
+def test_port_replacement_for_localhost_execute_single():
+    """Test localhost:38081 is replaced with :8084."""
+    client_1 = MagicMock()
+    client_1.network.get_mirror_rest_url.return_value = "http://localhost:38081/api/v1"
+
+    tx = (
+        TransferTransaction()
+        .add_hbar_transfer(AccountId.from_string("0.0.1001"), Hbar(-1))
+        .add_hbar_transfer(AccountId.from_string("0.0.1002"), Hbar(1))
+    )
+
+    query = FeeEstimateQuery().set_transaction(tx).set_mode(FeeEstimateMode.INTRINSIC)
+
+    with patch.object(query, "_execute_single") as mock_execute_single:
+        query.execute(client_1)
+        called_url = mock_execute_single.call_args[0][0]
+        assert ":8084" in called_url
+        assert ":38081" not in called_url
+
+    client_2 = MagicMock()
+    client_2.network.get_mirror_rest_url.return_value = "http://127.0.0.1:38081/api/v1"
+
+    with patch.object(query, "_execute_single") as mock_execute_single:
+        query.execute(client_2)
+        called_url = mock_execute_single.call_args[0][0]
+        assert ":8084" in called_url
+        assert ":38081" not in called_url
+
+
+def test_port_replacement_for_localhost_execute_multiple():
+    """Test localhost:38081 is replaced with :8084 for chunked tx."""
+    client_1 = MagicMock()
+    client_1.network.get_mirror_rest_url.return_value = "http://localhost:38081/api/v1"
+
+    tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(TopicId(0, 0, 4))
+        .set_message("A" * 2048)
+        .set_transaction_id(TransactionId.generate(AccountId(0, 0, 3)))
+        .set_node_account_id(AccountId(0, 0, 4))
+    )
+
+    query = FeeEstimateQuery().set_transaction(tx).set_mode(FeeEstimateMode.INTRINSIC)
+
+    with patch.object(query, "_execute_chunked", return_value=MagicMock()) as mock_execute_chunked:
+        query.execute(client_1)
+
+        called_url = mock_execute_chunked.call_args[0][1]
+        assert ":8084" in called_url
+        assert ":38081" not in called_url
+
+    client_2 = MagicMock()
+    client_2.network.get_mirror_rest_url.return_value = "http://127.0.0.1:38081/api/v1"
+
+    with patch.object(query, "_execute_chunked", return_value=MagicMock()) as mock_execute_chunked:
+        query.execute(client_2)
+        called_url = mock_execute_chunked.call_args[0][1]
+        assert ":8084" in called_url
+        assert ":38081" not in called_url
