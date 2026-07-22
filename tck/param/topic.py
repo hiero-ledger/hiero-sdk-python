@@ -64,9 +64,9 @@ class UpdateTopicParams(BaseTransactionParams):
     memo: str | None = None
     adminKey: str | None = None
     submitKey: str | None = None
-    autoRenewPeriod: int | None = None
+    autoRenewPeriod: str | None = None
     autoRenewAccountId: str | None = None
-    expirationTime: int | None = None
+    expirationTime: str | None = None
     feeScheduleKey: str | None = None
     feeExemptKeys: list[str] | None = None
     customFees: list[CustomFeeParams] | None = None
@@ -81,15 +81,18 @@ class UpdateTopicParams(BaseTransactionParams):
             raise ValueError("customFees must be a list")
         if custom_fees is not None and any(not isinstance(custom_fee, dict) for custom_fee in custom_fees):
             raise ValueError("each customFees item must be an object")
+        topic_id = non_empty_string_or_none(params.get("topicId"))
+        if topic_id is None:
+            raise ValueError("topicId is required")
 
         return cls(
-            topicId=params.get("topicId"),
+            topicId=topic_id,
             memo=params.get("memo"),
-            adminKey=non_empty_string_or_none(params.get("adminKey")),
+            adminKey=params.get("adminKey"),
             submitKey=non_empty_string_or_none(params.get("submitKey")),
-            autoRenewPeriod=to_int(params.get("autoRenewPeriod")),
+            autoRenewPeriod=non_empty_string_or_none(params.get("autoRenewPeriod")),
             autoRenewAccountId=non_empty_string_or_none(params.get("autoRenewAccountId")),
-            expirationTime=to_int(params.get("expirationTime")),
+            expirationTime=non_empty_string_or_none(params.get("expirationTime")),
             feeScheduleKey=non_empty_string_or_none(params.get("feeScheduleKey")),
             feeExemptKeys=non_empty_string_list(fee_exempt_keys),
             customFees=(

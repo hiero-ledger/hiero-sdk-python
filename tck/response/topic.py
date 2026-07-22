@@ -14,8 +14,8 @@ class CreateTopicResponse:
 
 
 @dataclass
-class UpdateTopicResponse:
-    """Response payload for updateTopic"""
+class UpdateTopicResponse(StatusOnlyResponse):
+    """Response payload for updateTopic."""
 
     status: str | None = None
 
