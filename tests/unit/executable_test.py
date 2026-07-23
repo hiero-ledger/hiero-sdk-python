@@ -816,7 +816,7 @@ def test_execution_config_inherits_from_client(mock_client):
     mock_client._request_timeout = 20
 
     tx = AccountCreateTransaction()
-
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx._resolve_execution_config(mock_client, None)
 
     assert tx._max_attempts == 7
@@ -831,19 +831,19 @@ def test_executable_overrides_client_config(mock_client):
     mock_client.max_attempts = 10
 
     tx = AccountCreateTransaction().set_max_attempts(3)
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx._resolve_execution_config(mock_client, None)
 
     assert tx._max_attempts == 3
 
 
-def test_no_healthy_nodes_raises(mock_client):
-    """Test that execution fails if no healthy nodes are available."""
-    mock_client.network._healthy_nodes = []
-
+def test_no_nodes_raises_exception(mock_client):
+    """Test that execution fails if no nodes are available."""
+    mock_client.network.nodes = []
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
 
-    with pytest.raises(RuntimeError, match="No healthy nodes available"):
-        tx.execute(mock_client)
+    with pytest.raises(RuntimeError, match="No nodes available for execution"):
+        tx._resolve_execution_config(mock_client, None)
 
 
 def test_set_node_account_ids_overrides_client_nodes(mock_client):
@@ -859,6 +859,7 @@ def test_set_node_account_ids_overrides_client_nodes(mock_client):
 def test_parameter_timeout_overrides_client_default(mock_client):
     """Explicit timeout pass on the executable should override the client default timeout."""
     tx = AccountCreateTransaction()
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx._resolve_execution_config(mock_client, 2)
 
     assert tx._request_timeout == 2
@@ -868,6 +869,7 @@ def test_set_timeout_overrides_parameter_timeout(mock_client):
     """Explicit timeout set on the tx should override the pass timeout."""
     tx = AccountCreateTransaction()
     tx.set_request_timeout(5)
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx._resolve_execution_config(mock_client, 2)
 
     assert tx._request_timeout == 5
