@@ -415,7 +415,7 @@ class TokenUpdateTransaction(Transaction):
             ValueError: If token_id is not set.
         """
         token_update_body = token_update_pb2.TokenUpdateTransactionBody(
-            token=self.token_id._to_proto(),
+            token=self.token_id._to_proto() if self.token_id else None,
             treasury=self.treasury_account_id._to_proto() if self.treasury_account_id else None,
             name=self.token_name,
             memo=StringValue(value=self.token_memo) if self.token_memo else None,
