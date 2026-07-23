@@ -553,3 +553,37 @@ def test_transaction_default_max_fee(account_id):
 
     assert tx_body is not None
     assert tx_body.transactionFee == Hbar(2).to_tinybars()
+
+
+def test_transaction_body_bytes_for_each_node_id_on_freeze(mock_client):
+    """Test create transaction body bytes for each network node when frozen."""
+    tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
+    tx.freeze_with(mock_client)
+
+    body_bytes = tx._transaction_body_bytes
+
+    assert body_bytes
+    assert body_bytes.keys() == {node._account_id for node in mock_client.network.nodes}
+
+    for node_id, body_bytes_value in body_bytes.items():
+        body = transaction_pb2.TransactionBody()
+        body.ParseFromString(body_bytes_value)
+        assert body.nodeAccountID == AccountId._to_proto(node_id)
+
+
+def test_transaction_body_bytes_for_each_node_id_on_freeze_manual(mock_client):
+    """Test create transaction body bytes for manually configured node account IDs."""
+    node_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+
+    tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa()).set_node_account_ids(node_ids)
+    tx.freeze_with(mock_client)
+
+    body_bytes = tx._transaction_body_bytes
+
+    assert body_bytes
+    assert set(body_bytes) == set(node_ids)
+
+    for node_id, body_bytes_value in body_bytes.items():
+        body = transaction_pb2.TransactionBody()
+        body.ParseFromString(body_bytes_value)
+        assert body.nodeAccountID == AccountId._to_proto(node_id)
