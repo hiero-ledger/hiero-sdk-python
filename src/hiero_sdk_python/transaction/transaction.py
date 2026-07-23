@@ -216,9 +216,9 @@ class Transaction(_Executable):
         # We require the transaction to be frozen before converting to protobuf
         self._require_frozen()
 
-        body_bytes = self._transaction_body_bytes.get(self.node_account_id)
+        body_bytes = self._transaction_body_bytes.get(self._node_account_id)
         if body_bytes is None:
-            raise ValueError(f"No transaction body found for node {self.node_account_id}")
+            raise ValueError(f"No transaction body found for node {self._node_account_id}")
 
         # Get signature map, or create empty one if transaction is not signed
         sig_map = self._signature_map.get(body_bytes)
@@ -245,7 +245,7 @@ class Transaction(_Executable):
             )
 
     def _resolve_node_ids(self, client: Client):
-        if self.node_account_id is None and len(self.node_account_ids) == 0 and client is None:
+        if len(self.node_account_ids) == 0 and client is None:
             raise ValueError(
                 "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
             )
@@ -297,27 +297,18 @@ class Transaction(_Executable):
 
         if self.batch_key:
             # For Inner Transaction of batch transaction node_account_id=0.0.0
-            self.node_account_id = AccountId(0, 0, 0)
+            self.node_account_ids = [AccountId(0, 0, 0)]
+            self._node_account_id = AccountId(0, 0, 0)
             self._transaction_body_bytes[AccountId(0, 0, 0)] = self.build_transaction_body().SerializeToString()
             return self
 
-        # Single node
-        if self.node_account_id:
-            self.set_node_account_id(self.node_account_id)
-            self._transaction_body_bytes[self.node_account_id] = self.build_transaction_body().SerializeToString()
-            return self
+        # If not nodes set manually use the all network nodes available in client
+        if len(self.node_account_ids) == 0:
+            self.node_account_ids = [node._account_id for node in client.network.nodes]
 
-        # Multiple node
-        if len(self.node_account_ids) > 0:
-            for node_account_id in self.node_account_ids:
-                self.node_account_id = node_account_id
-                self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
-
-        else:
-            # Use all nodes from client network
-            for node in client.network.nodes:
-                self.node_account_id = node._account_id
-                self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
+        for node_account_id in self.node_account_ids:
+            self._node_account_id = node_account_id
+            self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
 
         return self
 
@@ -405,7 +396,7 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
 
-        sig_map = self._signature_map.get(self._transaction_body_bytes.get(self.node_account_id))
+        sig_map = self._signature_map.get(self._transaction_body_bytes.get(self._node_account_id))
 
         if sig_map is None:
             return False
@@ -459,7 +450,8 @@ class Transaction(_Executable):
 
         transaction_id_proto = self.transaction_id._to_proto()
 
-        selected_node = self.node_account_id or (self.node_account_ids[0] if self.node_account_ids else None)
+        # This will change with the fix for the chunk tx to create bytes on freeze
+        selected_node = self._node_account_id or (self.node_account_ids[0] if self.node_account_ids else None)
         if selected_node is None:
             raise ValueError("Node account ID is not set.")
 
@@ -877,7 +869,8 @@ class Transaction(_Executable):
             transaction.transaction_id = TransactionId._from_proto(transaction_body.transactionID)
 
         if transaction_body.HasField("nodeAccountID"):
-            transaction.node_account_id = AccountId._from_proto(transaction_body.nodeAccountID)
+            transaction._node_account_id = AccountId._from_proto(transaction_body.nodeAccountID)
+            transaction.node_account_ids = [AccountId._from_proto(transaction_body.nodeAccountID)]
 
         transaction.transaction_fee = transaction_body.transactionFee
         transaction.transaction_valid_duration = transaction_body.transactionValidDuration.seconds

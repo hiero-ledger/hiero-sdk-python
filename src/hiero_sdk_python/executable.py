@@ -86,11 +86,26 @@ class _Executable(ABC):
         self._grpc_deadline: float | None = None
         self._request_timeout: float | None = None
 
-        self.node_account_id: AccountId | None = None
+        self._node_account_id: AccountId | None = None
         self.node_account_ids: list[AccountId] = []
 
         self._used_node_account_id: AccountId | None = None
         self._node_account_ids_index: int = 0
+
+    @property
+    def node_account_id(self) -> AccountId | None:
+        warnings.warn(
+            "'node_account_id' is deprecated; use 'node_account_ids' instead.", DeprecationWarning, stacklevel=2
+        )
+        return self.node_account_ids[0] if len(self.node_account_ids) > 0 else None
+
+    @node_account_id.setter
+    def node_account_id(self, account_id: AccountId) -> None:
+        warnings.warn(
+            "'node_account_id' is deprecated; use 'node_account_ids' instead.", DeprecationWarning, stacklevel=2
+        )
+
+        self.node_account_ids = [account_id] if account_id is not None else []
 
     def set_node_account_ids(self, node_account_ids: list[AccountId]):
         """
@@ -115,6 +130,11 @@ class _Executable(ABC):
         Returns:
             The current instance of the class for chaining.
         """
+        warnings.warn(
+            "Method 'set_node_account_id()' is deprecated; use 'set_node_account_ids()' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.set_node_account_ids([node_account_id])
 
     def set_max_attempts(self, max_attempts: int):
@@ -346,12 +366,12 @@ class _Executable(ABC):
             if getattr(self, attr) is None:
                 setattr(self, attr, default)
 
-        # nodes to which the executaion must be run against, if not provided used nodes from client
+        # Temp workaround till the chunk-tx fix
         if not self.node_account_ids:
-            self.node_account_ids = [node._account_id for node in client.network._healthy_nodes]
+            self.node_account_ids = [node._account_id for node in client.network.nodes]
 
         if not self.node_account_ids:
-            raise RuntimeError("No healthy nodes available for execution")
+            raise RuntimeError("No nodes available for execution")
 
     def _should_retry_exponentially(self, err: Exception) -> bool:
         """
@@ -429,10 +449,10 @@ class _Executable(ABC):
             node = client.network._get_node(node_id)
 
             if node is None:
-                raise RuntimeError(f"No node found for node_account_id: {self.node_account_id}")
+                raise RuntimeError(f"No node found for node_account_id: {self._node_account_id}")
 
             # Store for logging and receipts
-            self.node_account_id = node._account_id
+            self._node_account_id = node._account_id
 
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
@@ -442,7 +462,7 @@ class _Executable(ABC):
                 "requestId",
                 self._get_request_id(),
                 "nodeAccountID",
-                self.node_account_id,
+                self._node_account_id,
                 "attempt",
                 attempt + 1,
                 "maxAttempts",
@@ -483,7 +503,7 @@ class _Executable(ABC):
             logger.trace(
                 f"{self.__class__.__name__} status received",
                 "nodeAccountID",
-                self.node_account_id,
+                self._node_account_id,
                 "network",
                 client.network.network,
                 "state",
@@ -518,7 +538,7 @@ class _Executable(ABC):
                 case _ExecutionState.FINISHED:
                     # If the transaction completed successfully, map the response and return it
                     logger.trace(f"{self.__class__.__name__} finished execution")
-                    return self._map_response(response, self.node_account_id, proto_request)
+                    return self._map_response(response, self._node_account_id, proto_request)
 
         logger.error(
             "Exceeded maximum attempts for request",
@@ -529,7 +549,7 @@ class _Executable(ABC):
         )
         raise MaxAttemptsError(
             "Exceeded maximum attempts or request timeout",
-            self.node_account_id,
+            self._node_account_id,
             err_persistant,
         )
 
