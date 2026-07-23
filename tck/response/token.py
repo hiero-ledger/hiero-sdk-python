@@ -122,3 +122,8 @@ class GetTokenInfoResponse:
 @dataclass
 class WipeTokenResponse(StatusOnlyResponse):
     """Response payload for wipeToken."""
+
+
+@dataclass
+class UpdateTokenResponse(StatusOnlyResponse):
+    """Response payload for updateToken."""
