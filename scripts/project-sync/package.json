@@ -1,0 +1,10 @@
+{
+    "name": "project-sync",
+    "version": "1.0.0",
+    "description": "Automated PR project board field sync scripts and tests",
+    "private": true,
+    "main": "index.js",
+    "scripts": {
+        "test": "node tests/test-mapping.js && node tests/test-labels.js && node tests/test-graphql.js && node tests/test-linked-issues.js"
+    }
+}
