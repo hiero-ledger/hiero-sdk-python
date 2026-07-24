@@ -359,3 +359,25 @@ def test_topic_update_transaction_with_all_fields(topic_id):
 
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
+
+
+def test_topic_memo_does_not_collide_with_transaction_memo():
+    """Regression test for: topic and transaction memos remain independent."""
+    tx = TopicUpdateTransaction(memo="my topic memo")
+    assert tx.topic_memo == "my topic memo"
+    assert tx.memo == ""  # base Transaction-level memo defaults independently
+
+    tx.set_transaction_memo("some unrelated audit note")
+
+    assert tx.topic_memo == "my topic memo", "topic_memo was clobbered by set_transaction_memo()"
+    assert tx.memo == "some unrelated audit note"
+
+
+def test_set_memo_updates_topic_memo_only():
+    """Verify set_memo() only updates the topic memo."""
+    tx = TopicUpdateTransaction()
+    tx.set_transaction_memo("audit note")
+    tx.set_memo("new topic memo")
+
+    assert tx.topic_memo == "new topic memo"
+    assert tx.memo == "audit note"
