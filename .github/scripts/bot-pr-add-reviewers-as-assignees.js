@@ -2,14 +2,16 @@
 
 /**
  * @fileoverview
- * Automatically adds requested individual reviewers as assignees on Pull Requests.
+ * Manages requested individual reviewers as PR assignees.
  *
- * This is part of the generic "on-review" infrastructure.
- * Team reviewers are intentionally ignored (only individual users are assigned).
- * Caps the number of assignees at MAX_ASSIGNEES (default: 2).
+ * - On `review_requested` (pull_request_target): adds the reviewer as an assignee (no cap).
+ * - On `workflow_run` (triggered by Bot - Capture PR Review): removes the reviewer from
+ *   assignees using a write-token that works for fork PRs. The reviewer login and PR number
+ *   are read from the artifact written by the capture workflow.
+ * - Team reviewers are intentionally ignored (only individual users are assigned).
  */
 
-const { createLogger, MAX_ASSIGNEES, BOT_NAME_ASSIGNEES } = require('./shared/helpers/reviewers-assignee-index.js');
+const { createLogger, BOT_NAME_ASSIGNEES } = require('./shared/helpers/reviewers-assignee-index.js');
 
 const logger = createLogger(BOT_NAME_ASSIGNEES);
 
@@ -59,37 +61,13 @@ function getUsersToAssign(requestedReviewers, currentAssignees) {
 }
 
 /**
- * Logs a warning if some reviewers were dropped due to the assignee cap.
- *
- * @param {Set<string>} usersToAssign
- */
-function logAssigneeCapWarning(usersToAssign, maxToAdd) {
-  if (usersToAssign.size > maxToAdd) {
-    const dropped = Array.from(usersToAssign).slice(maxToAdd);
-    logger.warn(`Assignee cap (${MAX_ASSIGNEES}) reached. Dropping: ${dropped.join(', ')}`);
-  }
-}
-
-/**
- * Main handler that adds requested reviewers as assignees on a PR.
- *
- * Triggered by:
- *   - `pull_request_target: review_requested`
- *   - `workflow_dispatch` (for manual testing)
- *
- * Behavior:
- *   - Only processes individual reviewers (`requested_reviewers`)
- *   - Ignores team reviewers (`requested_teams`)
- *   - Skips users who are already assignees
- *   - Caps at `MAX_ASSIGNEES` (default: 2)
- *   - Logs a warning when reviewers are dropped due to the cap
+ * Adds requested reviewers as PR assignees (no cap on count).
  *
  * @param {Object} params
  * @param {Object} params.github - GitHub Octokit client instance
  * @param {Object} params.context - GitHub Actions context object
- * @returns {Promise<void>}
  */
-module.exports = async ({ github, context }) => {
+async function addReviewersAsAssignees({ github, context }) {
   try {
     const prNumber = resolvePrNumber(context);
     if (!prNumber) return;
@@ -118,10 +96,9 @@ module.exports = async ({ github, context }) => {
     if (requestedTeams.length > 0) {
       logger.info(`${requestedTeams.length} team reviewer(s) detected but ignored (only individual users are assigned)`);
     }
+
     const usersToAssign = getUsersToAssign(requestedReviewers, currentAssignees);
-    const currentCount = currentAssignees.size;
-    const maxNewAssignees = Math.max(0, MAX_ASSIGNEES - currentCount);
-    const assigneesList = Array.from(usersToAssign).slice(0, maxNewAssignees);
+    const assigneesList = Array.from(usersToAssign);
 
     if (assigneesList.length === 0) {
       logger.log('No new users to assign. Done.');
@@ -129,7 +106,6 @@ module.exports = async ({ github, context }) => {
     }
 
     logger.log(`Will assign: ${assigneesList.join(', ')}`);
-    logAssigneeCapWarning(usersToAssign, maxNewAssignees);
 
     await github.rest.issues.addAssignees({
       owner,
@@ -148,4 +124,85 @@ module.exports = async ({ github, context }) => {
     }
     throw error;
   }
+}
+
+/**
+ * Removes a reviewer from PR assignees after they submit their review.
+ * Called from the workflow_run removal job via named export, passing reviewer
+ * login and PR number read from the capture workflow's artifact.
+ *
+ * Explicit params take priority; falls back to context.payload for direct calls.
+ *
+ * @param {Object} params
+ * @param {Object} params.github - GitHub Octokit client instance
+ * @param {Object} params.context - GitHub Actions context object
+ * @param {string} [params.reviewer] - Reviewer login (overrides context payload)
+ * @param {number} [params.prNumber] - PR number (overrides context payload)
+ */
+async function removeReviewerFromAssignees({ github, context, reviewer: explicitReviewer, prNumber: explicitPrNumber }) {
+  try {
+    const reviewer = explicitReviewer ?? context.payload?.review?.user?.login;
+    const prNumber = explicitPrNumber ?? context.payload?.pull_request?.number;
+
+    if (!reviewer || !Number.isInteger(prNumber) || prNumber <= 0) {
+      logger.warn('Missing reviewer login or PR number. Skipping removal.');
+      return;
+    }
+
+    const owner = context.repo.owner;
+    const repo = context.repo.repo;
+
+    // Fetch live PR data to avoid acting on a stale event payload snapshot.
+    const livePr = (await github.rest.pulls.get({ owner, repo, pull_number: prNumber })).data;
+    const currentAssignees = (livePr.assignees || []).map(a => a.login);
+
+    if (!currentAssignees.includes(reviewer)) {
+      logger.log(`${reviewer} is not an assignee on PR #${prNumber}. Nothing to remove.`);
+      return;
+    }
+
+    logger.log(`Removing ${reviewer} from assignees on PR #${prNumber}`);
+
+    await github.rest.issues.removeAssignees({
+      owner,
+      repo,
+      issue_number: prNumber,
+      assignees: [reviewer]
+    });
+
+    logger.log(`✅ Successfully removed ${reviewer} from assignee(s)`);
+
+  } catch (error) {
+    logger.error('Failed to remove assignee:', error.message);
+    if (error.status === 403) {
+      logger.warn(`403 returned: ${error.message}`);
+      return;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Entry point for the add flow (pull_request_target + workflow_dispatch).
+ * The remove flow is invoked directly via the named export from the workflow_run job.
+ *
+ * @param {Object} params
+ * @param {Object} params.github - GitHub Octokit client instance
+ * @param {Object} params.context - GitHub Actions context object
+ * @returns {Promise<void>}
+ */
+module.exports = async ({ github, context }) => {
+  const { eventName } = context;
+  const action = context.payload.action;
+
+  if (
+    (eventName === 'pull_request_target' && action === 'review_requested') ||
+    eventName === 'workflow_dispatch'
+  ) {
+    await addReviewersAsAssignees({ github, context });
+  } else {
+    logger.warn(`Unhandled event: ${eventName} / ${action}. Skipping.`);
+  }
 };
+
+module.exports.removeReviewerFromAssignees = removeReviewerFromAssignees;

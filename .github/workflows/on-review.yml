@@ -4,6 +4,11 @@ on:
   pull_request_target:
     types:
       - review_requested
+  workflow_run:
+    workflows:
+      - "Bot - Capture PR Review"
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       pr_number:
@@ -15,11 +20,18 @@ permissions:
   contents: read
   pull-requests: write
   issues: write
+  actions: read
 
 jobs:
   add-reviewers-as-assignees:
     name: Add Reviewers as Assignees
     runs-on: hl-sdk-py-lin-md
+    if: |
+      !contains(github.actor, '[bot]') &&
+      (
+        (github.event_name == 'pull_request_target' && github.event.action == 'review_requested') ||
+        github.event_name == 'workflow_dispatch'
+      )
 
     concurrency:
       group: reviewer-assignee-${{ github.event.pull_request.number || inputs.pr_number || github.run_id }}
@@ -34,6 +46,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
 
       - name: Run Add Reviewers as Assignees
@@ -42,3 +55,64 @@ jobs:
           script: |
             const script = require('./.github/scripts/bot-pr-add-reviewers-as-assignees.js');
             await script({ github, context });
+
+  remove-reviewer-from-assignees:
+    name: Remove Reviewer from Assignees
+    runs-on: hl-sdk-py-lin-md
+    if: |
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      !contains(github.event.workflow_run.triggering_actor.login, '[bot]')
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Check for review artifact
+        id: check
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const name = `review-data-${context.payload.workflow_run.id}`;
+            const { data } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id
+            });
+            const found = data.artifacts.some(a => a.name === name && !a.expired);
+            if (!found) core.notice('Review artifact not found; capture job was likely skipped. Nothing to do.');
+            core.setOutput('found', String(found));
+
+      - name: Download review metadata
+        if: steps.check.outputs.found == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: review-data-${{ github.event.workflow_run.id }}
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: artifact
+
+      - name: Run Remove Reviewer from Assignees
+        if: steps.check.outputs.found == 'true'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fs = require('fs');
+            const raw = JSON.parse(fs.readFileSync('artifact/review.json', 'utf8'));
+            const reviewer = typeof raw.reviewer === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9-]*$/.test(raw.reviewer)
+              ? raw.reviewer : null;
+            const prNumber = Number.isInteger(raw.pr_number) && raw.pr_number > 0
+              ? raw.pr_number : null;
+            if (!reviewer || !prNumber) {
+              core.setFailed(`Invalid artifact contents: reviewer=${raw.reviewer}, pr_number=${raw.pr_number}`);
+              return;
+            }
+            const { removeReviewerFromAssignees } = require('./.github/scripts/bot-pr-add-reviewers-as-assignees.js');
+            await removeReviewerFromAssignees({ github, context, reviewer, prNumber });
