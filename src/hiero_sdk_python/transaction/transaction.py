@@ -8,9 +8,17 @@ from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_contents_pb2, transaction_pb2
-from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
-from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    transaction_contents_pb2,
+    transaction_pb2,
+)
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
+    SchedulableTransactionBody,
+)
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
+    TransactionResponse as TransactionResponseProto,
+)
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.fee_estimate_query import FeeEstimateQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -295,6 +303,17 @@ class Transaction(_Executable):
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
 
+        # Use all nodes from client network
+        # Resolve fee priority before building bodies:
+        # 1. Explicit transaction fee (self.transaction_fee)
+        # 2. Client default_max_transaction_fee
+        # 3. Transaction class default (_default_transaction_fee)
+        if self.transaction_fee is None:
+            if client is not None and getattr(client, "default_max_transaction_fee", None) is not None:
+                self.transaction_fee = client.default_max_transaction_fee
+            else:
+                self.transaction_fee = self._default_transaction_fee
+
         if self.batch_key:
             # For Inner Transaction of batch transaction node_account_id=0.0.0
             self.node_account_id = AccountId(0, 0, 0)
@@ -314,7 +333,6 @@ class Transaction(_Executable):
                 self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
 
         else:
-            # Use all nodes from client network
             for node in client.network.nodes:
                 self.node_account_id = node._account_id
                 self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
@@ -774,6 +792,14 @@ class Transaction(_Executable):
         return transaction_class._from_protobuf(
             transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
         )
+
+    def set_max_transaction_fee(self, max_transaction_fee):
+        self._require_not_frozen()
+        value = Hbar._coerce_fee(max_transaction_fee)
+        if value < Hbar.ZERO:
+            raise ValueError("max_transaction_fee must be non-negative")
+        self.transaction_fee = value
+        return self
 
     @staticmethod
     def _get_transaction_class(transaction_type: str):
