@@ -14,6 +14,13 @@ class CreateTopicResponse:
 
 
 @dataclass
+class UpdateTopicResponse(StatusOnlyResponse):
+    """Response payload for updateTopic."""
+
+    status: str | None = None
+
+
+@dataclass
 class DeleteTopicResponse(StatusOnlyResponse):
     """Response payload for deleteTopic."""
 

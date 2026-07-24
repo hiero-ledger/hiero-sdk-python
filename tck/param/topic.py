@@ -57,6 +57,55 @@ class CreateTopicParams(BaseTransactionParams):
 
 
 @dataclass
+class UpdateTopicParams(BaseTransactionParams):
+    """Parameters for updating a topic. Extends BaseTransactionParams to include common transaction parameters."""
+
+    topicId: str | None = None
+    memo: str | None = None
+    adminKey: str | None = None
+    submitKey: str | None = None
+    autoRenewPeriod: str | None = None
+    autoRenewAccountId: str | None = None
+    expirationTime: str | None = None
+    feeScheduleKey: str | None = None
+    feeExemptKeys: list[str] | None = None
+    customFees: list[CustomFeeParams] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UpdateTopicParams:
+        fee_exempt_keys = params.get("feeExemptKeys")
+        if fee_exempt_keys is not None and not isinstance(fee_exempt_keys, list):
+            raise ValueError("feeExemptKeys must be a list")
+        custom_fees = params.get("customFees")
+        if custom_fees is not None and not isinstance(custom_fees, list):
+            raise ValueError("customFees must be a list")
+        if custom_fees is not None and any(not isinstance(custom_fee, dict) for custom_fee in custom_fees):
+            raise ValueError("each customFees item must be an object")
+        topic_id = non_empty_string_or_none(params.get("topicId"))
+        if topic_id is None:
+            raise ValueError("topicId is required")
+
+        return cls(
+            topicId=topic_id,
+            memo=params.get("memo"),
+            adminKey=params.get("adminKey"),
+            submitKey=non_empty_string_or_none(params.get("submitKey")),
+            autoRenewPeriod=non_empty_string_or_none(params.get("autoRenewPeriod")),
+            autoRenewAccountId=non_empty_string_or_none(params.get("autoRenewAccountId")),
+            expirationTime=non_empty_string_or_none(params.get("expirationTime")),
+            feeScheduleKey=non_empty_string_or_none(params.get("feeScheduleKey")),
+            feeExemptKeys=non_empty_string_list(fee_exempt_keys),
+            customFees=(
+                [CustomFeeParams.parse_json_params(custom_fee) for custom_fee in custom_fees]
+                if custom_fees is not None
+                else None
+            ),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class DeleteTopicParams(BaseTransactionParams):
     """Parameters for deleting a topic. Extends BaseTransactionParams to include common transaction parameters."""
 
