@@ -558,7 +558,7 @@ def test_changing_node_after_freeze_fails_for_to_bytes():
     assert isinstance(bytes_node_1, bytes)
 
     # Change to a different node that wasn't frozen
-    transaction.node_account_id = node_id_2
+    transaction._node_account_id = node_id_2
 
     # This should fail - no transaction body for node_id_2
     with pytest.raises(ValueError, match="No transaction body found for node"):
@@ -663,7 +663,9 @@ def test_transaction_freeze_without_node_ids(mock_client):
     tx = TransferTransaction()
     tx.freeze_with(mock_client)
 
-    assert tx.node_account_ids == []
+    assert len(tx.node_account_ids) == len(mock_client.network.nodes)
+    assert tx.node_account_ids == [node._account_id for node in mock_client.network.nodes]
+
     # Verify creates transaction_bytes for client network nodes
     assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
     assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
