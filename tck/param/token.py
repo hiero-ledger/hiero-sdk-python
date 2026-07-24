@@ -167,6 +167,30 @@ class FreezeTokenParams(BaseTransactionParams):
 
 
 @dataclass
+class DissociateTokenParams(BaseTransactionParams):
+    """Request parameters for the dissociateToken endpoint."""
+
+    accountId: str | None = None
+    tokenIds: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DissociateTokenParams:
+        """Parse JSON-RPC params into a DissociateTokenParams instance."""
+        token_ids = params.get("tokenIds")
+        if token_ids is not None and not isinstance(token_ids, list):
+            raise ValueError("tokenIds must be a list")
+        if token_ids is not None and any(not isinstance(token_id, str) for token_id in token_ids):
+            raise ValueError("each tokenIds item must be a string")
+
+        return cls(
+            accountId=params.get("accountId"),
+            tokenIds=token_ids,
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class GrantTokenKycParams(BaseTransactionParams):
     """Request parameters for the grantTokenKyc endpoint."""
 
@@ -286,4 +310,117 @@ class GetTokenInfoParams(BaseParams):
             queryPayment=params.get("queryPayment"),
             maxQueryPayment=params.get("maxQueryPayment"),
             sessionId=parse_session_id(params),
+        )
+
+
+@dataclass
+class RejectTokenParams(BaseTransactionParams):
+    ownerId: str | None = None
+    tokenIds: list[str] | None = None
+    serialNumbers: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> RejectTokenParams:
+        token_ids = params.get("tokenIds")
+        if token_ids is not None and (
+            not isinstance(token_ids, list) or not all(isinstance(token_id, str) for token_id in token_ids)
+        ):
+            raise ValueError("tokenIds must be a list of strings")
+
+        serial_numbers = params.get("serialNumbers")
+        if serial_numbers is not None and (
+            not isinstance(serial_numbers, list)
+            or not all(isinstance(serial_number, str) for serial_number in serial_numbers)
+        ):
+            raise ValueError("serialNumbers must be a list of strings")
+
+        return cls(
+            ownerId=params.get("ownerId"),
+            tokenIds=token_ids,
+            serialNumbers=serial_numbers,
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class WipeTokenParams(BaseTransactionParams):
+    """Wipes the provided amount of fungible or non-fungible tokens from the specified Hedera account."""
+
+    tokenId: str | None = None
+    accountId: str | None = None
+    amount: str | None = None
+    serialNumbers: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> WipeTokenParams:
+        """Parse JSON-RPC params into a WipeTokenParams instance."""
+        token_id = params.get("tokenId")
+
+        account_id = params.get("accountId")
+
+        amount = params.get("amount")
+
+        serial_numbers = params.get("serialNumbers")
+        if serial_numbers is not None and (
+            not isinstance(serial_numbers, list)
+            or not all(isinstance(serial_number, str) for serial_number in serial_numbers)
+        ):
+            raise ValueError("serialNumbers must be a list of strings")
+
+        return cls(
+            tokenId=token_id,
+            accountId=account_id,
+            amount=amount,
+            serialNumbers=serial_numbers,
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class UpdateTokenParams(BaseTransactionParams):
+    """Request parameters for the updateToken endpoint."""
+
+    tokenId: str | None = None
+    name: str | None = None
+    symbol: str | None = None
+    treasuryAccountId: str | None = None
+    adminKey: str | None = None
+    kycKey: str | None = None
+    freezeKey: str | None = None
+    wipeKey: str | None = None
+    supplyKey: str | None = None
+    feeScheduleKey: str | None = None
+    pauseKey: str | None = None
+    metadataKey: str | None = None
+    memo: str | None = None
+    expirationTime: str | None = None
+    autoRenewAccountId: str | None = None
+    autoRenewPeriod: str | None = None
+    metadata: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UpdateTokenParams:
+        """Parse JSON-RPC params into an UpdateTokenParams instance."""
+        return cls(
+            tokenId=params.get("tokenId"),
+            name=params.get("name"),
+            symbol=params.get("symbol"),
+            treasuryAccountId=params.get("treasuryAccountId"),
+            adminKey=params.get("adminKey"),
+            kycKey=params.get("kycKey"),
+            freezeKey=params.get("freezeKey"),
+            wipeKey=params.get("wipeKey"),
+            supplyKey=params.get("supplyKey"),
+            feeScheduleKey=params.get("feeScheduleKey"),
+            pauseKey=params.get("pauseKey"),
+            metadataKey=params.get("metadataKey"),
+            memo=params.get("memo"),
+            expirationTime=params.get("expirationTime"),
+            autoRenewAccountId=params.get("autoRenewAccountId"),
+            autoRenewPeriod=params.get("autoRenewPeriod"),
+            metadata=params.get("metadata"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
         )

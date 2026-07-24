@@ -35,6 +35,11 @@ class DeleteTokenResponse(StatusOnlyResponse):
 
 
 @dataclass
+class DissociateTokenResponse(StatusOnlyResponse):
+    """Response payload for dissociateToken."""
+
+
+@dataclass
 class FreezeTokenResponse(StatusOnlyResponse):
     """Response payload for freezeToken."""
 
@@ -47,6 +52,11 @@ class GrantTokenKycResponse(StatusOnlyResponse):
 @dataclass
 class RevokeTokenKycResponse(StatusOnlyResponse):
     """Response payload for revokeTokenKyc."""
+
+
+@dataclass
+class RejectTokenResponse(StatusOnlyResponse):
+    """Response payload for rejectToken."""
 
 
 @dataclass
@@ -107,3 +117,13 @@ class GetTokenInfoResponse:
     maxSupply: str | None = None
     metadata: str | None = None
     ledgerId: str | None = None
+
+
+@dataclass
+class WipeTokenResponse(StatusOnlyResponse):
+    """Response payload for wipeToken."""
+
+
+@dataclass
+class UpdateTokenResponse(StatusOnlyResponse):
+    """Response payload for updateToken."""
