@@ -1,0 +1,10 @@
+{
+  "name": "revision-guard",
+  "version": "1.0.0",
+  "description": "Revision guard automation scripts and tests",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test index.test.js"
+  }
+}
