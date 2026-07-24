@@ -63,7 +63,7 @@ class TopicCreateTransaction(Transaction):
             fee_exempt_keys (list[Key], optional): Optional list of fee exempt keys for the topic (PrivateKey or PublicKey).
         """
         super().__init__()
-        self.memo: str = memo or ""
+        self.topic_memo: str = memo or ""
         self.admin_key: Key | None = admin_key
         self.submit_key: Key | None = submit_key
         self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
@@ -84,7 +84,7 @@ class TopicCreateTransaction(Transaction):
             TopicCreateTransaction: The current instance for method chaining.
         """
         self._require_not_frozen()
-        self.memo = memo
+        self.topic_memo = memo
         return self
 
     def set_admin_key(self, key: Key) -> TopicCreateTransaction:
@@ -237,7 +237,7 @@ class TopicCreateTransaction(Transaction):
             submitKey=key_to_proto(self.submit_key),
             autoRenewPeriod=(self.auto_renew_period._to_proto() if self.auto_renew_period is not None else None),
             autoRenewAccount=(self.auto_renew_account._to_proto() if self.auto_renew_account is not None else None),
-            memo=self.memo,
+            memo=self.topic_memo,
             custom_fees=[custom_fee._to_topic_fee_proto() for custom_fee in self.custom_fees],
             fee_schedule_key=key_to_proto(self.fee_schedule_key),
             fee_exempt_key_list=[key_to_proto(key) for key in self.fee_exempt_keys],

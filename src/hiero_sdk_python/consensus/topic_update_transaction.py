@@ -57,7 +57,7 @@ class TopicUpdateTransaction(Transaction):
         """
         super().__init__()
         self.topic_id: TopicId | None = topic_id
-        self.memo: str = memo or ""
+        self.topic_memo: str = memo or ""
         self.admin_key: Key | None = admin_key
         self.submit_key: Key | None = submit_key
         self.auto_renew_period: Duration | None = auto_renew_period
@@ -93,7 +93,7 @@ class TopicUpdateTransaction(Transaction):
             TopicUpdateTransaction: Returns the instance for method chaining.
         """
         self._require_not_frozen()
-        self.memo = memo
+        self.topic_memo = memo
         return self
 
     def set_admin_key(self, key: Key) -> TopicUpdateTransaction:
@@ -271,7 +271,7 @@ class TopicUpdateTransaction(Transaction):
             ),
             autoRenewAccount=(self.auto_renew_account._to_proto() if self.auto_renew_account else None),
             expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
-            memo=_wrappers_pb2.StringValue(value=self.memo) if self.memo is not None else None,
+            memo=_wrappers_pb2.StringValue(value=self.topic_memo) if self.topic_memo is not None else None,
             custom_fees=custom_fees,
             fee_schedule_key=key_to_proto(self.fee_schedule_key) if self.fee_schedule_key else None,
             fee_exempt_key_list=fee_exempt_key_list,
