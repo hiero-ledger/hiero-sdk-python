@@ -4,7 +4,6 @@ import math
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.consensus.topic_id import TopicId
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -107,33 +106,6 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         self._total_chunks = self.get_required_chunks()
         return self
 
-    def set_chunk_size(self, chunk_size: int) -> TopicMessageSubmitTransaction:
-        """
-        Set maximum chunk size in bytes.
-
-        Args:
-            chunk_size (int): The size of each chunk in bytes.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().set_chunk_size(chunk_size)
-        self._total_chunks = self.get_required_chunks()
-        return self
-
-    def set_max_chunks(self, max_chunks: int) -> TopicMessageSubmitTransaction:
-        """
-        Set maximum allowed chunks.
-
-        Args:
-            max_chunks (int): The maximum number of chunks allowed.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().set_max_chunks(max_chunks)
-        return self
-
     def set_custom_fee_limits(self, custom_fee_limits: list[CustomFeeLimit]) -> TopicMessageSubmitTransaction:
         """
         Sets the maximum custom fees that the user is willing to pay for the message.
@@ -177,25 +149,28 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
         content = self._message_as_bytes()
 
-        start_index = self._current_chunk_index * self.chunk_size
-        end_index = min(start_index + self.chunk_size, len(content))
-        chunk_content = content[start_index:end_index]
-
-        body = consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
-            topicID=self.topic_id._to_proto() if self.topic_id else None, message=chunk_content
-        )
-
-        # Multi-chunk metadata
-        if self._total_chunks > 1:
-            body.chunkInfo.CopyFrom(
-                consensus_submit_message_pb2.ConsensusMessageChunkInfo(
-                    initialTransactionID=self._initial_transaction_id._to_proto(),
-                    total=self._total_chunks,
-                    number=self._current_chunk_index + 1,
-                )
+        if self._current_chunk_index is not None:
+            chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+                initialTransactionID=self._initial_transaction_id._to_proto(),
+                total=self._total_chunks,
+                number=self._current_chunk_index + 1,
             )
 
-        return body
+            start_index = (self._current_chunk_index) * self.chunk_size
+            end_index = min(start_index + self.chunk_size, len(content))
+
+            chunk_content = content[start_index:end_index]
+
+            return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+                topicID=self.topic_id._to_proto() if self.topic_id else None,
+                message=chunk_content,
+                chunkInfo=chunk_info,
+            )
+
+        return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+            topicID=self.topic_id._to_proto() if self.topic_id else None,
+            message=content,
+        )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
@@ -233,15 +208,16 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         """
         return _Method(transaction_func=channel.topic.submitMessage, query_func=None)
 
-    def sign(self, private_key: PrivateKey) -> TopicMessageSubmitTransaction:
-        """
-        Signs the transaction using the provided private key.
+    @classmethod
+    def _from_protobuf(cls, transaction_body):
+        transaction = super()._from_protobuf(transaction_body)
 
-        Args:
-            private_key (PrivateKey): The private key to sign the transaction with.
+        if transaction_body.HasField("consensusSubmitMessage"):
+            body = transaction_body.consensusSubmitMessage
 
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().sign(private_key)
-        return self
+            if body.HasField("topicID"):
+                transaction.topic_id = TopicId._from_proto(body.topicID)
+            transaction.message = body.message.decode("utf-8") if body.message else None
+            transaction._total_chunks = transaction.get_required_chunks()
+
+        return transaction

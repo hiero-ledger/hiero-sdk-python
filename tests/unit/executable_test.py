@@ -402,10 +402,12 @@ def test_transaction_node_switching_body_bytes():
         )
 
         for node in client.network.nodes:
-            assert transaction._transaction_body_bytes.get(node._account_id) is not None, (
+            assert transaction._transaction_body_bytes[transaction.transaction_id][node._account_id] is not None, (
                 "Transaction body bytes should be set for all nodes"
             )
-            sig_map = transaction._signature_map.get(transaction._transaction_body_bytes[node._account_id])
+            sig_map = transaction._signature_map.get(
+                transaction._transaction_body_bytes[transaction.transaction_id][node._account_id]
+            )
             assert sig_map is not None, "Signature map should be set for all nodes"
             assert len(sig_map.sigPair) == 1, "Signature map should have one signature"
             assert sig_map.sigPair[0].pubKeyPrefix == client.operator_private_key.public_key().to_bytes_raw(), (
@@ -838,11 +840,12 @@ def test_executable_overrides_client_config(mock_client):
 
 def test_no_healthy_nodes_raises(mock_client):
     """Test that execution fails if no healthy nodes are available."""
-    mock_client.network._healthy_nodes = []
-
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
 
-    with pytest.raises(RuntimeError, match="No healthy nodes available"):
+    for node in mock_client.network.nodes:
+        node.is_healthy = lambda: False
+
+    with pytest.raises(RuntimeError, match="All nodes are unhealthy"):
         tx.execute(mock_client)
 
 

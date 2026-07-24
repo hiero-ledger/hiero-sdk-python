@@ -81,7 +81,7 @@ def test_sign_transaction(mock_account_ids, mock_client):
     associate_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = associate_tx._transaction_body_bytes[node_id]
+    body_bytes = associate_tx._transaction_body_bytes[associate_tx.transaction_id][node_id]
 
     assert body_bytes in associate_tx._signature_map, "Body bytes should be a key in the signature map dictionary"
     assert len(associate_tx._signature_map[body_bytes].sigPair) == 1
