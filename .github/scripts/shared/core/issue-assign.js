@@ -52,6 +52,11 @@ const {
   getAssignmentLimit,
 } = require('../helpers/spam.js');
 
+/**
+ * Returns true if a comment contains the `/assign` command.
+ *
+ * Matches `/assign` as a standalone token, case-insensitively.
+ */
 function commentRequestsAssignment(body) {
   return typeof body === 'string' && /(^|\s)\/assign(\s|$)/i.test(body);
 }
@@ -86,6 +91,16 @@ function resolveLevelKey(issue, repoConfig) {
 // Main entry point
 // ---------------------------------------------------------------------------
 
+/**
+ * Executes the shared assignment workflow for issue-comment events.
+ *
+ * Validates the event, enforces assignment policies (prerequisites,
+ * spam restrictions, assignment limits), optionally posts reminder
+ * comments, and assigns issues when all checks pass.
+ *
+ * @param {{ github: import('@actions/github').GitHub, context: any }} params
+ * @returns {Promise<void>}
+ */
 async function runAssignmentFlow({ github, context }) {
   const { payload } = context;
   const issue = payload.issue;
