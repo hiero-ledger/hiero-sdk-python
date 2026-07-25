@@ -361,16 +361,28 @@ def test_topic_update_transaction_with_all_fields(topic_id):
         assert receipt.status == ResponseCode.SUCCESS
 
 
-def test_topic_memo_does_not_collide_with_transaction_memo():
-    """Regression test for: topic and transaction memos remain independent."""
-    tx = TopicUpdateTransaction(memo="my topic memo")
-    assert tx.topic_memo == "my topic memo"
-    assert tx.memo == ""  # base Transaction-level memo defaults independently
+def test_topic_memo_and_transaction_memo_independent_in_protobuf(
+    mock_account_ids,
+    topic_id,
+):
+    """Topic and transaction memos serialize independently."""
+
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    tx = TopicUpdateTransaction(
+        topic_id=topic_id,
+        memo="my topic memo",
+    )
+
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.node_account_id = node_account_id
 
     tx.set_transaction_memo("some unrelated audit note")
 
-    assert tx.topic_memo == "my topic memo", "topic_memo was clobbered by set_transaction_memo()"
-    assert tx.memo == "some unrelated audit note"
+    body = tx.build_transaction_body()
+
+    assert body.memo == "some unrelated audit note"
+    assert body.consensusUpdateTopic.memo.value == "my topic memo"
 
 
 def test_set_memo_updates_topic_memo_only():
@@ -381,3 +393,34 @@ def test_set_memo_updates_topic_memo_only():
 
     assert tx.topic_memo == "new topic memo"
     assert tx.memo == "audit note"
+
+
+def test_topic_memo_serialization_distinguishes_unset_and_empty(
+    mock_account_ids,
+    topic_id,
+):
+    """Unset and explicit empty topic memos serialize differently."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    tx = TopicUpdateTransaction(topic_id=topic_id)
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body().consensusUpdateTopic
+    assert not body.HasField("memo")
+
+    tx = TopicUpdateTransaction(topic_id=topic_id, memo="")
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body().consensusUpdateTopic
+    assert body.HasField("memo")
+    assert body.memo.value == ""
+
+    tx = TopicUpdateTransaction(topic_id=topic_id, memo="hello")
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body().consensusUpdateTopic
+    assert body.HasField("memo")
+    assert body.memo.value == "hello"

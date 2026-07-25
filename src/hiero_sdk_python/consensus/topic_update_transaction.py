@@ -57,7 +57,7 @@ class TopicUpdateTransaction(Transaction):
         """
         super().__init__()
         self.topic_id: TopicId | None = topic_id
-        self.topic_memo: str = memo or ""
+        self.topic_memo: str | None = memo
         self.admin_key: Key | None = admin_key
         self.submit_key: Key | None = submit_key
         self.auto_renew_period: Duration | None = auto_renew_period
