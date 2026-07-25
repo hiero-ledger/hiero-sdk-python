@@ -118,6 +118,12 @@ async function countCompletedIssuesWithLabel({ github, owner, repo, username, la
   }
 }
 
+/**
+ * Determines whether a user should be treated as a repository collaborator.
+ *
+ * Repository owners are always considered collaborators.
+ * Returns false for permission lookup failures or users without collaborator access.
+ */
 async function isRepoCollaborator({ github, owner, repo, username }) {
   if (username === owner) {
     console.log(`[github-api] @${username} is the repo owner — treated as collaborator.`);
