@@ -376,3 +376,51 @@ class WipeTokenParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class UpdateTokenParams(BaseTransactionParams):
+    """Request parameters for the updateToken endpoint."""
+
+    tokenId: str | None = None
+    name: str | None = None
+    symbol: str | None = None
+    treasuryAccountId: str | None = None
+    adminKey: str | None = None
+    kycKey: str | None = None
+    freezeKey: str | None = None
+    wipeKey: str | None = None
+    supplyKey: str | None = None
+    feeScheduleKey: str | None = None
+    pauseKey: str | None = None
+    metadataKey: str | None = None
+    memo: str | None = None
+    expirationTime: str | None = None
+    autoRenewAccountId: str | None = None
+    autoRenewPeriod: str | None = None
+    metadata: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UpdateTokenParams:
+        """Parse JSON-RPC params into an UpdateTokenParams instance."""
+        return cls(
+            tokenId=params.get("tokenId"),
+            name=params.get("name"),
+            symbol=params.get("symbol"),
+            treasuryAccountId=params.get("treasuryAccountId"),
+            adminKey=params.get("adminKey"),
+            kycKey=params.get("kycKey"),
+            freezeKey=params.get("freezeKey"),
+            wipeKey=params.get("wipeKey"),
+            supplyKey=params.get("supplyKey"),
+            feeScheduleKey=params.get("feeScheduleKey"),
+            pauseKey=params.get("pauseKey"),
+            metadataKey=params.get("metadataKey"),
+            memo=params.get("memo"),
+            expirationTime=params.get("expirationTime"),
+            autoRenewAccountId=params.get("autoRenewAccountId"),
+            autoRenewPeriod=params.get("autoRenewPeriod"),
+            metadata=params.get("metadata"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
