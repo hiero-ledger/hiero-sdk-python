@@ -795,6 +795,24 @@ class Transaction(_Executable):
         )
 
     def set_max_transaction_fee(self, max_transaction_fee):
+        """
+         Sets the maximum transaction fee for this transaction.
+
+        The maximum transaction fee specifies the highest fee that can be
+        charged when the transaction is executed. The value must be
+        non-negative.
+
+        Args:
+             max_transaction_fee (Hbar | int | str): The maximum transaction
+             fee. Accepted types are those supported by ``Hbar._coerce_fee``.
+
+        Returns:
+            Self: This transaction instance, allowing method chaining.
+
+        Raises:
+            ValueError: If ``max_transaction_fee`` is negative.
+            RuntimeError: If the transaction has been frozen.
+        """
         self._require_not_frozen()
         value = Hbar._coerce_fee(max_transaction_fee)
         if value < Hbar.ZERO:
