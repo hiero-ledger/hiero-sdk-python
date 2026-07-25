@@ -303,7 +303,6 @@ class Transaction(_Executable):
         # For each node, set the node_account_id and build the transaction body
         # This allows the transaction to be submitted to any node in the network
 
-        # Use all nodes from client network
         # Resolve fee priority before building bodies:
         # 1. Explicit transaction fee (self.transaction_fee)
         # 2. Client default_max_transaction_fee
@@ -333,6 +332,7 @@ class Transaction(_Executable):
                 self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
 
         else:
+            # Use all nodes from client network
             for node in client.network.nodes:
                 self.node_account_id = node._account_id
                 self._transaction_body_bytes[node._account_id] = self.build_transaction_body().SerializeToString()
@@ -794,6 +794,24 @@ class Transaction(_Executable):
         )
 
     def set_max_transaction_fee(self, max_transaction_fee):
+        """
+         Sets the maximum transaction fee for this transaction.
+
+        The maximum transaction fee specifies the highest fee that can be
+        charged when the transaction is executed. The value must be
+        non-negative.
+
+        Args:
+             max_transaction_fee (Hbar | int | str): The maximum transaction
+             fee. Accepted types are those supported by ``Hbar._coerce_fee``.
+
+        Returns:
+            Self: This transaction instance, allowing method chaining.
+
+        Raises:
+            ValueError: If ``max_transaction_fee`` is negative.
+            RuntimeError: If the transaction has been frozen.
+        """
         self._require_not_frozen()
         value = Hbar._coerce_fee(max_transaction_fee)
         if value < Hbar.ZERO:
