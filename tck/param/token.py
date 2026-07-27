@@ -458,6 +458,24 @@ class UpdateTokenParams(BaseTransactionParams):
             autoRenewPeriod=params.get("autoRenewPeriod"),
             metadata=params.get("metadata"),
             sessionId=parse_session_id(params),
+        )
+
+
+@dataclass
+class UpdateTokenFeeScheduleParams(BaseTransactionParams):
+    tokenId: str | None = None
+    customFees: list[CustomFeeParams] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UpdateTokenFeeScheduleParams:
+        token_id = params.get("tokenId")
+        custom_fees = params.get("customFees")
+        if custom_fees is not None and not isinstance(custom_fees, list):
+            raise ValueError("customFees must be a list")
+
+        return cls(
+            tokenId=token_id,
+            customFees=custom_fees,
             commonTransactionParams=parse_common_transaction_params(params),
         )
 
