@@ -260,15 +260,16 @@ def test_build_scheduled_body(topic_id):
 
 # This test uses fixture mock_account_ids as parameter
 def test_missing_topic_id_in_update(mock_account_ids):
-    """Test that building fails if no topic ID is provided."""
+    """Test that a missing topic ID is deferred to network validation."""
     _, _, node_account_id, _, _ = mock_account_ids
 
     tx = TopicUpdateTransaction(topic_id=None, memo="No ID")
     tx.operator_account_id = AccountId(0, 0, 2)
     tx.node_account_id = node_account_id
 
-    with pytest.raises(ValueError, match="Missing required fields"):
-        tx.build_transaction_body()
+    transaction_body = tx.build_transaction_body()
+
+    assert not transaction_body.consensusUpdateTopic.HasField("topicID")
 
 
 # This test uses fixtures (mock_account_ids, topic_id, private_key) as parameters
@@ -424,3 +425,19 @@ def test_topic_memo_serialization_distinguishes_unset_and_empty(
     body = tx.build_transaction_body().consensusUpdateTopic
     assert body.HasField("memo")
     assert body.memo.value == "hello"
+
+
+def test_auto_renew_period_omitted_when_unset(
+    mock_account_ids,
+    topic_id,
+):
+    """Unset auto-renew period should not be serialized."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    tx = TopicUpdateTransaction(topic_id=topic_id)
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.node_account_id = node_account_id
+
+    body = tx.build_transaction_body().consensusUpdateTopic
+
+    assert not body.HasField("autoRenewPeriod")
