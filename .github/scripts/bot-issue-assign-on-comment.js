@@ -14,5 +14,6 @@ module.exports = async ({ github, context }) => {
       issue: context.payload?.issue?.number,
       comment: context.payload?.comment?.id,
     });
+    throw error;
   }
 };

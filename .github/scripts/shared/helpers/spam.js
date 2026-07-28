@@ -4,6 +4,7 @@
 
 const fs = require("fs");
 const { CONFIG, LEVEL_KEYS } = require("../config");
+const REDUCED_LIMIT_LEVELS = new Set([LEVEL_KEYS.GFI, LEVEL_KEYS.INTERMEDIATE]);
 
 /**
  * Returns true if the contributor appears in the spam list.
@@ -18,14 +19,13 @@ function isSpamUser(username) {
     if (!fs.existsSync(CONFIG.spamListPath)) {
         return false;
     }
-
     const users = fs
         .readFileSync(CONFIG.spamListPath, "utf8")
         .split("\n")
         .map(line => line.trim())
-        .filter(line => line && !line.startsWith("#"));
-
-    return users.includes(username);
+        .filter(line => line && !line.startsWith("#"))
+        .map(line => line.toLowerCase());
+    return users.includes(username.toLowerCase());
 }
 
 /**
@@ -60,10 +60,7 @@ function getAssignmentLimit(levelKey, spamUser) {
         return defaultLimit;
     }
 
-    if (
-        levelKey === LEVEL_KEYS.GFI ||
-        levelKey === LEVEL_KEYS.INTERMEDIATE
-    ) {
+    if (REDUCED_LIMIT_LEVELS.has(levelKey)) {
         return 1;
     }
 
@@ -71,13 +68,7 @@ function getAssignmentLimit(levelKey, spamUser) {
 }
 
 function isSpamLimited(levelKey, spamUser) {
-    return (
-        spamUser &&
-        (
-            levelKey === LEVEL_KEYS.GFI ||
-            levelKey === LEVEL_KEYS.INTERMEDIATE
-        )
-    );
+    return spamUser && REDUCED_LIMIT_LEVELS.has(levelKey);
 }
 
 module.exports = {

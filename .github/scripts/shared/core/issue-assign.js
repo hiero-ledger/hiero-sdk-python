@@ -122,7 +122,11 @@ async function runAssignmentFlow({ github, context }) {
     return;
   }
 
-  const owner = repo.owner.login;
+  const owner = repo.owner?.login;
+  if (!owner) {
+    console.log('[assign-bot] Missing repository owner in payload. Exiting.');
+    return;
+  }
   const repoName = repo.name;
   const repoConfig = findRepoConfig(owner, repoName);
 

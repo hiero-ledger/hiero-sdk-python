@@ -139,10 +139,10 @@ function buildGuardComment(commenter, { owner, repo, prereqLabel, prereqDisplayN
   )})\n\nOnce you've done that, come back — we'll be happy to assign this! 😊`;
 }
 
-function buildLimitComment(commenter, { maxAllowed, spamLimited }) {
+function buildLimitComment(commenter, { openCount, maxAllowed, spamLimited }) {
   return spamLimited
     ? `Hi @${commenter}, you are limited to **${maxAllowed} active issue${maxAllowed === 1 ? '' : 's'}** at a time. Please complete your current assignment before requesting another.`
-    : `👋 Hi @${commenter}, you already have **${maxAllowed} open assignment${maxAllowed === 1 ? '' : 's'}**. Please finish one before requesting another.`;
+    : `👋 Hi @${commenter}, you already have **${openCount} open assignment${openCount === 1 ? '' : 's'}** (limit: ${maxAllowed}). Please finish one before requesting another.`;
 }
 
 function buildSpamBlockedComment(commenter, { prereqDisplayName }) {
