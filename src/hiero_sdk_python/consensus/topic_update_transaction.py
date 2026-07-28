@@ -57,10 +57,10 @@ class TopicUpdateTransaction(Transaction):
         """
         super().__init__()
         self.topic_id: TopicId | None = topic_id
-        self.topic_memo = memo
+        self.topic_memo: str | None = memo
         self.admin_key: Key | None = admin_key
         self.submit_key: Key | None = submit_key
-        self.auto_renew_period = auto_renew_period
+        self.auto_renew_period: Duration | None = auto_renew_period
         self.auto_renew_account: AccountId | None = auto_renew_account
         self.expiration_time: Timestamp | None = expiration_time
         self.transaction_fee: int = 10_000_000
