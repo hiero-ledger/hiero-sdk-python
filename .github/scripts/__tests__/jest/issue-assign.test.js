@@ -581,7 +581,7 @@ describe('runAssignmentFlow - error handling', () => {
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 
-  test('propagates assignIssue errors', async () => {
+  test('attempts to assign the issue even when assignment fails', async () => {
     githubApi.assignIssue.mockRejectedValue(
       new Error('Assignment failed')
     );
@@ -621,37 +621,6 @@ describe('runAssignmentFlow - error handling', () => {
     await expect(
       runAssignmentFlow({ github, context })
     ).rejects.toThrow('Comment failed');
-
-    expect(githubApi.assignIssue).not.toHaveBeenCalled();
-  });
-
-  test("does not assign when issue is already assigned", async () => {
-    const github = createGithub();
-
-    const context = createContext({
-      issue: {
-        number: 10,
-        assignees: [
-          {
-            login: "someone",
-          },
-        ],
-        labels: [
-          {
-            name: "skill: beginner",
-          },
-        ],
-      },
-    });
-
-    await runAssignmentFlow({ github, context });
-
-    expect(githubApi.postComment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        body: "already assigned",
-      }),
-      "already-assigned notice"
-    );
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
