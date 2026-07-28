@@ -284,7 +284,10 @@ def test_retriable_error_does_not_switch_node():
             receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
         )
     )
-    response_sequences = [[busy_response, ok_response, receipt_response]]
+    response_sequences = [
+        [busy_response, ok_response, receipt_response],
+        [ok_response, receipt_response],  # additonal response to mock extra node
+    ]
     with (
         mock_hedera_servers(response_sequences) as client,
         patch("hiero_sdk_python.executable.time.sleep"),
@@ -453,8 +456,8 @@ def test_query_retry_on_busy():
     # First node returns BUSY, forcing a retry
     # Second node returns OK with the balance
     response_sequences = [
-        [busy_response],
-        [ok_response],
+        [busy_response, ok_response],
+        [ok_response],  # additional response to mimic additional node
     ]
 
     with (
@@ -471,8 +474,8 @@ def test_query_retry_on_busy():
 
         assert balance.hbars.to_tinybars() == 100000000
         # Verify we switched to the second node
-        assert query._node_account_ids._index == 1
-        assert query._node_account_ids.current == AccountId(0, 0, 4), "Client should have switched to the second node"
+        assert query._node_account_ids._index == 0
+        assert query._node_account_ids.current == AccountId(0, 0, 3), "Client should have switched to the second node"
 
 
 # Set max_attempts

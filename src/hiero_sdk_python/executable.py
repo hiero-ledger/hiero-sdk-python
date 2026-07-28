@@ -503,6 +503,7 @@ class _Executable(ABC):
                         client.network._increase_backoff(node)
                         # update nodes from the mirror_node
                         client.update_network()
+                        self._node_account_ids.advance()
 
                     # If we should retry, wait for the backoff period and try again
                     err_persistant = status_error
@@ -513,7 +514,6 @@ class _Executable(ABC):
                         logger,
                         err_persistant,
                     )
-                    self._node_account_ids.advance()
                     continue
                 case _ExecutionState.EXPIRED:
                     raise status_error
