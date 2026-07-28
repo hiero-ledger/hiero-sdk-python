@@ -97,7 +97,7 @@ class _Executable(ABC):
         return self._node_account_ids.current if not self._node_account_ids.is_empty else None
 
     @node_account_id.setter
-    def node_account_id(self, node_account_id: AccountId) -> None:
+    def node_account_id(self, node_account_id: AccountId):
         warnings.warn(
             "'node_account_id' is deprecated; use 'node_account_ids' instead.", DeprecationWarning, stacklevel=2
         )
@@ -128,7 +128,7 @@ class _Executable(ABC):
 
     @node_account_ids.setter
     def node_account_ids(self, node_account_ids: list[AccountId]):
-        return self.set_node_account_ids(node_account_ids)
+        self.set_node_account_ids(node_account_ids)
 
     def set_node_account_ids(self, node_account_ids: list[AccountId]):
         """

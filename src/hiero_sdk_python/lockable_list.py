@@ -30,7 +30,7 @@ class _LockableList(Generic[T]):
 
     def get_list(self) -> list[T]:
         """Return the underlying list."""
-        return self._items
+        return self._items.copy()
 
     def append(self, item: T) -> _LockableList[T]:
         """Append an item to the list."""

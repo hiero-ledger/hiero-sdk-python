@@ -38,6 +38,18 @@ def test_set_list_resets_index():
     assert lst.current == 10
 
 
+def test_get_list_returns_copy():
+    """Test that get_list returns a copy of the underlying list."""
+    lockable_list = _LockableList[int]()
+    lockable_list.set_list([1, 2])
+
+    items = lockable_list.get_list()
+    items.append(3)
+
+    assert items == [1, 2, 3]
+    assert lockable_list.get_list() == [1, 2]
+
+
 def test_append():
     """Test appending an item."""
     lst = _LockableList[int]()
