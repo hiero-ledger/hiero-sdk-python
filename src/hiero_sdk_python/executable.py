@@ -89,8 +89,6 @@ class _Executable(ABC):
 
         self._node_account_ids: _LockableList[AccountId] = _LockableList[AccountId]()
 
-        self._used_node_account_id: AccountId | None = None
-
     @property
     def node_account_id(self) -> AccountId | None:
         warnings.warn(

@@ -11,7 +11,6 @@ def test_set_single_node_account_id():
     q.set_node_account_id(node)
 
     assert q.node_account_ids == [node]
-    assert q._used_node_account_id is None  # not selected until execution
 
 
 def test_set_multiple_node_account_ids():
@@ -21,7 +20,6 @@ def test_set_multiple_node_account_ids():
     q.set_node_account_ids(nodes)
 
     assert q.node_account_ids == nodes
-    assert q._used_node_account_id is None
 
 
 def test_node_account_id_advance_method():

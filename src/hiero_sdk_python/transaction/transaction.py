@@ -870,8 +870,7 @@ class Transaction(_Executable):
             transaction.transaction_id = TransactionId._from_proto(transaction_body.transactionID)
 
         if transaction_body.HasField("nodeAccountID"):
-            transaction._node_account_id = AccountId._from_proto(transaction_body.nodeAccountID)
-            transaction.node_account_ids = [AccountId._from_proto(transaction_body.nodeAccountID)]
+            transaction._node_account_ids.set_list([AccountId._from_proto(transaction_body.nodeAccountID)])
 
         transaction.transaction_fee = transaction_body.transactionFee
         transaction.transaction_valid_duration = transaction_body.transactionValidDuration.seconds

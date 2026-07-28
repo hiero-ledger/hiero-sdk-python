@@ -30,7 +30,6 @@ def test_set_single_node_account_id():
     txn.set_node_account_id(node)
 
     assert txn.node_account_ids == [node]
-    assert txn._used_node_account_id is None
 
 
 def test_set_multiple_node_account_ids():
@@ -40,7 +39,6 @@ def test_set_multiple_node_account_ids():
     txn.set_node_account_ids(nodes)
 
     assert txn.node_account_ids == nodes
-    assert txn._used_node_account_id is None
 
 
 def test_node_account_ids_advance_method():
