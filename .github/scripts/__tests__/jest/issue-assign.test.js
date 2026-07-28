@@ -350,3 +350,171 @@ describe('runAssignmentFlow - reminder flow', () => {
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Prerequisites, spam and assignment limits
+// ---------------------------------------------------------------------------
+
+describe('runAssignmentFlow - prerequisites', () => {
+  test('posts prerequisite guard comment when user has not completed enough issues', async () => {
+    githubApi.countCompletedIssuesWithLabel.mockResolvedValue(0);
+
+    const github = createGithub();
+
+    const context = createContext({
+      issue: {
+        number: 20,
+        assignees: [],
+        labels: [
+          {
+            name: 'skill: intermediate',
+          },
+        ],
+      },
+    });
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.countCompletedIssuesWithLabel).toHaveBeenCalled();
+
+    expect(githubApi.postComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        owner: 'hiero-ledger',
+        repo: 'hiero-sdk-python',
+        issueNumber: 20,
+        body: '<!-- guard -->\nguard comment',
+      }),
+      'prerequisite guard'
+    );
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
+
+  test('does not post duplicate prerequisite guard comment', async () => {
+    githubApi.countCompletedIssuesWithLabel.mockResolvedValue(0);
+
+    githubApi.fetchAllComments.mockResolvedValue([
+      {
+        body: '<!-- guard -->\nAlready posted.',
+      },
+    ]);
+
+    const github = createGithub();
+
+    const context = createContext({
+      issue: {
+        number: 20,
+        assignees: [],
+        labels: [
+          {
+            name: 'skill: intermediate',
+          },
+        ],
+      },
+    });
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.fetchAllComments).toHaveBeenCalled();
+
+    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
+
+  test('continues when prerequisites are satisfied', async () => {
+    githubApi.countCompletedIssuesWithLabel.mockResolvedValue(10);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.countCompletedIssuesWithLabel).toHaveBeenCalled();
+    expect(githubApi.assignIssue).toHaveBeenCalled();
+  });
+});
+
+describe('runAssignmentFlow - spam protection', () => {
+  test('blocks permanently banned users', async () => {
+    spam.isSpamUser.mockReturnValue(true);
+    spam.spamUsersBlocked.mockReturnValue(true);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.postComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: 'spam blocked',
+      }),
+      'spam blocked'
+    );
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
+
+  test('blocks temporarily limited spam users', async () => {
+    spam.isSpamUser.mockReturnValue(true);
+    spam.spamUsersBlocked.mockReturnValue(false);
+    spam.isSpamLimited.mockReturnValue(true);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.postComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: 'spam blocked',
+      }),
+      'spam blocked'
+    );
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
+
+  test('continues when user is not flagged as spam', async () => {
+    spam.isSpamUser.mockReturnValue(false);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).toHaveBeenCalled();
+  });
+});
+
+describe('runAssignmentFlow - assignment limits', () => {
+  test('posts limit comment when user exceeds assignment limit', async () => {
+    githubApi.getOpenAssignments.mockResolvedValue(5);
+    spam.getAssignmentLimit.mockReturnValue(5);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.postComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: 'limit comment',
+      }),
+      'assignment limit'
+    );
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
+
+  test('allows assignment when user is below assignment limit', async () => {
+    githubApi.getOpenAssignments.mockResolvedValue(2);
+    spam.getAssignmentLimit.mockReturnValue(5);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).toHaveBeenCalled();
+  });
+});
