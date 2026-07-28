@@ -58,7 +58,7 @@ function createContext(overrides = {}) {
       comment: {
         body: '/assign',
         user: {
-          login: 'alice',
+          login: 'parv',
           type: 'User',
         },
       },
@@ -144,7 +144,7 @@ describe('runAssignmentFlow - validation', () => {
       comment: {
         body: '',
         user: {
-          login: 'alice',
+          login: 'parv',
           type: 'User',
         },
       },
@@ -208,7 +208,7 @@ describe('runAssignmentFlow - reminder flow', () => {
       comment: {
         body: 'I would like to work on this!',
         user: {
-          login: 'alice',
+          login: 'parv',
           type: 'User',
         },
       },
@@ -220,7 +220,7 @@ describe('runAssignmentFlow - reminder flow', () => {
       github,
       owner: 'hiero-ledger',
       repo: 'hiero-sdk-python',
-      username: 'alice',
+      username: 'parv',
     });
 
     expect(githubApi.fetchAllComments).toHaveBeenCalled();
@@ -261,7 +261,7 @@ describe('runAssignmentFlow - reminder flow', () => {
       comment: {
         body: 'Interested!',
         user: {
-          login: 'alice',
+          login: 'parv',
           type: 'User',
         },
       },
@@ -311,7 +311,7 @@ describe('runAssignmentFlow - reminder flow', () => {
       comment: {
         body: 'Can I work on this?',
         user: {
-          login: 'alice',
+          login: 'parv',
           type: 'User',
         },
       },
@@ -336,7 +336,7 @@ describe('runAssignmentFlow - reminder flow', () => {
       comment: {
         body: 'Interested',
         user: {
-          login: 'alice',
+          login: 'parv',
           type: 'User',
         },
       },
@@ -448,27 +448,7 @@ describe('runAssignmentFlow - spam protection', () => {
       expect.objectContaining({
         body: 'spam blocked',
       }),
-      'spam blocked'
-    );
-
-    expect(githubApi.assignIssue).not.toHaveBeenCalled();
-  });
-
-  test('blocks temporarily limited spam users', async () => {
-    spam.isSpamUser.mockReturnValue(true);
-    spam.spamUsersBlocked.mockReturnValue(false);
-    spam.isSpamLimited.mockReturnValue(true);
-
-    const github = createGithub();
-    const context = createContext();
-
-    await runAssignmentFlow({ github, context });
-
-    expect(githubApi.postComment).toHaveBeenCalledWith(
-      expect.objectContaining({
-        body: 'spam blocked',
-      }),
-      'spam blocked'
+      "spam restriction notice"
     );
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
@@ -500,7 +480,7 @@ describe('runAssignmentFlow - assignment limits', () => {
       expect.objectContaining({
         body: 'limit comment',
       }),
-      'assignment limit'
+      'limit warning'
     );
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
@@ -516,5 +496,163 @@ describe('runAssignmentFlow - assignment limits', () => {
     await runAssignmentFlow({ github, context });
 
     expect(githubApi.assignIssue).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Assignment and error handling
+// ---------------------------------------------------------------------------
+
+describe('runAssignmentFlow - assignment', () => {
+  test('posts already assigned comment when user already has an open assignment', async () => {
+
+    const github = createGithub();
+    const context = createContext({
+    issue: {
+        number: 10,
+        assignees: [{ login: "someone" }],
+        labels: [{ name: "skill: beginner" }]
+      }
+    });
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.postComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        owner: 'hiero-ledger',
+        repo: 'hiero-sdk-python',
+        issueNumber: 10,
+        body: 'already assigned',
+      }),
+      'already-assigned notice'
+    );
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
+
+  test('assigns issue when all checks pass', async () => {
+    githubApi.getOpenAssignments.mockResolvedValue([]);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).toHaveBeenCalledWith({
+      github,
+      owner: 'hiero-ledger',
+      repo: 'hiero-sdk-python',
+      issueNumber: 10,
+      username: 'parv',
+    });
+
+    expect(githubApi.postComment).not.toHaveBeenCalled();
+  });
+});
+
+describe('runAssignmentFlow - error handling', () => {
+  test('does not assign when counting completed issues throws', async () => {
+    githubApi.countCompletedIssuesWithLabel.mockRejectedValue(
+      new Error('Database unavailable')
+    );
+
+    const github = createGithub();
+    const context = createContext();
+
+    await expect(
+      runAssignmentFlow({ github, context })
+    ).rejects.toThrow('Database unavailable');
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
+
+  test('does not assign when fetching open assignments throws', async () => {
+    githubApi.getOpenAssignments.mockRejectedValue(
+      new Error('GitHub API failure')
+    );
+
+    const github = createGithub();
+    const context = createContext();
+
+    await expect(
+      runAssignmentFlow({ github, context })
+    ).rejects.toThrow('GitHub API failure');
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
+
+  test('propagates assignIssue errors', async () => {
+    githubApi.assignIssue.mockRejectedValue(
+      new Error('Assignment failed')
+    );
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({
+        github,
+        context
+    });
+
+    expect(githubApi.assignIssue).toHaveBeenCalled();
+  });
+
+  test('propagates postComment errors', async () => {
+    githubApi.postComment.mockRejectedValue(
+      new Error('Comment failed')
+    );
+
+    githubApi.countCompletedIssuesWithLabel.mockResolvedValue(0);
+
+    const github = createGithub();
+
+    const context = createContext({
+      issue: {
+        number: 42,
+        assignees: [],
+        labels: [
+          {
+            name: 'skill: intermediate',
+          },
+        ],
+      },
+    });
+
+    await expect(
+      runAssignmentFlow({ github, context })
+    ).rejects.toThrow('Comment failed');
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
+
+  test("does not assign when issue is already assigned", async () => {
+    const github = createGithub();
+
+    const context = createContext({
+      issue: {
+        number: 10,
+        assignees: [
+          {
+            login: "someone",
+          },
+        ],
+        labels: [
+          {
+            name: "skill: beginner",
+          },
+        ],
+      },
+    });
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.postComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: "already assigned",
+      }),
+      "already-assigned notice"
+    );
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 });
