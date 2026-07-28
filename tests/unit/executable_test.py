@@ -140,7 +140,7 @@ def test_node_switching_after_single_grpc_error():
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         # Verify we're now on the second node
-        assert transaction.node_account_ids[transaction._node_account_ids_index] == AccountId(0, 0, 4), (
+        assert transaction._node_account_ids.current == AccountId(0, 0, 4), (
             "Client should have switched to the second node"
         )
 
@@ -179,7 +179,7 @@ def test_node_switching_after_multiple_grpc_errors():
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
 
         # Verify we're now on the third node
-        assert transaction.node_account_ids[transaction._node_account_ids_index] == AccountId(0, 0, 5), (
+        assert transaction._node_account_ids.current == AccountId(0, 0, 5), (
             "Client should have switched to the third node"
         )
         assert receipt.status == ResponseCode.SUCCESS
@@ -300,7 +300,7 @@ def test_retriable_error_does_not_switch_node():
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
 
-        assert client.network.current_node._account_id == AccountId(0, 0, 3), (
+        assert transaction._node_account_ids.current == AccountId(0, 0, 3), (
             "Client should not switch node on retriable errors"
         )
 
@@ -346,7 +346,7 @@ def test_topic_create_transaction_retry_on_busy():
         assert mock_sleep.call_count == 1, "Should have retried once"
 
         # Verify we didn't switch nodes (BUSY is retriable without node switch)
-        assert client.network.current_node._account_id == AccountId(0, 0, 3), "Should not have switched nodes on BUSY"
+        assert tx._node_account_ids.current == AccountId(0, 0, 3), "Should not have switched nodes on BUSY"
 
 
 def test_topic_create_transaction_fails_on_nonretriable_error():
@@ -389,10 +389,6 @@ def test_transaction_node_switching_body_bytes():
         mock_hedera_servers(response_sequences) as client,
         patch("hiero_sdk_python.executable.time.sleep"),
     ):
-        # We set the current node to 0
-        client.network._node_index = 0
-        client.network.current_node = client.network.nodes[0]
-
         transaction = (
             AccountCreateTransaction()
             .set_key_without_alias(PrivateKey.generate().public_key())
@@ -413,11 +409,14 @@ def test_transaction_node_switching_body_bytes():
             )
 
         try:
+            assert transaction._node_account_ids.current == AccountId(0, 0, 3), (
+                "Current node should be the first configured node"
+            )
             transaction.execute(client)
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         # Verify we're now on the second node
-        assert transaction.node_account_ids[transaction._node_account_ids_index] == AccountId(0, 0, 4), (
+        assert transaction._node_account_ids.current == AccountId(0, 0, 4), (
             "Client should have switched to the second node"
         )
 
@@ -462,10 +461,6 @@ def test_query_retry_on_busy():
         mock_hedera_servers(response_sequences) as client,
         patch("hiero_sdk_python.executable.time.sleep") as mock_sleep,
     ):
-        # We set the current node to the first node so we are sure it will return BUSY response
-        client.network._node_index = 0
-        client.network.current_node = client.network.nodes[0]
-
         query = CryptoGetAccountBalanceQuery()
         query.set_account_id(AccountId(0, 0, 1234))
 
@@ -476,10 +471,8 @@ def test_query_retry_on_busy():
 
         assert balance.hbars.to_tinybars() == 100000000
         # Verify we switched to the second node
-        assert query._node_account_ids_index == 1
-        assert query.node_account_ids[query._node_account_ids_index] == AccountId(0, 0, 4), (
-            "Client should have switched to the second node"
-        )
+        assert query._node_account_ids._index == 1
+        assert query._node_account_ids.current == AccountId(0, 0, 4), "Client should have switched to the second node"
 
 
 # Set max_attempts
@@ -974,7 +967,7 @@ def test_should_exponential_error_mark_node_unhealty_and_advance(error):
         # No delay_for_attempt backoff call, Node is mark unhealthy and advance
         assert mock_sleep.call_count == 0
         # Node must have changed
-        assert tx._node_account_ids_index == 1
+        assert tx._node_account_ids._index == 1
 
 
 def test_rst_stream_error_marks_node_unhealthy_and_advances_without_backoff():
@@ -1008,7 +1001,7 @@ def test_rst_stream_error_marks_node_unhealthy_and_advances_without_backoff():
         # RST_STREAM exponential retry does not use delay-based backoff
         assert mock_sleep.call_count == 0
         # Node must advance after marking the first node unhealthy
-        assert tx._node_account_ids_index == 1
+        assert tx._node_account_ids._index == 1
 
 
 @pytest.mark.parametrize(
@@ -1062,7 +1055,7 @@ def test_execution_skips_unhealthy_nodes_and_advances():
 
         assert receipt.status == ResponseCode.SUCCESS
         # Ensure the node index advanced past the unhealthy node
-        assert tx._node_account_ids_index == 1
+        assert tx._node_account_ids._index == 1
 
 
 def test_execution_raises_if_all_nodes_unhealthy(mock_client):
@@ -1086,7 +1079,7 @@ def test_execution_raises_if_all_nodes_unhealthy(mock_client):
 )
 def test_unhealthy_node_receipt_request_triggers_delay_and_no_node_change(tx, mock_client):
     """Unhealthy node with transaction receipt/record request calls _delay_for_attempt but does not advance node."""
-    initial_index = tx._node_account_ids_index
+    initial_index = tx._node_account_ids._index
 
     with (
         patch("hiero_sdk_python.node._Node.is_healthy", return_value=False),
@@ -1098,7 +1091,7 @@ def test_unhealthy_node_receipt_request_triggers_delay_and_no_node_change(tx, mo
         # _delay_for_attempt called
         assert mock_delay.call_count > 0
         # Node index did NOT change
-        assert tx._node_account_ids_index == initial_index
+        assert tx._node_account_ids._index == initial_index
 
 
 def test_retry_invalid_node_account_updates_network():
@@ -1144,7 +1137,7 @@ def test_retry_invalid_node_account_updates_network():
         tx.execute(client)
 
         # Node index must advance after INVALID_NODE_ACCOUNT
-        assert tx._node_account_ids_index == 1
+        assert tx._node_account_ids._index == 1
 
         # Recovery actions
         mock_increase_backoff.assert_called_once()

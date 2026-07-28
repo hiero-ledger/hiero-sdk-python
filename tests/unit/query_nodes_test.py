@@ -24,12 +24,15 @@ def test_set_multiple_node_account_ids():
     assert q._used_node_account_id is None
 
 
-def test_select_node_account_id():
+def test_node_account_id_advance_method():
     q = Query()
     nodes = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
     q.set_node_account_ids(nodes)
 
-    selected = q._select_node_account_id()
+    assert q._node_account_ids._index == 0
+    assert q._node_account_ids.current == nodes[0]
 
-    assert selected == nodes[0]
-    assert q._used_node_account_id == nodes[0]
+    index = q._node_account_ids.advance()
+    assert index == 0  # returns current index
+    assert q._node_account_ids._index == 1
+    assert q._node_account_ids.current == nodes[1]

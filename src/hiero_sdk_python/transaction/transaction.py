@@ -216,9 +216,9 @@ class Transaction(_Executable):
         # We require the transaction to be frozen before converting to protobuf
         self._require_frozen()
 
-        body_bytes = self._transaction_body_bytes.get(self._node_account_id)
+        body_bytes = self._transaction_body_bytes.get(self._node_account_ids.current)
         if body_bytes is None:
-            raise ValueError(f"No transaction body found for node {self._node_account_id}")
+            raise ValueError(f"No transaction body found for node {self._node_account_ids.current}")
 
         # Get signature map, or create empty one if transaction is not signed
         sig_map = self._signature_map.get(body_bytes)
@@ -245,10 +245,18 @@ class Transaction(_Executable):
             )
 
     def _resolve_node_ids(self, client: Client):
-        if len(self.node_account_ids) == 0 and client is None:
+        if self._node_account_ids.is_empty and client is None:
             raise ValueError(
                 "Node account ID must be set before freezing. Use freeze_with(client) or manually set node_account_ids."
             )
+
+        # For Inner Transaction of batch transaction node_account_id=0.0.0
+        if self.batch_key:
+            self._node_account_ids.set_list([AccountId(0, 0, 0)])
+
+        # If not nodes set manually use the all network nodes available in client
+        if self._node_account_ids.is_empty:
+            self._node_account_ids.set_list([node._account_id for node in client.network.nodes])
 
     def freeze(self):
         """
@@ -286,29 +294,22 @@ class Transaction(_Executable):
         if self._transaction_body_bytes:
             return self
 
-        # Check transaction_id and node id to be set when using freeze()
+        # Resolve transaction_id and node_accountids to be set when using freeze()
         self._resolve_transaction_id(client)
-
         self._resolve_node_ids(client)
 
-        # We iterate through every node in the client's network
-        # For each node, set the node_account_id and build the transaction body
-        # This allows the transaction to be submitted to any node in the network
+        # We iterate through every node in the node_account_id list and
+        # For each node_account_id build the transaction body
+        # This allows the transaction to be submitted to the given node in the network
 
-        if self.batch_key:
-            # For Inner Transaction of batch transaction node_account_id=0.0.0
-            self.node_account_ids = [AccountId(0, 0, 0)]
-            self._node_account_id = AccountId(0, 0, 0)
-            self._transaction_body_bytes[AccountId(0, 0, 0)] = self.build_transaction_body().SerializeToString()
-            return self
+        # TODO: Should lock the node_account_ids once freeze
+        # self._node_account_ids.set_lock(True)
 
-        # If not nodes set manually use the all network nodes available in client
-        if len(self.node_account_ids) == 0:
-            self.node_account_ids = [node._account_id for node in client.network.nodes]
-
-        for node_account_id in self.node_account_ids:
-            self._node_account_id = node_account_id
+        for node_account_id in self._node_account_ids.get_list():
             self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
+            self._node_account_ids.advance()
+
+        self._node_account_ids.set_index(0)
 
         return self
 
@@ -396,7 +397,7 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
 
-        sig_map = self._signature_map.get(self._transaction_body_bytes.get(self._node_account_id))
+        sig_map = self._signature_map.get(self._transaction_body_bytes.get(self._node_account_ids.current))
 
         if sig_map is None:
             return False
@@ -450,8 +451,8 @@ class Transaction(_Executable):
 
         transaction_id_proto = self.transaction_id._to_proto()
 
-        # This will change with the fix for the chunk tx to create bytes on freeze
-        selected_node = self._node_account_id or (self.node_account_ids[0] if self.node_account_ids else None)
+        # This will move to freeze_with for the fix for the chunk tx to create bytes on freeze
+        selected_node = self._node_account_ids.current if not self._node_account_ids.is_empty else None
         if selected_node is None:
             raise ValueError("Node account ID is not set.")
 

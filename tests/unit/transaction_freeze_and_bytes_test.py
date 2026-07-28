@@ -558,7 +558,7 @@ def test_changing_node_after_freeze_fails_for_to_bytes():
     assert isinstance(bytes_node_1, bytes)
 
     # Change to a different node that wasn't frozen
-    transaction._node_account_id = node_id_2
+    transaction.node_account_id = node_id_2
 
     # This should fail - no transaction body for node_id_2
     with pytest.raises(ValueError, match="No transaction body found for node"):
