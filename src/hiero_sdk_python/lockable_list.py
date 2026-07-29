@@ -103,7 +103,7 @@ class _LockableList(Generic[T]):
 
     @property
     def next(self) -> T:
-        """Advance to the next item and return it."""
+        """Advance the current index and return the previous."""
         return self.get(self.advance())
 
     @property
