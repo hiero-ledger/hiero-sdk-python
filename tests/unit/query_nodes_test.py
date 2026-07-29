@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import re
+
+import pytest
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.query.query import Query
 
@@ -9,7 +13,11 @@ def test_set_single_node_account_id():
     node = AccountId(0, 0, 3)
 
     # Test deprecated for backward compatiblity
-    q.set_node_account_id(node)
+    with pytest.warns(
+        DeprecationWarning,
+        match=re.escape("Method 'set_node_account_id()' is deprecated; use 'set_node_account_ids()' instead."),
+    ):
+        q.set_node_account_id(node)
 
     assert q.node_account_ids == [node]
 
@@ -19,7 +27,8 @@ def test_set_single_node_account_id_using_setter():
     node = AccountId(0, 0, 3)
 
     # Test deprecated for backward compatiblity
-    q.node_account_id = node
+    with pytest.warns(DeprecationWarning, match="'node_account_id' is deprecated"):
+        q.node_account_id = node
 
     assert q.node_account_ids == [node]
 
@@ -31,7 +40,8 @@ def test_get_single_node_account_id():
     q.set_node_account_ids([node])
 
     # Test deprecated for backward compatiblity
-    assert q.node_account_id == node
+    with pytest.warns(DeprecationWarning, match="'node_account_id' is deprecated"):
+        assert q.node_account_id == node
 
 
 def test_set_multiple_node_account_ids():

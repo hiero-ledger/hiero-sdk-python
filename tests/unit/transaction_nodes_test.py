@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+import re
+
+import pytest
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -28,7 +32,11 @@ def test_set_single_node_account_id():
     node = AccountId(0, 0, 3)
 
     # Test deprecated for backward compatiblity
-    txn.set_node_account_id(node)
+    with pytest.warns(
+        DeprecationWarning,
+        match=re.escape("Method 'set_node_account_id()' is deprecated; use 'set_node_account_ids()' instead."),
+    ):
+        txn.set_node_account_id(node)
 
     assert txn.node_account_ids == [node]
 
@@ -38,7 +46,8 @@ def test_set_single_node_account_id_using_setter():
     node = AccountId(0, 0, 3)
 
     # Test deprecated for backward compatiblity
-    txn.node_account_id = node
+    with pytest.warns(DeprecationWarning, match="'node_account_id' is deprecated"):
+        txn.node_account_id = node
 
     assert txn.node_account_ids == [node]
 
@@ -50,7 +59,8 @@ def test_get_single_node_account_id():
     txn.set_node_account_ids([node])
 
     # Test deprecated for backward compatiblity
-    assert txn.node_account_id == node
+    with pytest.warns(DeprecationWarning, match="'node_account_id' is deprecated"):
+        assert txn.node_account_id == node
 
 
 def test_set_multiple_node_account_ids():

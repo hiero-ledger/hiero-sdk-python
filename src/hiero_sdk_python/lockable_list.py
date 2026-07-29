@@ -48,6 +48,7 @@ class _LockableList(Generic[T]):
         """Remove all items from the list."""
         self._require_not_locked()
         self._items.clear()
+        self._index = 0
         return self
 
     def get(self, index: int) -> T:
