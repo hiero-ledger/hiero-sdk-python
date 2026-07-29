@@ -47,7 +47,7 @@ def build_unsigned_tx(executor_client):
     tx = TopicCreateTransaction().set_memo("Test Topic Creation").set_transaction_id(tx_id)
 
     # Explicit node binding (important for deterministic freeze)
-    tx.node_account_id = NODE_ACCOUNT_ID
+    tx.set_node_account_ids([NODE_ACCOUNT_ID])
 
     # Freeze generates a body for ONLY the specified node
     tx.freeze()

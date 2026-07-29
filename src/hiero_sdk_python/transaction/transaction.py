@@ -885,10 +885,11 @@ class Transaction(_Executable):
                 CustomFeeLimit._from_proto(fee) for fee in transaction_body.max_custom_fees
             ]
 
-        if transaction.node_account_id:
+        if not transaction._node_account_ids.is_empty:
             # restore for the original frozen node
-            transaction.set_node_account_id(transaction.node_account_id)
-            transaction._transaction_body_bytes[transaction.node_account_id] = body_bytes
+            # TODO: This will change, Instead of node_account_id use the signature map to decide if we need to freeze
+            # node_account_ids will always contain single id in currrent impl
+            transaction._transaction_body_bytes[transaction._node_account_ids.current] = body_bytes
 
         if sig_map and sig_map.sigPair:
             transaction._signature_map[body_bytes] = sig_map

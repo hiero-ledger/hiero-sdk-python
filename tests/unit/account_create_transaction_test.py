@@ -58,7 +58,7 @@ def test_account_create_transaction_build(mock_account_ids):
         .set_account_memo("Test account")
     )
     account_tx.transaction_id = generate_transaction_id(operator_id)
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     transaction_body = account_tx.build_transaction_body()
 
@@ -85,7 +85,7 @@ def test_account_create_transaction_build_scheduled_body(mock_account_ids):
         .set_receiver_signature_required(True)
     )
     account_tx.transaction_id = generate_transaction_id(operator_id)
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     # Build the scheduled transaction body
     schedulable_body = account_tx.build_scheduled_body()
@@ -120,7 +120,7 @@ def test_account_create_transaction_sign(mock_account_ids, mock_client):
         .set_account_memo("Test account")
     )
     account_tx.transaction_id = generate_transaction_id(operator_id)
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
     account_tx.freeze_with(mock_client)
 
     # Add first signiture
@@ -197,7 +197,7 @@ def test_sign_account_create_without_freezing_raises_error(mock_account_ids):
         .set_account_memo("Test account")
     )
     account_tx.transaction_id = generate_transaction_id(operator_id)
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     with pytest.raises(Exception, match="Transaction is not frozen"):
         account_tx.sign(new_private_key)
@@ -246,7 +246,7 @@ def test_account_create_build_with_max_auto_assoc(mock_account_ids):
         .set_max_automatic_token_associations(-1)  # Test the new value
     )
     account_tx.transaction_id = generate_transaction_id(operator_id)
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     body = account_tx.build_transaction_body()
 
@@ -264,7 +264,7 @@ def test_create_account_transaction_without_alias(mock_account_ids):
     assert tx.alias is None
 
     tx.operator_account_id = operator_id
-    tx.node_account_id = node_id
+    tx.set_node_account_ids([node_id])
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
@@ -282,7 +282,7 @@ def test_create_account_transaction_set_key_with_alias(mock_account_ids):
     assert tx.alias == public_key.to_evm_address()
 
     tx.operator_account_id = operator_id
-    tx.node_account_id = node_id
+    tx.set_node_account_ids([node_id])
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
@@ -303,7 +303,7 @@ def test_create_account_transaction_set_key_with_seperate_key_for_alias(
     assert tx.alias == alias_key.to_evm_address()
 
     tx.operator_account_id = operator_id
-    tx.node_account_id = node_id
+    tx.set_node_account_ids([node_id])
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
@@ -335,7 +335,7 @@ def test_create_account_transaction_with_set_alias(mock_account_ids):
     assert tx.alias == evm_address
 
     tx.operator_account_id = operator_id
-    tx.node_account_id = node_id
+    tx.set_node_account_ids([node_id])
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
@@ -358,7 +358,7 @@ def test_create_account_transaction_with_set_alias_from_string(mock_account_ids,
     assert tx.alias == evm_address
 
     tx.operator_account_id = operator_id
-    tx.node_account_id = node_id
+    tx.set_node_account_ids([node_id])
     tx_body = tx.build_transaction_body()
 
     assert tx_body.cryptoCreateAccount.key == public_key._to_proto()
@@ -411,7 +411,7 @@ def test_account_create_transaction_build_with_private_key(mock_account_ids):
     )
 
     tx.transaction_id = generate_transaction_id(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body = tx.build_transaction_body()
 
@@ -441,7 +441,7 @@ def test_create_account_transaction_set_key_with_alias_private_keys(mock_account
     assert tx.alias == expected_evm_address
 
     tx.operator_account_id = operator_id
-    tx.node_account_id = node_id
+    tx.set_node_account_ids([node_id])
     tx_body = tx.build_transaction_body()
 
     # In the proto we should have account public key
@@ -469,7 +469,7 @@ def test_create_account_transaction_set_key_with_alias_private_key_without_ecdsa
     assert tx.alias == expected_evm_address
 
     tx.operator_account_id = operator_id
-    tx.node_account_id = node_id
+    tx.set_node_account_ids([node_id])
     tx_body = tx.build_transaction_body()
 
     # In the proto we should have account public key

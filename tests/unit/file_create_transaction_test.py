@@ -82,7 +82,7 @@ def test_build_transaction_body(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     file_tx.operator_account_id = operator_id
-    file_tx.node_account_id = node_account_id
+    file_tx.set_node_account_ids([node_account_id])
 
     transaction_body = file_tx.build_transaction_body()
 
@@ -108,7 +108,7 @@ def test_build_scheduled_body(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     file_tx.operator_account_id = operator_id
-    file_tx.node_account_id = node_account_id
+    file_tx.set_node_account_ids([node_account_id])
 
     schedulable_body = file_tx.build_scheduled_body()
 

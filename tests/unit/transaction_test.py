@@ -101,7 +101,7 @@ def test_execute_without_wait_returns_transaction_response():
 
         assert isinstance(response, TransactionResponse)
         assert response.transaction is tx
-        assert response.node_id == tx.node_account_id
+        assert response.node_id == tx._node_account_ids.current
         assert response.validate_status is True
 
 
@@ -151,7 +151,7 @@ def test_execute_returns_receipt_without_error_when_validation_disabled():
 def test_duplicate_signature_not_added():
     tx = TokenMintTransaction()
     tx.set_transaction_id(TransactionId.generate(AccountId(0, 0, 1234)))
-    tx.set_node_account_id(AccountId(0, 0, 3))
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx.set_token_id(TokenId(0, 0, 1))
     tx.set_amount(100)
     key = PrivateKey.generate_ed25519()
@@ -167,7 +167,7 @@ def test_duplicate_signature_not_added():
 def test_multiple_keys_still_work():
     tx = TokenMintTransaction()
     tx.set_transaction_id(TransactionId.generate(AccountId(0, 0, 1234)))
-    tx.set_node_account_id(AccountId(0, 0, 3))
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx.set_token_id(TokenId(0, 0, 1))
     tx.set_amount(100)
     key1 = PrivateKey.generate_ed25519()
@@ -196,7 +196,7 @@ def test_same_size_for_identical_transactions(transaction_id, account_id):
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -205,7 +205,7 @@ def test_same_size_for_identical_transactions(transaction_id, account_id):
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -221,7 +221,7 @@ def test_signed_tx_have_larger_size(transaction_id, account_id):
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
         .sign(PrivateKey.generate())
     )
@@ -231,7 +231,7 @@ def test_signed_tx_have_larger_size(transaction_id, account_id):
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -244,7 +244,7 @@ def test_tx_with_larger_content_should_have_larger_tx_body(transaction_id, accou
         FileCreateTransaction()
         .set_contents("smallBody")
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -252,7 +252,7 @@ def test_tx_with_larger_content_should_have_larger_tx_body(transaction_id, accou
         FileCreateTransaction()
         .set_contents("veryLargeBody")
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -267,7 +267,7 @@ def test_tx_without_optional_fields_should_have_smaller_tx_body(transaction_id, 
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -276,7 +276,7 @@ def test_tx_without_optional_fields_should_have_smaller_tx_body(transaction_id, 
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .set_alias(PrivateKey.generate_ecdsa().public_key().to_evm_address())
         .set_transaction_valid_duration(10)
         .freeze()
@@ -296,7 +296,7 @@ def test_file_append_chunk_tx_should_return_list_of_body_sizes(file_id, account_
         .set_chunk_size(chunk_size)
         .set_contents(content)
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -313,7 +313,7 @@ def test_file_append_single_chunk_tx_return_list_of_len_one(file_id, account_id,
         .set_file_id(file_id)
         .set_contents(content)
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -333,7 +333,7 @@ def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, acco
         .set_chunk_size(chunk_size)
         .set_message(message)
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -351,7 +351,7 @@ def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, account
         .set_topic_id(topic_id)
         .set_message(message)
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -367,7 +367,7 @@ def test_tx_with_no_content_should_return_single_body_chunk(file_id, account_id,
         .set_file_id(file_id)
         .set_contents(" ")
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -385,7 +385,7 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
         .set_file_id(file_id)
         .set_contents(large_content)
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -398,7 +398,7 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
         .set_file_id(file_id)
         .set_contents(small_content)
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -422,7 +422,7 @@ def test_chunked_tx_differ_size_if_chunk_are_not_equal(topic_id, account_id, tra
         .set_chunk_size(chunk_size)
         .set_message(message)
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -459,7 +459,7 @@ def test_high_volume_cannot_change_after_freeze(transaction_id, account_id):
         AccountCreateTransaction()
         .set_key_without_alias(PrivateKey.generate_ed25519())
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .freeze()
     )
 
@@ -478,7 +478,7 @@ def test_high_volume_is_included_in_protobuf_output(
         AccountCreateTransaction()
         .set_key_without_alias(PrivateKey.generate_ed25519())
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .set_high_volume(True)
         .freeze()
     )
@@ -497,7 +497,7 @@ def test_high_volume_is_included_in_protobuf_output(
         AccountCreateTransaction()
         .set_key_without_alias(PrivateKey.generate_ed25519())
         .set_transaction_id(transaction_id)
-        .set_node_account_id(account_id)
+        .set_node_account_ids([account_id])
         .set_high_volume(False)
         .freeze()
     )
@@ -546,7 +546,7 @@ def test_transaction_fee_rejects_negative_int():
 def test_transaction_default_max_fee(account_id):
     """Test default transaction fee is set if no transaction fee is set."""
     tx = TopicMessageSubmitTransaction()
-    tx.set_node_account_id(AccountId(0, 0, 3))
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx.operator_account_id = account_id
 
     tx_body = tx.build_base_transaction_body()

@@ -8,9 +8,30 @@ def test_set_single_node_account_id():
     q = Query()
     node = AccountId(0, 0, 3)
 
+    # Test deprecated for backward compatiblity
     q.set_node_account_id(node)
 
     assert q.node_account_ids == [node]
+
+
+def test_set_single_node_account_id_using_setter():
+    q = Query()
+    node = AccountId(0, 0, 3)
+
+    # Test deprecated for backward compatiblity
+    q.node_account_id = node
+
+    assert q.node_account_ids == [node]
+
+
+def test_get_single_node_account_id():
+    q = Query()
+    node = AccountId(0, 0, 3)
+
+    q.set_node_account_ids([node])
+
+    # Test deprecated for backward compatiblity
+    assert q.node_account_id == node
 
 
 def test_set_multiple_node_account_ids():
@@ -18,6 +39,15 @@ def test_set_multiple_node_account_ids():
     nodes = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
 
     q.set_node_account_ids(nodes)
+
+    assert q.node_account_ids == nodes
+
+
+def test_set_multiple_node_account_ids_using_setters():
+    q = Query()
+    nodes = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+
+    q.node_account_ids = nodes
 
     assert q.node_account_ids == nodes
 

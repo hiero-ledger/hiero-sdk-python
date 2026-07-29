@@ -21,8 +21,8 @@ def build_query_payment_transaction(
     tx.add_hbar_transfer(node_account_id, amount.to_tinybars())
 
     tx.transaction_fee = 100_000_000
-    tx.node_account_id = node_account_id
-    tx.transaction_id = TransactionId.generate(payer_account_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.set_transaction_id(TransactionId.generate(payer_account_id))
 
     body_bytes = tx.build_transaction_body().SerializeToString()
     tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)

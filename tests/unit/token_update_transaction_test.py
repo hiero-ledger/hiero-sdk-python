@@ -103,7 +103,7 @@ def test_build_transaction_body(mock_account_ids, new_token_data):
 
     # Set operator and node account IDs needed for building transaction body
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = node_account_id
+    update_tx.set_node_account_ids([node_account_id])
     transaction_body = update_tx.build_transaction_body()
 
     assert transaction_body.tokenUpdate.token == token_id._to_proto()
@@ -352,7 +352,7 @@ def test_single_key_fields(mock_account_ids, key_type, use_private, field_name, 
     assert getattr(tx, field_name).to_bytes() == key.to_bytes()
 
     tx.operator_account_id = operator_id
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     # Build transaction body
     transaction_body = tx.build_transaction_body()
@@ -397,7 +397,7 @@ def test_constructor_with_public_key(mock_account_ids, key_type, use_private):
 
     # Verify keys are correctly stored
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = operator_id  # Using operator_id as node_account_id for test
+    update_tx.set_node_account_ids([operator_id])  # Using operator_id as node_account_id for test
     transaction_body = update_tx.build_transaction_body()
 
     verify_key_in_proto(transaction_body.tokenUpdate.adminKey, expected_admin_public, key_type)
@@ -425,7 +425,7 @@ def test_mixed_key_types_in_constructor(mock_account_ids):
         token_keys=token_keys,
     )
     tx.operator_account_id = operator_id
-    tx.node_account_id = operator_id
+    tx.set_node_account_ids([operator_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -459,7 +459,7 @@ def test_build_transaction_body_with_keys(mock_account_ids, key_type, use_privat
     update_tx.set_freeze_key(freeze_key)
     update_tx.set_token_name(new_token_data["name"])
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = node_account_id
+    update_tx.set_node_account_ids([node_account_id])
 
     transaction_body = update_tx.build_transaction_body()
 

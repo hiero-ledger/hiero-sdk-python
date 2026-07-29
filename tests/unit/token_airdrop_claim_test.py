@@ -142,7 +142,7 @@ def test_min_ids_enforced_on_build_hits_validation():
     """Tests that at least one airdrop is required to claim"""
     transaction_claim = TokenClaimAirdropTransaction()
     transaction_claim.transaction_id = TransactionId(AccountId(0, 0, 9999), timestamp_pb2.Timestamp(seconds=1))
-    transaction_claim.node_account_id = AccountId(0, 0, 3)
+    transaction_claim.set_node_account_ids([AccountId(0, 0, 3)])
 
     with pytest.raises(ValueError):
         transaction_claim.build_transaction_body()
@@ -193,7 +193,7 @@ def test_build_transaction_body_populates_proto():
 
     # Satisfy base preconditions: set transaction_id and node_account_id
     tx_claim.transaction_id = TransactionId(sender, timestamp_pb2.Timestamp(seconds=1, nanos=0))
-    tx_claim.node_account_id = AccountId(0, 0, 3)  # dummy node account
+    tx_claim.set_node_account_ids([AccountId(0, 0, 3)])  # dummy node account
 
     body: transaction_pb2.TransactionBody = tx_claim.build_transaction_body()
 

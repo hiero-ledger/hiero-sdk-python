@@ -83,7 +83,7 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, execute_
 
     # Set operator and node account IDs needed for building transaction body
     execute_tx.operator_account_id = operator_id
-    execute_tx.node_account_id = node_account_id
+    execute_tx.set_node_account_ids([node_account_id])
 
     transaction_body = execute_tx.build_transaction_body()
 
@@ -106,7 +106,7 @@ def test_build_scheduled_body_with_valid_parameters(mock_account_ids, execute_pa
 
     # Set operator and node account IDs needed for building transaction body
     execute_tx.operator_account_id = operator_id
-    execute_tx.node_account_id = node_account_id
+    execute_tx.set_node_account_ids([node_account_id])
 
     schedulable_body = execute_tx.build_scheduled_body()
 
@@ -303,7 +303,7 @@ def test_build_transaction_body_with_required_params(mock_account_ids, contract_
 
     # Set operator and node account IDs needed for building transaction body
     execute_tx.operator_account_id = operator_id
-    execute_tx.node_account_id = node_account_id
+    execute_tx.set_node_account_ids([node_account_id])
 
     transaction_body = execute_tx.build_transaction_body()
 

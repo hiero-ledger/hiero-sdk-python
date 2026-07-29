@@ -37,7 +37,7 @@ def test_build_transaction_body(mock_account_ids):
     dissociate_tx.set_account_id(account_id)
     dissociate_tx.add_token_id(token_id_1)
     dissociate_tx.transaction_id = generate_transaction_id(account_id)
-    dissociate_tx.node_account_id = node_account_id
+    dissociate_tx.set_node_account_ids([node_account_id])
 
     transaction_body = dissociate_tx.build_transaction_body()
 
@@ -61,7 +61,7 @@ def test_transaction_body_with_multiple_tokens(mock_account_ids):
         dissociate_tx.add_token_id(token_id)
     dissociate_tx.operator_account_id = operator_id
     dissociate_tx.transaction_id = generate_transaction_id(account_id)
-    dissociate_tx.node_account_id = node_account_id
+    dissociate_tx.set_node_account_ids([node_account_id])
 
     transaction_body = dissociate_tx.build_transaction_body()
 

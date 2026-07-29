@@ -846,7 +846,7 @@ def test_set_node_account_ids_overrides_client_nodes(mock_client):
     """Explicit node_account_ids should override client network."""
     node = AccountId(0, 0, 999)
 
-    tx = AccountCreateTransaction().set_node_account_id(node)
+    tx = AccountCreateTransaction().set_node_account_ids([node])
     tx._resolve_execution_config(mock_client, None)
 
     assert tx.node_account_ids == [node]

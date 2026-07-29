@@ -25,7 +25,7 @@ pytestmark = pytest.mark.unit
 def test_freeze_without_transaction_id_raises_error():
     """Test that freeze() raises ValueError when transaction_id is not set."""
     transaction = TransferTransaction()
-    transaction.node_account_id = AccountId.from_string("0.0.3")
+    transaction.set_node_account_ids([AccountId.from_string("0.0.3")])
 
     with pytest.raises(ValueError, match="Transaction ID must be set before freezing"):
         transaction.freeze()
@@ -51,7 +51,7 @@ def test_freeze_with_valid_parameters():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
 
     # Should not raise any errors
     result = transaction.freeze()
@@ -75,7 +75,7 @@ def test_freeze_is_idempotent():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
 
     # Freeze multiple times
     transaction.freeze()
@@ -108,7 +108,7 @@ def test_to_bytes_returns_bytes():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
 
     # Freeze and sign the transaction
     transaction.freeze()
@@ -135,7 +135,7 @@ def test_to_bytes_produces_consistent_output():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
 
     transaction.freeze()
     transaction.sign(private_key)
@@ -161,7 +161,7 @@ def test_cannot_modify_transaction_after_freeze():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     # Attempting to add more transfers should raise an error
@@ -202,7 +202,7 @@ def test_freeze_and_sign_workflow():
 
     # Set required IDs
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
 
     # Freeze
     transaction.freeze()
@@ -236,7 +236,7 @@ def test_from_bytes_round_trip_unsigned():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     # Serialize to bytes
@@ -247,7 +247,7 @@ def test_from_bytes_round_trip_unsigned():
 
     # Verify common fields
     assert restored_transaction.transaction_id == transaction.transaction_id
-    assert restored_transaction.node_account_id == transaction.node_account_id
+    assert restored_transaction._node_account_ids.current == transaction._node_account_ids.current
     assert restored_transaction.memo == transaction.memo
     # When transaction_fee is None, it uses the default fee in the protobuf
     # So the restored transaction will have the default fee value
@@ -285,7 +285,7 @@ def test_from_bytes_round_trip_signed():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.freeze()
     transaction.sign(private_key)
 
@@ -297,7 +297,7 @@ def test_from_bytes_round_trip_signed():
 
     # Verify fields
     assert restored_transaction.transaction_id == transaction.transaction_id
-    assert restored_transaction.node_account_id == transaction.node_account_id
+    assert restored_transaction._node_account_ids.current == transaction._node_account_ids.current
     assert restored_transaction.memo == "Signed transaction"
 
     # Verify transfers
@@ -327,7 +327,7 @@ def test_from_bytes_round_trip_multiple_signatures():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     # Sign with multiple keys
@@ -366,7 +366,7 @@ def test_from_bytes_preserves_all_common_fields():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.transaction_fee = 5_000_000  # Custom fee
     assert transaction.set_transaction_valid_duration(180) is transaction  # 3 minutes - using setter
     transaction.generate_record = True
@@ -379,7 +379,7 @@ def test_from_bytes_preserves_all_common_fields():
 
     # Verify all common fields
     assert restored_transaction.transaction_id == transaction.transaction_id
-    assert restored_transaction.node_account_id == transaction.node_account_id
+    assert restored_transaction._node_account_ids.current == transaction._node_account_ids.current
     assert restored_transaction.transaction_fee == 5_000_000
     assert restored_transaction.transaction_valid_duration == 180
     assert restored_transaction.generate_record == True
@@ -401,7 +401,7 @@ def test_from_bytes_external_signing_workflow():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     unsigned_bytes = transaction.to_bytes()
@@ -427,7 +427,7 @@ def test_from_bytes_external_signing_workflow():
 
     # Verify all fields are still correct
     assert final_tx.transaction_id == transaction.transaction_id
-    assert final_tx.node_account_id == transaction.node_account_id
+    assert final_tx._node_account_ids.current == transaction._node_account_ids.current
     assert len(final_tx.hbar_transfers) == 2
 
 
@@ -442,7 +442,7 @@ def test_to_bytes_works_without_signatures():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
 
     # Freeze but DON'T sign
     transaction.freeze()
@@ -465,7 +465,7 @@ def test_freeze_only_builds_for_single_node():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     # Should only have one node in the transaction body bytes map
@@ -486,7 +486,7 @@ def test_signed_and_unsigned_bytes_are_different():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     # Get unsigned bytes
@@ -518,7 +518,7 @@ def test_multiple_signatures_increase_size():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     # Get bytes with one signature
@@ -550,7 +550,7 @@ def test_changing_node_after_freeze_fails_for_to_bytes():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id_1
+    transaction.set_node_account_ids([node_id_1])
     transaction.freeze()
 
     # This should work
@@ -558,7 +558,7 @@ def test_changing_node_after_freeze_fails_for_to_bytes():
     assert isinstance(bytes_node_1, bytes)
 
     # Change to a different node that wasn't frozen
-    transaction.node_account_id = node_id_2
+    transaction.set_node_account_ids([node_id_2])
 
     # This should fail - no transaction body for node_id_2
     with pytest.raises(ValueError, match="No transaction body found for node"):
@@ -578,7 +578,7 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
     )
 
     transaction.transaction_id = TransactionId.generate(operator_id)
-    transaction.node_account_id = node_id
+    transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     # Get unsigned bytes
@@ -601,7 +601,7 @@ def test_transaction_freeze_with_node_ids(mock_client):
     # Case 1 Single node_account_id
     single_node_id = AccountId(0, 0, 3)
     tx = TransferTransaction()
-    tx.node_account_id = single_node_id
+    tx.set_node_account_ids([single_node_id])
 
     tx.freeze_with(mock_client)
 
@@ -633,7 +633,7 @@ def test_transaction_freeze_with_node_ids_without_client():
     single_node_id = AccountId(0, 0, 3)
     tx = TransferTransaction()
     tx.set_transaction_id(TransactionId.generate(operator_id))
-    tx.node_account_id = single_node_id
+    tx.set_node_account_ids([single_node_id])
 
     tx.freeze()
 

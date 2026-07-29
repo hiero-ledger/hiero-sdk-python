@@ -27,9 +27,30 @@ def test_set_single_node_account_id():
     txn = DummyTransaction()
     node = AccountId(0, 0, 3)
 
+    # Test deprecated for backward compatiblity
     txn.set_node_account_id(node)
 
     assert txn.node_account_ids == [node]
+
+
+def test_set_single_node_account_id_using_setter():
+    txn = DummyTransaction()
+    node = AccountId(0, 0, 3)
+
+    # Test deprecated for backward compatiblity
+    txn.node_account_id = node
+
+    assert txn.node_account_ids == [node]
+
+
+def test_get_single_node_account_id():
+    txn = DummyTransaction()
+    node = AccountId(0, 0, 3)
+
+    txn.set_node_account_ids([node])
+
+    # Test deprecated for backward compatiblity
+    assert txn.node_account_id == node
 
 
 def test_set_multiple_node_account_ids():
@@ -37,6 +58,15 @@ def test_set_multiple_node_account_ids():
     nodes = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
 
     txn.set_node_account_ids(nodes)
+
+    assert txn.node_account_ids == nodes
+
+
+def test_set_multiple_node_account_ids_using_setters():
+    txn = DummyTransaction()
+    nodes = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+
+    txn.node_account_ids = nodes
 
     assert txn.node_account_ids == nodes
 
