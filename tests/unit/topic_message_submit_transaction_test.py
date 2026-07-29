@@ -99,6 +99,11 @@ def test_constructor_and_setters(topic_id, message, custom_fee_limit):
     assert tx_default.custom_fee_limits[0] == custom_fee_limit
     assert result is tx_default
 
+    # Test clear_custom_fee_limits
+    result = tx_default.clear_custom_fee_limits()
+    assert tx_default.custom_fee_limits == []
+    assert result is tx_default
+
 
 def test_set_methods_require_not_frozen(mock_client, topic_id, message, custom_fee_limit):
     """Test that setter methods raise exception when transaction is frozen."""
@@ -122,6 +127,16 @@ def test_set_methods_require_not_frozen(mock_client, topic_id, message, custom_f
             getattr(tx, method_name)(value)
 
 
+def test_clear_custom_fee_limits_requires_not_frozen(mock_client, topic_id, message, custom_fee_limit):
+    """Test that clear_custom_fee_limits() raises when the transaction is frozen."""
+    tx = TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
+    tx.add_custom_fee_limit(custom_fee_limit)
+    tx.freeze_with(mock_client)
+
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
+        tx.clear_custom_fee_limits()
+
+
 def test_method_chaining(topic_id, message, custom_fee_limit):
     """Test method chaining functionality."""
     tx = TopicMessageSubmitTransaction()
@@ -143,6 +158,10 @@ def test_method_chaining(topic_id, message, custom_fee_limit):
     assert len(tx.custom_fee_limits) == 2
     assert tx.chunk_size == chunk_size
     assert tx.max_chunks == max_chunks
+
+    result = tx.clear_custom_fee_limits()
+    assert result is tx
+    assert tx.custom_fee_limits == []
 
 
 def test_get_method():

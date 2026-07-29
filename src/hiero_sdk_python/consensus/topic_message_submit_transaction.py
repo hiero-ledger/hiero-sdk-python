@@ -162,6 +162,17 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         self.custom_fee_limits.append(custom_fee_limit)
         return self
 
+    def clear_custom_fee_limits(self) -> TopicMessageSubmitTransaction:
+        """
+        Clears all previously configured custom fee limits for the message submission.
+
+        Returns:
+            TopicMessageSubmitTransaction: This transaction instance (for chaining).
+        """
+        self._require_not_frozen()
+        self.custom_fee_limits = []
+        return self
+
     def _build_proto_body(self) -> consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody:
         """
         Returns the protobuf body for the topic message submit transaction.
