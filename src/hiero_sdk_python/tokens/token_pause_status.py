@@ -65,3 +65,7 @@ class TokenPauseStatus(Enum):
         if isinstance(other, int):
             return self.value == other
         return False
+
+    def __hash__(self) -> int:
+        """Hash by value, consistent with the int-accepting __eq__."""
+        return hash(self.value)
