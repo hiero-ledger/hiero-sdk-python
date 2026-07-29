@@ -46,10 +46,10 @@ def test_node_account_ids_advance_method():
     nodes = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
     txn.set_node_account_ids(nodes)
 
-    assert txn._node_account_ids._index == 0
+    assert txn._node_account_ids.index == 0
     assert txn._node_account_ids.current == nodes[0]
 
     index = txn._node_account_ids.advance()
     assert index == 0  # returns current index
-    assert txn._node_account_ids._index == 1
+    assert txn._node_account_ids.index == 1
     assert txn._node_account_ids.current == nodes[1]

@@ -353,7 +353,7 @@ class _Executable(ABC):
             if getattr(self, attr) is None:
                 setattr(self, attr, default)
 
-        # Id _node_account_ids is empty during execution then use all the available node in client
+        # If_node_account_ids is empty during execution then use all the available node in client
         if self._node_account_ids.is_empty:
             self._node_account_ids.set_list([node._account_id for node in client.network.nodes])
 
@@ -391,7 +391,7 @@ class _Executable(ABC):
             )
             return True
 
-        if self._node_account_ids._index == len(self._node_account_ids) - 1:
+        if self._node_account_ids.index == len(self._node_account_ids) - 1:
             raise RuntimeError("All nodes are unhealthy")
 
         self._node_account_ids.advance()

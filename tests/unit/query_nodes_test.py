@@ -27,10 +27,10 @@ def test_node_account_id_advance_method():
     nodes = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
     q.set_node_account_ids(nodes)
 
-    assert q._node_account_ids._index == 0
+    assert q._node_account_ids.index == 0
     assert q._node_account_ids.current == nodes[0]
 
     index = q._node_account_ids.advance()
     assert index == 0  # returns current index
-    assert q._node_account_ids._index == 1
+    assert q._node_account_ids.index == 1
     assert q._node_account_ids.current == nodes[1]

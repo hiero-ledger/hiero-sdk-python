@@ -16,14 +16,14 @@ class _LockableList(Generic[T]):
         self._index: int = 0
         self._locked: bool = False
 
-    def _required_not_locked(self) -> None:
+    def _require_not_locked(self) -> None:
         """Raise an exception if the list is locked."""
         if self._locked:
-            raise RuntimeError("list in unmutable")
+            raise RuntimeError("list is unmutable")
 
     def set_list(self, items: list[T]) -> _LockableList[T]:
         """Replace the contents of the list and reset the current index."""
-        self._required_not_locked()
+        self._require_not_locked()
         self._items = list(items)
         self._index = 0
         return self
@@ -34,19 +34,19 @@ class _LockableList(Generic[T]):
 
     def append(self, item: T) -> _LockableList[T]:
         """Append an item to the list."""
-        self._required_not_locked()
+        self._require_not_locked()
         self._items.append(item)
         return self
 
     def extend(self, items: Iterable[T]) -> _LockableList[T]:
         """Append all items from an iterable to the list."""
-        self._required_not_locked()
+        self._require_not_locked()
         self._items.extend(items)
         return self
 
     def clear(self) -> _LockableList[T]:
         """Remove all items from the list."""
-        self._required_not_locked()
+        self._require_not_locked()
         self._items.clear()
         return self
 
@@ -56,7 +56,7 @@ class _LockableList(Generic[T]):
 
     def set(self, index: int, item: T) -> _LockableList[T]:
         """Set or append an item at the given index."""
-        self._required_not_locked()
+        self._require_not_locked()
 
         if index == len(self._items):
             self._items.append(item)
@@ -89,6 +89,11 @@ class _LockableList(Generic[T]):
         """Set the current index."""
         self._index = val
         return self
+
+    @property
+    def index(self) -> int:
+        """Return the current index."""
+        return self._index
 
     @property
     def current(self) -> T:
