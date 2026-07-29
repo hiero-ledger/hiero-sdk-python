@@ -124,6 +124,7 @@ class _Executable(ABC):
 
     @property
     def node_account_ids(self) -> list[AccountId]:
+        """Return a copy of the node account IDs."""
         return self._node_account_ids.get_list()
 
     @node_account_ids.setter
