@@ -4,7 +4,7 @@ import datetime
 from dataclasses import dataclass, field
 
 from hiero_sdk_python.crypto.key_list import KeyList
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.public_key import Key
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
 from hiero_sdk_python.timestamp import Timestamp
@@ -20,7 +20,7 @@ class FileInfo:
         size (int, optional): The size of the file in bytes
         expiration_time (Timestamp, optional): When the file will expire
         is_deleted (bool, optional): Whether the file has been deleted
-        keys (list[PublicKey]): The keys that can modify this file
+        keys (list[Key]): The keys that can modify this file
         file_memo (str, optional): The memo associated with the file
         ledger_id (bytes, optional): The ID of the ledger this file exists in
     """
@@ -29,7 +29,7 @@ class FileInfo:
     size: int | None = None
     expiration_time: Timestamp | None = None
     is_deleted: bool | None = None
-    keys: list[PublicKey] = field(default_factory=list)
+    keys: list[Key] = field(default_factory=list)
     file_memo: str | None = None
     ledger_id: bytes | None = None
 
