@@ -480,6 +480,31 @@ describe('runAssignmentFlow - spam protection', () => {
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 
+  test('posts spam-limited assignment limit comment for restricted users', async () => {
+    spam.isSpamUser.mockReturnValue(true);
+    spam.spamUsersBlocked.mockReturnValue(false);
+    spam.isSpamLimited.mockReturnValue(true);
+    spam.getAssignmentLimit.mockReturnValue(2);
+
+    githubApi.getOpenAssignments.mockResolvedValue(2);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(spam.getAssignmentLimit).toHaveBeenCalled();
+    expect(spam.isSpamLimited).toHaveBeenCalled();
+
+    expect(githubApi.postComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: 'limit comment',
+      }),
+      'limit warning'
+    );
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  });
   test('continues when user is not flagged as spam', async () => {
     spam.isSpamUser.mockReturnValue(false);
 
