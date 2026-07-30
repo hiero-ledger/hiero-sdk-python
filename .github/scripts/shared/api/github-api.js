@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const { CONFIG } = require('../config');
-const { isSafeSearchToken } = require("../helpers/validation");
+const { isValidSearchToken } = require("../helpers/validation");
 
 /**
  * Counts closed issues historically assigned to a contributor at a given label,

@@ -390,6 +390,32 @@ describe('runAssignmentFlow - prerequisites', () => {
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 
+  test('continues when prerequisite lookup fails open', async () => {
+    githubApi.countCompletedIssuesWithLabel.mockResolvedValue(null);
+
+    const github = createGithub();
+
+    const context = createContext({
+      issue: {
+        number: 20,
+        assignees: [],
+        labels: [
+          {
+            name: 'skill: intermediate',
+          },
+        ],
+      },
+    });
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.countCompletedIssuesWithLabel).toHaveBeenCalled();
+
+    expect(githubApi.postComment).not.toHaveBeenCalled();
+
+    expect(githubApi.assignIssue).toHaveBeenCalled();
+  });
+
   test('does not post duplicate prerequisite guard comment', async () => {
     githubApi.countCompletedIssuesWithLabel.mockResolvedValue(0);
 
