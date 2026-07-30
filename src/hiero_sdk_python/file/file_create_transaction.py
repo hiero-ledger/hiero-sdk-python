@@ -32,9 +32,9 @@ class FileCreateTransaction(Transaction):
     def __init__(
         self,
         keys: list[Key] | None = None,
-        contents: str | bytes = "",
+        contents: str | bytes | None = None,
         expiration_time: Timestamp | None = None,
-        file_memo: str = "",
+        file_memo: str | None = None,
     ):
         """
         Initializes a new FileCreateTransaction instance with the specified parameters.
