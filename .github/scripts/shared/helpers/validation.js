@@ -16,10 +16,10 @@ function isSafeLabel(label) {
 }
 
 /**
- * Stricter: used for owner/repo/username, which GitHub itself restricts to
- * a known charset.
+ * Validates tokens embedded into GitHub search queries.
+ * This is intentionally broader than GitHub username validation.
  */
-function isSafeSearchToken(value) {
+function isValidSearchToken(value) {
   return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
 }
 
