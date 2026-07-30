@@ -582,7 +582,7 @@ describe('runAssignmentFlow - assignment', () => {
   });
 
   test('assigns issue when all checks pass', async () => {
-    githubApi.getOpenAssignments.mockResolvedValue([]);
+    githubApi.getOpenAssignments.mockResolvedValue(0);
 
     const github = createGithub();
     const context = createContext();
