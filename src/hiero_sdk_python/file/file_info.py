@@ -3,9 +3,9 @@ from __future__ import annotations
 import datetime
 from dataclasses import dataclass, field
 
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key_list import KeyList
+from hiero_sdk_python.crypto.public_key import Key
 from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
 from hiero_sdk_python.hapi.services.file_get_info_pb2 import FileGetInfoResponse
 from hiero_sdk_python.timestamp import Timestamp
 
@@ -20,7 +20,7 @@ class FileInfo:
         size (int, optional): The size of the file in bytes
         expiration_time (Timestamp, optional): When the file will expire
         is_deleted (bool, optional): Whether the file has been deleted
-        keys (list[PublicKey]): The keys that can modify this file
+        keys (list[Key]): The keys that can modify this file
         file_memo (str, optional): The memo associated with the file
         ledger_id (bytes, optional): The ID of the ledger this file exists in
     """
@@ -29,7 +29,7 @@ class FileInfo:
     size: int | None = None
     expiration_time: Timestamp | None = None
     is_deleted: bool | None = None
-    keys: list[PublicKey] = field(default_factory=list)
+    keys: list[Key] = field(default_factory=list)
     file_memo: str | None = None
     ledger_id: bytes | None = None
 
@@ -52,7 +52,7 @@ class FileInfo:
             size=proto.size,
             expiration_time=Timestamp._from_protobuf(proto.expirationTime),
             is_deleted=proto.deleted,
-            keys=[PublicKey._from_proto(key) for key in proto.keys.keys],
+            keys=KeyList.from_proto(proto.keys).keys,
             file_memo=proto.memo,
             ledger_id=proto.ledger_id,
         )
@@ -64,12 +64,13 @@ class FileInfo:
         Returns:
             FileGetInfoResponse.FileInfo: The protobuf representation of this FileInfo.
         """
+
         return FileGetInfoResponse.FileInfo(
             fileID=self.file_id._to_proto() if self.file_id else None,
             size=self.size,
             expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
             deleted=self.is_deleted,
-            keys=KeyListProto(keys=[key._to_proto() for key in self.keys or []]),
+            keys=KeyList().set_keys(self.keys).to_proto(),
             memo=self.file_memo,
             ledger_id=self.ledger_id,
         )
