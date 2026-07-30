@@ -25,5 +25,5 @@ function isValidSearchToken(value) {
 
 module.exports = {
   isSafeLabel,
-  isSafeSearchToken,
+  isValidSearchToken,
 };
