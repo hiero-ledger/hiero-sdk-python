@@ -41,7 +41,7 @@ def create_file(params: CreateFileParams) -> CreateFileResponse:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
     response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     file_id = ""
     if receipt.status == ResponseCode.SUCCESS and receipt.file_id is not None:
