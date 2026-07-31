@@ -10,6 +10,7 @@ from tck.response.file import CreateFileResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
+from tck.util.param_utils import to_int
 
 
 def _build_create_file_transaction(params: CreateFileParams) -> FileCreateTransaction:
@@ -22,7 +23,10 @@ def _build_create_file_transaction(params: CreateFileParams) -> FileCreateTransa
         transaction.set_contents(params.contents)
 
     if params.expirationTime is not None:
-        transaction.set_expiration_time(Timestamp(seconds=params.expirationTime, nanos=0))
+        expiration_time = to_int(params.expirationTime)
+        if expiration_time is None:
+            raise ValueError("expirationTime must be an integer")
+        transaction.set_expiration_time(Timestamp(seconds=expiration_time, nanos=0))
 
     if params.memo is not None:
         transaction.set_file_memo(params.memo)
