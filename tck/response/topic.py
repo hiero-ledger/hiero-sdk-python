@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from tck.response.base import StatusOnlyResponse
+
 
 @dataclass
 class CreateTopicResponse:
@@ -9,6 +11,11 @@ class CreateTopicResponse:
 
     topicId: str | None = None
     status: str | None = None
+
+
+@dataclass
+class DeleteTopicResponse(StatusOnlyResponse):
+    """Response payload for deleteTopic."""
 
 
 @dataclass

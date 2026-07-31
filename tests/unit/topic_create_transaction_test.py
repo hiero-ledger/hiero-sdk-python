@@ -328,7 +328,7 @@ def test_constructor(multiple_custom_fees, key_type, use_private):
         fee_exempt_keys=fee_exempt_keys,
     )
 
-    assert tx.memo == "Test Topic"
+    assert tx.topic_memo == "Test Topic"
     assert tx.admin_key == admin_key
     assert tx.submit_key == submit_key
     assert tx.custom_fees == multiple_custom_fees
@@ -339,7 +339,7 @@ def test_constructor(multiple_custom_fees, key_type, use_private):
 def test_constructor_default_values():
     """Test constructor with default values."""
     tx_default = TopicCreateTransaction()
-    assert tx_default.memo == ""
+    assert tx_default.topic_memo == ""
     assert tx_default.admin_key is None
     assert tx_default.submit_key is None
     assert tx_default.custom_fees == []
@@ -627,3 +627,27 @@ def test_freeze_with_leaves_auto_renew_account_unset_without_operator(mock_clien
     body = frozen_tx.build_transaction_body()
 
     assert not body.consensusCreateTopic.HasField("autoRenewAccount")
+
+
+def test_topic_memo_does_not_collide_with_transaction_memo():
+    """Regression test for: topic and transaction memos remain independent."""
+    tx = TopicCreateTransaction(memo="my topic memo")
+    assert tx.topic_memo == "my topic memo"
+    assert tx.memo == ""  # base Transaction-level memo defaults independently
+
+    tx.set_transaction_memo("some unrelated audit note")
+
+    assert tx.topic_memo == "my topic memo", "topic_memo was clobbered by set_transaction_memo()"
+    assert tx.memo == "some unrelated audit note"
+
+
+def test_topic_memo_reflected_in_protobuf_independent_of_transaction_memo(mock_client):
+    """Verify protobuf preserves separate topic and transaction memos."""
+    tx = TopicCreateTransaction(memo="my topic memo")
+    tx.set_transaction_memo("some unrelated audit note")
+    tx.transaction_id = TransactionId.generate(AccountId(0, 0, 1234))
+    frozen_tx = tx.freeze_with(mock_client)
+    body = frozen_tx.build_transaction_body()
+
+    assert body.consensusCreateTopic.memo == "my topic memo"
+    assert body.memo == "some unrelated audit note"

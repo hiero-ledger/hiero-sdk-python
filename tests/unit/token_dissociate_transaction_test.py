@@ -191,3 +191,79 @@ def test_build_scheduled_body(mock_account_ids):
     assert len(schedulable_body.tokenDissociate.tokens) == len(token_ids)
     for i, token_id in enumerate(token_ids):
         assert schedulable_body.tokenDissociate.tokens[i] == token_id._to_proto()
+
+
+def test_build_protobuf_body(mock_account_ids):
+    """Test build protobuf body for a token dissociate transaction."""
+    account_id, _, _, token_id_1, token_id_2 = mock_account_ids
+    token_ids = [token_id_1, token_id_2]
+
+    tx = TokenDissociateTransaction().set_account_id(account_id).set_token_ids(token_ids)
+
+    body = tx._build_proto_body()
+
+    assert body is not None
+    assert body.HasField("account")
+    assert body.account == account_id._to_proto()
+
+    assert len(body.tokens) == len(token_ids)
+    assert list(body.tokens) == [token._to_proto() for token in token_ids]
+
+
+def test_build_protobuf_body_ignore_none_tokens(mock_account_ids):
+    """Test build protobuf body for a token dissociate transaction ignores none tokenId in list."""
+    account_id, _, _, token_id, _ = mock_account_ids
+    token_ids = [token_id, None]
+
+    tx = TokenDissociateTransaction().set_account_id(account_id).set_token_ids(token_ids)
+
+    body = tx._build_proto_body()
+
+    assert body is not None
+    assert body.HasField("account")
+    assert body.account == account_id._to_proto()
+
+    assert len(body.tokens) == 1
+    assert list(body.tokens) == [token_id._to_proto()]
+
+
+def test_build_protobuf_body_without_account_id(mock_account_ids):
+    """Test build protobuf body for a token dissociate transaction without accountId."""
+    _, _, _, token_id_1, token_id_2 = mock_account_ids
+    token_ids = [token_id_1, token_id_2]
+
+    tx = TokenDissociateTransaction().set_token_ids(token_ids)
+
+    body = tx._build_proto_body()
+
+    assert body is not None
+    assert not body.HasField("account")
+
+    assert len(body.tokens) == len(token_ids)
+    assert list(body.tokens) == [token._to_proto() for token in token_ids]
+
+
+def test_build_protobuf_body_without_token_ids(mock_account_ids):
+    """Test build protobuf body for a token dissociate transaction without tokenIds."""
+    account_id, _, _, _, _ = mock_account_ids
+
+    tx = TokenDissociateTransaction().set_account_id(account_id)
+
+    body = tx._build_proto_body()
+
+    assert body is not None
+    assert body.HasField("account")
+    assert body.account == account_id._to_proto()
+
+    assert len(body.tokens) == 0
+
+
+def test_build_protobuf_body_missing_both_account_and_token_ids():
+    """Test build protobuf body for a token dissociate transaction without accountId and tokenIds."""
+    tx = TokenDissociateTransaction()
+
+    body = tx._build_proto_body()
+
+    assert body is not None
+    assert not body.HasField("account")
+    assert len(body.tokens) == 0
