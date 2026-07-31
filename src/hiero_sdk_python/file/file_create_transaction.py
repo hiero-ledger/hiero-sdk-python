@@ -3,10 +3,10 @@ from __future__ import annotations
 import time
 
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import file_create_pb2
-from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -31,7 +31,7 @@ class FileCreateTransaction(Transaction):
 
     def __init__(
         self,
-        keys: list[PublicKey] | None = None,
+        keys: list[Key] | None = None,
         contents: str | bytes | None = None,
         expiration_time: Timestamp | None = None,
         file_memo: str | None = None,
@@ -40,13 +40,13 @@ class FileCreateTransaction(Transaction):
         Initializes a new FileCreateTransaction instance with the specified parameters.
 
         Args:
-            keys (Optional[list[PublicKey]], optional): The keys that are allowed to update/delete the file.
+            keys (Optional[list[Key]], optional): The keys that are allowed to update/delete the file.
             contents (Optional[str | bytes], optional): The contents of the file to create. Strings will be automatically encoded as UTF-8 bytes.
             expiration_time (Optional[Timestamp], optional): The time at which the file should expire.
             file_memo (Optional[str], optional): A memo to include with the file.
         """
         super().__init__()
-        self.keys: list[PublicKey] | None = keys or []
+        self.keys: list[Key] | None = keys or []
         self.contents: bytes | None = self._encode_contents(contents)
         self.expiration_time: Timestamp | None = (
             expiration_time if expiration_time else Timestamp(int(time.time()) + self.DEFAULT_EXPIRY_SECONDS, 0)
@@ -70,18 +70,18 @@ class FileCreateTransaction(Transaction):
             return contents.encode("utf-8")
         return contents
 
-    def set_keys(self, keys: list[PublicKey] | None | PublicKey) -> FileCreateTransaction:
+    def set_keys(self, keys: list[Key] | None | Key) -> FileCreateTransaction:
         """
         Sets the keys for this file create transaction.
 
         Args:
-            keys (Optional[list[PublicKey]] | PublicKey): The keys to set for the file. Can be a list of PublicKey objects or None.
+            keys (Optional[list[Key]] | Key): The keys to set for the file. Can be a list of PublicKey objects or None.
 
         Returns:
             FileCreateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        if isinstance(keys, PublicKey):
+        if isinstance(keys, Key):
             self.keys = [keys]
         else:
             self.keys = keys or []
@@ -137,7 +137,7 @@ class FileCreateTransaction(Transaction):
             FileCreateTransactionBody: The protobuf body for this transaction.
         """
         return file_create_pb2.FileCreateTransactionBody(
-            keys=KeyListProto(keys=[key._to_proto() for key in self.keys or []]),
+            keys=KeyList().set_keys(self.keys).to_proto(),
             contents=self.contents if self.contents is not None else b"",
             expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
             memo=self.file_memo if self.file_memo is not None else "",
@@ -192,7 +192,7 @@ class FileCreateTransaction(Transaction):
         Returns:
             FileCreateTransaction: This transaction instance.
         """
-        self.keys = [PublicKey._from_proto(key) for key in proto.keys.keys] if proto.keys.keys else []
+        self.keys = KeyList.from_proto(proto.keys).keys
         self.contents = proto.contents
         self.expiration_time = Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None
         self.file_memo = proto.memo

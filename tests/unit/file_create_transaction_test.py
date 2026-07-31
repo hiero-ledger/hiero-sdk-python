@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
@@ -149,26 +150,43 @@ def test_set_methods():
 def test_set_keys_variations():
     """Test setting keys with different input types."""
     file_tx = FileCreateTransaction()
-    private_key1 = PrivateKey.generate()
-    private_key2 = PrivateKey.generate()
-    public_key1 = private_key1.public_key()
-    public_key2 = private_key2.public_key()
 
-    # Test with single PublicKey
-    file_tx.set_keys(public_key1)
+    private_key = PrivateKey.generate()
+    public_key = PrivateKey.generate().public_key()
+
+    key_list = KeyList([PrivateKey.generate()])
+    threshold_key = KeyList([PrivateKey.generate()], 1)
+
+    # Single PublicKey
+    file_tx.set_keys(public_key)
     assert isinstance(file_tx.keys, list)
     assert len(file_tx.keys) == 1
-    assert file_tx.keys[0] == public_key1
+    assert file_tx.keys == [public_key]
 
-    # Test with list of PublicKeys
-    file_tx.set_keys([public_key1, public_key2])
+    # Single PrivateKey
+    file_tx.set_keys(private_key)
     assert isinstance(file_tx.keys, list)
-    assert len(file_tx.keys) == 2
+    assert len(file_tx.keys) == 1
+    assert file_tx.keys == [private_key]
 
-    # Test with KeyList
-    key_list = [public_key1]
+    # Single KeyList
     file_tx.set_keys(key_list)
-    assert file_tx.keys is key_list
+    assert isinstance(file_tx.keys, list)
+    assert len(file_tx.keys) == 1
+    assert file_tx.keys == [key_list]
+
+    # Single ThresholdKey
+    file_tx.set_keys(threshold_key)
+    assert isinstance(file_tx.keys, list)
+    assert len(file_tx.keys) == 1
+    assert file_tx.keys == [threshold_key]
+
+    # Sequence of keys
+    keys = [private_key, public_key, key_list, threshold_key]
+    file_tx.set_keys(keys)
+    assert isinstance(file_tx.keys, list)
+    assert len(file_tx.keys) == 4
+    assert file_tx.keys == keys
 
 
 def test_set_methods_require_not_frozen(mock_client):
@@ -235,11 +253,11 @@ def test_file_create_transaction_from_proto():
     """Test that a file create transaction can be created from a protobuf object."""
     private_key = PrivateKey.generate()
     public_key = private_key.public_key()
-    key_list = [public_key]
+    key_list = [private_key]
 
     # Create protobuf object with file create details
     proto = file_create_pb2.FileCreateTransactionBody(
-        keys=basic_types_pb2.KeyList(keys=[key._to_proto() for key in key_list]),
+        keys=basic_types_pb2.KeyList(keys=[key.to_proto_key() for key in key_list]),
         contents=b"Proto test content",
         memo="Proto test memo",
     )
@@ -252,11 +270,50 @@ def test_file_create_transaction_from_proto():
     assert from_proto.file_memo == "Proto test memo"
     assert len(from_proto.keys) == 1
     assert isinstance(from_proto.keys[0], PublicKey)
+    assert from_proto.keys[0].to_bytes_raw() == public_key.to_bytes_raw()
 
     # Deserialize empty protobuf
     from_proto = FileCreateTransaction()._from_proto(file_create_pb2.FileCreateTransactionBody())
 
     # Verify empty protobuf deserializes to empty/default values
+    assert from_proto.contents == b""
+    assert from_proto.file_memo == ""
+    assert from_proto.keys == []
+
+
+def test_file_create_transaction_from_proto_keys():
+    """Test deserializing a file create transaction from protobuf with all supported key types."""
+
+    private_key = PrivateKey.generate()
+    public_key = PrivateKey.generate().public_key()
+    key_list = KeyList([PrivateKey.generate()])
+    threshold_key = KeyList([PrivateKey.generate(), PrivateKey.generate()], 1)
+
+    keys = [private_key, public_key, key_list, threshold_key]
+
+    proto = file_create_pb2.FileCreateTransactionBody(
+        keys=basic_types_pb2.KeyList(keys=[key.to_proto_key() for key in keys]),
+        contents=b"Proto test content",
+        memo="Proto test memo",
+    )
+
+    from_proto = FileCreateTransaction()._from_proto(proto)
+
+    assert from_proto.contents == b"Proto test content"
+    assert from_proto.file_memo == "Proto test memo"
+
+    assert len(from_proto.keys) == 4
+    assert isinstance(from_proto.keys[0], PublicKey)  # protobuf conversion convert the private to public key
+    assert isinstance(from_proto.keys[1], PublicKey)
+    assert isinstance(from_proto.keys[2], KeyList)
+    assert isinstance(from_proto.keys[3], KeyList)
+
+    # Threshold should be preserved
+    assert from_proto.keys[3].threshold == 1
+
+    # Empty protobuf
+    from_proto = FileCreateTransaction()._from_proto(file_create_pb2.FileCreateTransactionBody())
+
     assert from_proto.contents == b""
     assert from_proto.file_memo == ""
     assert from_proto.keys == []
