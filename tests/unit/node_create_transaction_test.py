@@ -91,7 +91,7 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, node_par
 
     # Set operator and node account IDs needed for building transaction body
     node_tx.operator_account_id = operator_id
-    node_tx.node_account_id = node_account_id
+    node_tx.set_node_account_ids([node_account_id])
 
     transaction_body = node_tx.build_transaction_body()
 

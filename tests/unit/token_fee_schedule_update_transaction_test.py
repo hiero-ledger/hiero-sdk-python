@@ -64,7 +64,7 @@ def test_build_transaction_body_sets_token_id(mock_account_ids):
 
     update_tx = TokenFeeScheduleUpdateTransaction(token_id=token_id)
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = node_account_id
+    update_tx.set_node_account_ids([node_account_id])
 
     transaction_body = update_tx.build_transaction_body()
 
@@ -79,7 +79,7 @@ def test_build_transaction_body_sets_custom_fees(mock_account_ids):
 
     update_tx = TokenFeeScheduleUpdateTransaction(token_id=token_id, custom_fees=test_fees_list)
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = node_account_id
+    update_tx.set_node_account_ids([node_account_id])
 
     transaction_body = update_tx.build_transaction_body()
 
@@ -95,7 +95,7 @@ def test_build_transaction_body_with_empty_custom_fees(mock_account_ids):
 
     update_tx = TokenFeeScheduleUpdateTransaction(token_id=token_id, custom_fees=[])
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = node_account_id
+    update_tx.set_node_account_ids([node_account_id])
 
     transaction_body = update_tx.build_transaction_body()
 

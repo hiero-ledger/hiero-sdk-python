@@ -31,7 +31,7 @@ def test_build_transaction_body(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = node_account_id
+    update_tx.set_node_account_ids([node_account_id])
     transaction_body = update_tx.build_transaction_body()
 
     assert transaction_body.token_update_nfts.token.shardNum == token_id.shard

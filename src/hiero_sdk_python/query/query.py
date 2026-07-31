@@ -136,6 +136,9 @@ class Query(_Executable):
         """
         self.operator = self.operator or client.operator
 
+        if self._node_account_ids.is_empty:
+            self._node_account_ids.set_list([node._account_id for node in client.network.nodes])
+
         # If no payment amount was specified and payment is required for this query,
         # get the cost from the network and set it as the payment amount
         if self.payment_amount is None and self._is_payment_required():
@@ -179,11 +182,11 @@ class Query(_Executable):
             header.responseType = query_header_pb2.ResponseType.COST_ANSWER
             return header
 
-        if self.operator is not None and self.node_account_id is not None and self.payment_amount is not None:
+        if self.operator is not None and not self._node_account_ids.is_empty and self.payment_amount is not None:
             payment_tx = self._build_query_payment_transaction(
                 payer_account_id=self.operator.account_id,
                 payer_private_key=self.operator.private_key,
-                node_account_id=self.node_account_id,
+                node_account_id=self._node_account_ids.current,
                 amount=self.payment_amount,
             )
             header.payment.CopyFrom(payment_tx)
@@ -294,6 +297,9 @@ class Query(_Executable):
 
         if client is None or client.operator is None:
             raise ValueError("Client and operator must be set to get the cost")
+
+        if self._node_account_ids.is_empty:
+            self._node_account_ids.set_list([node._account_id for node in client.network.nodes])
 
         # Here we execute the query to get the cost of it
         resp = self._execute(client)

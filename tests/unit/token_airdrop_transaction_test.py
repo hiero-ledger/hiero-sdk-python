@@ -30,7 +30,7 @@ def test_build_transaction_body(mock_account_ids):
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
     airdrop_tx.add_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver)
     airdrop_tx.operator_account_id = sender
-    airdrop_tx.node_account_id = node_account_id
+    airdrop_tx.set_node_account_ids([node_account_id])
     transaction_body = airdrop_tx.build_transaction_body()
 
     assert len(transaction_body.tokenAirdrop.token_transfers) == 2
@@ -70,7 +70,7 @@ def test_build_transaction_body_with_approved_transfer(mock_account_ids):
     airdrop_tx.add_approved_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
     airdrop_tx.add_approved_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver)
     airdrop_tx.operator_account_id = sender
-    airdrop_tx.node_account_id = node_account_id
+    airdrop_tx.set_node_account_ids([node_account_id])
     transaction_body = airdrop_tx.build_transaction_body()
 
     assert len(transaction_body.tokenAirdrop.token_transfers) == 2
@@ -116,7 +116,7 @@ def test_build_transaction_body_with_expected_decimal(mock_account_ids):
         token_id=token_id_2, account_id=receiver, amount=amount, decimals=decimal
     )
     airdrop_tx.operator_account_id = sender
-    airdrop_tx.node_account_id = node_account_id
+    airdrop_tx.set_node_account_ids([node_account_id])
     transaction_body = airdrop_tx.build_transaction_body()
 
     assert len(transaction_body.tokenAirdrop.token_transfers) == 2

@@ -90,7 +90,7 @@ def test_build_transaction_body_without_key(mock_account_ids):
     token_tx.set_treasury_account_id(treasury_account)
     token_tx.set_memo("Token Memo")
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    token_tx.node_account_id = node_account_id
+    token_tx.set_node_account_ids([node_account_id])
 
     transaction_body = token_tx.build_transaction_body()
 
@@ -143,7 +143,7 @@ def test_build_transaction_body(mock_account_ids):
     token_tx.set_metadata_key(private_key_metadata)
     token_tx.set_kyc_key(private_key_kyc)
     token_tx.set_fee_schedule_key(private_key_fee_schedule)
-    token_tx.node_account_id = node_account_id
+    token_tx.set_node_account_ids([node_account_id])
 
     transaction_body = token_tx.build_transaction_body()
 
@@ -177,7 +177,7 @@ def test_build_transaction_body_with_metadata(mock_account_ids):
     token_tx.set_metadata(metadata)
 
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    token_tx.node_account_id = node_account_id
+    token_tx.set_node_account_ids([node_account_id])
 
     transaction_body = token_tx.build_transaction_body()
 
@@ -396,7 +396,7 @@ def test_transaction_execution_failure(mock_account_ids):
             token_type=TokenType.FUNGIBLE_COMMON,
         )
     )
-    token_tx.node_account_id = node_account_id
+    token_tx.set_node_account_ids([node_account_id])
     token_tx.transaction_id = generate_transaction_id(treasury_account)
 
     # Set the transaction body bytes to avoid calling build_transaction_body
@@ -524,7 +524,7 @@ def test_transaction_freeze_prevents_modification(mock_account_ids, mock_client)
     transaction.set_decimals(2)
     transaction.set_treasury_account_id(treasury_account)
 
-    transaction.node_account_id = node_account_id
+    transaction.set_node_account_ids([node_account_id])
     transaction.transaction_id = generate_transaction_id(treasury_account)
 
     # Freeze the transaction
@@ -586,7 +586,7 @@ def test_build_transaction_body_non_fungible(mock_account_ids):
     token_tx.set_memo("NFT Memo")
 
     token_tx.transaction_id = generate_transaction_id(treasury_account)
-    token_tx.node_account_id = node_account_id
+    token_tx.set_node_account_ids([node_account_id])
 
     # Build the transaction body
     transaction_body = token_tx.build_transaction_body()
@@ -780,7 +780,7 @@ def test_token_create_with_expiration_time_overrides_auto_renew(mock_account_ids
 
     tx.set_expiration_time(expiration_time)
     tx.transaction_id = generate_transaction_id(treasury_account)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     body = tx.build_transaction_body()
 
     assert body.tokenCreation.expiry.seconds == expiration_time.seconds
@@ -892,7 +892,7 @@ def test_admin_key_token_operations_logic(mock_client):
     create_tx.set_supply_type(SupplyType.INFINITE)
     create_tx.set_admin_key(admin_key)
     create_tx.transaction_id = tx_id
-    create_tx.node_account_id = node_account_id
+    create_tx.set_node_account_ids([node_account_id])
 
     transaction_body = create_tx.build_transaction_body()
 

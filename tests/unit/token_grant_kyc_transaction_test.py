@@ -27,7 +27,7 @@ def test_build_transaction_body(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     grant_kyc_tx.operator_account_id = account_id
-    grant_kyc_tx.node_account_id = node_account_id
+    grant_kyc_tx.set_node_account_ids([node_account_id])
 
     transaction_body = grant_kyc_tx.build_transaction_body()
 

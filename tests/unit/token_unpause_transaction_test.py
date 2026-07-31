@@ -46,7 +46,7 @@ def test_build_transaction_body(mock_account_ids):
     account_id, _, node_account_id, token_id, _ = mock_account_ids
 
     unpause_tx = TokenUnpauseTransaction().set_token_id(token_id)
-    unpause_tx.node_account_id = node_account_id
+    unpause_tx.set_node_account_ids([node_account_id])
     unpause_tx.operator_account_id = account_id
 
     transaction_body = unpause_tx.build_transaction_body()
@@ -61,7 +61,7 @@ def test_build_transaction_body_when_token_id_not_set(mock_account_ids):
     account_id, _, node_account_id, _, _ = mock_account_ids
 
     unpause_tx = TokenUnpauseTransaction()
-    unpause_tx.node_account_id = node_account_id
+    unpause_tx.set_node_account_ids([node_account_id])
 
     with pytest.raises(ValueError, match="Missing token ID"):
         unpause_tx.build_transaction_body()

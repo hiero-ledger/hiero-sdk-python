@@ -27,7 +27,7 @@ def test_build_transaction_body(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     revoke_kyc_tx.operator_account_id = account_id
-    revoke_kyc_tx.node_account_id = node_account_id
+    revoke_kyc_tx.set_node_account_ids([node_account_id])
 
     transaction_body = revoke_kyc_tx.build_transaction_body()
 

@@ -42,7 +42,7 @@ def test_build_transaction_body(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     burn_tx.operator_account_id = operator_id
-    burn_tx.node_account_id = node_account_id
+    burn_tx.set_node_account_ids([node_account_id])
     transaction_body = burn_tx.build_transaction_body()
 
     assert transaction_body.tokenBurn.token == token_id._to_proto()

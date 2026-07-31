@@ -30,7 +30,7 @@ def test_build_topic_delete_transaction_body(mock_account_ids, topic_id):
     tx = TopicDeleteTransaction(topic_id=topic_id)
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
     assert transaction_body.consensusDeleteTopic.topicID.topicNum == 1234
@@ -64,7 +64,7 @@ def test_missing_topic_id_in_delete(mock_account_ids):
     _, _, node_account_id, _, _ = mock_account_ids
     tx = TopicDeleteTransaction(topic_id=None)
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     with pytest.raises(ValueError, match="Missing required fields"):
         tx.build_transaction_body()
@@ -76,7 +76,7 @@ def test_sign_topic_delete_transaction(mock_account_ids, topic_id, private_key):
     _, _, node_account_id, _, _ = mock_account_ids
     tx = TopicDeleteTransaction(topic_id=topic_id)
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body_bytes = tx.build_transaction_body().SerializeToString()
     tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
