@@ -33,11 +33,9 @@ def test_build_transaction_body(mock_account_ids, token_id):
     pause_tx.operator_account_id = account_id
     pause_tx.node_account_id = node_account_id
 
-    transaction_body = pause_tx.build_transaction_body()  # Will generate a transaction_id
+    transaction_body = pause_tx.build_transaction_body()
 
     assert transaction_body.token_pause.token == token_id._to_proto()
-    assert transaction_body.transactionID == pause_tx.transaction_id._to_proto()
-    assert transaction_body.nodeAccountID == pause_tx.node_account_id._to_proto()
 
 
 def test_build_transaction_body_nft(mock_account_ids, nft_id):
@@ -54,8 +52,6 @@ def test_build_transaction_body_nft(mock_account_ids, nft_id):
     transaction_body = pause_tx.build_transaction_body()
 
     assert transaction_body.token_pause.token == base_token_id._to_proto()
-    assert transaction_body.transactionID == pause_tx.transaction_id._to_proto()
-    assert transaction_body.nodeAccountID == pause_tx.node_account_id._to_proto()
 
 
 # This test uses fixture (token_id, mock_client) as parameter

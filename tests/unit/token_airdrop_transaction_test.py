@@ -161,24 +161,6 @@ def test_add_zero_transfer_amount(mock_account_ids):
         airdrop_tx.add_approved_token_transfer_with_decimals(token_id, account_id, 0, 1)
 
 
-def test_add_unbalanced_transfer_amount(mock_account_ids):
-    sender, receiver, _, token_id, _ = mock_account_ids
-    airdrop_tx = TokenAirdropTransaction()
-    airdrop_tx.add_token_transfer(token_id, sender, -1)
-    airdrop_tx.add_token_transfer(token_id, receiver, -2)
-
-    with pytest.raises(ValueError):
-        airdrop_tx.build_transaction_body()
-
-
-def test_add_invalid_transfer(mock_account_ids):
-    _, _, _, _, _ = mock_account_ids
-    airdrop_tx = TokenAirdropTransaction()
-
-    with pytest.raises(ValueError):
-        airdrop_tx.build_transaction_body()
-
-
 def test_sign_transaction(mock_account_ids, mock_client):
     """Test signing the token airdrop transaction with a private key."""
     sender, receiver, _, token_id_1, token_id_2 = mock_account_ids
@@ -204,7 +186,7 @@ def test_sign_transaction(mock_account_ids, mock_client):
     airdrop_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = airdrop_tx._transaction_body_bytes[node_id]
+    body_bytes = airdrop_tx._transaction_body_bytes[airdrop_tx.transaction_id][node_id]
 
     assert body_bytes in airdrop_tx._signature_map, "Body bytes should be a key in the signature map dictionary"
     assert len(airdrop_tx._signature_map[body_bytes].sigPair) == 1

@@ -312,7 +312,7 @@ def test_sign_transaction(mock_client, mock_tx):
     batch_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = batch_tx._transaction_body_bytes[node_id]
+    body_bytes = batch_tx._transaction_body_bytes[batch_tx.transaction_id][node_id]
 
     assert body_bytes in batch_tx._signature_map, "signature map must contain an entry for the tx body bytes"
     sig_pairs = batch_tx._signature_map[body_bytes].sigPair

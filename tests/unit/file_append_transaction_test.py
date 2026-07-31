@@ -120,7 +120,8 @@ def test_validate_chunking():
 
     # Should raise error when required chunks > max_chunks
     with pytest.raises(
-        ValueError, match="Message requires 140 chunks but max_chunks=5. Increase limit with set_max_chunks()."
+        ValueError,
+        match="Cannot execute ChunkedTransaction with more than 5 chunks. Required: 140 Increase limit with set_max_chunks().",
     ):
         file_tx._validate_chunking()
 
@@ -403,3 +404,145 @@ def test_chunk_transaction_id_nanosecond_overflow(file_id):
     # Second chunk seconds=base_seconds + 1, nanos=0
     assert tx._transaction_ids[1].valid_start.seconds == base_seconds + 1
     assert tx._transaction_ids[1].valid_start.nanos == 0
+
+
+def test_serialization_non_chunk_transaction_non_freeze(file_id):
+    """Test that FileAppendTransaction can serialize non frozen and non chunk transaction"""
+    content = "Hello! Hiero"
+
+    tx1 = FileAppendTransaction().set_file_id(file_id).set_contents(content).set_chunk_size(100).set_max_chunks(10)
+
+    assert tx1.file_id == file_id
+    assert tx1.contents == content.encode("utf-8")
+    assert tx1.chunk_size == 100
+    assert tx1.max_chunks == 10
+
+    tx_bytes = tx1.to_bytes()
+
+    assert tx_bytes is not None
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, FileAppendTransaction)
+    assert not tx2._transaction_body_bytes
+    assert tx2.file_id == tx1.file_id
+    assert tx2.contents == tx1.contents
+
+    # These values are not serialized because they are not part of FileAppendTransactionBody they should fallback to default values.
+    assert tx2.chunk_size != tx1.chunk_size
+    assert tx2.chunk_size == 4096
+    assert tx2.max_chunks != tx1.max_chunks
+    assert tx2.max_chunks == 20
+
+
+def test_serialization_chunk_transaction_non_freeze(file_id):
+    """Test that FileAppendTransaction can serialize non frozen and chunk transaction"""
+    content = "A" * 8192  # create 2 chucks
+
+    tx1 = FileAppendTransaction().set_file_id(file_id).set_contents(content)
+
+    assert tx1.file_id == file_id
+    assert tx1.contents == content.encode("utf-8")
+
+    tx_bytes = tx1.to_bytes()
+
+    assert tx_bytes is not None
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, FileAppendTransaction)
+    assert not tx2._transaction_body_bytes
+    assert tx2.file_id == tx1.file_id
+    assert tx2.contents == tx1.contents
+
+
+def test_serialization_non_chunk_transaction_freeze(file_id):
+    """Test that FileAppendTransaction can serialize frozen and non chunk transaction"""
+    transaction_id = TransactionId.generate(AccountId(0, 0, 3))
+    content = "Hello! Hiero"
+
+    tx1 = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_contents(content)
+        .set_chunk_size(100)
+        .set_max_chunks(10)
+        .set_transaction_id(transaction_id)
+        .set_node_account_ids([AccountId(0, 0, 4), AccountId(0, 0, 5)])
+        .freeze()
+    )
+
+    assert tx1.file_id == file_id
+    assert tx1.contents == content.encode("utf-8")
+    assert tx1.chunk_size == 100
+    assert tx1.max_chunks == 10
+
+    assert tx1._transaction_body_bytes
+
+    assert tx1.transaction_id == transaction_id
+    assert len(tx1._transaction_ids) == 1  # single chunk
+
+    tx_bytes = tx1.to_bytes()
+
+    assert tx_bytes is not None
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, FileAppendTransaction)
+    assert tx2.file_id == tx1.file_id
+    assert tx2.contents == tx1.contents
+
+    assert tx2.chunk_size != tx1.chunk_size
+    assert tx2.chunk_size == 4096
+    assert tx2.max_chunks != tx1.max_chunks
+    assert tx2.max_chunks == 20
+
+    assert tx2._transaction_body_bytes
+
+    assert tx2.transaction_id == transaction_id
+    assert len(tx2._transaction_ids) == 1  # single chunk
+    assert tx2._transaction_ids == tx1._transaction_ids
+    assert tx2.node_account_ids == tx1.node_account_ids
+
+
+def test_serialization_chunk_transaction_freeze(file_id):
+    """Test that FileAppendTransaction can serialize frozen and chunk transaction"""
+    transaction_id = TransactionId.generate(AccountId(0, 0, 3))
+    content = "A" * 8192  # create 2 chucks
+
+    tx1 = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_contents(content)
+        .set_transaction_id(transaction_id)
+        .set_node_account_ids([AccountId(0, 0, 4), AccountId(0, 0, 5)])
+        .freeze()
+    )
+
+    assert tx1.file_id == file_id
+    assert tx1.contents == content.encode("utf-8")
+
+    assert tx1._transaction_body_bytes
+
+    assert tx1.transaction_id == transaction_id
+    assert len(tx1._transaction_ids) == 2  # 2 chunks
+
+    tx_bytes = tx1.to_bytes()
+
+    assert tx_bytes is not None
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, FileAppendTransaction)
+    assert tx2.file_id == tx1.file_id
+
+    # On freeze, the chunked tx content will be only the first chunk content. the chunk execution is handle by the _transaction_bytes and _transaction_ids
+    assert tx2.contents != tx1.contents
+    assert tx2.contents == tx1.contents[0:4096]
+
+    assert tx2._transaction_body_bytes
+
+    assert tx2.transaction_id == transaction_id
+    assert len(tx2._transaction_ids) == 2  # 2 chunk
+    assert tx2._transaction_ids == tx1._transaction_ids
+    assert tx2.node_account_ids == tx1.node_account_ids

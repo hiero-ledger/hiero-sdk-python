@@ -95,7 +95,7 @@ class BatchTransaction(Transaction):
             raise ValueError("Batch key needs to be set")
 
     @classmethod
-    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map) -> BatchTransaction:
+    def _from_protobuf(cls, transaction_body) -> BatchTransaction:
         """
         Creates a BatchTransaction instance from protobuf components.
 
@@ -107,7 +107,7 @@ class BatchTransaction(Transaction):
         Returns:
             BatchTransaction: A new transaction instance with all fields restored
         """
-        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("atomic_batch"):
             atomic_batch = transaction_body.atomic_batch

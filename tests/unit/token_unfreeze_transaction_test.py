@@ -86,7 +86,7 @@ def test_sign_transaction(mock_account_ids, mock_client):
     unfreeze_tx.sign(freeze_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = unfreeze_tx._transaction_body_bytes[node_id]
+    body_bytes = unfreeze_tx._transaction_body_bytes[unfreeze_tx.transaction_id][node_id]
 
     assert len(unfreeze_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = unfreeze_tx._signature_map[body_bytes].sigPair[0]

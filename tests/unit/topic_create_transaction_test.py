@@ -220,43 +220,21 @@ def test_build_scheduled_body(mock_account_ids, custom_fixed_fee, key_type, use_
     )
 
 
-# This test uses fixture mock_account_ids as parameter
-def test_missing_operator_in_topic_create(mock_account_ids):
-    """
-    Test that building the body fails if no operator ID is set.
-    """
-    _, _, node_account_id, _, _ = mock_account_ids
-
-    tx = TopicCreateTransaction(memo="No Operator")
-    tx.node_account_id = node_account_id
-
-    with pytest.raises(ValueError, match="Operator account ID is not set."):
-        tx.build_transaction_body()
-
-
-def test_missing_node_in_topic_create():
-    """
-    Test that building the body fails if no node account ID is set.
-    """
-    tx = TopicCreateTransaction(memo="No Node")
-    tx.operator_account_id = AccountId(0, 0, 2)
-
-    with pytest.raises(ValueError, match="Node account ID is not set."):
-        tx.build_transaction_body()
-
-
 # This test uses fixtures (mock_account_ids, private_key) as parameters
 def test_sign_topic_create_transaction(mock_account_ids, private_key):
     """
     Test signing the TopicCreateTransaction with a private key.
     """
-    _, _, node_account_id, _, _ = mock_account_ids
+    opertor_id, _, node_account_id, _, _ = mock_account_ids
+    transaction_id = TransactionId.generate(opertor_id)
+
     tx = TopicCreateTransaction(memo="Signing test")
     tx.operator_account_id = AccountId(0, 0, 2)
     tx.node_account_id = node_account_id
+    tx.transaction_id = transaction_id
 
     body_bytes = tx.build_transaction_body().SerializeToString()
-    tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
+    tx._transaction_body_bytes.setdefault(transaction_id, dict(node_account_id=body_bytes))
 
     tx.sign(private_key)
     assert len(tx._signature_map[body_bytes].sigPair) == 1

@@ -162,7 +162,7 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
         return _Method(transaction_func=channel.crypto.cryptoTransfer, query_func=None)
 
     @classmethod
-    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+    def _from_protobuf(cls, transaction_body):
         """
         Creates a TransferTransaction instance from protobuf components.
 
@@ -174,7 +174,7 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
         Returns:
             TransferTransaction: A new transaction instance with all fields restored
         """
-        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("cryptoTransfer"):
             crypto_transfer = transaction_body.cryptoTransfer

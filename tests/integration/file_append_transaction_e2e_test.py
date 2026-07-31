@@ -8,6 +8,7 @@ from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -234,7 +235,8 @@ def test_integration_file_append_transaction_max_chunks_exceeded(env):
 
     # Should fail with max chunks exceeded
     with pytest.raises(
-        ValueError, match="Message requires 100 chunks but max_chunks=5. Increase limit with set_max_chunks()."
+        ValueError,
+        match="Cannot execute ChunkedTransaction with more than 5 chunks. Required: 100 Increase limit with set_max_chunks().",
     ):
         append_tx.execute(env.client)
 
@@ -321,6 +323,42 @@ def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
     tx.sign(env.client.operator_private_key)
 
     receipt = tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS
+
+    file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
+    assert file_contents == bytes(content, "utf-8")
+
+
+@pytest.mark.integration
+def test_serialize_chunked_file_append_transaction_can_be_executed(env):
+    """Test serilaize chunk file append transaction can be executed."""
+    create_receipt = (
+        FileCreateTransaction()
+        .set_keys(env.client.operator_private_key.public_key())
+        .set_contents(b"")
+        .execute(env.client)
+    )
+
+    assert create_receipt.status == ResponseCode.SUCCESS
+    file_id = create_receipt.file_id
+
+    file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
+    assert file_contents == b""
+
+    content = "A" * 20  # content with (20/10) bytes ie approx 2 chunks
+
+    tx1 = FileAppendTransaction().set_file_id(file_id).set_chunk_size(10).set_contents(content).freeze_with(env.client)
+
+    tx_bytes = tx1.to_bytes()
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, FileAppendTransaction)
+    assert len(tx2._transaction_ids) == 2
+    assert len(tx2.node_account_ids) == len(env.client.network.nodes)
+
+    receipt = tx2.execute(env.client)
 
     assert receipt.status == ResponseCode.SUCCESS
 
