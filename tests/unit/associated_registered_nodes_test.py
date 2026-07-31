@@ -22,7 +22,7 @@ pytestmark = pytest.mark.unit
 
 def _freeze(tx):
     tx.transaction_id = TransactionId.generate(AccountId(0, 0, 100))
-    tx.node_account_id = AccountId(0, 0, 3)
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx.freeze()
     return tx
 
@@ -41,7 +41,7 @@ class TestNodeCreateAssociatedRegisteredNodes:
         tx = NodeCreateTransaction()
         tx.set_associated_registered_nodes([1, 2, 3])
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert list(body.nodeCreate.associated_registered_node) == [1, 2, 3]
 
@@ -55,7 +55,7 @@ class TestNodeCreateAssociatedRegisteredNodes:
         assert tx.associated_registered_nodes == [10, 20]
 
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert list(body.nodeCreate.associated_registered_node) == [10, 20]
 
@@ -82,7 +82,7 @@ class TestNodeCreateAssociatedRegisteredNodes:
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = NodeCreateTransaction()
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert len(body.nodeCreate.associated_registered_node) == 0
 
@@ -113,7 +113,7 @@ class TestNodeUpdateAssociatedRegisteredNodes:
         tx = NodeUpdateTransaction()
         tx.node_id = 1
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert not body.nodeUpdate.HasField("associated_registered_node_list")
 
@@ -124,7 +124,7 @@ class TestNodeUpdateAssociatedRegisteredNodes:
         tx.node_id = 1
         tx.clear_associated_registered_nodes()
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert body.nodeUpdate.HasField("associated_registered_node_list")
         assert len(body.nodeUpdate.associated_registered_node_list.associated_registered_node) == 0
@@ -136,7 +136,7 @@ class TestNodeUpdateAssociatedRegisteredNodes:
         tx.node_id = 1
         tx.set_associated_registered_nodes([10, 20])
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert body.nodeUpdate.HasField("associated_registered_node_list")
         assert list(body.nodeUpdate.associated_registered_node_list.associated_registered_node) == [10, 20]
@@ -198,7 +198,7 @@ class TestNodeUpdateAssociatedRegisteredNodes:
         tx.node_id = 1
         tx.set_description("hello")
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert body.nodeUpdate.description.value == "hello"
         assert not body.nodeUpdate.HasField("associated_registered_node_list")

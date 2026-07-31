@@ -41,7 +41,7 @@ def test_build_nft_transaction_body_single_bytes_metadata(mock_account_ids):
     mint_tx.set_token_id(token_id)
     mint_tx.set_metadata(single_metadata)
     mint_tx.transaction_id = generate_transaction_id(payer_account)
-    mint_tx.node_account_id = node_account_id
+    mint_tx.set_node_account_ids([node_account_id])
 
     transaction_body = mint_tx.build_transaction_body()
 
@@ -59,7 +59,7 @@ def test_build_transaction_body_fungible(mock_account_ids, amount):
     mint_tx.set_token_id(token_id)
     mint_tx.set_amount(amount)
     mint_tx.transaction_id = generate_transaction_id(payer_account)
-    mint_tx.node_account_id = node_account_id
+    mint_tx.set_node_account_ids([node_account_id])
 
     transaction_body = mint_tx.build_transaction_body()
 
@@ -79,7 +79,7 @@ def test_build_transaction_body_nft(mock_account_ids, metadata):
     mint_tx.set_token_id(token_id)
     mint_tx.set_metadata(metadata)
     mint_tx.transaction_id = generate_transaction_id(payer_account)
-    mint_tx.node_account_id = node_account_id
+    mint_tx.set_node_account_ids([node_account_id])
 
     transaction_body = mint_tx.build_transaction_body()
 
@@ -97,7 +97,7 @@ def test_build_proto_body_no_token_id(mock_account_ids):
     mint_tx = TokenMintTransaction()
     mint_tx.set_amount(100)
     mint_tx.transaction_id = generate_transaction_id(payer_account)
-    mint_tx.node_account_id = node_account_id
+    mint_tx.set_node_account_ids([node_account_id])
 
     transaction_body = mint_tx.build_transaction_body()
     assert transaction_body.tokenMint.amount == 100
@@ -111,7 +111,7 @@ def test_build_proto_body_no_amount_no_metadata(mock_account_ids):
     mint_tx = TokenMintTransaction()
     mint_tx.set_token_id(token_id)
     mint_tx.transaction_id = generate_transaction_id(payer_account)
-    mint_tx.node_account_id = node_account_id
+    mint_tx.set_node_account_ids([node_account_id])
 
     transaction_body = mint_tx.build_transaction_body()
     assert transaction_body.tokenMint.amount == 0
@@ -126,7 +126,7 @@ def test_build_proto_body_metadata_bytes_in_build(mock_account_ids):
     mint_tx.set_token_id(token_id)
     mint_tx.metadata = b"raw_bytes"  # bypass set_metadata to test the isinstance branch
     mint_tx.transaction_id = generate_transaction_id(payer_account)
-    mint_tx.node_account_id = node_account_id
+    mint_tx.set_node_account_ids([node_account_id])
 
     transaction_body = mint_tx.build_transaction_body()
     assert transaction_body.tokenMint.amount == 0

@@ -137,7 +137,7 @@ def test_build_transaction_body_with_bytecode_file_id(mock_account_ids, contract
 
     # Set operator and node account IDs needed for building transaction body
     contract_tx.operator_account_id = operator_id
-    contract_tx.node_account_id = node_account_id
+    contract_tx.set_node_account_ids([node_account_id])
 
     transaction_body = contract_tx.build_transaction_body()
 
@@ -164,7 +164,7 @@ def test_build_transaction_body_with_bytecode(mock_account_ids, contract_params)
 
     # Set operator and node account IDs needed for building transaction body
     contract_tx.operator_account_id = operator_id
-    contract_tx.node_account_id = node_account_id
+    contract_tx.set_node_account_ids([node_account_id])
 
     transaction_body = contract_tx.build_transaction_body()
 
@@ -191,7 +191,7 @@ def test_build_scheduled_body(mock_account_ids, contract_params):
 
     # Set operator and node account IDs needed for building transaction body
     contract_tx.operator_account_id = operator_id
-    contract_tx.node_account_id = node_account_id
+    contract_tx.set_node_account_ids([node_account_id])
 
     # Build the scheduled body
     schedulable_body = contract_tx.build_scheduled_body()

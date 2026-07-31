@@ -56,7 +56,7 @@ def test_transaction_executes_successfully_with_single_node_account_id(env):
     executor_key = env.operator_key
 
     tx = TopicCreateTransaction().set_memo("Test Topic Creation")
-    tx.set_node_account_id(node_account_id)
+    tx.set_node_account_ids([node_account_id])
     tx.freeze_with(executor_client)
     tx.sign(executor_key)
 
@@ -79,7 +79,7 @@ def test_transaction_executes_successfully_after_manual_freeze(env):
 
     # Manually set Node and ID
     tx.set_transaction_id(tx_id)
-    tx.node_account_id = AccountId.from_string("0.0.3")  # Explicitly set to 0.0.3
+    tx.set_node_account_ids([AccountId.from_string("0.0.3")])  # Explicitly set to 0.0.3
 
     # Manual Freeze (Generates body ONLY for 0.0.3)
     tx.freeze()

@@ -308,7 +308,7 @@ def test_topic_message_submit_transaction_can_submit_a_large_message_manual_free
         .set_topic_id(topic_id)
         .set_message(message)
         .set_transaction_id(TransactionId.generate(env.client.operator_account_id))
-        .set_node_account_id(AccountId(0, 0, 3))
+        .set_node_account_ids([AccountId(0, 0, 3)])
         .freeze()
     )
 

@@ -41,7 +41,7 @@ def _make_mirror_endpoint():
 def _freeze(tx):
     """Freeze a transaction with minimal required fields."""
     tx.transaction_id = TransactionId.generate(AccountId(0, 0, 100))
-    tx.node_account_id = AccountId(0, 0, 3)
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx.freeze()
     return tx
 
@@ -65,7 +65,7 @@ class TestRegisteredNodeCreateTransaction:
         tx.set_service_endpoints([_make_block_endpoint()])
 
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
 
         assert body.HasField("registeredNodeCreate")
@@ -83,7 +83,7 @@ class TestRegisteredNodeCreateTransaction:
         tx.set_service_endpoints([_make_block_endpoint(), _make_mirror_endpoint()])
 
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert len(body.registeredNodeCreate.service_endpoint) == 2
 
@@ -99,7 +99,7 @@ class TestRegisteredNodeCreateTransaction:
         tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.set_service_endpoints([ep])
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         block_node = body.registeredNodeCreate.service_endpoint[0].block_node
         assert len(block_node.endpoint_api) == 3
@@ -136,7 +136,7 @@ class TestRegisteredNodeCreateTransaction:
         tx = RegisteredNodeCreateTransaction()
         tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert len(body.registeredNodeCreate.service_endpoint) == 0
 
@@ -148,7 +148,7 @@ class TestRegisteredNodeCreateTransaction:
         tx.set_admin_key(PrivateKey.generate_ed25519().public_key())
         tx.set_service_endpoints(endpoints)
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert len(body.registeredNodeCreate.service_endpoint) == 51
 
@@ -160,7 +160,7 @@ class TestRegisteredNodeCreateTransaction:
         tx.set_description("x" * 101)
         tx.set_service_endpoints([_make_block_endpoint()])
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert body.registeredNodeCreate.description == "x" * 101
 
@@ -186,7 +186,7 @@ class TestRegisteredNodeUpdateTransaction:
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(42)
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert body.HasField("registeredNodeUpdate")
         assert body.registeredNodeUpdate.registered_node_id == 42
@@ -199,7 +199,7 @@ class TestRegisteredNodeUpdateTransaction:
         tx.set_registered_node_id(1)
         tx.set_admin_key(key)
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert body.registeredNodeUpdate.admin_key == key._to_proto()
 
@@ -210,7 +210,7 @@ class TestRegisteredNodeUpdateTransaction:
         tx.set_registered_node_id(1)
         tx.set_description("updated desc")
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert body.registeredNodeUpdate.description.value == "updated desc"
 
@@ -221,7 +221,7 @@ class TestRegisteredNodeUpdateTransaction:
         tx.set_registered_node_id(1)
         tx.set_service_endpoints([_make_block_endpoint(), _make_mirror_endpoint()])
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert len(body.registeredNodeUpdate.service_endpoint) == 2
 
@@ -231,7 +231,7 @@ class TestRegisteredNodeUpdateTransaction:
         tx = RegisteredNodeUpdateTransaction()
         tx.set_registered_node_id(1)
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert len(body.registeredNodeUpdate.service_endpoint) == 0
 
@@ -266,7 +266,7 @@ class TestRegisteredNodeUpdateTransaction:
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeUpdateTransaction()
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert body.registeredNodeUpdate.registered_node_id == 0
 
@@ -277,7 +277,7 @@ class TestRegisteredNodeUpdateTransaction:
         tx.set_registered_node_id(1)
         tx.set_service_endpoints([])
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert len(body.registeredNodeUpdate.service_endpoint) == 0
 
@@ -288,7 +288,7 @@ class TestRegisteredNodeUpdateTransaction:
         tx.set_registered_node_id(1)
         tx.set_service_endpoints([_make_mirror_endpoint() for _ in range(51)])
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert len(body.registeredNodeUpdate.service_endpoint) == 51
 
@@ -307,7 +307,7 @@ class TestRegisteredNodeDeleteTransaction:
         tx = RegisteredNodeDeleteTransaction()
         tx.set_registered_node_id(7)
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
         body = tx.build_transaction_body()
         assert body.HasField("registeredNodeDelete")
         assert body.registeredNodeDelete.registered_node_id == 7
@@ -336,7 +336,7 @@ class TestRegisteredNodeDeleteTransaction:
         operator_id, _, node_account_id, _, _ = mock_account_ids
         tx = RegisteredNodeDeleteTransaction()
         tx.operator_account_id = operator_id
-        tx.node_account_id = node_account_id
+        tx.set_node_account_ids([node_account_id])
 
         with pytest.raises(ValueError, match="registered_node_id"):
             tx.build_transaction_body()

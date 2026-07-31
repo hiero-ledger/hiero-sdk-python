@@ -40,7 +40,7 @@ def test_build_transaction_body(mock_account_ids):
     wipe_tx = TokenWipeTransaction().set_token_id(token_id).set_account_id(wipe_account_id).set_amount(amount)
 
     wipe_tx.transaction_id = generate_transaction_id(account_id)
-    wipe_tx.node_account_id = node_account_id
+    wipe_tx.set_node_account_ids([node_account_id])
 
     transaction_body = wipe_tx.build_transaction_body()
 
@@ -64,7 +64,7 @@ def test_build_transaction_body_with_serial_numbers(mock_account_ids):
     wipe_tx = TokenWipeTransaction().set_token_id(token_id).set_account_id(wipe_account_id).set_serial(serial_numbers)
 
     wipe_tx.transaction_id = generate_transaction_id(account_id)
-    wipe_tx.node_account_id = node_account_id
+    wipe_tx.set_node_account_ids([node_account_id])
 
     transaction_body = wipe_tx.build_transaction_body()
 

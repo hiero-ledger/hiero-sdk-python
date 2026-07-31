@@ -227,7 +227,7 @@ def test_topic_message_single_chunk(mock_post):
         TopicMessageSubmitTransaction()
         .set_topic_id(TopicId(0, 0, 4))
         .set_transaction_id(TransactionId.generate(AccountId(0, 0, 3)))
-        .set_node_account_id(AccountId(0, 0, 4))
+        .set_node_account_ids([AccountId(0, 0, 4)])
     )
     tx.set_message("hello")
 
@@ -248,7 +248,7 @@ def test_topic_message_multiple_chunks(mock_post):
         TopicMessageSubmitTransaction()
         .set_topic_id(TopicId(0, 0, 4))
         .set_transaction_id(TransactionId.generate(AccountId(0, 0, 3)))
-        .set_node_account_id(AccountId(0, 0, 4))
+        .set_node_account_ids([AccountId(0, 0, 4)])
     )
     tx.set_message("A" * 2048)  # force chunking
 
@@ -372,7 +372,7 @@ def test_port_replacement_for_localhost_execute_multiple():
         .set_topic_id(TopicId(0, 0, 4))
         .set_message("A" * 2048)
         .set_transaction_id(TransactionId.generate(AccountId(0, 0, 3)))
-        .set_node_account_id(AccountId(0, 0, 4))
+        .set_node_account_ids([AccountId(0, 0, 4)])
     )
 
     query = FeeEstimateQuery().set_transaction(tx).set_mode(FeeEstimateMode.INTRINSIC)

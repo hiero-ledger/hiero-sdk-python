@@ -61,7 +61,7 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, delete_p
 
     # Set operator and node account IDs needed for building transaction body
     delete_tx.operator_account_id = operator_id
-    delete_tx.node_account_id = node_account_id
+    delete_tx.set_node_account_ids([node_account_id])
 
     transaction_body = delete_tx.build_transaction_body()
 

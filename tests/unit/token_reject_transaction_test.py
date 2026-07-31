@@ -41,7 +41,7 @@ def test_build_transaction_body_with_token_ids(mock_account_ids):
     reject_tx = TokenRejectTransaction().set_owner_id(owner_account_id).set_token_ids(token_ids)
 
     reject_tx.transaction_id = generate_transaction_id(account_id)
-    reject_tx.node_account_id = node_account_id
+    reject_tx.set_node_account_ids([node_account_id])
 
     transaction_body = reject_tx.build_transaction_body()
 
@@ -65,7 +65,7 @@ def test_build_transaction_body_with_nft_ids(mock_account_ids):
     reject_tx = TokenRejectTransaction().set_owner_id(owner_account_id).set_nft_ids(nft_ids)
 
     reject_tx.transaction_id = generate_transaction_id(account_id)
-    reject_tx.node_account_id = node_account_id
+    reject_tx.set_node_account_ids([node_account_id])
 
     transaction_body = reject_tx.build_transaction_body()
 

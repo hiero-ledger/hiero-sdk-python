@@ -130,7 +130,7 @@ def test_build_topic_update_transaction_body_with_all_key_types(mock_account_ids
     )
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -209,7 +209,7 @@ def test_build_topic_update_transaction_body(mock_account_ids, topic_id):
     tx = TopicUpdateTransaction(topic_id=topic_id, memo="Updated Memo")
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
     assert transaction_body.consensusUpdateTopic.topicID.topicNum == 1234
@@ -265,7 +265,7 @@ def test_missing_topic_id_in_update(mock_account_ids):
 
     tx = TopicUpdateTransaction(topic_id=None, memo="No ID")
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -278,7 +278,7 @@ def test_sign_topic_update_transaction(mock_account_ids, topic_id, private_key):
     _, _, node_account_id, _, _ = mock_account_ids
     tx = TopicUpdateTransaction(topic_id=topic_id, memo="Signature test")
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body_bytes = tx.build_transaction_body().SerializeToString()
     tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
@@ -376,7 +376,7 @@ def test_topic_memo_and_transaction_memo_independent_in_protobuf(
     )
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     tx.set_transaction_memo("some unrelated audit note")
 
@@ -405,14 +405,14 @@ def test_topic_memo_serialization_distinguishes_unset_and_empty(
 
     tx = TopicUpdateTransaction(topic_id=topic_id)
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body = tx.build_transaction_body().consensusUpdateTopic
     assert not body.HasField("memo")
 
     tx = TopicUpdateTransaction(topic_id=topic_id, memo="")
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body = tx.build_transaction_body().consensusUpdateTopic
     assert body.HasField("memo")
@@ -420,7 +420,7 @@ def test_topic_memo_serialization_distinguishes_unset_and_empty(
 
     tx = TopicUpdateTransaction(topic_id=topic_id, memo="hello")
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body = tx.build_transaction_body().consensusUpdateTopic
     assert body.HasField("memo")
@@ -436,7 +436,7 @@ def test_auto_renew_period_omitted_when_unset(
 
     tx = TopicUpdateTransaction(topic_id=topic_id)
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body = tx.build_transaction_body().consensusUpdateTopic
 

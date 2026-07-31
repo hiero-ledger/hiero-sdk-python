@@ -232,7 +232,7 @@ def test_build_transaction_body(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     transaction_body = account_tx.build_transaction_body()
 
@@ -254,7 +254,7 @@ def test_build_transaction_body_with_optional_fields(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     transaction_body = account_tx.build_transaction_body()
 
@@ -281,7 +281,7 @@ def test_build_transaction_body_account_memo_variants(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     transaction_body = account_tx.build_transaction_body()
 
@@ -311,7 +311,7 @@ def test_build_transaction_body_receiver_sig_required_variants(mock_account_ids)
 
     # Set operator and node account IDs needed for building transaction body
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     transaction_body = account_tx.build_transaction_body()
 
@@ -469,7 +469,7 @@ def test_build_transaction_body_with_none_auto_renew_period(mock_account_ids):
     account_tx.set_account_id(account_id)
     account_tx.set_auto_renew_period(None)
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     transaction_body = account_tx.build_transaction_body()
 
@@ -503,7 +503,7 @@ def test_build_scheduled_body(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     # Build the scheduled body
     schedulable_body = account_tx.build_scheduled_body()
@@ -696,7 +696,7 @@ def test_build_transaction_body_with_new_fields(mock_account_ids):
     account_tx.set_decline_staking_reward(True)
 
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     transaction_body = account_tx.build_transaction_body()
 
@@ -717,7 +717,7 @@ def test_build_transaction_body_with_staked_node_id(mock_account_ids):
     account_tx.set_staked_node_id(staked_node_id)
 
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     transaction_body = account_tx.build_transaction_body()
 
@@ -736,7 +736,7 @@ def test_build_transaction_body_with_optional_new_fields_none(mock_account_ids):
     account_tx.set_account_id(account_id)
 
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
 
     transaction_body = account_tx.build_transaction_body()
 
@@ -756,7 +756,7 @@ def test_build_transaction_body_with_cleared_staking(mock_account_ids):
     account_tx = AccountUpdateTransaction().set_account_id(account_id)
     account_tx.set_staked_account_id(None)
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
     txn_body = account_tx.build_transaction_body().cryptoUpdateAccount
     assert txn_body.staked_account_id.accountNum == 0
     assert txn_body.staked_account_id.realmNum == 0
@@ -767,7 +767,7 @@ def test_build_transaction_body_with_cleared_staking(mock_account_ids):
     account_tx = AccountUpdateTransaction().set_account_id(account_id)
     account_tx.set_staked_node_id(None)
     account_tx.operator_account_id = operator_id
-    account_tx.node_account_id = node_account_id
+    account_tx.set_node_account_ids([node_account_id])
     txn_body = account_tx.build_transaction_body().cryptoUpdateAccount
     assert txn_body.staked_node_id == -1
     assert not txn_body.HasField("staked_account_id")
