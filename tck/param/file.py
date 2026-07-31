@@ -26,11 +26,19 @@ class CreateFileParams(BaseTransactionParams):
         if keys is not None and not isinstance(keys, list):
             raise ValueError("keys must be a list")
 
+        contents = params.get("contents")
+        if contents is not None and not isinstance(contents, str):
+            raise ValueError("contents must be a string")
+
+        memo = params.get("memo")
+        if memo is not None and not isinstance(memo, str):
+            raise ValueError("memo must be a string")
+
         return cls(
             keys=non_empty_string_list(keys),
-            contents=params.get("contents"),
+            contents=contents,
             expirationTime=to_int(params.get("expirationTime")),
-            memo=params.get("memo"),
+            memo=memo,
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
