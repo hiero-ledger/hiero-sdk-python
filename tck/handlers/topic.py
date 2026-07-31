@@ -127,7 +127,7 @@ def _build_custom_fee_limit(params: CustomFeeLimitParams) -> CustomFeeLimit:
         for fee in params.fixedFees:
             fixed_fee = CustomFixedFee()
             if fee.amount is not None:
-                fixed_fee.set_amount_in_tinybars(int(fee.amount))
+                fixed_fee.set_hbar_amount(Hbar.from_tinybars(int(fee.amount)))
 
             if fee.denominatingTokenId is not None:
                 fixed_fee.set_denominating_token_id(TokenId.from_string(fee.denominatingTokenId))
