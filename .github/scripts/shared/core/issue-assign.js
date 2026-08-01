@@ -18,9 +18,9 @@
 //   2. Resolve the configured repository and skill level
 //   3. If the comment is not "/assign", optionally post a one-time reminder
 //   4. Otherwise:
-//      • enforce prerequisites
 //      • reject already-assigned issues
 //      • apply spam restrictions
+//      • enforce prerequisites
 //      • enforce assignment limits
 //      • assign the issue
 
@@ -47,7 +47,7 @@ const {
 
 const {
   isSpamUser,
-  spamUsersBlocked,
+  isSpamBlockedLevel,
   isSpamLimited,
   getAssignmentLimit,
 } = require('../helpers/spam.js');
@@ -183,6 +183,24 @@ async function runAssignmentFlow({ github, context }) {
 
   // ---- /assign command ----
 
+  // Already assigned?
+  if (isAssigned) {
+    const body = buildAlreadyAssignedComment(commenter, issue, { owner, repo: repoName, label });
+    await postComment({ github, owner, repo: repoName, issueNumber, body }, 'already-assigned notice');
+    return;
+  }
+
+  // Spam handling
+  const spamUser = isSpamUser(commenter);
+
+  if (spamUser && isSpamBlockedLevel(levelKey)) {
+    console.log(`[assign-bot] Spam user @${commenter} blocked from "${levelKey}" issues.`);
+    const gfiDisplayName = CONFIG.skillPrerequisites[LEVEL_KEYS.GFI].displayName;
+    const body = buildSpamBlockedComment(commenter, { prereqDisplayName: gfiDisplayName });
+    await postComment({ github, owner, repo: repoName, issueNumber, body }, 'spam restriction notice');
+    return;
+  }
+
   // Prerequisite check, resolved against the HOME repo's history/labels.
   if (levelConfig.requiredLevel && levelConfig.requiredCount > 0) {
     const homeRepoConfig = findHomeRepoConfig();
@@ -230,25 +248,8 @@ async function runAssignmentFlow({ github, context }) {
       return;
     }
   }
-
-  // Already assigned?
-  if (isAssigned) {
-    const body = buildAlreadyAssignedComment(commenter, issue, { owner, repo: repoName, label });
-    await postComment({ github, owner, repo: repoName, issueNumber, body }, 'already-assigned notice');
-    return;
-  }
-
-  // Spam handling
-  const spamUser = isSpamUser(commenter);
-
-  if (spamUser && spamUsersBlocked(levelKey)) {
-    console.log(`[assign-bot] Spam user @${commenter} blocked from "${levelKey}" issues.`);
-    const gfiDisplayName = CONFIG.skillPrerequisites[LEVEL_KEYS.GFI].displayName;
-    const body = buildSpamBlockedComment(commenter, { prereqDisplayName: gfiDisplayName });
-    await postComment({ github, owner, repo: repoName, issueNumber, body }, 'spam restriction notice');
-    return;
-  }
-
+  
+  // Assignment limit check
   const maxAllowed = getAssignmentLimit(levelKey, spamUser);
 
   const openCount = await getOpenAssignments({ github, owner, repo: repoName, username: commenter });

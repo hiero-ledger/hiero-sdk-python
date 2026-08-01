@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const fs = require("fs");
-const { CONFIG, LEVEL_KEYS } = require("../config");
+const { CONFIG } = require("../config");
 
 /**
  * Returns true if the contributor appears in the spam list.
@@ -34,7 +34,7 @@ function isSpamUser(username) {
  * @param {string} levelKey
  * @returns {boolean}
  */
-function spamUsersBlocked(levelKey) {
+function isSpamBlockedLevel(levelKey) {
     return !CONFIG.spamPolicy.allowedLevels.includes(levelKey);
 }
 
@@ -42,7 +42,7 @@ function spamUsersBlocked(levelKey) {
  * Returns the effective assignment limit for a contributor.
  *
  * Spam-listed contributors receive the configured spam limit,
- * while normal contributors use the standard limits.
+ * while other contributors use the configured per-level limits.
  *
  * @param {string} levelKey
  * @param {boolean} spamUser
@@ -52,11 +52,10 @@ function getAssignmentLimit(levelKey, spamUser) {
     if (spamUser) {
         return CONFIG.spamPolicy.assignmentLimit;
     }
-    return levelKey === "advanced" ? 1 : 2;
+    return CONFIG.assignmentLimits[levelKey];
 }
-a
-/**
 
+/**
  * Returns true when a spam-listed contributor is subject
  * to a reduced assignment limit.
  *
@@ -67,14 +66,14 @@ a
 function isSpamLimited(levelKey, spamUser) {
     return (
         spamUser &&
-        getAssignmentLimit(levelKey, true) <
-        getAssignmentLimit(levelKey, false)
+        CONFIG.spamPolicy.assignmentLimit <
+            CONFIG.assignmentLimits[levelKey]
     );
 }
 
 module.exports = {
   isSpamUser,
-  spamUsersBlocked,
+  isSpamBlockedLevel,
   getAssignmentLimit,
   isSpamLimited,
 };
