@@ -66,14 +66,26 @@ async function fetchIssuesBatch(github, repoConfig) {
 }
 
 async function getOpenAssignments({ github, owner, repo, username }) {
-  const issues = await github.paginate(github.rest.issues.listForRepo, {
-    owner,
-    repo,
-    assignee: username,
-    state: 'open',
-    per_page: 100,
-  });
-  return issues.length;
+  try {
+    const issues = await github.paginate(github.rest.issues.listForRepo, {
+      owner,
+      repo,
+      assignee: username,
+      state: 'open',
+      per_page: 100,
+    });
+
+    return issues.length;
+  } catch (error) {
+    console.error('[github-api] getOpenAssignments failed:', {
+      owner,
+      repo,
+      username,
+      message: error.message,
+    });
+
+    return null;
+  }
 }
 
 /**

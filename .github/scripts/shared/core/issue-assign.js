@@ -248,18 +248,21 @@ async function runAssignmentFlow({ github, context }) {
       return;
     }
   }
-  
+
   // Assignment limit check
   const maxAllowed = getAssignmentLimit(levelKey, spamUser);
 
   const openCount = await getOpenAssignments({ github, owner, repo: repoName, username: commenter });
-  console.log('[assign-bot] Limit check:', { commenter, openCount, spamUser, maxAllowed });
-
-  if (openCount >= maxAllowed) {
-    const spamLimited = isSpamLimited(levelKey, spamUser);
-    const body = buildLimitComment(commenter, { openCount, maxAllowed, spamLimited });
-    await postComment({ github, owner, repo: repoName, issueNumber, body }, 'limit warning');
-    return;
+  if (openCount === null){
+    console.log('[assign-bot] Skipping assignment limit check due to API error (fail open).');
+  } else{
+    console.log('[assign-bot] Limit check:', { commenter, openCount, spamUser, maxAllowed });
+    if (openCount >= maxAllowed) {
+      const spamLimited = isSpamLimited(levelKey, spamUser);
+      const body = buildLimitComment(commenter, { openCount, maxAllowed, spamLimited });
+      await postComment({ github, owner, repo: repoName, issueNumber, body }, 'limit warning');
+      return;
+    }
   }
 
   // Assign
