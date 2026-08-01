@@ -30,7 +30,7 @@ const {
   getOpenAssignments,
   countCompletedIssuesWithLabel,
   isRepoCollaborator,
-  postComment,
+  postIssueComment,
   fetchAllComments,
   assignIssue,
 } = require('../api/github-api.js');
@@ -177,7 +177,7 @@ async function runAssignmentFlow({ github, context }) {
     }
 
     const body = `${marker}\n${buildReminderComment(commenter)}`;
-    await postComment({ github, owner, repo: repoName, issueNumber, body }, 'assign reminder');
+    await postIssueComment({ github, owner, repo: repoName, issueNumber, body }, 'assign reminder');
     return;
   }
 
@@ -186,7 +186,7 @@ async function runAssignmentFlow({ github, context }) {
   // Already assigned?
   if (isAssigned) {
     const body = buildAlreadyAssignedComment(commenter, issue, { owner, repo: repoName, label });
-    await postComment({ github, owner, repo: repoName, issueNumber, body }, 'already-assigned notice');
+    await postIssueComment({ github, owner, repo: repoName, issueNumber, body }, 'already-assigned notice');
     return;
   }
 
@@ -197,7 +197,7 @@ async function runAssignmentFlow({ github, context }) {
     console.log(`[assign-bot] Spam user @${commenter} blocked from "${levelKey}" issues.`);
     const gfiDisplayName = CONFIG.skillPrerequisites[LEVEL_KEYS.GFI].displayName;
     const body = buildSpamBlockedComment(commenter, { prereqDisplayName: gfiDisplayName });
-    await postComment({ github, owner, repo: repoName, issueNumber, body }, 'spam restriction notice');
+    await postIssueComment({ github, owner, repo: repoName, issueNumber, body }, 'spam restriction notice');
     return;
   }
 
@@ -243,7 +243,7 @@ async function runAssignmentFlow({ github, context }) {
           requiredCount: levelConfig.requiredCount,
           currentDisplayName: levelConfig.displayName,
         })}`;
-        await postComment({ github, owner, repo: repoName, issueNumber, body }, 'prerequisite guard');
+        await postIssueComment({ github, owner, repo: repoName, issueNumber, body }, 'prerequisite guard');
       }
       return;
     }
@@ -260,7 +260,7 @@ async function runAssignmentFlow({ github, context }) {
     if (openCount >= maxAllowed) {
       const spamLimited = isSpamLimited(levelKey, spamUser);
       const body = buildLimitComment(commenter, { openCount, maxAllowed, spamLimited });
-      await postComment({ github, owner, repo: repoName, issueNumber, body }, 'limit warning');
+      await postIssueComment({ github, owner, repo: repoName, issueNumber, body }, 'limit warning');
       return;
     }
   }

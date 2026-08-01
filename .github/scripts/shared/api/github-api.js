@@ -158,7 +158,7 @@ async function isRepoCollaborator({ github, owner, repo, username }) {
   }
 }
 
-async function postComment({ github, owner, repo, issueNumber, body }, logLabel) {
+async function postIssueComment({ github, owner, repo, issueNumber, body }, logLabel) {
   try {
     await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
     console.log(`[github-api] Posted comment: ${logLabel}`);
@@ -197,7 +197,7 @@ module.exports = {
   getOpenAssignments,
   countCompletedIssuesWithLabel,
   isRepoCollaborator,
-  postComment,
+  postIssueComment,
   fetchAllComments,
   assignIssue,
 };
