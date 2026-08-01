@@ -7,6 +7,7 @@ const {
   ADVANCED_LABEL,
 } = require('./labels');
 
+const path = require('path');
 const { isSafeLabel } = require('./helpers/validation');
 
 /**
