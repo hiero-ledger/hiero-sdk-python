@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: assign-issue-${{ github.repository }}-${{ github.event.issue.number }}
+  group: assign-issue-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
