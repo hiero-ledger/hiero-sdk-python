@@ -8,7 +8,7 @@ jest.mock('../../shared/api/github-api', () => ({
   getOpenAssignments: jest.fn(),
   countCompletedIssuesWithLabel: jest.fn(),
   isRepoCollaborator: jest.fn(),
-  postComment: jest.fn(),
+  postIssueComment: jest.fn(),
   fetchAllComments: jest.fn(),
   assignIssue: jest.fn(),
 }));
@@ -25,7 +25,7 @@ jest.mock('../../shared/helpers/comment', () => ({
 
 jest.mock('../../shared/helpers/spam', () => ({
   isSpamUser: jest.fn(),
-  spamUsersBlocked: jest.fn(),
+  isSpamBlockedLevel: jest.fn(),
   isSpamLimited: jest.fn(),
   getAssignmentLimit: jest.fn(),
 }));
@@ -79,11 +79,11 @@ beforeEach(() => {
   githubApi.countCompletedIssuesWithLabel.mockResolvedValue(100);
   githubApi.isRepoCollaborator.mockResolvedValue(false);
   githubApi.fetchAllComments.mockResolvedValue([]);
-  githubApi.postComment.mockResolvedValue();
+  githubApi.postIssueComment.mockResolvedValue();
   githubApi.assignIssue.mockResolvedValue();
 
   spam.isSpamUser.mockReturnValue(false);
-  spam.spamUsersBlocked.mockReturnValue(false);
+  spam.isSpamBlockedLevel.mockReturnValue(false);
   spam.isSpamLimited.mockReturnValue(false);
   spam.getAssignmentLimit.mockReturnValue(5);
 });
@@ -100,7 +100,7 @@ describe('runAssignmentFlow - validation', () => {
     });
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 
   test('returns for pull request comments', async () => {
@@ -115,7 +115,7 @@ describe('runAssignmentFlow - validation', () => {
     await runAssignmentFlow({ github, context });
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 
   test('returns for bot comments', async () => {
@@ -134,7 +134,7 @@ describe('runAssignmentFlow - validation', () => {
     await runAssignmentFlow({ github, context });
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 
   test('returns for empty comments', async () => {
@@ -153,7 +153,7 @@ describe('runAssignmentFlow - validation', () => {
     await runAssignmentFlow({ github, context });
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 
   test('returns for issues without a recognized skill label', async () => {
@@ -174,7 +174,7 @@ describe('runAssignmentFlow - validation', () => {
     await runAssignmentFlow({ github, context });
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 
   test('returns for repositories that are not configured', async () => {
@@ -192,7 +192,7 @@ describe('runAssignmentFlow - validation', () => {
     await runAssignmentFlow({ github, context });
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 });
 
@@ -225,9 +225,9 @@ describe('runAssignmentFlow - reminder flow', () => {
 
     expect(githubApi.fetchAllComments).toHaveBeenCalled();
 
-    expect(githubApi.postComment).toHaveBeenCalledTimes(1);
+    expect(githubApi.postIssueComment).toHaveBeenCalledTimes(1);
 
-    expect(githubApi.postComment).toHaveBeenCalledWith(
+    expect(githubApi.postIssueComment).toHaveBeenCalledWith(
       expect.objectContaining({
         owner: 'hiero-ledger',
         repo: 'hiero-sdk-python',
@@ -271,7 +271,7 @@ describe('runAssignmentFlow - reminder flow', () => {
 
     expect(githubApi.isRepoCollaborator).not.toHaveBeenCalled();
     expect(githubApi.fetchAllComments).not.toHaveBeenCalled();
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 
   test('does not post reminder for repository collaborators', async () => {
@@ -294,7 +294,7 @@ describe('runAssignmentFlow - reminder flow', () => {
     expect(githubApi.isRepoCollaborator).toHaveBeenCalled();
 
     expect(githubApi.fetchAllComments).not.toHaveBeenCalled();
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 
@@ -321,7 +321,7 @@ describe('runAssignmentFlow - reminder flow', () => {
 
     expect(githubApi.fetchAllComments).toHaveBeenCalled();
 
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 
@@ -346,7 +346,7 @@ describe('runAssignmentFlow - reminder flow', () => {
 
     expect(githubApi.fetchAllComments).toHaveBeenCalled();
 
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 });
@@ -377,7 +377,7 @@ describe('runAssignmentFlow - prerequisites', () => {
 
     expect(githubApi.countCompletedIssuesWithLabel).toHaveBeenCalled();
 
-    expect(githubApi.postComment).toHaveBeenCalledWith(
+    expect(githubApi.postIssueComment).toHaveBeenCalledWith(
       expect.objectContaining({
         owner: 'hiero-ledger',
         repo: 'hiero-sdk-python',
@@ -411,7 +411,7 @@ describe('runAssignmentFlow - prerequisites', () => {
 
     expect(githubApi.countCompletedIssuesWithLabel).toHaveBeenCalled();
 
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
 
     expect(githubApi.assignIssue).toHaveBeenCalled();
   });
@@ -443,7 +443,7 @@ describe('runAssignmentFlow - prerequisites', () => {
 
     expect(githubApi.fetchAllComments).toHaveBeenCalled();
 
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 
@@ -463,14 +463,14 @@ describe('runAssignmentFlow - prerequisites', () => {
 describe('runAssignmentFlow - spam protection', () => {
   test('blocks permanently banned users', async () => {
     spam.isSpamUser.mockReturnValue(true);
-    spam.spamUsersBlocked.mockReturnValue(true);
+    spam.isSpamBlockedLevel.mockReturnValue(true);
 
     const github = createGithub();
     const context = createContext();
 
     await runAssignmentFlow({ github, context });
 
-    expect(githubApi.postComment).toHaveBeenCalledWith(
+    expect(githubApi.postIssueComment).toHaveBeenCalledWith(
       expect.objectContaining({
         body: 'spam blocked',
       }),
@@ -482,7 +482,7 @@ describe('runAssignmentFlow - spam protection', () => {
 
   test('posts spam-limited assignment limit comment for restricted users', async () => {
     spam.isSpamUser.mockReturnValue(true);
-    spam.spamUsersBlocked.mockReturnValue(false);
+    spam.isSpamBlockedLevel.mockReturnValue(false);
     spam.isSpamLimited.mockReturnValue(true);
     spam.getAssignmentLimit.mockReturnValue(2);
 
@@ -496,7 +496,7 @@ describe('runAssignmentFlow - spam protection', () => {
     expect(spam.getAssignmentLimit).toHaveBeenCalled();
     expect(spam.isSpamLimited).toHaveBeenCalled();
 
-    expect(githubApi.postComment).toHaveBeenCalledWith(
+    expect(githubApi.postIssueComment).toHaveBeenCalledWith(
       expect.objectContaining({
         body: 'limit comment',
       }),
@@ -527,7 +527,7 @@ describe('runAssignmentFlow - assignment limits', () => {
 
     await runAssignmentFlow({ github, context });
 
-    expect(githubApi.postComment).toHaveBeenCalledWith(
+    expect(githubApi.postIssueComment).toHaveBeenCalledWith(
       expect.objectContaining({
         body: 'limit comment',
       }),
@@ -568,7 +568,7 @@ describe('runAssignmentFlow - assignment', () => {
 
     await runAssignmentFlow({ github, context });
 
-    expect(githubApi.postComment).toHaveBeenCalledWith(
+    expect(githubApi.postIssueComment).toHaveBeenCalledWith(
       expect.objectContaining({
         owner: 'hiero-ledger',
         repo: 'hiero-sdk-python',
@@ -597,7 +597,7 @@ describe('runAssignmentFlow - assignment', () => {
       username: 'parv',
     });
 
-    expect(githubApi.postComment).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 });
 
@@ -648,8 +648,8 @@ describe('runAssignmentFlow - error handling', () => {
     expect(githubApi.assignIssue).toHaveBeenCalled();
   });
 
-  test('propagates postComment errors', async () => {
-    githubApi.postComment.mockRejectedValue(
+  test('propagates post Comment errors', async () => {
+    githubApi.postIssueComment.mockRejectedValue(
       new Error('Comment failed')
     );
 
