@@ -82,7 +82,7 @@ async function getOpenAssignments({ github, owner, repo, username }) {
  * error so callers can choose to fail open.
  */
 async function countCompletedIssuesWithLabel({ github, owner, repo, username, label }) {
-  if (!isSafeSearchToken(owner) || !isSafeSearchToken(repo) || !isSafeSearchToken(username)) {
+  if (!isValidSearchToken(owner) || !isValidSearchToken(repo) || !isValidSearchToken(username)) {
     return null;
   }
 

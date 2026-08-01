@@ -1,4 +1,4 @@
-// .github/scripts/shared/issue-assign-core.js
+// .github/scripts/shared/core/issue-assign-core.js
 //
 // Shared engine for issue-comment assignment automation.
 //
