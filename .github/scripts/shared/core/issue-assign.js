@@ -257,7 +257,7 @@ async function runAssignmentFlow({ github, context }) {
 
   if (openCount >= maxAllowed) {
     const spamLimited = isSpamLimited(levelKey, spamUser);
-    const body = buildLimitComment(commenter, { maxAllowed, spamLimited });
+    const body = buildLimitComment(commenter, { openCount, maxAllowed, spamLimited });
     await postComment({ github, owner, repo: repoName, issueNumber, body }, 'limit warning');
     return;
   }
