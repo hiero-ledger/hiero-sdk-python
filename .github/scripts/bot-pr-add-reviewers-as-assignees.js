@@ -15,6 +15,8 @@ const { createLogger, BOT_NAME_ASSIGNEES } = require('./shared/helpers/reviewers
 
 const logger = createLogger(BOT_NAME_ASSIGNEES);
 
+const VALID_LOGIN_REGEX = /^[a-zA-Z0-9][a-zA-Z0-9-]*$/;
+
 /**
  * Resolves the PR number from context (pull_request_target or workflow_dispatch).
  *
@@ -144,8 +146,8 @@ async function removeReviewerFromAssignees({ github, context, reviewer: explicit
     const reviewer = explicitReviewer ?? context.payload?.review?.user?.login;
     const prNumber = explicitPrNumber ?? context.payload?.pull_request?.number;
 
-    if (!reviewer || !Number.isInteger(prNumber) || prNumber <= 0) {
-      logger.warn('Missing reviewer login or PR number. Skipping removal.');
+    if (!reviewer || !VALID_LOGIN_REGEX.test(reviewer) || !Number.isInteger(prNumber) || prNumber <= 0) {
+      logger.warn('Missing or invalid reviewer login or PR number. Skipping removal.');
       return;
     }
 
