@@ -218,4 +218,4 @@ def test_from_bytes_nft(mock_account_ids):
     assert isinstance(reconstructed, TokenBurnTransaction)
     assert reconstructed.token_id == token_id_1
     assert list(reconstructed.serials) == serials
-    assert reconstructed.amount is None
+    assert reconstructed.amount == 0

@@ -170,8 +170,8 @@ class ContractExecuteTransaction(Transaction):
             body = transaction_body.contractCall
             if body.HasField("contractID"):
                 transaction.contract_id = ContractId._from_proto(body.contractID)
-            transaction.gas = body.gas if body.gas else None
-            transaction.amount = body.amount if body.amount else None
+            transaction.gas = body.gas
+            transaction.amount = body.amount
             transaction.function_parameters = body.functionParameters if body.functionParameters else None
         return transaction
 
