@@ -70,11 +70,11 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
         if transaction_body.HasField("tokenAirdrop"):
             for transfer in transaction_body.tokenAirdrop.token_transfers:
                 if not transfer.HasField("token"):
-                    continue
+                    raise ValueError("Malformed TokenAirdropTransactionBody: token_transfer missing token field")
                 token_id = TokenId._from_proto(transfer.token)
                 for t in transfer.transfers:
                     if not t.HasField("accountID"):
-                        continue
+                        raise ValueError("Malformed TokenAirdropTransactionBody: fungible transfer missing accountID")
                     account_id = AccountId._from_proto(t.accountID)
                     expected_decimals = (
                         transfer.expected_decimals.value if transfer.HasField("expected_decimals") else None
@@ -84,7 +84,9 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
                     )
                 for n in transfer.nftTransfers:
                     if not n.HasField("senderAccountID") or not n.HasField("receiverAccountID"):
-                        continue
+                        raise ValueError(
+                            "Malformed TokenAirdropTransactionBody: NFT transfer missing sender or receiver"
+                        )
                     sender_id = AccountId._from_proto(n.senderAccountID)
                     receiver_id = AccountId._from_proto(n.receiverAccountID)
                     transaction.nft_transfers[token_id].append(

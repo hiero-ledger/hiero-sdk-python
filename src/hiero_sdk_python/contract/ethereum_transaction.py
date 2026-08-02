@@ -130,7 +130,7 @@ class EthereumTransaction(Transaction):
             transaction.ethereum_data = body.ethereum_data if body.ethereum_data else None
             if body.HasField("call_data"):
                 transaction.call_data = FileId._from_proto(body.call_data)
-            transaction.max_gas_allowed = body.max_gas_allowance if body.max_gas_allowance else None
+            transaction.max_gas_allowed = body.max_gas_allowance
         return transaction
 
     def _get_method(self, channel: _Channel) -> _Method:

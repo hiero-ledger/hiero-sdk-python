@@ -168,7 +168,7 @@ class TokenBurnTransaction(Transaction):
             body = transaction_body.tokenBurn
             if body.HasField("token"):
                 transaction.token_id = TokenId._from_proto(body.token)
-            transaction.amount = body.amount if body.amount else None
+            transaction.amount = body.amount
             transaction.serials = list(body.serialNumbers)
         return transaction
 
