@@ -1,0 +1,67 @@
+# This workflow computes and logs the current review status of a PR (what
+# stage it's in, who's expected to review, who it's still waiting on) using
+# .github/scripts/review-status-evaluator.js. It is read-only: it never
+# comments on or otherwise mutates the PR, so it only needs read permissions
+# and can safely run on pull_request (not pull_request_target).
+name: PR Review Status Evaluator
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+  pull_request_review:
+    types: [submitted, dismissed]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-review-status-evaluator-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  evaluate-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Evaluate PR review status
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { evaluateReviewStatus, formatStatusForLog } = require('./.github/scripts/review-status-evaluator.js');
+
+            const status = await evaluateReviewStatus(github, context);
+
+            if (!status) {
+              core.info('No review status computed (no PR number resolved).');
+              return;
+            }
+
+            core.info(formatStatusForLog(status));
+
+            core.setOutput('current_stage', status.currentStage);
+            core.setOutput('expected_reviewers', status.expectedReviewers.join(','));
+            core.setOutput('waiting_on', status.waitingOn.join(','));
+            core.setOutput('next_action', status.nextAction);
+            core.setOutput('summary', status.summary);
+
+            await core.summary
+              .addHeading('PR Review Status')
+              .addTable([
+                [{ data: 'Field', header: true }, { data: 'Value', header: true }],
+                ['Current stage', status.currentStage],
+                ['Expected reviewers', status.expectedReviewers.join(', ') || 'none'],
+                ['Waiting on', status.waitingOn.join(', ') || 'none'],
+                ['Next action', status.nextAction],
+              ])
+              .write();

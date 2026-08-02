@@ -188,4 +188,3 @@ describe('review-stages.js — environment variable overrides', () => {
     expect(stages.APPROVED).toBe('padded stage');
   });
 });
-
