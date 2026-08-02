@@ -312,6 +312,24 @@ describe('Bot: Add Reviewers as Assignees', () => {
     expect(state.pullsGetCalls).toBe(0);
   });
 
+  test('skips when reviewer login does not match valid GitHub login pattern', async () => {
+    const invalidLogins = ['-starts-with-dash', 'has space', 'has@symbol', ''];
+
+    for (const login of invalidLogins) {
+      const state = createTestState();
+
+      await removeReviewerFromAssignees({
+        github: createMockGithub(state),
+        context: minimalContext,
+        reviewer: login,
+        prNumber: 123
+      });
+
+      expect(state.removeAssigneesCalls).toHaveLength(0);
+      expect(state.pullsGetCalls).toBe(0);
+    }
+  });
+
   test('gracefully handles 403 permission errors on remove', async () => {
     const errorMock = {
       rest: {
