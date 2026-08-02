@@ -3,16 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from tck.param.base import BaseTransactionParams
-from tck.util.param_utils import (
-    non_empty_string_list,
-    parse_common_transaction_params,
-    parse_session_id,
-)
+from tck.util.param_utils import parse_common_transaction_params, parse_session_id
 
 
 @dataclass
 class CreateFileParams(BaseTransactionParams):
-    """Parameters for creating a file."""
+    """Parameters for creating a file. Extends BaseTransactionParams to include common transaction parameters."""
 
     keys: list[str] | None = None
     contents: str | None = None
@@ -22,11 +18,15 @@ class CreateFileParams(BaseTransactionParams):
     @classmethod
     def parse_json_params(cls, params: dict) -> CreateFileParams:
         keys = params.get("keys")
-        if keys is not None and not isinstance(keys, list):
-            raise ValueError("keys must be a list")
+        if keys is not None:
+            if not isinstance(keys, list):
+                raise ValueError("keys must be a list")
+            for key in keys:
+                if not isinstance(key, str) or not key.strip():
+                    raise ValueError("keys must be a list of non-empty strings")
 
         return cls(
-            keys=non_empty_string_list(keys),
+            keys=keys,
             contents=params.get("contents"),
             expirationTime=params.get("expirationTime"),
             memo=params.get("memo"),

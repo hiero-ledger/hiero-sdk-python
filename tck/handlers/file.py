@@ -4,6 +4,7 @@ from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
 from tck.param.file import CreateFileParams
 from tck.response.file import CreateFileResponse
@@ -25,7 +26,7 @@ def _build_create_file_transaction(params: CreateFileParams) -> FileCreateTransa
     if params.expirationTime is not None:
         expiration_time = to_int(params.expirationTime)
         if expiration_time is None:
-            raise ValueError("expirationTime must be an integer")
+            raise JsonRpcError.invalid_params_error("expirationTime must be an integer")
         transaction.set_expiration_time(Timestamp(seconds=expiration_time, nanos=0))
 
     if params.memo is not None:
