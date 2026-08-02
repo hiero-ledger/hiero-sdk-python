@@ -7,6 +7,7 @@ from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTrans
 from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
@@ -67,7 +68,9 @@ def test_integration_topic_update_transaction_clear_custom_fees():
 
     try:
         custom_fee = (
-            CustomFixedFee().set_amount_in_tinybars(1).set_fee_collector_account_id(env.client.operator_account_id)
+            CustomFixedFee()
+            .set_hbar_amount(Hbar.from_tinybars(1))
+            .set_fee_collector_account_id(env.client.operator_account_id)
         )
 
         create_transaction = (

@@ -257,7 +257,7 @@ def setup_token_and_update_topic(client, topic_id, alice_id, alice_key, operator
     print("Updating the topic to have a custom fee of the token")
     custom_token_fee = (
         CustomFixedFee()
-        .set_amount_in_tinybars(1)
+        .set_hbar_amount(Hbar.from_tinybars(1))
         .set_denominating_token_id(token_id)
         .set_fee_collector_account_id(operator_id)
     )

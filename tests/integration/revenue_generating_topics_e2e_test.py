@@ -34,7 +34,7 @@ def _create_custom_fee(env, token_id, amount):
     """Create a custom fee for a token."""
     return (
         CustomFixedFee()
-        .set_amount_in_tinybars(amount)
+        .set_hbar_amount(Hbar.from_tinybars(amount))
         .set_denominating_token_id(token_id)
         .set_fee_collector_account_id(env.operator_id)
     )
@@ -412,7 +412,7 @@ def test_integration_revenue_generating_topic_can_charge_tokens_with_limit(env):
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(2).set_denominating_token_id(token_id))
+        .add_custom_fee(CustomFixedFee().set_hbar_amount(Hbar.from_tinybars(2)).set_denominating_token_id(token_id))
     )
 
     # Set operator to payer
@@ -698,7 +698,7 @@ def test_integration_revenue_generating_topic_cannot_charge_tokens_with_lower_li
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(1).set_denominating_token_id(token_id))
+        .add_custom_fee(CustomFixedFee().set_hbar_amount(Hbar.from_tinybars(1)).set_denominating_token_id(token_id))
     )
 
     # Submit a message to the revenue generating topic with custom fee limit
@@ -816,7 +816,9 @@ def test_integration_revenue_generating_topic_cannot_execute_with_invalid_token_
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(2).set_denominating_token_id(invalid_token_id))
+        .add_custom_fee(
+            CustomFixedFee().set_hbar_amount(Hbar.from_tinybars(2)).set_denominating_token_id(invalid_token_id)
+        )
     )
 
     # Set operator to payer
@@ -871,8 +873,8 @@ def test_integration_revenue_generating_topic_cannot_execute_with_duplicate_deno
     custom_fee_limit = (
         CustomFeeLimit()
         .set_payer_id(payer_account.id)
-        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(1).set_denominating_token_id(token_id))
-        .add_custom_fee(CustomFixedFee().set_amount_in_tinybars(2).set_denominating_token_id(token_id))
+        .add_custom_fee(CustomFixedFee().set_hbar_amount(Hbar.from_tinybars(1)).set_denominating_token_id(token_id))
+        .add_custom_fee(CustomFixedFee().set_hbar_amount(Hbar.from_tinybars(2)).set_denominating_token_id(token_id))
     )
 
     # Set operator to payer
