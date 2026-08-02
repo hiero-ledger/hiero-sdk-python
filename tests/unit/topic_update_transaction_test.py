@@ -343,7 +343,7 @@ def test_from_bytes(mock_account_ids, topic_id):
 
     assert isinstance(reconstructed, TopicUpdateTransaction)
     assert reconstructed.topic_id == topic_id
-    assert reconstructed.memo == "Updated Memo"
+    assert reconstructed.topic_memo == "Updated Memo"
     assert reconstructed.admin_key == admin_key
     assert reconstructed.submit_key == submit_key
     assert reconstructed.auto_renew_period == auto_renew_period

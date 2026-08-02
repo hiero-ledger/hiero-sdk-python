@@ -450,8 +450,8 @@ def test_from_bytes_nft(mock_account_ids):
     assert not nft_transfers[0].is_approved
 
 
-def test_from_protobuf_skips_transfer_without_token():
-    """Covers continue branch when token field is missing from a TokenTransferList."""
+def test_from_protobuf_raises_on_transfer_without_token():
+    """Covers fail-fast branch when token field is missing from a TokenTransferList."""
     from hiero_sdk_python.hapi.services import transaction_pb2
     from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenTransferList
     from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
@@ -461,14 +461,12 @@ def test_from_protobuf_skips_transfer_without_token():
     tx_body = transaction_pb2.TransactionBody()
     tx_body.tokenAirdrop.CopyFrom(body)
 
-    result = TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
-
-    assert isinstance(result, TokenAirdropTransaction)
-    assert len(result.token_transfers) == 0
+    with pytest.raises(ValueError, match="token_transfer missing token field"):
+        TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
 
 
-def test_from_protobuf_skips_fungible_transfer_without_account_id(mock_account_ids):
-    """Covers continue branch when accountID is missing from a fungible transfer."""
+def test_from_protobuf_raises_on_fungible_transfer_without_account_id(mock_account_ids):
+    """Covers fail-fast branch when accountID is missing from a fungible transfer."""
     from hiero_sdk_python.hapi.services import transaction_pb2
     from hiero_sdk_python.hapi.services.basic_types_pb2 import AccountAmount, TokenTransferList
     from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
@@ -482,14 +480,12 @@ def test_from_protobuf_skips_fungible_transfer_without_account_id(mock_account_i
     tx_body = transaction_pb2.TransactionBody()
     tx_body.tokenAirdrop.CopyFrom(body)
 
-    result = TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
-
-    assert isinstance(result, TokenAirdropTransaction)
-    assert len(result.token_transfers[token_id_1]) == 0
+    with pytest.raises(ValueError, match="fungible transfer missing accountID"):
+        TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
 
 
-def test_from_protobuf_skips_nft_transfer_without_sender_or_receiver(mock_account_ids):
-    """Covers continue branch when senderAccountID or receiverAccountID is missing from NFT transfer."""
+def test_from_protobuf_raises_on_nft_transfer_without_sender_or_receiver(mock_account_ids):
+    """Covers fail-fast branch when senderAccountID or receiverAccountID is missing from NFT transfer."""
     from hiero_sdk_python.hapi.services import transaction_pb2
     from hiero_sdk_python.hapi.services.basic_types_pb2 import NftTransfer, TokenTransferList
     from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
@@ -503,7 +499,5 @@ def test_from_protobuf_skips_nft_transfer_without_sender_or_receiver(mock_accoun
     tx_body = transaction_pb2.TransactionBody()
     tx_body.tokenAirdrop.CopyFrom(body)
 
-    result = TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
-
-    assert isinstance(result, TokenAirdropTransaction)
-    assert len(result.nft_transfers[token_id_1]) == 0
+    with pytest.raises(ValueError, match="NFT transfer missing sender or receiver"):
+        TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
