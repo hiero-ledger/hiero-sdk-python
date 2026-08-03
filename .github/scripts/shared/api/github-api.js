@@ -164,6 +164,7 @@ async function postIssueComment({ github, owner, repo, issueNumber, body }, logL
     console.log(`[github-api] Posted comment: ${logLabel}`);
   } catch (error) {
     console.error(`[github-api] Failed to post comment (${logLabel}):`, { message: error.message });
+    throw error;
   }
 }
 
