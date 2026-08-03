@@ -331,7 +331,7 @@ def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, tran
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 3
-    assert tx._current_chunk_index == 0
+    assert tx._current_chunk_index is None
 
 
 def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, transaction_id, mock_account_ids):
@@ -404,7 +404,7 @@ def test_chunked_tx_return_proper_sizes(file_id, transaction_id, mock_account_id
     assert large_size > 1024
     # The larger chunked transaction should be bigger than the single-chunk transaction
     assert large_size > small_size
-    assert large_tx._current_chunk_index == 0
+    assert large_tx._current_chunk_index is None
 
 
 def test_chunked_tx_differ_size_if_chunk_are_not_equal(topic_id, transaction_id, mock_account_ids):
@@ -485,7 +485,8 @@ def test_high_volume_is_included_in_protobuf_output(
 
     assert transaction._transaction_body_bytes
 
-    body_bytes = next(iter(transaction._transaction_body_bytes.values()))
+    node_body_bytes = next(iter(transaction._transaction_body_bytes.values()))
+    body_bytes = next(iter(node_body_bytes.values()))
 
     body = transaction_pb2.TransactionBody()
     body.ParseFromString(body_bytes)
@@ -502,7 +503,8 @@ def test_high_volume_is_included_in_protobuf_output(
         .freeze()
     )
 
-    body_bytes_false = next(iter(transaction_false._transaction_body_bytes.values()))
+    node_bytes_false = next(iter(transaction_false._transaction_body_bytes.values()))
+    body_bytes_false = next(iter(node_bytes_false.values()))
 
     body_false = transaction_pb2.TransactionBody()
     body_false.ParseFromString(body_bytes_false)
@@ -562,15 +564,20 @@ def test_transaction_body_bytes_for_each_node_id_on_freeze(mock_client):
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
     tx.freeze_with(mock_client)
 
-    body_bytes = tx._transaction_body_bytes
+    transaction_body_bytes = tx._transaction_body_bytes
+    transaction_id = tx._transaction_ids.current
 
-    assert body_bytes
-    assert body_bytes.keys() == {node._account_id for node in mock_client.network.nodes}
+    assert transaction_body_bytes
+    assert transaction_body_bytes.keys() == {transaction_id}
 
-    for node_id, body_bytes_value in body_bytes.items():
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes.keys() == {node._account_id for node in mock_client.network.nodes}
+
+    for node_id, body_bytes in node_body_bytes.items():
         body = transaction_pb2.TransactionBody()
-        body.ParseFromString(body_bytes_value)
-        assert body.nodeAccountID == AccountId._to_proto(node_id)
+        body.ParseFromString(body_bytes)
+        assert body.transactionID == transaction_id._to_proto()
+        assert body.nodeAccountID == node_id._to_proto()
 
 
 def test_transaction_body_bytes_for_each_node_id_on_freeze_manual(mock_client):
@@ -580,14 +587,20 @@ def test_transaction_body_bytes_for_each_node_id_on_freeze_manual(mock_client):
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa()).set_node_account_ids(node_ids)
     tx.freeze_with(mock_client)
 
-    body_bytes = tx._transaction_body_bytes
+    transaction_body_bytes = tx._transaction_body_bytes
+    transaction_id = tx._transaction_ids.current
 
-    assert body_bytes
-    assert set(body_bytes) == set(node_ids)
+    assert transaction_body_bytes
+    assert set(transaction_body_bytes.keys()) == {transaction_id}
 
-    for node_id, body_bytes_value in body_bytes.items():
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert set(node_body_bytes.keys()) == set(node_ids)
+
+    for node_id, body_bytes in node_body_bytes.items():
         body = transaction_pb2.TransactionBody()
-        body.ParseFromString(body_bytes_value)
+        body.ParseFromString(body_bytes)
+        assert body.transactionID == transaction_id._to_proto()
+        assert body.nodeAccountID == node_id._to_proto()
         assert body.nodeAccountID == AccountId._to_proto(node_id)
 
 
