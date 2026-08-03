@@ -18,34 +18,60 @@ const {
 // The shared createMockGithub() in test-utils.js doesn't support
 // paginate.iterator (async iterator) or graphql, both of which this module
 // relies on, so a lightweight local mock is used instead.
+//
+// Supports multi-page responses via labelPages / reviewPages (each an array
+// of pages, where each page is an array of items) so tests can verify that
+// getPRLabels and getDetailedReviews actually aggregate across pages rather
+// than only ever seeing a single response. `labels` / `reviews` remain as
+// convenience shorthands for a single page.
 
 function createMockGithub({
     labels = [],
+    labelPages = null,
     reviewDecision = null,
     reviews = [],
+    reviewPages = null,
     graphqlError = null,
     labelsError = null,
     reviewsError = null,
 } = {}) {
+    const resolvedLabelPages = labelPages || [labels];
+    const resolvedReviewPages = reviewPages || [reviews];
+
     return {
         rest: {
             issues: {
-                listLabelsOnIssue: async () => {
+                listLabelsOnIssue: async ({ page = 1 } = {}) => {
                     if (labelsError) throw labelsError;
-                    return { data: labels.map((name) => ({ name })) };
+                    const pageItems = resolvedLabelPages[page - 1] || [];
+                    return { data: pageItems.map((name) => ({ name })) };
                 },
             },
             pulls: {
-                listReviews: async () => {
+                listReviews: async ({ page = 1 } = {}) => {
                     if (reviewsError) throw reviewsError;
-                    return { data: reviews };
+                    return { data: resolvedReviewPages[page - 1] || [] };
                 },
             },
         },
         paginate: {
+            // Mirrors Octokit's real iterator: keeps requesting incrementing
+            // page numbers until a page comes back empty.
             iterator: (fn, opts) => {
                 return (async function* () {
-                    yield await fn(opts);
+                    let page = 1;
+                    while (true) {
+                        const response = await fn({ ...opts, page });
+                        const isEmpty = !response.data || response.data.length === 0;
+
+                        if (isEmpty) {
+                            if (page === 1) yield response; // real API still yields an empty first page
+                            break;
+                        }
+
+                        yield response;
+                        page += 1;
+                    }
                 })();
             },
         },
@@ -83,6 +109,19 @@ describe('getPRLabels', () => {
         const github = createMockGithub({ labelsError: new Error('boom') });
         const labels = await getPRLabels(github, 'o', 'r', 1);
         expect(labels).toEqual([]);
+    });
+
+    test('aggregates labels across multiple pages', async () => {
+        const github = createMockGithub({
+            labelPages: [
+                ['skill: beginner', 'bug'],
+                ['help wanted'],
+            ],
+        });
+
+        const labels = await getPRLabels(github, 'o', 'r', 1);
+
+        expect(labels).toEqual(['skill: beginner', 'bug', 'help wanted']);
     });
 });
 
@@ -142,6 +181,25 @@ describe('getDetailedReviews', () => {
         const github = createMockGithub({ reviewsError: new Error('boom') });
         const reviews = await getDetailedReviews(github, 'o', 'r', 1);
         expect(reviews).toEqual([]);
+    });
+
+    test('aggregates reviews across multiple pages, keeping the latest per reviewer even when it lands on a later page', async () => {
+        const github = createMockGithub({
+            reviewPages: [
+                [{ user: { login: 'alice' }, state: 'CHANGES_REQUESTED', submitted_at: '2026-01-01T00:00:00Z' }],
+                [
+                    { user: { login: 'alice' }, state: 'APPROVED', submitted_at: '2026-01-02T00:00:00Z' },
+                    { user: { login: 'bob' }, state: 'COMMENTED', submitted_at: '2026-01-01T00:00:00Z' },
+                ],
+            ],
+        });
+
+        const reviews = await getDetailedReviews(github, 'o', 'r', 1);
+        const byReviewer = Object.fromEntries(reviews.map((r) => [r.reviewer, r.state]));
+
+        expect(reviews).toHaveLength(2);
+        expect(byReviewer.alice).toBe('APPROVED'); // alice's latest review is on page 2
+        expect(byReviewer.bob).toBe('COMMENTED');
     });
 });
 
