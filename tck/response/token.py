@@ -127,3 +127,8 @@ class WipeTokenResponse(StatusOnlyResponse):
 @dataclass
 class UpdateTokenResponse(StatusOnlyResponse):
     """Response payload for updateToken."""
+
+
+class BurnTokenResponse(StatusOnlyResponse):
+    newTotalSupply: str | None = None
+    status: str | None = None
