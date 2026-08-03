@@ -54,20 +54,25 @@ const DRY_RUN = process.env.DRY_RUN === "true";
 async function getPRLabels(github, owner, repo, prNumber) {
     const labels = [];
 
-    for await (const response of github.paginate.iterator(
-        github.rest.issues.listLabelsOnIssue,
-        {
-            owner,
-            repo,
-            issue_number: prNumber,
-            per_page: 100,
-        }
-    )) {
-        for (const label of response.data) {
-            if (label?.name) {
-                labels.push(label.name);
+    try {
+        for await (const response of github.paginate.iterator(
+            github.rest.issues.listLabelsOnIssue,
+            {
+                owner,
+                repo,
+                issue_number: prNumber,
+                per_page: 100,
+            }
+        )) {
+            for (const label of response.data) {
+                if (label?.name) {
+                    labels.push(label.name);
+                }
             }
         }
+    } catch (err) {
+        console.log(`Failed to fetch labels for PR #${prNumber} in ${owner}/${repo}: ${err.message}`);
+        return [];
     }
 
     return labels;
@@ -109,7 +114,7 @@ async function getReviewState(github, owner, repo, prNumber) {
 }
 
 /**
- * Fetches each reviewer's latest review state via the REST API.
+ * Fetches each reviewer's latest review state via the paginated REST API.
  *
  * @param {import("@actions/github").GitHub} github - Authenticated GitHub client.
  * @param {string} owner - Repository owner.
@@ -118,16 +123,20 @@ async function getReviewState(github, owner, repo, prNumber) {
  * @returns {Promise<Array<{reviewer: string, state: string, submittedAt: string}>>}
  */
 async function getDetailedReviews(github, owner, repo, prNumber) {
-    let reviews;
+    let reviews = [];
 
     try {
-        const response = await github.rest.pulls.listReviews({
-            owner,
-            repo,
-            pull_number: prNumber,
-            per_page: 100,
-        });
-        reviews = response.data;
+        for await (const response of github.paginate.iterator(
+            github.rest.pulls.listReviews,
+            {
+                owner,
+                repo,
+                pull_number: prNumber,
+                per_page: 100,
+            }
+        )) {
+            reviews.push(...response.data);
+        }
     } catch (err) {
         console.log(`Failed to fetch reviews for PR #${prNumber} in ${owner}/${repo}: ${err.message}`);
         return [];

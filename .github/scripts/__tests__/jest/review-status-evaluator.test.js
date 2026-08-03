@@ -19,14 +19,27 @@ const {
 // paginate.iterator (async iterator) or graphql, both of which this module
 // relies on, so a lightweight local mock is used instead.
 
-function createMockGithub({ labels = [], reviewDecision = null, reviews = [], graphqlError = null } = {}) {
+function createMockGithub({
+    labels = [],
+    reviewDecision = null,
+    reviews = [],
+    graphqlError = null,
+    labelsError = null,
+    reviewsError = null,
+} = {}) {
     return {
         rest: {
             issues: {
-                listLabelsOnIssue: async () => ({ data: labels.map((name) => ({ name })) }),
+                listLabelsOnIssue: async () => {
+                    if (labelsError) throw labelsError;
+                    return { data: labels.map((name) => ({ name })) };
+                },
             },
             pulls: {
-                listReviews: async () => ({ data: reviews }),
+                listReviews: async () => {
+                    if (reviewsError) throw reviewsError;
+                    return { data: reviews };
+                },
             },
         },
         paginate: {
@@ -62,6 +75,12 @@ describe('getPRLabels', () => {
 
     test('returns empty array when PR has no labels', async () => {
         const github = createMockGithub({ labels: [] });
+        const labels = await getPRLabels(github, 'o', 'r', 1);
+        expect(labels).toEqual([]);
+    });
+
+    test('returns empty array and does not throw when the API call fails', async () => {
+        const github = createMockGithub({ labelsError: new Error('boom') });
         const labels = await getPRLabels(github, 'o', 'r', 1);
         expect(labels).toEqual([]);
     });
@@ -115,6 +134,12 @@ describe('getDetailedReviews', () => {
 
     test('returns empty array when there are no reviews', async () => {
         const github = createMockGithub({ reviews: [] });
+        const reviews = await getDetailedReviews(github, 'o', 'r', 1);
+        expect(reviews).toEqual([]);
+    });
+
+    test('returns empty array and does not throw when the API call fails', async () => {
+        const github = createMockGithub({ reviewsError: new Error('boom') });
         const reviews = await getDetailedReviews(github, 'o', 'r', 1);
         expect(reviews).toEqual([]);
     });

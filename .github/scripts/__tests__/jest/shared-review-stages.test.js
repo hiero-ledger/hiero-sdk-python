@@ -3,22 +3,53 @@
 // Run from .github/scripts:
 // npm run test:js -- shared-review-stages.test.js
 
-function clearReviewStageEnv() {
-  delete process.env.STAGE_AWAITING_REVIEW;
-  delete process.env.STAGE_CHANGES_REQUESTED;
-  delete process.env.STAGE_APPROVED;
-  delete process.env.STAGE_AWAITING_TRIAGE;
-  delete process.env.REVIEWER_TYPE_TRIAGE;
-  delete process.env.REVIEWER_TYPE_COMMITTER;
-  delete process.env.REVIEWER_TYPE_MAINTAINER;
+const REVIEW_STAGE_ENV_KEYS = [
+  'STAGE_AWAITING_REVIEW',
+  'STAGE_CHANGES_REQUESTED',
+  'STAGE_APPROVED',
+  'STAGE_AWAITING_TRIAGE',
+  'REVIEWER_TYPE_TRIAGE',
+  'REVIEWER_TYPE_COMMITTER',
+  'REVIEWER_TYPE_MAINTAINER',
+];
+
+const LABEL_ENV_KEYS = [
+  'GOOD_FIRST_ISSUE_LABEL',
+  'GOOD_FIRST_ISSUE_CANDIDATE_LABEL',
+  'BEGINNER_LABEL',
+  'INTERMEDIATE_LABEL',
+  'ADVANCED_LABEL',
+];
+
+const ALL_ENV_KEYS = [...REVIEW_STAGE_ENV_KEYS, ...LABEL_ENV_KEYS];
+
+// Snapshot whatever the environment actually had (which may be nothing, or
+// may be real values set by the CI runner / a preceding test file sharing
+// the same Jest worker) so it can be restored exactly, rather than always
+// deleting the keys and leaving process.env permanently stripped of values
+// that existed before this file ran.
+function snapshotEnv(keys) {
+  const snapshot = {};
+  for (const key of keys) {
+    snapshot[key] = process.env[key];
+  }
+  return snapshot;
 }
 
-function clearLabelEnv() {
-  delete process.env.GOOD_FIRST_ISSUE_LABEL;
-  delete process.env.GOOD_FIRST_ISSUE_CANDIDATE_LABEL;
-  delete process.env.BEGINNER_LABEL;
-  delete process.env.INTERMEDIATE_LABEL;
-  delete process.env.ADVANCED_LABEL;
+function restoreEnv(snapshot) {
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (value === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = value;
+    }
+  }
+}
+
+function clearEnv(keys) {
+  for (const key of keys) {
+    delete process.env[key];
+  }
 }
 
 function freshRequire() {
@@ -28,16 +59,16 @@ function freshRequire() {
 
 describe('review-stages.js — stage constants', () => {
   let stages;
+  let envSnapshot;
 
   beforeEach(() => {
-    clearReviewStageEnv();
-    clearLabelEnv();
+    envSnapshot = snapshotEnv(ALL_ENV_KEYS);
+    clearEnv(ALL_ENV_KEYS);
     stages = freshRequire();
   });
 
   afterEach(() => {
-    clearReviewStageEnv();
-    clearLabelEnv();
+    restoreEnv(envSnapshot);
   });
 
   test('exports all four stage constants, non-empty', () => {
@@ -65,16 +96,16 @@ describe('review-stages.js — stage constants', () => {
 
 describe('review-stages.js — reviewer type constants', () => {
   let stages;
+  let envSnapshot;
 
   beforeEach(() => {
-    clearReviewStageEnv();
-    clearLabelEnv();
+    envSnapshot = snapshotEnv(ALL_ENV_KEYS);
+    clearEnv(ALL_ENV_KEYS);
     stages = freshRequire();
   });
 
   afterEach(() => {
-    clearReviewStageEnv();
-    clearLabelEnv();
+    restoreEnv(envSnapshot);
   });
 
   test('exports all three reviewer-type constants, non-empty', () => {
@@ -92,16 +123,16 @@ describe('review-stages.js — reviewer type constants', () => {
 
 describe('review-stages.js — getExpectedReviewers', () => {
   let stages;
+  let envSnapshot;
 
   beforeEach(() => {
-    clearReviewStageEnv();
-    clearLabelEnv();
+    envSnapshot = snapshotEnv(ALL_ENV_KEYS);
+    clearEnv(ALL_ENV_KEYS);
     stages = freshRequire();
   });
 
   afterEach(() => {
-    clearReviewStageEnv();
-    clearLabelEnv();
+    restoreEnv(envSnapshot);
   });
 
   test('GFI label maps to [TRIAGE, COMMITTER]', () => {
@@ -151,14 +182,15 @@ describe('review-stages.js — getExpectedReviewers', () => {
 });
 
 describe('review-stages.js — environment variable overrides', () => {
+  let envSnapshot;
+
   beforeEach(() => {
-    clearReviewStageEnv();
-    clearLabelEnv();
+    envSnapshot = snapshotEnv(ALL_ENV_KEYS);
+    clearEnv(ALL_ENV_KEYS);
   });
 
   afterEach(() => {
-    clearReviewStageEnv();
-    clearLabelEnv();
+    restoreEnv(envSnapshot);
   });
 
   test('overrides AWAITING_REVIEW from env', () => {
