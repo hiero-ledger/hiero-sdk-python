@@ -169,15 +169,19 @@ class FileAppendTransaction(ChunkedTransaction):
         if self.file_id is None:
             raise ValueError("Missing required FileID")
 
-        if self.contents is None:
-            chunk_contents = b""
-        else:
+        contents = self.contents if self.contents is not None else b""
+
+        if self._current_chunk_index is not None:
             start_index = self._current_chunk_index * self.chunk_size
-            end_index = min(start_index + self.chunk_size, len(self.contents))
-            chunk_contents = self.contents[start_index:end_index]
+            end_index = min(start_index + self.chunk_size, len(contents))
+
+            chunk_contents = contents[start_index:end_index]
+            return file_append_pb2.FileAppendTransactionBody(
+                fileID=self.file_id._to_proto() if self.file_id else None, contents=chunk_contents
+            )
 
         return file_append_pb2.FileAppendTransactionBody(
-            fileID=self.file_id._to_proto() if self.file_id else None, contents=chunk_contents
+            fileID=self.file_id._to_proto() if self.file_id else None, contents=contents
         )
 
     def build_transaction_body(self) -> Any:

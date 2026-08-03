@@ -13,6 +13,7 @@ from hiero_sdk_python.hapi.services import (
     response_pb2,
     timestamp_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
@@ -105,12 +106,12 @@ def test_freeze_with_generates_transaction_ids():
     assert len(file_tx._transaction_ids) == expected_chunks
 
     # First transaction ID should be the original
-    assert file_tx._transaction_ids[0] == mock_transaction_id
+    assert file_tx._transaction_ids.get(0) == mock_transaction_id
 
     # Subsequent transaction IDs should have incremented timestamps
     for i in range(1, len(file_tx._transaction_ids)):
         expected_nanos = mock_transaction_id.valid_start.nanos + i
-        assert file_tx._transaction_ids[i].valid_start.nanos == expected_nanos
+        assert file_tx._transaction_ids.get(i).valid_start.nanos == expected_nanos
 
 
 def test_validate_chunking():
@@ -397,9 +398,34 @@ def test_chunk_transaction_id_nanosecond_overflow(file_id):
     )
 
     # First chunk is exactly equal initial ID
-    assert tx._transaction_ids[0].valid_start.seconds == base_seconds
-    assert tx._transaction_ids[0].valid_start.nanos == base_nanos
+    assert tx._transaction_ids.get(0).valid_start.seconds == base_seconds
+    assert tx._transaction_ids.get(0).valid_start.nanos == base_nanos
 
     # Second chunk seconds=base_seconds + 1, nanos=0
-    assert tx._transaction_ids[1].valid_start.seconds == base_seconds + 1
-    assert tx._transaction_ids[1].valid_start.nanos == 0
+    assert tx._transaction_ids.get(1).valid_start.seconds == base_seconds + 1
+    assert tx._transaction_ids.get(1).valid_start.nanos == 0
+
+
+def test_transaction_body_bytes_for_each_node_id_on_freeze_chunked(mock_client):
+    """Test transaction body bytes are created for each chunk and each network node."""
+    tx = (
+        FileAppendTransaction().set_file_id(FileId(0, 0, 1001)).set_chunk_size(10).set_contents(bytes(20))  # 2 chunks
+    )
+
+    tx.freeze_with(mock_client)
+
+    expected_node_ids = {node._account_id for node in mock_client.network.nodes}
+
+    assert tx._transaction_body_bytes
+    assert len(tx._transaction_body_bytes) == 2
+    assert set(tx._transaction_body_bytes.keys()) == set(tx._transaction_ids)
+
+    for transaction_id, node_body_bytes in tx._transaction_body_bytes.items():
+        assert set(node_body_bytes.keys()) == expected_node_ids
+
+        for node_id, body_bytes in node_body_bytes.items():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(body_bytes)
+
+            assert body.transactionID == transaction_id._to_proto()
+            assert body.nodeAccountID == node_id._to_proto()

@@ -14,6 +14,7 @@ from hiero_sdk_python.hapi.services import (
     response_pb2,
     timestamp_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
@@ -554,12 +555,12 @@ def test_chunk_transaction_id_nanosecond_overflow(topic_id):
     )
 
     # First chunk is exactly equal initial ID
-    assert tx._transaction_ids[0].valid_start.seconds == base_seconds
-    assert tx._transaction_ids[0].valid_start.nanos == base_nanos
+    assert tx._transaction_ids.get(0).valid_start.seconds == base_seconds
+    assert tx._transaction_ids.get(0).valid_start.nanos == base_nanos
 
     # Second chunk seconds=base_seconds + 1, nanos=0
-    assert tx._transaction_ids[1].valid_start.seconds == base_seconds + 1
-    assert tx._transaction_ids[1].valid_start.nanos == 0
+    assert tx._transaction_ids.get(1).valid_start.seconds == base_seconds + 1
+    assert tx._transaction_ids.get(1).valid_start.nanos == 0
 
 
 def test_build_proto_body_omits_topic_id_when_not_provided():
@@ -585,3 +586,28 @@ def test_execute_raises_when_message_is_empty(topic_id, mock_client):
 
     with pytest.raises(ValueError, match="Missing required fields: message"):
         transaction.freeze_with(mock_client)
+
+
+def test_transaction_body_bytes_for_each_node_id_on_freeze_chunked(mock_client, topic_id):
+    """Test transaction body bytes are created for each chunk and each network node."""
+    tx = (
+        TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))  # 2 chunks
+    )
+
+    tx.freeze_with(mock_client)
+
+    expected_node_ids = {node._account_id for node in mock_client.network.nodes}
+
+    assert tx._transaction_body_bytes
+    assert len(tx._transaction_body_bytes) == 2
+    assert set(tx._transaction_body_bytes.keys()) == set(tx._transaction_ids)
+
+    for transaction_id, node_body_bytes in tx._transaction_body_bytes.items():
+        assert set(node_body_bytes.keys()) == expected_node_ids
+
+        for node_id, body_bytes in node_body_bytes.items():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(body_bytes)
+
+            assert body.transactionID == transaction_id._to_proto()
+            assert body.nodeAccountID == node_id._to_proto()
