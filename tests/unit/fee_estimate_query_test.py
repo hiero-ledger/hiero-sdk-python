@@ -380,7 +380,7 @@ def test_port_replacement_for_localhost_execute_multiple():
     with patch.object(query, "_execute_chunked", return_value=MagicMock()) as mock_execute_chunked:
         query.execute(client_1)
 
-        called_url = mock_execute_chunked.call_args[0][1]
+        called_url = mock_execute_chunked.call_args[0][0]
         assert ":8084" in called_url
         assert ":38081" not in called_url
 
@@ -389,6 +389,6 @@ def test_port_replacement_for_localhost_execute_multiple():
 
     with patch.object(query, "_execute_chunked", return_value=MagicMock()) as mock_execute_chunked:
         query.execute(client_2)
-        called_url = mock_execute_chunked.call_args[0][1]
+        called_url = mock_execute_chunked.call_args[0][0]
         assert ":8084" in called_url
         assert ":38081" not in called_url

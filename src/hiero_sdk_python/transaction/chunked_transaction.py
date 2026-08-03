@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Literal, overload
+from typing import Literal, TypeVar, overload
 
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
+
+
+T = TypeVar("T", bound="ChunkedTransaction")
 
 
 class ChunkedTransaction(Transaction, ABC):
@@ -24,23 +25,21 @@ class ChunkedTransaction(Transaction, ABC):
     - _build_proto_body(): Build the protobuf body for the current chunk
     """
 
-    def __init__(self) -> None:
+    def __init__(self: T) -> None:
         """Initializes a new ChunkedTransaction instance."""
         super().__init__()
 
         # Chunking state
-        self._current_chunk_index: int = 0
+        self._current_chunk_index: int | None = None
         self._total_chunks: int = 1
         self._initial_transaction_id: TransactionId | None = None
-        self._transaction_ids: list[TransactionId] = []
-        self._signing_keys: list[PrivateKey] = []
 
         # Chunk configuration (set by subclasses)
         self.chunk_size: int = 1024
         self.max_chunks: int = 20
 
     @abstractmethod
-    def _build_proto_body(self):
+    def _build_proto_body(self: T):
         """
         Builds the protobuf body for the current chunk.
 
@@ -56,7 +55,7 @@ class ChunkedTransaction(Transaction, ABC):
         """
         pass
 
-    def set_chunk_size(self, chunk_size: int) -> ChunkedTransaction:
+    def set_chunk_size(self: T, chunk_size: int) -> T:
         """
         Sets the chunk size for this transaction.
 
@@ -77,7 +76,7 @@ class ChunkedTransaction(Transaction, ABC):
         self._total_chunks = self.get_required_chunks()
         return self
 
-    def set_max_chunks(self, max_chunks: int) -> ChunkedTransaction:
+    def set_max_chunks(self: T, max_chunks: int) -> T:
         """
         Sets the maximum number of chunks allowed.
 
@@ -97,7 +96,7 @@ class ChunkedTransaction(Transaction, ABC):
         self.max_chunks = max_chunks
         return self
 
-    def _validate_chunking(self) -> int:
+    def _validate_chunking(self: T) -> int:
         """
         Validates that the required chunks don't exceed max_chunks.
 
@@ -116,7 +115,7 @@ class ChunkedTransaction(Transaction, ABC):
             )
         return required
 
-    def freeze_with(self, client: Client) -> ChunkedTransaction:
+    def freeze_with(self: T, client: Client) -> T:
         """
         Freezes the transaction by building transaction bodies for all chunks.
 
@@ -129,45 +128,45 @@ class ChunkedTransaction(Transaction, ABC):
         Returns:
             ChunkedTransaction: This transaction instance for chaining.
         """
+        self._validate_chunking()
+
         if self._transaction_body_bytes:
             return self
 
-        self._validate_chunking()
         self._resolve_transaction_id(client)
+        self._resolve_node_ids(client)
 
-        if self.transaction_id.valid_start is None:
-            raise ValueError("Transaction ID with valid_start must be set before freezing chunked transaction.")
+        self._initial_transaction_id = self._transaction_ids.get(0)
+
+        required_chunks = self.get_required_chunks()
+        self._generate_transaction_ids(self._transaction_ids.get(0), required_chunks)
 
         # Generate transaction IDs for all chunks if not already done
-        if not self._transaction_ids:
-            base_timestamp = self.transaction_id.valid_start
+        for chunk in range(required_chunks):
+            self._current_chunk_index = chunk
 
-            for i in range(self.get_required_chunks()):
-                if i == 0:
-                    # First chunk uses the original transaction ID
-                    if self._initial_transaction_id is None:
-                        self._initial_transaction_id = self.transaction_id
+            node_bytes = {}
 
-                    chunk_transaction_id = self.transaction_id
-                else:
-                    # Subsequent chunks get incremented timestamps
-                    # Add i nanoseconds to space out chunks
-                    next_nanos = base_timestamp.nanos + i
+            for node_account_id in self.node_account_ids:
+                self._node_account_id = node_account_id
 
-                    chunk_valid_start = timestamp_pb2.Timestamp(
-                        seconds=base_timestamp.seconds + next_nanos // 1_000_000_000, nanos=next_nanos % 1_000_000_000
-                    )
-                    chunk_transaction_id = TransactionId(
-                        account_id=self.transaction_id.account_id, valid_start=chunk_valid_start
-                    )
+                transaction_body = self.build_transaction_body()
+                transaction_body.transactionID.CopyFrom(self._transaction_ids.current._to_proto())
+                transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
 
-                self._transaction_ids.append(chunk_transaction_id)
+                node_bytes[node_account_id] = transaction_body.SerializeToString()
+
+            self._transaction_body_bytes[self._transaction_ids.current] = node_bytes
+            self._transaction_ids.advance()
+
+        self._current_chunk_index = None
+        self._transaction_ids.set_index(0)
 
         return super().freeze_with(client)
 
     @overload
     def execute(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
@@ -176,7 +175,7 @@ class ChunkedTransaction(Transaction, ABC):
 
     @overload
     def execute(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
@@ -184,7 +183,7 @@ class ChunkedTransaction(Transaction, ABC):
     ) -> TransactionResponse: ...
 
     def execute(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: bool = True,
@@ -211,7 +210,7 @@ class ChunkedTransaction(Transaction, ABC):
 
     @overload
     def execute_all(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[True] = True,
@@ -220,7 +219,7 @@ class ChunkedTransaction(Transaction, ABC):
 
     @overload
     def execute_all(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: Literal[False] = False,
@@ -228,7 +227,7 @@ class ChunkedTransaction(Transaction, ABC):
     ) -> list[TransactionResponse]: ...
 
     def execute_all(
-        self,
+        self: T,
         client: Client,
         timeout: int | float | None = None,
         wait_for_receipt: bool = True,
@@ -251,69 +250,25 @@ class ChunkedTransaction(Transaction, ABC):
         """
         self._validate_chunking()
 
-        # For single-chunk transactions, delegate to the standard execution flow.
-        if self.get_required_chunks() == 1:
-            return [
-                super().execute(
-                    client,
-                    timeout=timeout,
-                    wait_for_receipt=wait_for_receipt,
-                    validate_status=validate_status,
-                )
-            ]
-
-        # For multi-chunk transactions, ensure we are frozen before proceeding.
         if not self._transaction_body_bytes:
             self.freeze_with(client)
 
+        # Single chunk transaction
+        if len(self._transaction_ids) == 1:
+            return [super().execute(client, timeout, wait_for_receipt, validate_status)]
+
+        # Multi-chunk transaction - execute all chunks
         responses = []
-
-        for chunk_index in range(self.get_required_chunks()):
-            self._current_chunk_index = chunk_index
-
-            if chunk_index < len(self._transaction_ids):
-                self.transaction_id = self._transaction_ids[chunk_index]
-
-            # Clear the frozen state to rebuild the body for this chunk.
-            self._transaction_body_bytes.clear()
-            self._signature_map.clear()
-
-            self.freeze_with(client)
-
-            for signing_key in self._signing_keys:
-                super().sign(signing_key)
-
-            response = super().execute(
-                client,
-                timeout=timeout,
-                wait_for_receipt=wait_for_receipt,
-                validate_status=validate_status,
-            )
+        self._transaction_ids.set_index(0)
+        for _ in range(len(self._transaction_ids)):
+            response = super().execute(client, timeout, wait_for_receipt, validate_status)
             responses.append(response)
+            self._transaction_ids.advance()
 
         return responses
 
-    def sign(self, private_key: PrivateKey) -> ChunkedTransaction:
-        """
-        Signs the transaction using the provided private key.
-
-        For multi-chunk transactions, stores the signing key for later use when
-        executing all chunks.
-
-        Args:
-            private_key (PrivateKey): The private key to sign with.
-
-        Returns:
-            ChunkedTransaction: This transaction instance for chaining.
-        """
-        super().sign(private_key)
-        # Store the signing key for multi-chunk execution only after signing succeeds.
-        if private_key not in self._signing_keys:
-            self._signing_keys.append(private_key)
-        return self
-
     @property
-    def body_size_all_chunks(self) -> list[int]:
+    def body_size_all_chunks(self: T) -> list[int]:
         """
         Returns an array of body sizes for each chunk in the transaction.
 
@@ -328,17 +283,17 @@ class ChunkedTransaction(Transaction, ABC):
         self._require_frozen()
         sizes = []
 
-        original_index = self._current_chunk_index
-        original_transaction_id = self.transaction_id
+        # TODO: No need for the current_chunk_index once the tx is frozen all the tx_bytes get ready.
+        # original_index = self._current_chunk_index
+        # original_transaction_id = self.transaction_id
 
         try:
-            for i, transaction_id in enumerate(self._transaction_ids):
+            for i, _ in enumerate(self._transaction_ids):
                 self._current_chunk_index = i
-                self.transaction_id = transaction_id
-
                 sizes.append(self.body_size)
+
         finally:
-            self._current_chunk_index = original_index
-            self.transaction_id = original_transaction_id
+            self._current_chunk_index = None
+            self._transaction_ids.set_index(0)
 
         return sizes
