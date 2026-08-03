@@ -112,8 +112,13 @@ async function runAssignmentFlow({ github, context }) {
     return;
   }
 
-  if (comment.user?.type === 'Bot') {
-    console.log(`[assign-bot] Commenter @${comment.user?.login} is a bot. Exiting.`);
+  if (!comment.user) {
+    console.log('[assign-bot] Missing comment user in payload. Exiting.');
+    return;
+  }
+
+  if (comment.user.type === 'Bot') {
+    console.log(`[assign-bot] Commenter @${comment.user.login} is a bot. Exiting.`);
     return;
   }
 

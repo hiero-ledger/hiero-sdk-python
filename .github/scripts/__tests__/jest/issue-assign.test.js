@@ -137,6 +137,21 @@ describe('runAssignmentFlow - validation', () => {
     expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 
+  test('returns when comment user is missing', async () => {
+    const github = createGithub();
+
+    const context = createContext({
+      comment: {
+        body: '/assign',
+      },
+    });
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
+  });
+
   test('returns for empty comments', async () => {
     const github = createGithub();
 
@@ -660,7 +675,7 @@ describe('runAssignmentFlow - error handling', () => {
     expect(githubApi.assignIssue).toHaveBeenCalled();
   });
 
-  test('propagates post Comment errors', async () => {
+  test('propagates post comment errors', async () => {
     githubApi.postIssueComment.mockRejectedValue(
       new Error('Comment failed')
     );
