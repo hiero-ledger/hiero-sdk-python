@@ -617,19 +617,31 @@ describe('runAssignmentFlow - error handling', () => {
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 
-  test('does not assign when fetching open assignments throws', async () => {
-    githubApi.getOpenAssignments.mockRejectedValue(
-      new Error('GitHub API failure')
-    );
+  test("continues when assignment lookup fails open", async () => {
+    githubApi.getOpenAssignments.mockResolvedValue(null);
 
     const github = createGithub();
     const context = createContext();
 
-    await expect(
-      runAssignmentFlow({ github, context })
-    ).rejects.toThrow('GitHub API failure');
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).toHaveBeenCalled();
+  });
+
+  test('returns when repository owner is missing', async () => {
+    const github = createGithub();
+
+    const context = createContext({
+      repository: {
+        owner: {},
+        name: 'hiero-sdk-python',
+      },
+    });
+
+    await runAssignmentFlow({ github, context });
 
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 
   test('attempts to assign the issue even when assignment fails', async () => {
