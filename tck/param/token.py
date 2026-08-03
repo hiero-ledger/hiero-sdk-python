@@ -426,6 +426,7 @@ class UpdateTokenParams(BaseTransactionParams):
         )
 
 
+@dataclass
 class BurnTokenParams(BaseTransactionParams):
     tokenId: str | None = None
     amount: str | None = None

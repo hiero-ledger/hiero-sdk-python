@@ -129,6 +129,7 @@ class UpdateTokenResponse(StatusOnlyResponse):
     """Response payload for updateToken."""
 
 
-class BurnTokenResponse(StatusOnlyResponse):
+@dataclass
+class BurnTokenResponse:
     newTotalSupply: str | None = None
     status: str | None = None

@@ -113,9 +113,6 @@ class TokenBurnTransaction(Transaction):
         Raises:
             ValueError: If the token ID is not set or if both amount and serials are provided.
         """
-        if self.token_id is None:
-            raise ValueError("Missing token ID")
-
         if self.amount and self.serials:
             raise ValueError("Cannot burn both amount and serial in the same transaction")
 
