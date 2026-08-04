@@ -16,6 +16,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services.token_burn_pb2 import TokenBurnTransactionBody
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -115,7 +116,7 @@ class TokenBurnTransaction(Transaction):
             ValueError: If the token ID is not set or if both amount and serials are provided.
         """
         if self.token_id is None:
-            raise PrecheckError("Token ID must be set")
+            raise PrecheckError(ResponseCode.INVALID_TOKEN_ID)
 
         if self.amount and self.serials:
             raise ValueError("Cannot burn both amount and serial in the same transaction")

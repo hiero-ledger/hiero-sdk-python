@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
@@ -52,6 +53,11 @@ def test_build_transaction_body(mock_account_ids):
 def test_build_transaction_body_validation_errors():
     """Test that build_transaction_body raises appropriate validation errors."""
     burn_tx = TokenBurnTransaction()
+
+    with pytest.raises(PrecheckError) as excinfo:
+        burn_tx.build_transaction_body()
+
+    assert excinfo.value.status == ResponseCode.INVALID_TOKEN_ID
 
     with pytest.raises(ValueError, match="Cannot burn both amount and serial in the same transaction"):
         burn_tx.set_token_id(TokenId(0, 0, 0)).set_amount(100).set_serials([1, 2, 3]).build_transaction_body()
