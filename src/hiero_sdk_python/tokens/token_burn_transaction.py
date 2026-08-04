@@ -9,6 +9,7 @@ non-fungible tokens on the Hedera network using the Hedera Token Service (HTS) A
 from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import token_burn_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -113,6 +114,9 @@ class TokenBurnTransaction(Transaction):
         Raises:
             ValueError: If the token ID is not set or if both amount and serials are provided.
         """
+        if self.token_id is None:
+            raise PrecheckError("Token ID must be set")
+
         if self.amount and self.serials:
             raise ValueError("Cannot burn both amount and serial in the same transaction")
 

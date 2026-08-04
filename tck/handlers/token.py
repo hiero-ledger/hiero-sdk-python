@@ -909,7 +909,8 @@ def _build_burn_token_transaction(
 
     if params.serialNumbers is not None:
         transaction.set_serials([to_int(serial_number) for serial_number in params.serialNumbers])
-    elif params.amount is not None:
+
+    if params.amount is not None:
         transaction.set_amount(to_int(params.amount))
 
     return transaction
