@@ -21,7 +21,7 @@ def test_build_transaction_body(mock_account_ids, file_id):
     """Test building a file delete transaction body with a valid value."""
     account_id, _, node_account_id, _, _ = mock_account_ids
     delete_tx = FileDeleteTransaction(file_id=file_id)
-    delete_tx.node_account_id = node_account_id
+    delete_tx.set_node_account_ids([node_account_id])
     delete_tx.operator_account_id = account_id
 
     transaction_body = delete_tx.build_transaction_body()
@@ -103,7 +103,7 @@ def test_build_scheduled_body(mock_account_ids, file_id):
     """Test building a schedulable file delete transaction body."""
     account_id, _, node_account_id, _, _ = mock_account_ids
     delete_tx = FileDeleteTransaction(file_id=file_id)
-    delete_tx.node_account_id = node_account_id
+    delete_tx.set_node_account_ids([node_account_id])
     delete_tx.operator_account_id = account_id
 
     # Build the scheduled body

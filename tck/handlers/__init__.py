@@ -5,6 +5,7 @@
 from . import (
     account,
     allowance,
+    file,
     key,
     sdk,  # setup, reset
     token,

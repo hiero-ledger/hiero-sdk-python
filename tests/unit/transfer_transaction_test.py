@@ -334,7 +334,7 @@ def test_build_transaction_body(mock_account_ids):
     transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient)
 
     # Set required fields for building transaction
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     # Build the transaction body
@@ -604,7 +604,7 @@ def test_token_transfer_with_expected_decimals_building(mock_account_ids):
 
     transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_1, -100, 8)
     transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_2, 100, 8)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_1
 
     result = transfer_tx.build_transaction_body()
@@ -630,7 +630,7 @@ def test_nft_transfer_with_approval_building(mock_account_ids):
 
     transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient, False)
     transfer_tx.add_nft_transfer(NftId(token_id_1, 2), account_id_sender, account_id_recipient, True)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     result = transfer_tx.build_transaction_body()
@@ -654,7 +654,7 @@ def test_nft_transfer_reconstruction_from_protobuf(mock_account_ids):
     transfer_tx = TransferTransaction()
 
     transfer_tx.add_nft_transfer(NftId(token_id_1, 5), account_id_sender, account_id_recipient, True)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
@@ -677,7 +677,7 @@ def test_nft_transfers_unapproved_reconstruction(mock_account_ids):
     transfer_tx = TransferTransaction()
 
     transfer_tx.add_nft_transfer(NftId(token_id_1, 10), account_id_sender, account_id_recipient, False)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
@@ -697,7 +697,7 @@ def test_token_transfer_with_expected_decimals_reconstruction(mock_account_ids):
 
     transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_sender, -100, 6)
     transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_recipient, 100, 6)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
@@ -724,7 +724,7 @@ def test_combined_transfers_reconstruction(mock_account_ids):
     transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_sender, -50, 8)
     transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_recipient, 50, 8)
     transfer_tx.add_nft_transfer(NftId(token_id_1, 1), account_id_sender, account_id_recipient, True)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
@@ -750,7 +750,7 @@ def test_expected_decimals_field_preservation(mock_account_ids):
 
     transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_sender, -200, 8)
     transfer_tx.add_token_transfer_with_decimals(token_id_1, account_id_recipient, 200, 8)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
@@ -770,7 +770,7 @@ def test_nft_transfer_fields_preservation(mock_account_ids):
     transfer_tx = TransferTransaction()
 
     transfer_tx.add_nft_transfer(NftId(token_id_1, 42), account_id_sender, account_id_recipient, True)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
@@ -797,7 +797,7 @@ def test_multiple_nft_transfers_all_fields(mock_account_ids):
     transfer_tx.add_nft_transfer(NftId(token_id_1, 100), account_id_sender, account_id_recipient, True)
     transfer_tx.add_nft_transfer(NftId(token_id_1, 101), account_id_sender, account_id_recipient, False)
     transfer_tx.add_nft_transfer(NftId(token_id_1, 102), account_id_sender, account_id_recipient, True)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
@@ -826,7 +826,7 @@ def test_token_transfer_without_expected_decimals(mock_account_ids):
 
     transfer_tx.add_token_transfer(token_id_1, account_id_sender, -300)
     transfer_tx.add_token_transfer(token_id_1, account_id_recipient, 300)
-    transfer_tx.node_account_id = node_account_id
+    transfer_tx.set_node_account_ids([node_account_id])
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()

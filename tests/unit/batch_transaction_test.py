@@ -241,12 +241,12 @@ def test_build_batch_transaction_body(mock_account_ids, mock_client):
     )
 
     # verify inner transaction fields
-    assert inner_tx.node_account_id == AccountId(0, 0, 0)
+    assert inner_tx._node_account_ids.current == AccountId(0, 0, 0)
     assert inner_tx.batch_key == batch_key
 
     batch_tx = BatchTransaction().add_inner_transaction(inner_tx)
     batch_tx.operator_account_id = sender_id
-    batch_tx.node_account_id = node_id
+    batch_tx.set_node_account_ids([node_id])
 
     body = batch_tx._build_proto_body()
 
@@ -269,7 +269,7 @@ def test_batchify_sets_required_fields(mock_account_ids, mock_client):
 
     assert tx._transaction_body_bytes is not None, "batchify should set _transaction_body_bytes"
     assert tx.batch_key == batch_key
-    assert tx.node_account_id == AccountId(0, 0, 0), "node_account_id for batched tx should be 0.0.0"
+    assert tx._node_account_ids.current == AccountId(0, 0, 0), "node_account_id for batched tx should be 0.0.0"
 
 
 def test_round_trip_to_bytes_and_back_preserves_inner_transactions(mock_account_ids, mock_client):

@@ -92,7 +92,7 @@ def test_build_transaction_body_with_valid_schedule_id(mock_account_ids, schedul
 
     # Set operator and node account IDs needed for building transaction body
     schedule_sign_tx.operator_account_id = operator_id
-    schedule_sign_tx.node_account_id = node_account_id
+    schedule_sign_tx.set_node_account_ids([node_account_id])
 
     transaction_body = schedule_sign_tx.build_transaction_body()
 

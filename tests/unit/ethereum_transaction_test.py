@@ -68,7 +68,7 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, ethereum
 
     # Set operator and node account IDs needed for building transaction body
     ethereum_tx.operator_account_id = operator_id
-    ethereum_tx.node_account_id = node_account_id
+    ethereum_tx.set_node_account_ids([node_account_id])
 
     transaction_body = ethereum_tx.build_transaction_body()
 
@@ -86,7 +86,7 @@ def test_build_transaction_body_with_minimal_parameters(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     ethereum_tx.operator_account_id = operator_id
-    ethereum_tx.node_account_id = node_account_id
+    ethereum_tx.set_node_account_ids([node_account_id])
 
     transaction_body = ethereum_tx.build_transaction_body()
 

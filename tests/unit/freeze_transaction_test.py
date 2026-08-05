@@ -72,7 +72,7 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, freeze_p
 
     # Set operator and node account IDs needed for building transaction body
     freeze_tx.operator_account_id = operator_id
-    freeze_tx.node_account_id = node_account_id
+    freeze_tx.set_node_account_ids([node_account_id])
 
     transaction_body = freeze_tx.build_transaction_body()
 
@@ -95,7 +95,7 @@ def test_build_transaction_body_with_none_values(mock_account_ids):
 
     # Set operator and node account IDs needed for building transaction body
     freeze_tx.operator_account_id = operator_id
-    freeze_tx.node_account_id = node_account_id
+    freeze_tx.set_node_account_ids([node_account_id])
 
     transaction_body = freeze_tx.build_transaction_body()
 

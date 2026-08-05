@@ -13,7 +13,7 @@ from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import consensus_update_topic_pb2, duration_pb2, timestamp_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services import consensus_update_topic_pb2, duration_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.custom_fees_pb2 import FeeExemptKeyList, FixedCustomFeeList
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
@@ -33,7 +33,7 @@ class TopicUpdateTransaction(Transaction):
         memo: str | None = None,
         admin_key: Key | None = None,
         submit_key: Key | None = None,
-        auto_renew_period: Duration | None = Duration(7890000),
+        auto_renew_period: Duration | None = None,
         auto_renew_account: AccountId | None = None,
         expiration_time: Timestamp | None = None,
         custom_fees: list[CustomFixedFee] | None = None,
@@ -157,7 +157,7 @@ class TopicUpdateTransaction(Transaction):
         self.auto_renew_account = account_id
         return self
 
-    def set_expiration_time(self, expiration_time: timestamp_pb2.Timestamp) -> TopicUpdateTransaction:
+    def set_expiration_time(self, expiration_time: Timestamp) -> TopicUpdateTransaction:
         """
         Sets the expiration time for the topic.
 
@@ -243,12 +243,7 @@ class TopicUpdateTransaction(Transaction):
 
         Returns:
             ConsensusUpdateTopicTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If required fields are missing.
         """
-        if self.topic_id is None:
-            raise ValueError("Missing required fields: topic_id")
 
         custom_fees = (
             FixedCustomFeeList(fees=[custom_fee._to_topic_fee_proto() for custom_fee in self.custom_fees])
@@ -263,7 +258,7 @@ class TopicUpdateTransaction(Transaction):
         )
 
         return consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody(
-            topicID=self.topic_id._to_proto(),
+            topicID=self.topic_id._to_proto() if self.topic_id else None,
             adminKey=key_to_proto(self.admin_key) if self.admin_key else None,
             submitKey=key_to_proto(self.submit_key) if self.submit_key else None,
             autoRenewPeriod=(

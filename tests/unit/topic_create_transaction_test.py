@@ -139,7 +139,7 @@ def test_build_topic_create_transaction_body(mock_account_ids, custom_fixed_fee,
     )
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -228,7 +228,7 @@ def test_missing_operator_in_topic_create(mock_account_ids):
     _, _, node_account_id, _, _ = mock_account_ids
 
     tx = TopicCreateTransaction(memo="No Operator")
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     with pytest.raises(ValueError, match="Operator account ID is not set."):
         tx.build_transaction_body()
@@ -253,7 +253,7 @@ def test_sign_topic_create_transaction(mock_account_ids, private_key):
     _, _, node_account_id, _, _ = mock_account_ids
     tx = TopicCreateTransaction(memo="Signing test")
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body_bytes = tx.build_transaction_body().SerializeToString()
     tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
@@ -452,7 +452,7 @@ def test_set_methods_require_not_frozen(mock_account_ids, custom_fixed_fee, mock
 
     tx = TopicCreateTransaction()
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze_with(mock_client)  # Freeze the transaction
 
     fee_schedule_key = create_key(key_type, use_private)
@@ -503,7 +503,7 @@ def test_single_key_fields(mock_account_ids, key_type, use_private, field_name, 
     assert getattr(tx, field_name).to_bytes() == key.to_bytes()
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     # Build transaction body
     transaction_body = tx.build_transaction_body()
@@ -538,7 +538,7 @@ def test_fee_exempt_keys(mock_account_ids, key_type, use_private):
     tx = TopicCreateTransaction()
     tx.set_fee_exempt_keys([key1, key2])
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     # Build transaction body
     transaction_body = tx.build_transaction_body()
@@ -566,7 +566,7 @@ def test_mixed_key_types_in_constructor(mock_account_ids):
         fee_exempt_keys=[ecdsa_public, ed25519_private],
     )
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
 

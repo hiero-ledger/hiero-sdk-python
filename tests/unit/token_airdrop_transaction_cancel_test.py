@@ -60,7 +60,7 @@ def test_build_transaction_body(mock_account_ids):
     cancel_airdrop_tx.add_pending_airdrop(token_pending_airdrop)
     cancel_airdrop_tx.add_pending_airdrop(nft_pending_airdrop)
     cancel_airdrop_tx.transaction_id = generate_transaction_id(sender_id)
-    cancel_airdrop_tx.node_account_id = node_account_id
+    cancel_airdrop_tx.set_node_account_ids([node_account_id])
     transaction_body = cancel_airdrop_tx.build_transaction_body()
 
     assert len(transaction_body.tokenCancelAirdrop.pending_airdrops) == 2

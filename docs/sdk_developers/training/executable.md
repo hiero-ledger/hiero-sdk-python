@@ -140,7 +140,7 @@ Key Steps:
 
   * Used throughout execution:
    ```python
-   logger.trace("Executing", "requestId", self._get_request_id(), "nodeAccountID", self.node_account_id, "attempt", attempt + 1, "maxAttempts", max_attempts)
+   logger.trace("Executing", "requestId", self._get_request_id(), "nodeAccountID", self._node_account_ids.current, "attempt", attempt + 1, "maxAttempts", max_attempts)
    logger.trace("Executing gRPC call", "requestId", self._get_request_id())
    logger.trace("Retrying request attempt", "requestId", request_id, "delay", current_backoff, ...)
    ```
@@ -150,7 +150,7 @@ Key Steps:
    logger.trace(
     "Executing",
     "requestId", self._get_request_id(),
-    "nodeAccountID", self.node_account_id,      # Which node this attempt uses
+    "nodeAccountID", self._node_account_ids.current,      # Which node this attempt uses
     "attempt", attempt + 1,                      # Current attempt (1-based)
     "maxAttempts", max_attempts                  # Total allowed attempts
    )
@@ -163,7 +163,7 @@ Key Steps:
   ```python
     logger.trace(
     f"{self.__class__.__name__} status received",
-    "nodeAccountID", self.node_account_id,
+    "nodeAccountID", self._node_account_ids.current,
     "network", client.network.network,          # Network name (testnet, mainnet)
     "state", execution_state.name,               # RETRY, FINISHED, ERROR, EXPIRED
     "txID", tx_id                                # Transaction ID if available
@@ -183,11 +183,12 @@ Key Steps:
   ```
   * Node switch on gRPC error:
   ```python
+    previous_node = self._node_account_ids.next
     logger.trace(
     "Switched to a different node for the next attempt",
     "error", err_persistant,
-    "from node", self.node_account_id,           # Old node
-    "to node", node._account_id                  # New node
+    "from node", previous_node,                               # Old node
+    "to node", self.node_account_ids.current                  # New node
   )
   ```
   * Final failure:

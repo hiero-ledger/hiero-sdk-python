@@ -49,7 +49,7 @@ class TransactionResponse:
         return (
             TransactionGetReceiptQuery()
             .set_transaction_id(self.transaction_id)
-            .set_node_account_id(self.node_id)
+            .set_node_account_ids([self.node_id])
             .set_validate_status(validate_status)
         )
 

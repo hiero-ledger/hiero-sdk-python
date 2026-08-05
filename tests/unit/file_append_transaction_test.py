@@ -392,7 +392,7 @@ def test_chunk_transaction_id_nanosecond_overflow(file_id):
         .set_contents("a" * 20)
         .set_chunk_size(10)
         .set_transaction_id(tx_id)
-        .set_node_account_id(AccountId(0, 0, 3))
+        .set_node_account_ids([AccountId(0, 0, 3)])
         .freeze()
     )
 

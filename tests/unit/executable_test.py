@@ -140,7 +140,7 @@ def test_node_switching_after_single_grpc_error():
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         # Verify we're now on the second node
-        assert transaction.node_account_ids[transaction._node_account_ids_index] == AccountId(0, 0, 4), (
+        assert transaction._node_account_ids.current == AccountId(0, 0, 4), (
             "Client should have switched to the second node"
         )
 
@@ -179,7 +179,7 @@ def test_node_switching_after_multiple_grpc_errors():
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
 
         # Verify we're now on the third node
-        assert transaction.node_account_ids[transaction._node_account_ids_index] == AccountId(0, 0, 5), (
+        assert transaction._node_account_ids.current == AccountId(0, 0, 5), (
             "Client should have switched to the third node"
         )
         assert receipt.status == ResponseCode.SUCCESS
@@ -284,7 +284,10 @@ def test_retriable_error_does_not_switch_node():
             receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
         )
     )
-    response_sequences = [[busy_response, ok_response, receipt_response]]
+    response_sequences = [
+        [busy_response, ok_response, receipt_response],
+        [ok_response, receipt_response],  # additonal response to mock extra node
+    ]
     with (
         mock_hedera_servers(response_sequences) as client,
         patch("hiero_sdk_python.executable.time.sleep"),
@@ -300,7 +303,7 @@ def test_retriable_error_does_not_switch_node():
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
 
-        assert client.network.current_node._account_id == AccountId(0, 0, 3), (
+        assert transaction._node_account_ids.current == AccountId(0, 0, 3), (
             "Client should not switch node on retriable errors"
         )
 
@@ -346,7 +349,7 @@ def test_topic_create_transaction_retry_on_busy():
         assert mock_sleep.call_count == 1, "Should have retried once"
 
         # Verify we didn't switch nodes (BUSY is retriable without node switch)
-        assert client.network.current_node._account_id == AccountId(0, 0, 3), "Should not have switched nodes on BUSY"
+        assert tx._node_account_ids.current == AccountId(0, 0, 3), "Should not have switched nodes on BUSY"
 
 
 def test_topic_create_transaction_fails_on_nonretriable_error():
@@ -389,10 +392,6 @@ def test_transaction_node_switching_body_bytes():
         mock_hedera_servers(response_sequences) as client,
         patch("hiero_sdk_python.executable.time.sleep"),
     ):
-        # We set the current node to 0
-        client.network._node_index = 0
-        client.network.current_node = client.network.nodes[0]
-
         transaction = (
             AccountCreateTransaction()
             .set_key_without_alias(PrivateKey.generate().public_key())
@@ -413,11 +412,14 @@ def test_transaction_node_switching_body_bytes():
             )
 
         try:
+            assert transaction._node_account_ids.current == AccountId(0, 0, 3), (
+                "Current node should be the first configured node"
+            )
             transaction.execute(client)
         except (Exception, grpc.RpcError) as e:
             pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
         # Verify we're now on the second node
-        assert transaction.node_account_ids[transaction._node_account_ids_index] == AccountId(0, 0, 4), (
+        assert transaction._node_account_ids.current == AccountId(0, 0, 4), (
             "Client should have switched to the second node"
         )
 
@@ -454,18 +456,14 @@ def test_query_retry_on_busy():
     # First node returns BUSY, forcing a retry
     # Second node returns OK with the balance
     response_sequences = [
-        [busy_response],
-        [ok_response],
+        [busy_response, ok_response],
+        [ok_response],  # additional response to mimic additional node
     ]
 
     with (
         mock_hedera_servers(response_sequences) as client,
         patch("hiero_sdk_python.executable.time.sleep") as mock_sleep,
     ):
-        # We set the current node to the first node so we are sure it will return BUSY response
-        client.network._node_index = 0
-        client.network.current_node = client.network.nodes[0]
-
         query = CryptoGetAccountBalanceQuery()
         query.set_account_id(AccountId(0, 0, 1234))
 
@@ -476,10 +474,8 @@ def test_query_retry_on_busy():
 
         assert balance.hbars.to_tinybars() == 100000000
         # Verify we switched to the second node
-        assert query._node_account_ids_index == 1
-        assert query.node_account_ids[query._node_account_ids_index] == AccountId(0, 0, 4), (
-            "Client should have switched to the second node"
-        )
+        assert query._node_account_ids.index == 0
+        assert query._node_account_ids.current == AccountId(0, 0, 3), "Client should have switched to the second node"
 
 
 # Set max_attempts
@@ -816,7 +812,7 @@ def test_execution_config_inherits_from_client(mock_client):
     mock_client._request_timeout = 20
 
     tx = AccountCreateTransaction()
-
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx._resolve_execution_config(mock_client, None)
 
     assert tx._max_attempts == 7
@@ -831,26 +827,26 @@ def test_executable_overrides_client_config(mock_client):
     mock_client.max_attempts = 10
 
     tx = AccountCreateTransaction().set_max_attempts(3)
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx._resolve_execution_config(mock_client, None)
 
     assert tx._max_attempts == 3
 
 
-def test_no_healthy_nodes_raises(mock_client):
-    """Test that execution fails if no healthy nodes are available."""
-    mock_client.network._healthy_nodes = []
-
+def test_no_nodes_raises_exception(mock_client):
+    """Test that execution fails if no nodes are available."""
+    mock_client.network.nodes = []
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
 
-    with pytest.raises(RuntimeError, match="No healthy nodes available"):
-        tx.execute(mock_client)
+    with pytest.raises(RuntimeError, match="No nodes available for execution"):
+        tx._resolve_execution_config(mock_client, None)
 
 
 def test_set_node_account_ids_overrides_client_nodes(mock_client):
     """Explicit node_account_ids should override client network."""
     node = AccountId(0, 0, 999)
 
-    tx = AccountCreateTransaction().set_node_account_id(node)
+    tx = AccountCreateTransaction().set_node_account_ids([node])
     tx._resolve_execution_config(mock_client, None)
 
     assert tx.node_account_ids == [node]
@@ -859,6 +855,7 @@ def test_set_node_account_ids_overrides_client_nodes(mock_client):
 def test_parameter_timeout_overrides_client_default(mock_client):
     """Explicit timeout pass on the executable should override the client default timeout."""
     tx = AccountCreateTransaction()
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx._resolve_execution_config(mock_client, 2)
 
     assert tx._request_timeout == 2
@@ -868,6 +865,7 @@ def test_set_timeout_overrides_parameter_timeout(mock_client):
     """Explicit timeout set on the tx should override the pass timeout."""
     tx = AccountCreateTransaction()
     tx.set_request_timeout(5)
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx._resolve_execution_config(mock_client, 2)
 
     assert tx._request_timeout == 5
@@ -972,7 +970,7 @@ def test_should_exponential_error_mark_node_unhealty_and_advance(error):
         # No delay_for_attempt backoff call, Node is mark unhealthy and advance
         assert mock_sleep.call_count == 0
         # Node must have changed
-        assert tx._node_account_ids_index == 1
+        assert tx._node_account_ids.index == 1
 
 
 def test_rst_stream_error_marks_node_unhealthy_and_advances_without_backoff():
@@ -1006,7 +1004,7 @@ def test_rst_stream_error_marks_node_unhealthy_and_advances_without_backoff():
         # RST_STREAM exponential retry does not use delay-based backoff
         assert mock_sleep.call_count == 0
         # Node must advance after marking the first node unhealthy
-        assert tx._node_account_ids_index == 1
+        assert tx._node_account_ids.index == 1
 
 
 @pytest.mark.parametrize(
@@ -1060,7 +1058,7 @@ def test_execution_skips_unhealthy_nodes_and_advances():
 
         assert receipt.status == ResponseCode.SUCCESS
         # Ensure the node index advanced past the unhealthy node
-        assert tx._node_account_ids_index == 1
+        assert tx._node_account_ids.index == 1
 
 
 def test_execution_raises_if_all_nodes_unhealthy(mock_client):
@@ -1084,7 +1082,7 @@ def test_execution_raises_if_all_nodes_unhealthy(mock_client):
 )
 def test_unhealthy_node_receipt_request_triggers_delay_and_no_node_change(tx, mock_client):
     """Unhealthy node with transaction receipt/record request calls _delay_for_attempt but does not advance node."""
-    initial_index = tx._node_account_ids_index
+    initial_index = tx._node_account_ids.index
 
     with (
         patch("hiero_sdk_python.node._Node.is_healthy", return_value=False),
@@ -1096,7 +1094,7 @@ def test_unhealthy_node_receipt_request_triggers_delay_and_no_node_change(tx, mo
         # _delay_for_attempt called
         assert mock_delay.call_count > 0
         # Node index did NOT change
-        assert tx._node_account_ids_index == initial_index
+        assert tx._node_account_ids.index == initial_index
 
 
 def test_retry_invalid_node_account_updates_network():
@@ -1142,7 +1140,7 @@ def test_retry_invalid_node_account_updates_network():
         tx.execute(client)
 
         # Node index must advance after INVALID_NODE_ACCOUNT
-        assert tx._node_account_ids_index == 1
+        assert tx._node_account_ids.index == 1
 
         # Recovery actions
         mock_increase_backoff.assert_called_once()
