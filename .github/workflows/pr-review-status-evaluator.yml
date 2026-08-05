@@ -50,6 +50,7 @@ jobs:
         with:
           script: |
             const { evaluateReviewStatus, formatStatusForLog } = require('./.github/scripts/review-status-evaluator.js');
+            const { ROSTER_UNAVAILABLE } = require('./.github/scripts/shared/review-stages.js');
 
             const status = await evaluateReviewStatus(github, context);
 
@@ -76,3 +77,10 @@ jobs:
                 ['Next action', status.nextAction],
               ])
               .write();
+
+            // A roster read failure means reviewer roles couldn't be
+            // verified at all — surface this as a failed check, not just a
+            // quiet log line, so it doesn't go unnoticed.
+            if (status.currentStage === ROSTER_UNAVAILABLE) {
+              core.setFailed(status.nextAction);
+            }

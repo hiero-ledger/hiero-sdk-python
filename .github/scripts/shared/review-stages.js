@@ -17,10 +17,11 @@ const { GOOD_FIRST_ISSUE_LABEL, BEGINNER_LABEL, INTERMEDIATE_LABEL, ADVANCED_LAB
 // Review stages
 // ---------------------------------------------------------------------------
 
-const AWAITING_REVIEW    = process.env.STAGE_AWAITING_REVIEW?.trim()    || 'awaiting_review';
-const CHANGES_REQUESTED  = process.env.STAGE_CHANGES_REQUESTED?.trim()  || 'changes_requested';
-const APPROVED           = process.env.STAGE_APPROVED?.trim()           || 'approved';
-const AWAITING_TRIAGE    = process.env.STAGE_AWAITING_TRIAGE?.trim()    || 'awaiting_triage';
+const AWAITING_REVIEW      = process.env.STAGE_AWAITING_REVIEW?.trim()      || 'awaiting_review';
+const CHANGES_REQUESTED    = process.env.STAGE_CHANGES_REQUESTED?.trim()    || 'changes_requested';
+const APPROVED             = process.env.STAGE_APPROVED?.trim()             || 'approved';
+const AWAITING_TRIAGE      = process.env.STAGE_AWAITING_TRIAGE?.trim()      || 'awaiting_triage';
+const ROSTER_UNAVAILABLE   = process.env.STAGE_ROSTER_UNAVAILABLE?.trim()   || 'roster_unavailable';
 
 /**
  * All review stages as an array, for validation / iteration.
@@ -30,6 +31,7 @@ const REVIEW_STAGES = [
   AWAITING_REVIEW,
   CHANGES_REQUESTED,
   APPROVED,
+  ROSTER_UNAVAILABLE,
 ];
 
 // ---------------------------------------------------------------------------
@@ -86,6 +88,7 @@ module.exports = {
   CHANGES_REQUESTED,
   APPROVED,
   AWAITING_TRIAGE,
+  ROSTER_UNAVAILABLE,
   REVIEW_STAGES,
   TRIAGE,
   COMMITTER,

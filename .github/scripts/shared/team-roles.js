@@ -57,11 +57,21 @@ function extractSection(contents, heading) {
 
 /**
  * Reads docs/team.md and returns the GitHub IDs (lowercased) for each of
- * the three team roles. Returns empty sets for any role it can't parse, so
- * callers degrade to "no known members" rather than throwing.
+ * the three team roles, plus whether the read succeeded.
+ *
+ * On failure, `available` is false and all role sets are empty — callers
+ * MUST check `available` before treating empty sets as "nobody holds this
+ * role" (see review-status-evaluator.js's ROSTER_UNAVAILABLE handling).
+ * An empty set from a failed read is not the same fact as an empty set
+ * from a successfully-parsed-but-genuinely-empty section.
  *
  * @param {string} [repoRoot] - Directory to read docs/team.md from.
- * @returns {{ triage: Set<string>, committer: Set<string>, maintainer: Set<string> }}
+ * @returns {{
+ *   available: boolean,
+ *   triage: Set<string>,
+ *   committer: Set<string>,
+ *   maintainer: Set<string>,
+ * }}
  */
 function getTeamRoles(repoRoot = process.cwd()) {
     const filePath = path.join(repoRoot, "docs", "team.md");
@@ -71,10 +81,16 @@ function getTeamRoles(repoRoot = process.cwd()) {
         contents = fs.readFileSync(filePath, "utf8");
     } catch (err) {
         console.log(`Failed to read docs/team.md: ${err.message}`);
-        return { triage: new Set(), committer: new Set(), maintainer: new Set() };
+        return {
+            available: false,
+            triage: new Set(),
+            committer: new Set(),
+            maintainer: new Set(),
+        };
     }
 
     return {
+        available: true,
         triage: extractSection(contents, SECTION_HEADINGS.triage),
         committer: extractSection(contents, SECTION_HEADINGS.committer),
         maintainer: extractSection(contents, SECTION_HEADINGS.maintainer),

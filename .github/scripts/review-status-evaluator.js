@@ -28,6 +28,14 @@
  * came from. `waitingOn` only drops a role once an approval from someone
  * listed under that role has landed, not just once the raw approval count
  * reaches that position.
+ *
+ * Roster-failure handling:
+ * If docs/team.md can't be read/parsed, shared/team-roles.js reports
+ * `available: false`. computeStatus treats that as its own distinct
+ * ROSTER_UNAVAILABLE stage rather than silently falling through to normal
+ * gate-checking — an empty roster would otherwise make every approval look
+ * unqualified and every role look "still pending", which is indistinguishable
+ * from a genuinely-early review state and would misreport PR status.
  */
 
 const {
@@ -35,6 +43,7 @@ const {
     CHANGES_REQUESTED,
     APPROVED,
     AWAITING_TRIAGE,
+    ROSTER_UNAVAILABLE,
     TRIAGE,
     COMMITTER,
     MAINTAINER,
@@ -180,7 +189,22 @@ async function getDetailedReviews(github, owner, repo, prNumber) {
  */
 function computeStatus(labels, reviewDecision, detailedReviews) {
     const expectedReviewers = getExpectedReviewers(labels);
-    const { triage, committer, maintainer } = getTeamRoles();
+    const { available, triage, committer, maintainer } = getTeamRoles();
+
+    // If the roster couldn't be read, stop here — don't let empty role
+    // sets masquerade as "no approvals yet". Report the failure explicitly
+    // instead of computing a normal (and misleading) gate status.
+    if (!available) {
+        const summary = `${ROSTER_UNAVAILABLE} — Could not read docs/team.md, so reviewer roles can't be verified. Fix the file/path and re-run.`;
+
+        return {
+            currentStage: ROSTER_UNAVAILABLE,
+            expectedReviewers,
+            waitingOn: expectedReviewers,
+            nextAction: "Could not read docs/team.md — reviewer roles unavailable. Fix the file/path and re-run.",
+            summary,
+        };
+    }
 
     // Role hierarchy: a maintainer's approval also satisfies committer/
     // triage gates, and a committer's approval also satisfies triage gates,
