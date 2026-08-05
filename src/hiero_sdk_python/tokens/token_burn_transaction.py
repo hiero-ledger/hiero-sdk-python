@@ -109,6 +109,9 @@ class TokenBurnTransaction(Transaction):
 
         Returns:
             TokenBurnTransactionBody: The protobuf body for this transaction.
+
+        Raises:
+            ValueError: If both amount and serials are set, which is not allowed.
         """
         if self.amount and self.serials:
             raise ValueError("Cannot burn both amount and serial in the same transaction")
