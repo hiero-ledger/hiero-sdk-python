@@ -902,6 +902,7 @@ def wipe_token(params: WipeTokenParams) -> WipeTokenResponse:
 def _build_burn_token_transaction(
     params: BurnTokenParams,
 ) -> TokenBurnTransaction:
+    """Build a TokenBurnTransaction from TCK params."""
     transaction = TokenBurnTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
     if params.tokenId is not None:
@@ -918,6 +919,7 @@ def _build_burn_token_transaction(
 
 @rpc_method("burnToken")
 def burn_token(params: BurnTokenParams) -> BurnTokenResponse:
+    """Burns the provided amount of fungible or non-fungible tokens from the specified Hedera account"""
     client = get_client(params.sessionId)
 
     transaction = _build_burn_token_transaction(params)
