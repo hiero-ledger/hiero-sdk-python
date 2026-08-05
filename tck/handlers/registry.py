@@ -119,11 +119,14 @@ def parse_result(result: Any) -> dict:
             for f in dc_fields(obj):
                 if f.metadata.get("nullable"):
                     nullable_fields.add(f.name)
+                collect_nullable(getattr(obj, f.name))
+        elif isinstance(obj, list):
+            for item in obj:
+                collect_nullable(item)
+        elif isinstance(obj, dict):
+            for val in obj.values():
+                collect_nullable(val)
 
     collect_nullable(result)
-    for f in dc_fields(result):
-        val = getattr(result, f.name)
-        collect_nullable(val)
-
     raw = asdict(result)
     return _strip_none(raw, nullable_keys=nullable_fields)
