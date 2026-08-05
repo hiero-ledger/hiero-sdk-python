@@ -130,7 +130,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             account_id (AccountId): The account ID of the sender (negative amount)
                 or receiver (positive amount).
             amount (int): The amount of the token to transfer (in smallest denomination).
-                Must be a non-zero integer.
+                Must be an integer.
             expected_decimals (int, optional): The number of decimals
                 expected for the token. Defaults to None.
             is_approved (bool, optional): Whether the transfer is approved.
