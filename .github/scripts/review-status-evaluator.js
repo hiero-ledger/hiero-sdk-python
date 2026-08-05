@@ -20,15 +20,14 @@
  *
  * Reviewer-role assumption:
  * GitHub's REST/GraphQL APIs return reviews by username, not by CODEOWNERS
- * role (triage/committer/maintainer) — resolving a username's role would
- * require extra org/team-membership calls. To keep this evaluator simple
- * and avoid that extra API surface, `expectedReviewers` (from
- * shared/review-stages.js) is treated as an ordered list of sequential
- * approval gates: the first entry must approve before we consider the
- * second one "in progress". `waitingOn` is derived by counting how many
- * approving reviews have landed and slicing the remaining expected
- * reviewer types off that list. This is an approximation, not a true
- * role-aware waiting-on computation.
+ * role (triage/committer/maintainer). Rather than calling
+ * getCollaboratorPermissionLevel per reviewer (see
+ * review-sync/helpers/permissions.js), this evaluator cross-checks
+ * approvals against docs/team.md (shared/team-roles.js) — the repo's own
+ * static, curated roster — to verify which role each approval actually
+ * came from. `waitingOn` only drops a role once an approval from someone
+ * listed under that role has landed, not just once the raw approval count
+ * reaches that position.
  */
 
 const {
@@ -37,10 +36,11 @@ const {
     APPROVED,
     AWAITING_TRIAGE,
     TRIAGE,
+    COMMITTER,
+    MAINTAINER,
     getExpectedReviewers,
 } = require("./shared/review-stages");
-
-const DRY_RUN = process.env.DRY_RUN === "true";
+const { getTeamRoles } = require("./shared/team-roles");
 
 /**
  * Fetches the labels currently applied to a PR via the REST API.
@@ -180,8 +180,21 @@ async function getDetailedReviews(github, owner, repo, prNumber) {
  */
 function computeStatus(labels, reviewDecision, detailedReviews) {
     const expectedReviewers = getExpectedReviewers(labels);
+    const { triage, committer, maintainer } = getTeamRoles();
 
-    const approvedCount = detailedReviews.filter((r) => r.state === "APPROVED").length;
+    // Role hierarchy: a maintainer's approval also satisfies committer/
+    // triage gates, and a committer's approval also satisfies triage gates,
+    // since those roles are supersets of authority.
+    const qualifiedFor = {
+        [TRIAGE]: new Set([...triage, ...committer, ...maintainer]),
+        [COMMITTER]: new Set([...committer, ...maintainer]),
+        [MAINTAINER]: maintainer,
+    };
+
+    const approvedReviews = detailedReviews.filter((r) => r.state === "APPROVED");
+
+    const hasQualifiedApproval = (role) =>
+        approvedReviews.some((r) => qualifiedFor[role]?.has((r.reviewer || "").toLowerCase()));
 
     let currentStage;
     let waitingOn;
@@ -203,11 +216,16 @@ function computeStatus(labels, reviewDecision, detailedReviews) {
         waitingOn = expectedReviewers;
         nextAction = `Address requested changes, then re-request review from: ${waitingOn.join(", ") || "none"}.`;
     } else {
-        // null or REVIEW_REQUIRED — no decision reached yet.
-        waitingOn = expectedReviewers.slice(approvedCount);
+        // null or REVIEW_REQUIRED — no decision reached yet. Each expected
+        // role is only cleared once an approval from someone actually
+        // holding that role (or a higher one) has landed — not just once
+        // the raw approval count reaches that position.
+        waitingOn = expectedReviewers.filter((role) => !hasQualifiedApproval(role));
 
         currentStage =
-            expectedReviewers[0] === TRIAGE && approvedCount === 0 ? AWAITING_TRIAGE : AWAITING_REVIEW;
+            expectedReviewers[0] === TRIAGE && waitingOn.includes(TRIAGE)
+                ? AWAITING_TRIAGE
+                : AWAITING_REVIEW;
 
         nextAction =
             waitingOn.length > 0
@@ -263,11 +281,7 @@ async function evaluateReviewStatus(github, context) {
 
     const { owner, repo } = context.repo;
 
-    if (DRY_RUN) {
-        console.log(`[DRY RUN] Evaluating review status for PR #${prNumber} in ${owner}/${repo}`);
-    } else {
-        console.log(`Evaluating review status for PR #${prNumber} in ${owner}/${repo}`);
-    }
+    console.log(`Evaluating review status for PR #${prNumber} in ${owner}/${repo}`);
 
     const [labels, reviewDecision, detailedReviews] = await Promise.all([
         getPRLabels(github, owner, repo, prNumber),
