@@ -126,5 +126,4 @@ def parse_result(result: Any) -> dict:
         collect_nullable(val)
 
     raw = asdict(result)
-    print(raw)
     return _strip_none(raw, nullable_keys=nullable_fields)
