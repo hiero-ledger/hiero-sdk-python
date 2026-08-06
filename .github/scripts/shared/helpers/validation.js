@@ -15,6 +15,15 @@ function isSafeLabel(label) {
     && !/[\\"]/u.test(label);
 }
 
+/**
+ * Validates tokens embedded into GitHub search queries.
+ * This is intentionally broader than GitHub username validation.
+ */
+function isValidSearchToken(value) {
+  return typeof value === 'string' && /^[a-zA-Z0-9._/-]+$/.test(value);
+}
+
 module.exports = {
   isSafeLabel,
+  isValidSearchToken,
 };
