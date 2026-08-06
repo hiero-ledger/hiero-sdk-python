@@ -66,12 +66,20 @@ class NestedChild:
 
 
 @dataclass
+class NestedChildWithNullable:
+    """Nested dataclass for testing recursive Nullable."""
+
+    nullable_field: str | None = field(metadata={"nullable": True}, default=None)
+    label: str | None = None
+
+
+@dataclass
 class DummyResultWithNested:
     """Dataclass with nested fields for testing recursive parse_result."""
 
     name: str | None = None
-    child: NestedChild | None = None
-    children: list[NestedChild] | None = None
+    child: NestedChild | NestedChildWithNullable | None = None
+    children: list[NestedChild | NestedChildWithNullable] | None = None
     nullable_field: str | None = field(metadata={"nullable": True}, default=None)
 
 
@@ -326,3 +334,33 @@ class TestParseResult:
         parsed = parse_result(result)
 
         assert parsed == {"name": "test", "nullable_field": None}
+
+    def test_nested_dataclass_preserve_nullable_true(self):
+        """Verify nested dataclass preserves nullable None while dropping regular None."""
+        data = DummyResultWithNested(
+            name="test", child=NestedChildWithNullable(nullable_field=None, label=None), nullable_field=None
+        )
+        result = parse_result(data)
+
+        assert result == {
+            "name": "test",
+            "child": {
+                "nullable_field": None,
+            },
+            "nullable_field": None,
+        }
+
+    def test_deep_nested_dataclass_preserve_nullable_true(self):
+        """Verify nested dataclass preserves nullable None while dropping regular None."""
+        data = DummyResultWithNested(
+            name="test",
+            child=DummyResultWithNested(name="test", child=NestedChildWithNullable(nullable_field=None, label="test")),
+            nullable_field=None,
+        )
+        result = parse_result(data)
+
+        assert result == {
+            "name": "test",
+            "child": {"name": "test", "child": {"nullable_field": None, "label": "test"}, "nullable_field": None},
+            "nullable_field": None,
+        }

@@ -97,12 +97,12 @@ def _strip_none(obj: Any, nullable_keys: set[str] | None = None) -> Any:
     """Recursively strip None values from nested dicts and lists."""
     if isinstance(obj, dict):
         return {
-            k: _strip_none(v)
+            k: _strip_none(v, nullable_keys=nullable_keys)
             for k, v in obj.items()
             if v is not None or (nullable_keys is not None and k in nullable_keys)
         }
     if isinstance(obj, list):
-        return [_strip_none(item) for item in obj]
+        return [_strip_none(item, nullable_keys=nullable_keys) for item in obj]
     return obj
 
 
@@ -113,9 +113,20 @@ def parse_result(result: Any) -> dict:
     Recursively strips None from nested structures.
     """
     nullable_fields: set[str] = set()
-    for f in dc_fields(result):
-        if f.metadata.get("nullable"):
-            nullable_fields.add(f.name)
 
+    def collect_nullable(obj: Any) -> None:
+        if hasattr(obj, "__dataclass_fields__"):
+            for f in dc_fields(obj):
+                if f.metadata.get("nullable"):
+                    nullable_fields.add(f.name)
+                collect_nullable(getattr(obj, f.name))
+        elif isinstance(obj, list):
+            for item in obj:
+                collect_nullable(item)
+        elif isinstance(obj, dict):
+            for val in obj.values():
+                collect_nullable(val)
+
+    collect_nullable(result)
     raw = asdict(result)
     return _strip_none(raw, nullable_keys=nullable_fields)
