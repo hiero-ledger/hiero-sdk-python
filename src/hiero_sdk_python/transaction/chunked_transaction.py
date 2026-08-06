@@ -141,6 +141,9 @@ class ChunkedTransaction(Transaction, ABC):
         required_chunks = self.get_required_chunks()
         self._generate_transaction_ids(self._transaction_ids.get(0), required_chunks)
 
+        self._node_account_ids.set_lock(True)
+        self._transaction_ids.set_lock(True)
+
         # Generate transaction IDs for all chunks if not already done
         for chunk in range(required_chunks):
             self._current_chunk_index = chunk
@@ -282,10 +285,6 @@ class ChunkedTransaction(Transaction, ABC):
         """
         self._require_frozen()
         sizes = []
-
-        # TODO: No need for the current_chunk_index once the tx is frozen all the tx_bytes get ready.
-        # original_index = self._current_chunk_index
-        # original_transaction_id = self.transaction_id
 
         try:
             for i, _ in enumerate(self._transaction_ids):
