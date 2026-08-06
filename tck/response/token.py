@@ -127,3 +127,8 @@ class WipeTokenResponse(StatusOnlyResponse):
 @dataclass
 class UpdateTokenResponse(StatusOnlyResponse):
     """Response payload for updateToken."""
+
+
+@dataclass
+class UpdateTokenFeeScheduleResponse(StatusOnlyResponse):
+    """Response payload for updateTokenFeeSchedule."""

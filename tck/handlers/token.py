@@ -22,6 +22,7 @@ from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTr
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
+from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import TokenFeeScheduleUpdateTransaction
 from hiero_sdk_python.tokens.token_freeze_status import TokenFreezeStatus
 from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransaction
 from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
@@ -53,6 +54,7 @@ from tck.param.token import (
     PauseTokenParams,
     RejectTokenParams,
     RevokeTokenKycParams,
+    UpdateTokenFeeScheduleParams,
     UpdateTokenParams,
     WipeTokenParams,
 )
@@ -71,6 +73,7 @@ from tck.response.token import (
     PauseTokenResponse,
     RejectTokenResponse,
     RevokeTokenKycResponse,
+    UpdateTokenFeeScheduleResponse,
     UpdateTokenResponse,
     WipeTokenResponse,
 )
@@ -894,3 +897,34 @@ def wipe_token(params: WipeTokenParams) -> WipeTokenResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return WipeTokenResponse(status=ResponseCode(receipt.status).name)
+
+
+def _build_update_token_fee_schedule_transaction(
+    params: UpdateTokenFeeScheduleParams,
+) -> TokenFeeScheduleUpdateTransaction:
+    """Build a TokenFeeScheduleUpdateTransaction from TCK params."""
+    transaction = TokenFeeScheduleUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    if params.customFees is not None:
+        transaction.set_custom_fees([_build_custom_fee(custom_fee) for custom_fee in params.customFees])
+
+    return transaction
+
+
+@rpc_method("updateTokenFeeSchedule")
+def update_token_fee_schedule(params: UpdateTokenFeeScheduleParams) -> UpdateTokenFeeScheduleResponse:
+    """Updates the fee schedule for a token."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_update_token_fee_schedule_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UpdateTokenFeeScheduleResponse(status=ResponseCode(receipt.status).name)
