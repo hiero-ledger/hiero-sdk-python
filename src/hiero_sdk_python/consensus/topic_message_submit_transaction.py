@@ -106,33 +106,6 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         self._total_chunks = self.get_required_chunks()
         return self
 
-    def set_chunk_size(self, chunk_size: int) -> TopicMessageSubmitTransaction:
-        """
-        Set maximum chunk size in bytes.
-
-        Args:
-            chunk_size (int): The size of each chunk in bytes.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().set_chunk_size(chunk_size)
-        self._total_chunks = self.get_required_chunks()
-        return self
-
-    def set_max_chunks(self, max_chunks: int) -> TopicMessageSubmitTransaction:
-        """
-        Set maximum allowed chunks.
-
-        Args:
-            max_chunks (int): The maximum number of chunks allowed.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().set_max_chunks(max_chunks)
-        return self
-
     def set_custom_fee_limits(self, custom_fee_limits: list[CustomFeeLimit]) -> TopicMessageSubmitTransaction:
         """
         Sets the maximum custom fees that the user is willing to pay for the message.

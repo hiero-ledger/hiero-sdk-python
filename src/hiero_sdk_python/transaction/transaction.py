@@ -54,10 +54,7 @@ class Transaction(_Executable):
         self._high_volume = False
         self.memo = ""
         self.custom_fee_limits: list[CustomFeeLimit] = []
-        # Maps each TransactionId to its per-node transaction body bytes.
-        # Each transaction body contains the AccountId of the node it targets, so we
-        # keep a separate body for each node to support retries on unhealthy nodes.
-        # Submitting a body to a different node results in `INVALID_NODE_ACCOUNT`.
+        # Maps TransactionId -> {AccountId: body_bytes} to prevent INVALID_NODE_ACCOUNT during node retries.
         self._transaction_body_bytes: dict[TransactionId, dict[AccountId, bytes]] = {}
 
         # Maps transaction body bytes to their associated signatures
@@ -181,8 +178,8 @@ class Transaction(_Executable):
         self._require_frozen()
 
         # We sign the bodies for each node in case we need to switch nodes during execution.
-        for node_bytes in self._transaction_body_bytes.values():
-            for body_bytes in node_bytes.values():
+        for node_bytes_map in self._transaction_body_bytes.values():
+            for body_bytes in node_bytes_map.values():
                 signature = private_key.sign(body_bytes)
 
                 public_key_bytes = private_key.public_key().to_bytes_raw()
@@ -218,10 +215,16 @@ class Transaction(_Executable):
         """
         # We require the transaction to be frozen before converting to protobuf
         self._require_frozen()
+        current_tx_id = self._transaction_ids.current
+        current_node_id = self._node_account_ids.current
 
-        body_bytes = self._transaction_body_bytes.get(self._transaction_ids.current).get(self._node_account_ids.current)
+        node_bodies = self._transaction_body_bytes.get(current_tx_id)
+        if node_bodies is None:
+            raise ValueError(f"No transaction bodies built for Transaction ID {current_tx_id}")
+
+        body_bytes = node_bodies.get(current_node_id)
         if body_bytes is None:
-            raise ValueError(f"No transaction body found for node {self._node_account_ids.current}")
+            raise ValueError(f"No transaction body found for node {current_node_id}")
 
         # Get signature map, or create empty one if transaction is not signed
         sig_map = self._signature_map.get(body_bytes)
@@ -301,8 +304,6 @@ class Transaction(_Executable):
         self._resolve_transaction_id(client)
         self._resolve_node_ids(client)
 
-        # Generate transaction IDs for chunked transactions.
-        # TODO: May not be needed since it will have single txId
         required_chunks = self.get_required_chunks()
         self._generate_transaction_ids(self._transaction_ids.get(0), required_chunks)
 
