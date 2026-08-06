@@ -191,8 +191,6 @@ class FeeEstimateQuery:
         raise RuntimeError("Unreachable")
 
     def _execute_single(self, url: str, mode: FeeEstimateMode) -> FeeEstimateResponse:
-        # TODO: remove to_bytes() as it will use the TransactionList int followup PR.
-
         data = self._post(url, self._transaction._to_proto().SerializeToString())
         return self._to_response(data, mode)
 
@@ -200,10 +198,6 @@ class FeeEstimateQuery:
         """
         Aggregate fees across all chunks into a single response.
         """
-
-        # TODO: No Save original state to restore later, as the once frozen all bytes are generated and no need of _chunk_index
-        # original_index = getattr(self._transaction, "_current_chunk_index", 0)
-
         total_node_base = 0
         total_service_base = 0
         total_network_subtotal = 0
@@ -216,7 +210,6 @@ class FeeEstimateQuery:
 
         try:
             for _ in range(self._transaction.get_required_chunks()):
-                # TODO: remove to_bytes() as it will use the TransactionList int followup PR.
                 tx_bytes = self._transaction._to_proto().SerializeToString()
 
                 data = self._post(url, tx_bytes)
