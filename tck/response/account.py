@@ -32,11 +32,11 @@ class StakingInfoResponse:
     """Nested staking fields in the getAccountInfo response."""
 
     declineStakingReward: bool | None = None
-    stakePeriodStart: str | None = None
+    stakePeriodStart: str | None = field(metadata={"nullable": True}, default=None)
     pendingReward: str | None = None
     stakedToMe: str | None = None
-    stakedAccountId: str | None = None
-    stakedNodeId: str | None = None
+    stakedAccountId: str | None = field(metadata={"nullable": True}, default=None)
+    stakedNodeId: str | None = field(metadata={"nullable": True}, default=None)
 
 
 @dataclass

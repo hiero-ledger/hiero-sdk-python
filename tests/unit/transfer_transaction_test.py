@@ -280,9 +280,11 @@ def test_zero_amount_handling(mock_account_ids):
     assert transfer_tx.hbar_transfers[0].account_id == account_id_1
     assert transfer_tx.hbar_transfers[0].amount == 0
 
-    # Token transfers still reject zero amounts (if unchanged)
-    with pytest.raises(ValueError, match="Amount must be a non-zero integer"):
-        transfer_tx.add_token_transfer(token_id_1, account_id_1, 0)
+    # Token transfers set zero amounts (cause PrecheckError when execute)
+    transfer_tx.add_token_transfer(token_id_1, account_id_1, 0)
+    assert len(transfer_tx.token_transfers[token_id_1]) == 1
+    assert transfer_tx.token_transfers[token_id_1][0].account_id == account_id_1
+    assert transfer_tx.token_transfers[token_id_1][0].amount == 0
 
 
 def test_multiple_nft_transfers(mock_account_ids):
@@ -485,18 +487,28 @@ def test_approved_token_transfer_accumulation(mock_account_ids):
     assert transfer_2.expected_decimals is None  # unchanged
 
 
-def test_approved_token_transfer_validation(mock_account_ids):
-    """Test validation for approved token transfers with decimals."""
+@pytest.mark.parametrize(
+    "decimals",
+    [True, "0", "string", {}, [], 3.4],  # exepected_decimal can be none if not set
+)
+def test_approved_token_transfer_invalid_expected_decimal_type(mock_account_ids, decimals):
+    """Test approved token transfers with invalid decimal types decimals."""
     account_id_1, _, _, token_id_1, _ = mock_account_ids
     transfer_tx = TransferTransaction()
 
     # Test invalid expected_decimals type
     with pytest.raises(TypeError, match="expected_decimals must be an integer"):
-        transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 1000, "invalid")
+        transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 1000, decimals)
 
-    # Test zero amount
-    with pytest.raises(ValueError, match="Amount must be a non-zero integer"):
-        transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, 0, 6)
+
+@pytest.mark.parametrize("amount", [True, "0", "string", {}, [], None, 3.4])
+def test_approved_token_transfer_invalid_amount_type(mock_account_ids, amount):
+    """Test approved token transfers with invalid type for amount."""
+    account_id_1, _, _, token_id_1, _ = mock_account_ids
+    transfer_tx = TransferTransaction()
+    # Test amount non int
+    with pytest.raises(ValueError, match="Amount must be an integer"):
+        transfer_tx.add_approved_token_transfer_with_decimals(token_id_1, account_id_1, amount, 6)
 
 
 def test_add_hbar_transfer_with_hbar_object(mock_account_ids):
