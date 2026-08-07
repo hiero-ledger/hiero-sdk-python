@@ -424,3 +424,27 @@ class UpdateTokenParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class BurnTokenParams(BaseTransactionParams):
+    tokenId: str | None = None
+    amount: str | None = None
+    serialNumbers: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> BurnTokenParams:
+        serial_numbers = params.get("serialNumbers")
+
+        if serial_numbers is not None and (
+            not isinstance(serial_numbers, list) or not all(isinstance(item, str) for item in serial_numbers)
+        ):
+            raise ValueError("serialNumbers must be a list of strings")
+
+        return cls(
+            tokenId=params.get("tokenId"),
+            amount=params.get("amount"),
+            serialNumbers=serial_numbers,
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
