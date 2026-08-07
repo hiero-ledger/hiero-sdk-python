@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   assign-issue:
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ubuntu-latest
     if: github.event.issue.pull_request == null
 
     steps:

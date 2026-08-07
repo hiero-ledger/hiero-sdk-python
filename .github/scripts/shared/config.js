@@ -68,10 +68,10 @@ const CONFIG = {
   // Home repo must be first — contributor history is resolved against it.
   repos: [
     {
-      owner: 'hiero-ledger',
+      owner: 'parvninama',
       repo:  'hiero-sdk-python',
       isHome: true,
-      repositoryUrl: 'https://github.com/hiero-ledger/hiero-sdk-python',
+      repositoryUrl: 'https://github.com/parvninama/hiero-sdk-python',
         communityLinks: {
           discord: 'https://discord.com/invite/hyperledger',
         },
