@@ -3,6 +3,14 @@
 // Run from .github/scripts:
 // npm run test:js -- review-status-evaluator.test.js
 
+// evaluateReviewStatus() reads the roster via shared/team-roles.js's
+// getTeamRoles(), which resolves docs/team.md relative to process.cwd().
+// Jest runs from .github/scripts (see package.json's test:js script), so
+// the real docs/team.md two directories up wouldn't be found — mock the
+// module so evaluateReviewStatus tests exercise fixture roster data
+// instead of depending on cwd.
+jest.mock('../../shared/team-roles');
+
 const {
     getPRLabels,
     getReviewState,
@@ -11,6 +19,31 @@ const {
     formatStatusForLog,
     evaluateReviewStatus,
 } = require('../../review-status-evaluator');
+const { getTeamRoles } = require('../../shared/team-roles');
+
+// Shared fixture roster, used both directly (passed into computeStatus) and
+// via the getTeamRoles() mock (for evaluateReviewStatus's orchestration).
+// alice is triage-only, bob is a maintainer (and therefore also qualifies
+// for the committer gate, since maintainer is a superset of committer
+// authority) — this keeps the triage-vs-committer distinction meaningful
+// in tests below.
+const testTeamRoles = {
+    available: true,
+    triage: new Set(['carol', 'alice']),
+    committer: new Set(),
+    maintainer: new Set(['bob']),
+};
+
+const rosterUnavailable = {
+    available: false,
+    triage: new Set(),
+    committer: new Set(),
+    maintainer: new Set(),
+};
+
+beforeEach(() => {
+    getTeamRoles.mockReturnValue(testTeamRoles);
+});
 
 // ---------------------------------------------------------------------------
 // Local mock GitHub client
@@ -211,7 +244,7 @@ describe('computeStatus', () => {
     test('APPROVED reviewDecision → approved stage, nothing waiting', () => {
         const status = computeStatus(['skill: intermediate'], 'APPROVED', [
             { reviewer: 'alice', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
-        ]);
+        ], testTeamRoles);
 
         expect(status.currentStage).toBe('approved');
         expect(status.waitingOn).toEqual([]);
@@ -220,14 +253,14 @@ describe('computeStatus', () => {
     test('CHANGES_REQUESTED reviewDecision → changes_requested stage, full expected list outstanding', () => {
         const status = computeStatus(['skill: advanced'], 'CHANGES_REQUESTED', [
             { reviewer: 'alice', state: 'CHANGES_REQUESTED', submittedAt: '2026-01-01T00:00:00Z' },
-        ]);
+        ], testTeamRoles);
 
         expect(status.currentStage).toBe('changes_requested');
         expect(status.waitingOn).toEqual(['committer', 'maintainer']);
     });
 
     test('no reviewDecision, GFI label, zero approvals → awaiting_triage stage', () => {
-        const status = computeStatus(['Good First Issue'], null, []);
+        const status = computeStatus(['Good First Issue'], null, [], testTeamRoles);
 
         expect(status.currentStage).toBe('awaiting_triage');
         expect(status.waitingOn).toEqual(['triage', 'committer']);
@@ -236,14 +269,14 @@ describe('computeStatus', () => {
     test('no reviewDecision, GFI label, one approval → awaiting_review stage (triage gate cleared)', () => {
         const status = computeStatus(['skill: beginner'], 'REVIEW_REQUIRED', [
             { reviewer: 'alice', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
-        ]);
+        ], testTeamRoles);
 
         expect(status.currentStage).toBe('awaiting_review');
         expect(status.waitingOn).toEqual(['committer']);
     });
 
     test('no reviewDecision, no skill labels → awaiting_review stage, committer+maintainer expected', () => {
-        const status = computeStatus([], null, []);
+        const status = computeStatus([], null, [], testTeamRoles);
 
         expect(status.currentStage).toBe('awaiting_review');
         expect(status.expectedReviewers).toEqual(['committer', 'maintainer']);
@@ -257,16 +290,48 @@ describe('computeStatus', () => {
             [
                 { reviewer: 'alice', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
                 { reviewer: 'bob', state: 'APPROVED', submittedAt: '2026-01-02T00:00:00Z' },
-            ]
+            ],
+            testTeamRoles
         );
 
         expect(status.waitingOn).toEqual([]);
     });
 
     test('summary combines currentStage and nextAction', () => {
-        const status = computeStatus([], 'APPROVED', []);
+        const status = computeStatus([], 'APPROVED', [], testTeamRoles);
         expect(status.summary).toContain('approved');
         expect(status.summary).toContain(status.nextAction);
+    });
+
+    test('roster unavailable → roster_unavailable stage, regardless of reviewDecision or approvals', () => {
+        const status = computeStatus(
+            ['skill: intermediate'],
+            'APPROVED',
+            [{ reviewer: 'alice', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' }],
+            rosterUnavailable
+        );
+
+        expect(status.currentStage).toBe('roster_unavailable');
+        expect(status.waitingOn).toEqual(status.expectedReviewers);
+    });
+
+    test('regression: an approval followed by a plain comment from the same reviewer still counts as approved', () => {
+        // Reproduces the bug where a later COMMENTED review from an
+        // already-approving reviewer erased their APPROVED status, since
+        // getDetailedReviews only kept the most recent review per reviewer
+        // regardless of state. GitHub's own UI keeps the approval standing
+        // until the reviewer submits another decisive review.
+        const detailedReviews = [
+            { reviewer: 'bob', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
+            { reviewer: 'bob', state: 'COMMENTED', submittedAt: '2026-01-02T00:00:00Z' },
+        ];
+
+        const status = computeStatus(['skill: intermediate'], 'REVIEW_REQUIRED', detailedReviews, testTeamRoles);
+
+        // bob is the maintainer fixture reviewer, so if the earlier APPROVED
+        // had been erased by the later COMMENTED, both gates would still be
+        // waiting. With the fix, bob's approval still counts.
+        expect(status.waitingOn).toEqual([]);
     });
 });
 
@@ -276,7 +341,7 @@ describe('computeStatus', () => {
 
 describe('formatStatusForLog', () => {
     test('includes review status, expected reviewers, waiting on, and next action lines', () => {
-        const status = computeStatus(['skill: advanced'], 'CHANGES_REQUESTED', []);
+        const status = computeStatus(['skill: advanced'], 'CHANGES_REQUESTED', [], testTeamRoles);
         const formatted = formatStatusForLog(status);
 
         expect(formatted).toContain('Review status:');
@@ -286,7 +351,7 @@ describe('formatStatusForLog', () => {
     });
 
     test('renders "none" for empty waitingOn', () => {
-        const status = computeStatus([], 'APPROVED', []);
+        const status = computeStatus([], 'APPROVED', [], testTeamRoles);
         const formatted = formatStatusForLog(status);
         expect(formatted).toContain('Waiting on: none');
     });

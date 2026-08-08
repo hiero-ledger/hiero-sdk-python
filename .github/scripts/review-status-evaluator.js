@@ -152,7 +152,14 @@ async function getDetailedReviews(github, owner, repo, prNumber) {
     }
 
     // Track the latest review from each reviewer, same pattern as
-    // bot-pr-draft-explainer.js.
+    // bot-pr-draft-explainer.js — with one adjustment: a later COMMENTED
+    // review does not supersede an earlier decisive review (APPROVED /
+    // CHANGES_REQUESTED) from the same reviewer. GitHub's own UI keeps an
+    // approval standing until the reviewer submits another APPROVED or
+    // CHANGES_REQUESTED review; a follow-up comment alone isn't a decision
+    // and shouldn't overwrite it. A reviewer whose only review is a
+    // COMMENTED one is still tracked as COMMENTED.
+    const DECISIVE_STATES = new Set(["APPROVED", "CHANGES_REQUESTED", "DISMISSED"]);
     const latestReviews = new Map();
 
     for (const review of reviews) {
@@ -161,9 +168,19 @@ async function getDetailedReviews(github, owner, repo, prNumber) {
 
         const previous = latestReviews.get(reviewer);
 
-        if (!previous || new Date(review.submitted_at) > new Date(previous.submitted_at)) {
+        if (!previous) {
             latestReviews.set(reviewer, review);
+            continue;
         }
+
+        const isNewer = new Date(review.submitted_at) > new Date(previous.submitted_at);
+        if (!isNewer) continue;
+
+        const wouldOverwriteDecisiveWithComment =
+            review.state === "COMMENTED" && DECISIVE_STATES.has(previous.state);
+        if (wouldOverwriteDecisiveWithComment) continue;
+
+        latestReviews.set(reviewer, review);
     }
 
     return [...latestReviews.entries()].map(([reviewer, review]) => ({
@@ -179,6 +196,10 @@ async function getDetailedReviews(github, owner, repo, prNumber) {
  * @param {string[]} labels - PR label names.
  * @param {string|null} reviewDecision - GraphQL reviewDecision value.
  * @param {Array<{reviewer: string, state: string, submittedAt: string}>} detailedReviews
+ * @param {{available: boolean, triage: Set<string>, committer: Set<string>, maintainer: Set<string>}} teamRoles
+ *   - Roster data, as returned by shared/team-roles.js's getTeamRoles(). Passed
+ *   in rather than fetched here so callers control the read (live
+ *   docs/team.md in production, fixture data in tests).
  * @returns {{
  *   currentStage: string,
  *   expectedReviewers: string[],
@@ -187,9 +208,9 @@ async function getDetailedReviews(github, owner, repo, prNumber) {
  *   summary: string,
  * }}
  */
-function computeStatus(labels, reviewDecision, detailedReviews) {
+function computeStatus(labels, reviewDecision, detailedReviews, teamRoles) {
     const expectedReviewers = getExpectedReviewers(labels);
-    const { available, triage, committer, maintainer } = getTeamRoles();
+    const { available, triage, committer, maintainer } = teamRoles;
 
     // If the roster couldn't be read, stop here — don't let empty role
     // sets masquerade as "no approvals yet". Report the failure explicitly
@@ -313,7 +334,7 @@ async function evaluateReviewStatus(github, context) {
         getDetailedReviews(github, owner, repo, prNumber),
     ]);
 
-    const status = computeStatus(labels, reviewDecision, detailedReviews);
+    const status = computeStatus(labels, reviewDecision, detailedReviews, getTeamRoles());
 
     console.log(formatStatusForLog(status));
 

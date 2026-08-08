@@ -85,12 +85,13 @@ describe('review-stages.js — stage constants', () => {
     expect(stages.AWAITING_TRIAGE).toBe('awaiting_triage');
   });
 
-  test('exports REVIEW_STAGES array containing all four stages', () => {
-    expect(stages.REVIEW_STAGES).toHaveLength(4);
+  test('exports REVIEW_STAGES array containing all five stages', () => {
+    expect(stages.REVIEW_STAGES).toHaveLength(5);
     expect(stages.REVIEW_STAGES).toContain(stages.AWAITING_REVIEW);
     expect(stages.REVIEW_STAGES).toContain(stages.CHANGES_REQUESTED);
     expect(stages.REVIEW_STAGES).toContain(stages.APPROVED);
     expect(stages.REVIEW_STAGES).toContain(stages.AWAITING_TRIAGE);
+    expect(stages.REVIEW_STAGES).toContain(stages.ROSTER_UNAVAILABLE);
   });
 });
 

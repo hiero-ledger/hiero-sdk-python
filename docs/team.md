@@ -33,7 +33,7 @@ GitHub IDs and names are provided as listed on GitHub.
 | AntonioCeppellini | @AntonioCeppellini |
 | Dosi Kolev | @Dosik13 |
 | parvninama | @parvninama |
-| danielmarv | @danielmarv |
+| Daniel Ntege | @danielmarv |
 | Mounil2005 | @Mounil2005 |
 
 ## Maintainer Members
