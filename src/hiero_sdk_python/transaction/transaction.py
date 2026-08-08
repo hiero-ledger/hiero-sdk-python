@@ -313,17 +313,18 @@ class Transaction(_Executable):
         self._node_account_ids.set_lock(True)
         self._transaction_ids.set_lock(True)
 
-        node_transaction_bodies = {}
+        # TODO: Can use the first txId since the non-chunk transaction will only have one txId.
+        for transaction_id in self._transaction_ids.get_list():
+            node_transaction_bodies = {}
 
-        # Simple transaction have only one txid. so just build for one first_tx_id
-        for node_account_id in self._node_account_ids.get_list():
-            transaction_body = self.build_transaction_body()
-            transaction_body.transactionID.CopyFrom(self._transaction_ids.get(0)._to_proto())
-            transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
+            for node_account_id in self._node_account_ids.get_list():
+                transaction_body = self.build_transaction_body()
+                transaction_body.transactionID.CopyFrom(self._transaction_ids.get(0)._to_proto())
+                transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
 
-            node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
+                node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
 
-        self._transaction_body_bytes[self._transaction_ids.get(0)] = node_transaction_bodies
+            self._transaction_body_bytes[transaction_id] = node_transaction_bodies
 
         return self
 
@@ -1020,7 +1021,10 @@ class Transaction(_Executable):
     def body_size(self) -> int:
         """Returns just the transaction body size in bytes after encoding"""
         self._require_frozen()
-        return self.build_transaction_body().ByteSize()
+        transaction_body = self.build_transaction_body()
+        transaction_body.transactionID.CopyFrom(self._transaction_ids.current._to_proto())
+        transaction_body.nodeAccountID.CopyFrom(self._node_account_ids.current._to_proto())
+        return transaction_body.ByteSize()
 
     @property
     def high_volume(self) -> bool:

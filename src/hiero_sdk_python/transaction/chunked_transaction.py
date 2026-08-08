@@ -290,6 +290,7 @@ class ChunkedTransaction(Transaction, ABC):
             for i, _ in enumerate(self._transaction_ids):
                 self._current_chunk_index = i
                 sizes.append(self.body_size)
+                self._transaction_ids.advance()
 
         finally:
             self._current_chunk_index = None
