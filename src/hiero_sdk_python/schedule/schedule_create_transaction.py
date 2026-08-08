@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -229,3 +230,20 @@ class ScheduleCreateTransaction(Transaction):
             _Method: An object containing the transaction function to create a schedule.
         """
         return _Method(transaction_func=channel.schedule.createSchedule, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("scheduleCreate"):
+            body = transaction_body.scheduleCreate
+            if body.HasField("payerAccountID"):
+                transaction.payer_account_id = AccountId._from_proto(body.payerAccountID)
+            if body.HasField("adminKey"):
+                transaction.admin_key = Key.from_proto_key(body.adminKey)
+            if body.HasField("scheduledTransactionBody"):
+                transaction.schedulable_body = body.scheduledTransactionBody
+            transaction.schedule_memo = body.memo
+            if body.HasField("expiration_time"):
+                transaction.expiration_time = Timestamp._from_protobuf(body.expiration_time)
+            transaction.wait_for_expiry = body.wait_for_expiry
+        return transaction

@@ -6,7 +6,7 @@ from __future__ import annotations
 from google.protobuf.wrappers_pb2 import StringValue
 
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
@@ -39,7 +39,7 @@ class FileUpdateTransaction(Transaction):
     def __init__(
         self,
         file_id: FileId | None = None,
-        keys: list[PublicKey] | None = None,
+        keys: list[Key] | None = None,
         contents: str | bytes | None = None,
         expiration_time: Timestamp | None = None,
         file_memo: str | None = None,
@@ -49,7 +49,7 @@ class FileUpdateTransaction(Transaction):
 
         Args:
             file_id (FileId, optional): The ID of the file to update.
-            keys (Optional[list[PublicKey]], optional): The new keys that are allowed to
+            keys (Optional[list[Key]], optional): The new keys that are allowed to
             update/delete the file.
             contents (str | bytes, optional): The new contents of the file.
             Strings will be automatically encoded as UTF-8 bytes.
@@ -58,7 +58,7 @@ class FileUpdateTransaction(Transaction):
         """
         super().__init__()
         self.file_id: FileId | None = file_id
-        self.keys: list[PublicKey] | None = keys
+        self.keys: list[Key] | None = keys
         self.contents: bytes | None = self._encode_contents(contents)
         self.expiration_time: Timestamp | None = expiration_time
         self.file_memo: str | None = file_memo
@@ -94,19 +94,19 @@ class FileUpdateTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def set_keys(self, keys: list[PublicKey] | None | PublicKey) -> FileUpdateTransaction:
+    def set_keys(self, keys: list[Key] | None | Key) -> FileUpdateTransaction:
         """
         Sets the new list of keys that can modify or delete the file.
 
         Args:
-            keys (list[PublicKey] | PublicKey | None): The new keys to set for the file.
-                Can be a list of PublicKey objects, a single PublicKey, or None.
+            keys (list[Key] | Key | None): The new keys to set for the file.
+                Can be a list of Key objects, a single Key, or None.
 
         Returns:
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        if isinstance(keys, PublicKey):
+        if isinstance(keys, Key):
             self.keys = [keys]
         else:
             self.keys = keys
@@ -214,3 +214,18 @@ class FileUpdateTransaction(Transaction):
             _Method: An object containing the transaction function to update a file.
         """
         return _Method(transaction_func=channel.file.updateFile, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("fileUpdate"):
+            body = transaction_body.fileUpdate
+            if body.HasField("fileID"):
+                transaction.file_id = FileId._from_proto(body.fileID)
+            transaction.keys = [Key.from_proto_key(k) for k in body.keys.keys] if body.keys.keys else None
+            transaction.contents = body.contents if body.contents else None
+            if body.HasField("expirationTime"):
+                transaction.expiration_time = Timestamp._from_protobuf(body.expirationTime)
+            if body.HasField("memo"):
+                transaction.file_memo = body.memo.value
+        return transaction

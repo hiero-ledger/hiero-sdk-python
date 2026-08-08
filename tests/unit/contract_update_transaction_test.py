@@ -383,3 +383,83 @@ def test_decline_reward_false(contract_id):
     tx = ContractUpdateTransaction().set_contract_id(contract_id).set_decline_reward(False)
 
     assert tx.decline_reward is False
+
+
+def test_from_bytes(mock_account_ids, contract_id):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = ContractUpdateTransaction()
+    tx.set_contract_id(contract_id)
+    tx.set_contract_memo("updated memo")
+    tx.set_auto_renew_period(Duration(7_776_000))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractUpdateTransaction)
+    assert reconstructed.contract_id == contract_id
+    assert reconstructed.contract_memo == "updated memo"
+    assert reconstructed.auto_renew_period.seconds == 7_776_000
+
+
+def test_from_bytes_with_optional_fields(mock_account_ids, contract_id):
+    """Covers expiration_time, adminKey, max_auto_token_assoc, auto_renew_account, decline_reward, staked."""
+    from hiero_sdk_python.timestamp import Timestamp
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    admin_key = PrivateKey.generate().public_key()
+    expiry = Timestamp(seconds=9_999_999_999, nanos=0)
+
+    tx = ContractUpdateTransaction()
+    tx.set_contract_id(contract_id)
+    tx.set_expiration_time(expiry)
+    tx.set_admin_key(admin_key)
+    tx.set_max_automatic_token_associations(5)
+    tx.set_auto_renew_account_id(AccountId(0, 0, 8))
+    tx.set_decline_reward(True)
+    tx.set_staked_account_id(AccountId(0, 0, 9))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.node_account_id = node_account_id
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ContractUpdateTransaction)
+    assert reconstructed.expiration_time.seconds == expiry.seconds
+    assert reconstructed.admin_key is not None
+    assert reconstructed.max_automatic_token_associations == 5
+    assert reconstructed.auto_renew_account_id == AccountId(0, 0, 8)
+    assert reconstructed.decline_reward is True
+    assert reconstructed.staked_account_id == AccountId(0, 0, 9)
+
+
+def test_from_bytes_with_staked_node_id_and_old_memo(mock_account_ids, contract_id):
+    """Covers staked_node_id and old-format memo field in _from_protobuf."""
+    from hiero_sdk_python.hapi.services import contract_update_pb2, transaction_pb2
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    body = contract_update_pb2.ContractUpdateTransactionBody(
+        contractID=contract_id._to_proto(),
+        staked_node_id=4,
+        memo="old memo style",
+    )
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.contractUpdateInstance.CopyFrom(body)
+
+    from hiero_sdk_python.contract.contract_update_transaction import ContractUpdateTransaction
+
+    result = ContractUpdateTransaction._from_protobuf(tx_body, b"", None)
+
+    assert isinstance(result, ContractUpdateTransaction)
+    assert result.staked_node_id == 4
+    assert result.contract_memo == "old memo style"
+    assert result.staked_account_id is None
