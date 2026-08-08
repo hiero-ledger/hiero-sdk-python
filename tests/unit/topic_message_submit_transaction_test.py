@@ -588,8 +588,8 @@ def test_execute_raises_when_message_is_empty(topic_id, mock_client):
         transaction.freeze_with(mock_client)
 
 
-def test_transaction_body_bytes_for_each_node_id_on_freeze_chunked(mock_client, topic_id):
-    """Test transaction body bytes are created for each chunk and each network node."""
+def test_body_bytes_for_each_chunk_and_node_on_freeze(mock_client, topic_id):
+    """Test transaction body bytes are created for each chunk and network node when freezing with a client."""
     tx = (
         TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))  # 2 chunks
     )
@@ -611,3 +611,40 @@ def test_transaction_body_bytes_for_each_node_id_on_freeze_chunked(mock_client, 
 
             assert body.transactionID == transaction_id._to_proto()
             assert body.nodeAccountID == node_id._to_proto()
+
+    assert tx._transaction_ids._locked is True
+    assert tx._transaction_ids.index == 0
+
+    assert tx._node_account_ids._locked is True
+    assert tx._node_account_ids.index == 0
+
+
+def test_body_bytes_for_each_chunk_and_node_on_manual_freeze(topic_id):
+    """Test transaction body bytes are created for each chunk and manually configured node ID."""
+    node_ids = [AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")]
+    tx = (
+        TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))  # 2 chunks
+    )
+    tx.set_node_account_ids(node_ids)
+    tx.set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.3")))
+    tx.freeze()
+
+    assert tx._transaction_body_bytes
+    assert len(tx._transaction_body_bytes) == 2
+    assert set(tx._transaction_body_bytes.keys()) == set(tx._transaction_ids)
+
+    for transaction_id, node_body_bytes in tx._transaction_body_bytes.items():
+        assert set(node_body_bytes.keys()) == set(node_ids)
+
+        for node_id, body_bytes in node_body_bytes.items():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(body_bytes)
+
+            assert body.transactionID == transaction_id._to_proto()
+            assert body.nodeAccountID == node_id._to_proto()
+
+    assert tx._transaction_ids._locked is True
+    assert tx._transaction_ids.index == 0
+
+    assert tx._node_account_ids._locked is True
+    assert tx._node_account_ids.index == 0

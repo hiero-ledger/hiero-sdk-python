@@ -922,12 +922,14 @@ class Transaction(_Executable):
             ]
 
         if not transaction._node_account_ids.is_empty:
-            # restore for the original frozen node
             # TODO: This will change, Instead of node_account_id use the signature map to decide if we need to freeze
-            # node_account_ids will always contain single id in currrent impl
-            node_bytes = {}
-            node_bytes[transaction._node_account_ids.current] = body_bytes
-            transaction._transaction_body_bytes[transaction._transaction_ids.current] = node_bytes
+            # Currently the unit test for this is skip the implemtation will change in follow up PR
+            transaction._transaction_ids.set_lock(True)
+            transaction._node_account_ids.set_lock(True)
+
+            node_transaction_bodies = {}
+            node_transaction_bodies[transaction._node_account_ids.current] = body_bytes
+            transaction._transaction_body_bytes[transaction._transaction_ids.current] = node_transaction_bodies
 
         if sig_map and sig_map.sigPair:
             transaction._signature_map[body_bytes] = sig_map

@@ -154,7 +154,7 @@ class FeeEstimateQuery:
     def _ensure_frozen(self, tx: Transaction, client) -> None:
         """Ensure the transaction is frozen before serialization."""
         if not tx._transaction_body_bytes:
-            tx.freeze_with(client) if hasattr(tx, "freeze_with") else tx.freeze()
+            tx.freeze_with(client)
 
     def _post(self, url: str, payload: bytes) -> dict:
         """POST with retry for transient failures."""
