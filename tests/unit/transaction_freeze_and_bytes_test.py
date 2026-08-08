@@ -544,10 +544,8 @@ def test_multiple_signatures_increase_size():
     assert len(bytes_3_sig) > len(bytes_2_sig)
 
 
-# TODO: Disable as this require to fix the serialization, which is part of follow up PR
-@pytest.mark.skip(reason="Temporarily Disable")
-def test_changing_node_after_freeze_fails_for_to_bytes():
-    """Test that changing node_account_id after freeze causes to_bytes() to fail."""
+def test_changing_node_after_freeze_fails():
+    """Test that changing node_account_id after freeze causes error."""
     operator_id = AccountId.from_string("0.0.1234")
     node_id_1 = AccountId.from_string("0.0.3")
     node_id_2 = AccountId.from_string("0.0.4")
@@ -561,16 +559,9 @@ def test_changing_node_after_freeze_fails_for_to_bytes():
     transaction.set_node_account_ids([node_id_1])
     transaction.freeze()
 
-    # This should work
-    bytes_node_1 = transaction.to_bytes()
-    assert isinstance(bytes_node_1, bytes)
-
-    # Change to a different node that wasn't frozen
-    transaction.set_node_account_ids([node_id_2])
-
-    # This should fail - no transaction body for node_id_2
-    with pytest.raises(ValueError, match="No transaction body found for node"):
-        transaction.to_bytes()
+    # This should fail as node_account_ids list is locked
+    with pytest.raises(Exception, match="list is unmutable"):
+        transaction.set_node_account_ids([node_id_2])
 
 
 def test_unsigned_transaction_can_be_signed_after_to_bytes():
