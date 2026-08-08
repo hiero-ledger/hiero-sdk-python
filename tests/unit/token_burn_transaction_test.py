@@ -52,9 +52,8 @@ def test_build_transaction_body(mock_account_ids):
 def test_build_transaction_body_validation_errors():
     """Test that build_transaction_body raises appropriate validation errors."""
     burn_tx = TokenBurnTransaction()
-
-    with pytest.raises(ValueError, match="Missing token ID"):
-        burn_tx.build_transaction_body()
+    body = burn_tx._build_proto_body()
+    assert not body.HasField("token")
 
     with pytest.raises(ValueError, match="Cannot burn both amount and serial in the same transaction"):
         burn_tx.set_token_id(TokenId(0, 0, 0)).set_amount(100).set_serials([1, 2, 3]).build_transaction_body()

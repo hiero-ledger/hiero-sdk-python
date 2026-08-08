@@ -111,15 +111,16 @@ class TokenBurnTransaction(Transaction):
             TokenBurnTransactionBody: The protobuf body for this transaction.
 
         Raises:
-            ValueError: If the token ID is not set or if both amount and serials are provided.
+            ValueError: If both amount and serials are set, which is not allowed.
         """
-        if self.token_id is None:
-            raise ValueError("Missing token ID")
-
         if self.amount and self.serials:
             raise ValueError("Cannot burn both amount and serial in the same transaction")
 
-        return TokenBurnTransactionBody(token=self.token_id._to_proto(), amount=self.amount, serialNumbers=self.serials)
+        return TokenBurnTransactionBody(
+            token=self.token_id._to_proto() if self.token_id is not None else None,
+            amount=self.amount,
+            serialNumbers=self.serials,
+        )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """

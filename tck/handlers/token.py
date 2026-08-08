@@ -19,6 +19,7 @@ from hiero_sdk_python.tokens.token_airdrop_claim import TokenClaimAirdropTransac
 from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
+from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
@@ -42,6 +43,7 @@ from tck.param.custom_fee import CustomFeeParams, FixedFeeParams
 from tck.param.token import (
     AirdropTokenParams,
     AssociateTokenParams,
+    BurnTokenParams,
     ClaimTokenParams,
     CreateTokenParams,
     DeleteTokenParams,
@@ -59,6 +61,7 @@ from tck.param.token import (
 from tck.response.token import (
     AirdropTokenResponse,
     AssociateTokenResponse,
+    BurnTokenResponse,
     ClaimTokenResponse,
     CreateTokenResponse,
     CustomFeeResponse,
@@ -894,3 +897,40 @@ def wipe_token(params: WipeTokenParams) -> WipeTokenResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return WipeTokenResponse(status=ResponseCode(receipt.status).name)
+
+
+def _build_burn_token_transaction(
+    params: BurnTokenParams,
+) -> TokenBurnTransaction:
+    """Build a TokenBurnTransaction from TCK params."""
+    transaction = TokenBurnTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    if params.serialNumbers is not None:
+        transaction.set_serials([to_int(serial_number) for serial_number in params.serialNumbers])
+
+    if params.amount is not None:
+        transaction.set_amount(to_int(params.amount))
+
+    return transaction
+
+
+@rpc_method("burnToken")
+def burn_token(params: BurnTokenParams) -> BurnTokenResponse:
+    """Burns the provided amount of fungible or non-fungible tokens from the specified Hedera account"""
+    client = get_client(params.sessionId)
+
+    transaction = _build_burn_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return BurnTokenResponse(
+        newTotalSupply=str(receipt.new_total_supply),
+        status=ResponseCode(receipt.status).name,
+    )
