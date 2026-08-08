@@ -19,7 +19,7 @@ class _LockableList(Generic[T]):
     def _require_not_locked(self) -> None:
         """Raise an exception if the list is locked."""
         if self._locked:
-            raise RuntimeError("list is unmutable")
+            raise Exception("list is unmutable")
 
     def set_list(self, items: list[T]) -> _LockableList[T]:
         """Replace the contents of the list and reset the current index."""
