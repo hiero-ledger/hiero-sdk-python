@@ -5,6 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from unittest.mock import MagicMock
 
+from tck.handlers.token import get_token_nft_info
+from tck.param.token import GetTokenNftInfoParams
+from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
+
 import pytest
 
 from hiero_sdk_python.exceptions import (
@@ -364,3 +368,31 @@ class TestParseResult:
             "child": {"name": "test", "child": {"nullable_field": None, "label": "test"}, "nullable_field": None},
             "nullable_field": None,
         }
+def test_get_token_nft_info_handler(mocker):
+    """Test get_token_nft_info handler execution and response mapping."""
+    # 1. Mock του client και του network ledger_id
+    mock_client = MagicMock()
+    mock_client.network.ledger_id = b"\x01\x02"
+    mocker.patch("tck.handlers.token.get_client", return_value=mock_client)
+
+    # 2. Mock του αποτελέσματος TokenNftInfo από το SDK
+    mock_nft_info = MagicMock()
+    mock_nft_info.nft_id = "0.0.1234/1"
+    mock_nft_info.account_id = "0.0.5678"
+    mock_nft_info.creation_time = MagicMock(seconds=1234567890)
+    mock_nft_info.metadata = b"test_metadata"
+    mock_nft_info.spender_id = None
+
+    # 3. Patch της μεθόδου execute του TokenNftInfoQuery
+    mocker.patch.object(TokenNftInfoQuery, "execute", return_value=mock_nft_info)
+
+    # 4. Εκτέλεση του handler με δοκιμαστικές παραμέτρους
+    params = GetTokenNftInfoParams(nftId="0.0.1234/1", sessionId="test-session")
+    response = get_token_nft_info(params)
+
+    # 5. Επιβεβαίωση (Assertions) των πεδίων επιστροφής
+    assert response.nftId == "0.0.1234/1"
+    assert response.accountId == "0.0.5678"
+    assert response.metadata == b"test_metadata".hex()
+    assert response.creationTime == "1234567890"
+    assert response.ledgerId == "0102"

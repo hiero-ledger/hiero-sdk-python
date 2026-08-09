@@ -341,7 +341,23 @@ class RejectTokenParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+@dataclass
+class GetTokenNftInfoParams(BaseParams):
+    """Request parameters for the getTokenNftInfo endpoint."""
 
+    nftId: str | None = None
+    queryPayment: str | None = None
+    maxQueryPayment: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GetTokenNftInfoParams:
+        """Parse JSON-RPC params into a GetTokenNftInfoParams instance."""
+        return cls(
+            nftId=params.get("nftId"),
+            queryPayment=params.get("queryPayment"),
+            maxQueryPayment=params.get("maxQueryPayment"),
+            sessionId=parse_session_id(params),
+        )
 
 @dataclass
 class WipeTokenParams(BaseTransactionParams):
