@@ -151,8 +151,6 @@ class ChunkedTransaction(Transaction, ABC):
             node_bytes = {}
 
             for node_account_id in self.node_account_ids:
-                self._node_account_id = node_account_id
-
                 transaction_body = self.build_transaction_body()
                 transaction_body.transactionID.CopyFrom(self._transaction_ids.current._to_proto())
                 transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
