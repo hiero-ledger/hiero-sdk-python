@@ -160,7 +160,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
         content = self._message_as_bytes()
 
-        if self._current_chunk_index is not None:
+        if self._total_chunks > 1 and self._current_chunk_index is not None:
             chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
                 initialTransactionID=self._initial_transaction_id._to_proto(),
                 total=self._total_chunks,

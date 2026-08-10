@@ -588,6 +588,38 @@ def test_execute_raises_when_message_is_empty(topic_id, mock_client):
         transaction.freeze_with(mock_client)
 
 
+def test_chunk_info_for_multiple_chunks(topic_id, mock_client):
+    """Test chunkInfo is included when total chunks are greater than one."""
+    tx = (
+        TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))  # 2 chunks
+    )
+    tx.freeze_with(mock_client)
+
+    assert tx._transaction_body_bytes
+    for _, node_body_bytes in tx._transaction_body_bytes.items():
+        for _, body_bytes in node_body_bytes.items():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(body_bytes)
+
+            assert body.consensusSubmitMessage.HasField("chunkInfo")
+
+
+def test_no_chunk_info_for_single_chunk(topic_id, mock_client):
+    """Test chunkInfo is not included when there is only one chunk."""
+    tx = (
+        TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(10))  # 1 chunks
+    )
+    tx.freeze_with(mock_client)
+
+    assert tx._transaction_body_bytes
+    for _, node_body_bytes in tx._transaction_body_bytes.items():
+        for _, body_bytes in node_body_bytes.items():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(body_bytes)
+
+            assert not body.consensusSubmitMessage.HasField("chunkInfo")
+
+
 def test_body_bytes_for_each_chunk_and_node_on_freeze(mock_client, topic_id):
     """Test transaction body bytes are created for each chunk and network node when freezing with a client."""
     tx = (
