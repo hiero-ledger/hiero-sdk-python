@@ -944,7 +944,7 @@ def _build_token_nft_info_response(info: TokenNftInfo, client) -> GetTokenNftInf
     return GetTokenNftInfoResponse(
         nftId=str(info.nft_id) if info.nft_id else None,
         accountId=str(info.account_id) if info.account_id else None,
-        creationTime=str(info.creation_time.seconds) if info.creation_time else None,
+        creationTime=str(info.creation_time) if info.creation_time else None,
         metadata=info.metadata.hex() if info.metadata else "",
         ledgerId=client.network.ledger_id.hex() if client.network and client.network.ledger_id else "",
         spenderId=str(info.spender_id) if info.spender_id else None,

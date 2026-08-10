@@ -54,7 +54,7 @@ class TokenNftInfo:
             account_id=AccountId._from_proto(proto.accountID),
             creation_time=proto.creationTime.seconds,
             metadata=proto.metadata,
-            spender_id=AccountId._from_proto(proto.spender_id),
+            spender_id=AccountId._from_proto(proto.spender_id) if proto.HasField("spender_id")  else None,
         )
 
     def _to_proto(self) -> token_get_nft_info_pb2.TokenNftInfo:
