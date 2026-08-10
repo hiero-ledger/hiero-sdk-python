@@ -75,7 +75,9 @@ async function getOpenAssignments({ github, owner, repo, username }) {
       per_page: 100,
     });
 
-    return issues.length;
+    // listForRepo returns both issues and pull requests.
+    // Only open issues should consume assignment capacity.
+    return issues.filter((item) => !item.pull_request).length;
   } catch (error) {
     console.error('[github-api] getOpenAssignments failed:', {
       owner,
