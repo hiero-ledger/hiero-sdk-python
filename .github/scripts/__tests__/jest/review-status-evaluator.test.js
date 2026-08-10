@@ -17,6 +17,7 @@ const {
     getDetailedReviews,
     computeStatus,
     formatStatusForLog,
+    resolvePrNumber,
     evaluateReviewStatus,
 } = require('../../review-status-evaluator');
 const { getTeamRoles } = require('../../shared/team-roles');
@@ -241,9 +242,27 @@ describe('getDetailedReviews', () => {
 // ---------------------------------------------------------------------------
 
 describe('computeStatus', () => {
-    test('APPROVED reviewDecision → approved stage, nothing waiting', () => {
+    test('APPROVED reviewDecision alone does not clear incomplete role gates', () => {
+        // GitHub's reviewDecision can flip to "APPROVED" once branch
+        // protection's required-approval count is met by *any* reviewer,
+        // even one who only qualifies for a lower role than this PR's
+        // expected reviewer set needs. alice is triage-only in the fixture
+        // roster, so her approval alone must not be enough to satisfy the
+        // committer + maintainer gates that 'skill: intermediate' expects.
         const status = computeStatus(['skill: intermediate'], 'APPROVED', [
             { reviewer: 'alice', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
+        ], testTeamRoles);
+
+        expect(status.currentStage).not.toBe('approved');
+        expect(status.waitingOn).toEqual(['committer', 'maintainer']);
+    });
+
+    test('APPROVED reviewDecision with every expected role qualified → approved stage, nothing waiting', () => {
+        // bob is a maintainer in the fixture roster, and maintainer is a
+        // superset of committer authority, so bob's single approval clears
+        // both roles that 'skill: intermediate' expects.
+        const status = computeStatus(['skill: intermediate'], 'APPROVED', [
+            { reviewer: 'bob', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
         ], testTeamRoles);
 
         expect(status.currentStage).toBe('approved');
@@ -298,7 +317,14 @@ describe('computeStatus', () => {
     });
 
     test('summary combines currentStage and nextAction', () => {
-        const status = computeStatus([], 'APPROVED', [], testTeamRoles);
+        // No skill label → expects [committer, maintainer]; bob's approval
+        // (maintainer in the fixture roster) satisfies both.
+        const status = computeStatus(
+            [],
+            'APPROVED',
+            [{ reviewer: 'bob', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' }],
+            testTeamRoles
+        );
         expect(status.summary).toContain('approved');
         expect(status.summary).toContain(status.nextAction);
     });
@@ -351,9 +377,62 @@ describe('formatStatusForLog', () => {
     });
 
     test('renders "none" for empty waitingOn', () => {
-        const status = computeStatus([], 'APPROVED', [], testTeamRoles);
+        // No skill label → expects [committer, maintainer]; bob's approval
+        // (maintainer in the fixture roster) satisfies both, so waitingOn
+        // is genuinely empty.
+        const status = computeStatus(
+            [],
+            'APPROVED',
+            [{ reviewer: 'bob', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' }],
+            testTeamRoles
+        );
         const formatted = formatStatusForLog(status);
         expect(formatted).toContain('Waiting on: none');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// resolvePrNumber
+// ---------------------------------------------------------------------------
+
+describe('resolvePrNumber', () => {
+    afterEach(() => {
+        delete process.env.PR_NUMBER;
+    });
+
+    test('accepts a positive integer from context.payload.pull_request.number', () => {
+        const context = { payload: { pull_request: { number: 5 } } };
+        expect(resolvePrNumber(context)).toBe(5);
+    });
+
+    test('falls back to PR_NUMBER when the payload number is zero or negative', () => {
+        process.env.PR_NUMBER = '9';
+
+        expect(resolvePrNumber({ payload: { pull_request: { number: 0 } } })).toBe(9);
+        expect(resolvePrNumber({ payload: { pull_request: { number: -3 } } })).toBe(9);
+    });
+
+    test('falls back to PR_NUMBER when the payload number is not an integer', () => {
+        process.env.PR_NUMBER = '9';
+
+        expect(resolvePrNumber({ payload: { pull_request: { number: 1.5 } } })).toBe(9);
+    });
+
+    test('accepts a positive integer PR_NUMBER env var when the payload has none', () => {
+        process.env.PR_NUMBER = '12';
+        expect(resolvePrNumber({ payload: {} })).toBe(12);
+    });
+
+    test('rejects a non-positive or non-numeric PR_NUMBER env var', () => {
+        process.env.PR_NUMBER = '-1';
+        expect(resolvePrNumber({ payload: {} })).toBeNull();
+
+        process.env.PR_NUMBER = 'not-a-number';
+        expect(resolvePrNumber({ payload: {} })).toBeNull();
+    });
+
+    test('returns null when neither source has a usable PR number', () => {
+        expect(resolvePrNumber({ payload: {} })).toBeNull();
     });
 });
 
@@ -373,10 +452,13 @@ describe('evaluateReviewStatus', () => {
     });
 
     test('resolves PR number from context.payload.pull_request and returns computed status', async () => {
+        // bob is the maintainer fixture reviewer (see testTeamRoles above),
+        // so a single approval from bob clears both the committer and
+        // maintainer gates that 'skill: intermediate' expects.
         const github = createMockGithub({
             labels: ['skill: intermediate'],
             reviewDecision: 'APPROVED',
-            reviews: [{ user: { login: 'alice' }, state: 'APPROVED', submitted_at: '2026-01-01T00:00:00Z' }],
+            reviews: [{ user: { login: 'bob' }, state: 'APPROVED', submitted_at: '2026-01-01T00:00:00Z' }],
         });
         const context = {
             payload: { pull_request: { number: 42 } },
@@ -387,6 +469,21 @@ describe('evaluateReviewStatus', () => {
 
         expect(status).not.toBeNull();
         expect(status.currentStage).toBe('approved');
+    });
+
+    test('does not call GitHub APIs when the payload PR number is invalid', async () => {
+        const github = createMockGithub({});
+        const listLabelsSpy = jest.spyOn(github.rest.issues, 'listLabelsOnIssue');
+        const context = {
+            payload: { pull_request: { number: -1 } },
+            repo: { owner: 'o', repo: 'r' },
+        };
+
+        delete process.env.PR_NUMBER;
+        const status = await evaluateReviewStatus(github, context);
+
+        expect(status).toBeNull();
+        expect(listLabelsSpy).not.toHaveBeenCalled();
     });
 
     test('falls back to PR_NUMBER env var when payload has no pull_request', async () => {

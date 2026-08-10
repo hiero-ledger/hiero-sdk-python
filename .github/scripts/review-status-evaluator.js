@@ -241,6 +241,15 @@ function computeStatus(labels, reviewDecision, detailedReviews, teamRoles) {
     const hasQualifiedApproval = (role) =>
         approvedReviews.some((r) => qualifiedFor[role]?.has((r.reviewer || "").toLowerCase()));
 
+    // Each expected role is only cleared once an approval from someone
+    // actually holding that role (or a higher one) has landed — not just
+    // once the raw approval count reaches that position, and not just
+    // because GitHub's reviewDecision says "APPROVED" (branch protection
+    // may only require *any* single approval, which can be satisfied by a
+    // triage-only approval on a PR that also expects a committer/maintainer
+    // sign-off).
+    const outstandingRoles = expectedReviewers.filter((role) => !hasQualifiedApproval(role));
+
     let currentStage;
     let waitingOn;
     let nextAction;
@@ -250,22 +259,21 @@ function computeStatus(labels, reviewDecision, detailedReviews, teamRoles) {
     // are matched against string literals, not our internal stage constants
     // from shared/review-stages.js, which use a different casing/format and
     // are only used for the *output* currentStage value.
-    if (reviewDecision === "APPROVED") {
-        currentStage = APPROVED;
-        waitingOn = [];
-        nextAction = "Ready to merge.";
-    } else if (reviewDecision === "CHANGES_REQUESTED") {
+    if (reviewDecision === "CHANGES_REQUESTED") {
         currentStage = CHANGES_REQUESTED;
         // A fresh review cycle is needed from everyone expected once changes
         // are pushed, so treat the full expected list as outstanding.
         waitingOn = expectedReviewers;
         nextAction = `Address requested changes, then re-request review from: ${waitingOn.join(", ") || "none"}.`;
+    } else if (reviewDecision === "APPROVED" && outstandingRoles.length === 0) {
+        currentStage = APPROVED;
+        waitingOn = [];
+        nextAction = "Ready to merge.";
     } else {
-        // null or REVIEW_REQUIRED — no decision reached yet. Each expected
-        // role is only cleared once an approval from someone actually
-        // holding that role (or a higher one) has landed — not just once
-        // the raw approval count reaches that position.
-        waitingOn = expectedReviewers.filter((role) => !hasQualifiedApproval(role));
+        // null, REVIEW_REQUIRED, or a GitHub-level "APPROVED" that hasn't
+        // actually satisfied every role-qualified gate this evaluator
+        // expects yet.
+        waitingOn = outstandingRoles;
 
         currentStage =
             expectedReviewers[0] === TRIAGE && waitingOn.includes(TRIAGE)
@@ -315,12 +323,25 @@ function formatStatusForLog(status) {
  * @returns {Promise<ReturnType<typeof computeStatus>|null>} - null if no PR
  *   number could be resolved.
  */
+function resolvePrNumber(context) {
+    const fromPayload = context.payload?.pull_request?.number;
+    if (Number.isInteger(fromPayload) && fromPayload > 0) {
+        return fromPayload;
+    }
+
+    const fromEnv = Number(process.env.PR_NUMBER);
+    if (Number.isInteger(fromEnv) && fromEnv > 0) {
+        return fromEnv;
+    }
+
+    return null;
+}
+
 async function evaluateReviewStatus(github, context) {
-    const prNumber =
-        context.payload?.pull_request?.number || Number(process.env.PR_NUMBER);
+    const prNumber = resolvePrNumber(context);
 
     if (!prNumber) {
-        console.log("No PR number found in context or environment — exiting.");
+        console.log("No valid PR number found in context or environment — exiting.");
         return null;
     }
 
@@ -347,5 +368,6 @@ module.exports = {
     getDetailedReviews,
     computeStatus,
     formatStatusForLog,
+    resolvePrNumber,
     evaluateReviewStatus,
 };
