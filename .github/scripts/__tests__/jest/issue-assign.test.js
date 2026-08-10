@@ -186,10 +186,11 @@ describe('runAssignmentFlow - validation', () => {
       },
     });
 
-    await runAssignmentFlow({ github, context });
-
-    expect(githubApi.assignIssue).not.toHaveBeenCalled();
-    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
+    await expect(
+      runAssignmentFlow({ github, context })
+    ).rejects.toThrow(
+      '[assign-bot] Issue #15 has no recognized skill label.'
+    );
   });
 
   test('returns for repositories that are not configured', async () => {
