@@ -142,8 +142,9 @@ async function runAssignmentFlow({ github, context }) {
 
   const levelKey = resolveLevelKey(issue, repoConfig);
   if (!levelKey) {
-    console.log(`[assign-bot] Issue #${issue.number} has no recognized skill label. Exiting.`);
-    return;
+    throw new Error(
+      `[assign-bot] Issue #${issue.number} has no recognized skill label.`
+    );
   }
 
   const levelConfig = CONFIG.skillPrerequisites[levelKey];
