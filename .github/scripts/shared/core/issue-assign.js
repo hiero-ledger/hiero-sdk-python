@@ -102,10 +102,10 @@ function resolveLevelKey(issue, repoConfig) {
  * @returns {Promise<void>}
  */
 async function runAssignmentFlow({ github, context }) {
-  const { payload } = context;
-  const issue = payload.issue;
-  const comment = payload.comment;
-  const repo = payload.repository;
+  const payload = context?.payload;
+  const issue = payload?.issue;
+  const comment = payload?.comment;
+  const repo = payload?.repository;
 
   if (!issue || !comment || !repo || issue.pull_request) {
     console.log('[assign-bot] Invalid payload or PR comment. Exiting.');
