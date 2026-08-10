@@ -131,10 +131,12 @@ async function countCompletedIssuesWithLabel({ github, owner, repo, username, la
 }
 
 /**
- * Determines whether a user should be treated as a repository collaborator.
+
+ * Determines whether a user has repository collaborator access.
  *
  * Repository owners are always considered collaborators.
- * Returns false for permission lookup failures or users without collaborator access.
+ * GitHub returns 204 when the user is a collaborator and 404 otherwise.
+ * Unexpected API failures are treated as non-collaborator access.
  */
 async function isRepoCollaborator({ github, owner, repo, username }) {
   if (username === owner) {
@@ -143,17 +145,31 @@ async function isRepoCollaborator({ github, owner, repo, username }) {
   }
 
   try {
-    const response = await github.rest.repos.getCollaboratorPermissionLevel({ owner, repo, username });
-    const permission = response?.data?.permission;
-    const isTeamMember = ['admin', 'write', 'maintain', 'read'].includes(permission);
-    console.log('[github-api] isRepoCollaborator:', { username, permission, isTeamMember });
-    return isTeamMember;
+    await github.rest.repos.checkCollaborator({
+      owner,
+      repo,
+      username,
+    });
+
+    console.log('[github-api] isRepoCollaborator: collaborator', {
+      username,
+    });
+
+    return true;
   } catch (error) {
-    if (error?.status === 401 || error?.status === 403 || error?.status === 404) {
-      console.log('[github-api] isRepoCollaborator: not a collaborator', { username, status: error.status });
+    if (error?.status === 404) {
+      console.log('[github-api] isRepoCollaborator: not a collaborator', {
+        username,
+      });
       return false;
     }
-    console.error('[github-api] isRepoCollaborator: unexpected error', { username, message: error.message });
+
+    console.error('[github-api] isRepoCollaborator: unexpected error', {
+      username,
+      status: error?.status,
+      message: error.message,
+    });
+
     return false;
   }
 }
