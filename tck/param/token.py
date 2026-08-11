@@ -167,6 +167,21 @@ class FreezeTokenParams(BaseTransactionParams):
 
 
 @dataclass
+class UnfreezeTokenParams(BaseTransactionParams):
+    tokenId: str | None = None
+    accountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UnfreezeTokenParams:
+        return cls(
+            tokenId=params.get("tokenId"),
+            accountId=params.get("accountId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class DissociateTokenParams(BaseTransactionParams):
     """Request parameters for the dissociateToken endpoint."""
 
