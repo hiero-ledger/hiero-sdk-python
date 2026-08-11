@@ -86,7 +86,7 @@ from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
 from tck.util.param_utils import to_int
 
-
+from tck.errors import JsonRpcError
 def _parse_hex(value: str, field_name: str) -> bytes:
     try:
         return bytes.fromhex(value)
@@ -958,8 +958,13 @@ def get_token_nft_info(params: GetTokenNftInfoParams) -> GetTokenNftInfoResponse
 
     query = TokenNftInfoQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
-    if params.nftId is not None:
+
+    if not params.nftId:
+        raise JsonRpcError.invalid_params_error("nftId is required")
+    try:
         query.set_nft_id(NftId.from_string(params.nftId))
+    except Exception as e:
+        raise JsonRpcError.invalid_params_error(f"Invalid nftId: {e}")
 
     if params.queryPayment is not None:
         query.set_query_payment(Hbar.from_tinybars(int(params.queryPayment)))
