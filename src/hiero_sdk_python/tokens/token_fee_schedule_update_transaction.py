@@ -19,7 +19,7 @@ from hiero_sdk_python.transaction.transaction import Transaction
 
 
 if TYPE_CHECKING:
-    from hiero_sdk_python.client import Client
+    from hiero_sdk_python.client.client import Client
 
 
 class TokenFeeScheduleUpdateTransaction(Transaction):
@@ -62,14 +62,17 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
         self,
     ) -> token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody:
         """Builds the protobuf body for the transaction."""
-        kwargs = {
-            "custom_fees": [fee._to_proto() for fee in self.custom_fees],
-        }
+        custom_fees_proto = [fee._to_proto() for fee in self.custom_fees]
 
         if self.token_id is not None:
-            kwargs["token_id"] = self.token_id._to_proto()
+            return token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody(
+                token_id=self.token_id._to_proto(),
+                custom_fees=custom_fees_proto,
+            )
 
-        return token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody(**kwargs)
+        return token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody(
+            custom_fees=custom_fees_proto,
+        )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """Builds and returns the protobuf transaction body."""
@@ -87,7 +90,11 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         """Gets the gRPC method for this transaction."""
-        return _Method(transaction_func=channel.token.updateTokenFeeSchedule)
+        token_service = channel.token
+        if token_service is None:
+            raise ValueError("Token service not available on channel")
+
+        return _Method(transaction_func=token_service.updateTokenFeeSchedule)
 
     def __repr__(self):
         """Readable representation for debugging."""
