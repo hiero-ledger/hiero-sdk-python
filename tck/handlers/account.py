@@ -16,6 +16,8 @@ from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
+from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tck.handlers.registry import rpc_method
 from tck.param.account import (
     CreateAccountParams,
@@ -23,6 +25,7 @@ from tck.param.account import (
     GetAccountBalanceParams,
     GetAccountInfoParams,
     UpdateAccountParams,
+    GetTransactionReceiptParams,
 )
 from tck.response.account import (
     CreateAccountResponse,
@@ -32,6 +35,8 @@ from tck.response.account import (
     StakingInfoResponse,
     TokenRelationshipResponse,
     UpdateAccountResponse,
+    GetTransactionReceiptResponse,
+    ExchangeRateResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
@@ -91,8 +96,11 @@ def create_account(params: CreateAccountParams) -> CreateAccountResponse:
     if receipt.status == ResponseCode.SUCCESS:
         account_id = str(receipt.account_id)
 
-    return CreateAccountResponse(account_id, ResponseCode(receipt.status).name)
-
+    return CreateAccountResponse(
+            account_id,
+            ResponseCode(receipt.status).name,
+            str(response.transaction_id) if response.transaction_id is not None else None,
+        )
 
 def _build_update_account_transaction(params: UpdateAccountParams) -> AccountUpdateTransaction:
     transaction = AccountUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
@@ -280,3 +288,65 @@ def map_account_balance_response(account_balance: AccountBalance) -> GetAccountB
     return GetAccountBalanceResponse(
         hbars=str(account_balance.hbars.to_tinybars()), tokenBalances=token_balances, tokenDecimals=token_decimals
     )
+
+
+def _map_receipt_proto_to_exchange_rate(proto) -> ExchangeRateResponse | None:
+    if proto is None:
+        return None
+    current = proto.currentRate
+    return ExchangeRateResponse(hbars=int(current.hbarEquiv), cents=int(current.centEquiv), expirationTime=str(current.expirationTime.seconds) if hasattr(current, "expirationTime") else None)
+
+
+def _map_transaction_receipt(receipt: TransactionReceipt) -> GetTransactionReceiptResponse:
+    proto = receipt._to_proto()
+    
+    exchange_rate = None
+    if proto.HasField("exchangeRate") and proto.exchangeRate is not None:
+        exchange_rate = _map_receipt_proto_to_exchange_rate(proto.exchangeRate)
+
+    serials = [str(s) for s in receipt.serial_numbers] if receipt.serial_numbers is not None else []
+
+    duplicates = [_map_transaction_receipt(d) for d in receipt.duplicates] if receipt.duplicates else []
+    children = [_map_transaction_receipt(c) for c in receipt.children] if receipt.children else []
+    return GetTransactionReceiptResponse(
+        status=ResponseCode(receipt.status).name if receipt.status is not None else None,
+        accountId=str(receipt.account_id) if receipt.account_id is not None else None,
+        fileId=str(receipt.file_id) if receipt.file_id is not None else None,
+        contractId=str(receipt.contract_id) if receipt.contract_id is not None else None,
+        topicId=str(receipt.topic_id) if receipt.topic_id is not None else None,
+        tokenId=str(receipt.token_id) if receipt.token_id is not None else None,
+        scheduleId=str(receipt.schedule_id) if receipt.schedule_id is not None else None,
+        exchangeRate=exchange_rate,
+        topicSequenceNumber=str(receipt.topic_sequence_number) if receipt.topic_sequence_number is not None else None,
+        topicRunningHash=receipt.topic_running_hash.hex() if receipt.topic_running_hash is not None else None,
+        totalSupply=str(receipt.new_total_supply) if receipt.new_total_supply is not None else None,
+        scheduledTransactionId=str(receipt.scheduled_transaction_id) if receipt.scheduled_transaction_id is not None else None,
+        serials=serials,
+        duplicates=duplicates,
+        children=children,
+        nodeId=str(receipt.node_id) if receipt.node_id is not None else None,
+    )
+
+
+@rpc_method("getTransactionReceipt")
+def get_transaction_receipt(params: GetTransactionReceiptParams) -> GetTransactionReceiptResponse:
+    """Query for a transaction receipt and return mapped response."""
+    client = get_client(params.sessionId)
+
+    query = TransactionGetReceiptQuery()
+    query.set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+    query.set_transaction_id(TransactionId.from_string(params.transactionId))
+
+    if params.includeChildren is not None:
+        query.set_include_children(params.includeChildren)
+
+    if params.includeDuplicates is not None:
+        query.set_include_duplicates(params.includeDuplicates)
+
+    # default validateStatus True in spec; only set if provided
+    validate_status = params.validateStatus if params.validateStatus is not None else True
+    query.set_validate_status(validate_status)
+
+    receipt = query.execute(client)
+    receipt_response = _map_transaction_receipt(receipt)
+    return receipt_response

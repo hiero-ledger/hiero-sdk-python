@@ -11,6 +11,7 @@ class CreateAccountResponse:
 
     accountId: str | None = None
     status: str | None = None
+    transactionId: str | None = None
 
 
 @dataclass
@@ -89,3 +90,33 @@ class GetAccountBalanceResponse:
     hbars: str | None = None
     tokenBalances: dict[str, int] = field(default_factory=dict)
     tokenDecimals: dict[str, int] = field(default_factory=dict)
+
+
+@dataclass
+class ExchangeRateResponse:
+    """Exchange rate details included in a transaction receipt."""
+
+    hbars: int | None = None
+    cents: int | None = None
+    expirationTime: str | None = None
+
+@dataclass
+class GetTransactionReceiptResponse:
+    """Response payload for getTransactionReceipt."""
+
+    status: str | None = None
+    accountId: str | None = None
+    fileId: str | None = None
+    contractId: str | None = None
+    topicId: str | None = None
+    tokenId: str | None = None
+    scheduleId: str | None = None
+    exchangeRate: ExchangeRateResponse | None = None
+    topicSequenceNumber: str | None = None
+    topicRunningHash: str | None = None
+    totalSupply: str | None = None
+    scheduledTransactionId: str | None = None
+    serials: list[str] = field(default_factory=list)
+    duplicates: list[GetTransactionReceiptResponse] = field(default_factory=list)
+    children: list[GetTransactionReceiptResponse] = field(default_factory=list)
+    nodeId: str | None = None
