@@ -33,23 +33,34 @@ class TransactionResponse:
         self.hash: bytes = b""
         self.validate_status: bool = False
         self.transaction: Transaction | None = None
+        self._transaction_node_ids: list[AccountId] | None = None
 
-    def get_receipt_query(self, validate_status: bool = False):
+    def get_receipt_query(self, client: Client | None = None, validate_status: bool = False):
         """
         Create a receipt query for this transaction.
 
         Args:
             validate_status (bool, optional): The query should automatically validate the transaction status. (default False)
+            client (Client, optional): The client to enable failover behavior.
 
         Returns:
             TransactionGetReceiptQuery: A configured receipt query.
         """
         from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 
+        if client is None or not client.allow_receipt_node_failover:
+            return (
+                TransactionGetReceiptQuery()
+                .set_transaction_id(self.transaction_id)
+                .set_node_account_ids([self.node_id])
+                .set_validate_status(validate_status)
+            )
+
+        node_account_ids = self._resolve_node_account_ids(client)
         return (
             TransactionGetReceiptQuery()
             .set_transaction_id(self.transaction_id)
-            .set_node_account_ids([self.node_id])
+            .set_node_account_ids(node_account_ids)
             .set_validate_status(validate_status)
         )
 
@@ -68,18 +79,25 @@ class TransactionResponse:
             TransactionReceipt: The receipt from the network, containing the status
                                and any entities created by the transaction
         """
-        return self.get_receipt_query(validate_status=validate_status).execute(client, timeout)
+        return self.get_receipt_query(validate_status=validate_status, client=client).execute(client, timeout)
 
-    def get_record_query(self):
+    def get_record_query(self, client: Client | None = None):
         """
         Create a record query for this transaction.
+
+        Args:
+            client (Client, optional): The client to enable failover behavior.
 
         Returns:
             TransactionRecordQuery: A configured record query.
         """
         from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 
-        return TransactionRecordQuery().set_transaction_id(self.transaction_id).set_node_account_ids([self.node_id])
+        if client is None or not client.allow_receipt_node_failover:
+            return TransactionRecordQuery().set_transaction_id(self.transaction_id).set_node_account_ids([self.node_id])
+
+        node_account_ids = self._resolve_node_account_ids(client)
+        return TransactionRecordQuery().set_transaction_id(self.transaction_id).set_node_account_ids(node_account_ids)
 
     def get_record(self, client: Client, timeout: int | float | None = None) -> TransactionRecord:
         """
@@ -92,4 +110,12 @@ class TransactionResponse:
         Returns:
             TransactionRecord: The full transaction record.
         """
-        return self.get_record_query().execute(client, timeout)
+        return self.get_record_query(client).execute(client, timeout)
+
+    def _resolve_node_account_ids(self, client: Client) -> list[AccountId]:
+        """Resolve node account IDs for receipt or record query failover."""
+        available_node_ids = self._transaction_node_ids if self._transaction_node_ids else client.get_node_account_ids()
+
+        node_account_ids = [self.node_id]
+        node_account_ids.extend(node_id for node_id in available_node_ids if node_id != self.node_id)
+        return node_account_ids

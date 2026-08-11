@@ -382,7 +382,7 @@ class _Executable(ABC):
     def _handle_unhealthy_node(self, proto_request, attempt, logger, err) -> bool:
         """Handle node switching and backoff for unhealthy node."""
         # Check if the request is a transaction receipt or record because they are single node requests
-        if _is_transaction_receipt_or_record_request(proto_request):
+        if _is_transaction_receipt_or_record_request(proto_request) and len(self._node_account_ids) <= 1:
             _delay_for_attempt(
                 self._get_request_id(),
                 self._min_backoff,

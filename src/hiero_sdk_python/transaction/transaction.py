@@ -374,11 +374,12 @@ class Transaction(_Executable):
             self.sign(client.operator_private_key)
 
         # Call the _execute function from executable.py to handle the actual execution
-        response = self._execute(client, timeout)
+        response: TransactionResponse = self._execute(client, timeout)
 
         response.validate_status = True
         response.transaction = self
         response.transaction_id = self.transaction_id
+        response._transaction_node_ids = self._node_account_ids.get_list()
 
         if wait_for_receipt:
             return response.get_receipt(client, timeout=timeout, validate_status=validate_status)
