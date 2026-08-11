@@ -468,6 +468,7 @@ class UpdateTokenFeeScheduleParams(BaseTransactionParams):
 
     @classmethod
     def parse_json_params(cls, params: dict) -> UpdateTokenFeeScheduleParams:
+        """Parse JSON-RPC params into an UpdateTokenFeeScheduleParams instance."""
         token_id = params.get("tokenId")
         custom_fees = params.get("customFees")
         if custom_fees is not None and not isinstance(custom_fees, list):
@@ -475,7 +476,12 @@ class UpdateTokenFeeScheduleParams(BaseTransactionParams):
 
         return cls(
             tokenId=token_id,
-            customFees=custom_fees,
+            customFees=(
+                [CustomFeeParams.parse_json_params(custom_fee) for custom_fee in custom_fees]
+                if custom_fees is not None
+                else None
+            ),
+            sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
 
