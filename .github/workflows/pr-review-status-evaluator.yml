@@ -49,8 +49,31 @@ jobs:
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
-            const { evaluateReviewStatus, formatStatusForLog } = require('./.github/scripts/review-status-evaluator.js');
-            const { ROSTER_UNAVAILABLE } = require('./.github/scripts/shared/review-stages.js');
+            // On the base ref checked out above, the evaluator itself may
+            // not exist yet — most notably on the very PR that introduces
+            // it, before it's merged to the base branch. Treat that as an
+            // expected, non-failing outcome rather than crashing: once this
+            // workflow (and any future changes to it) lands on the base
+            // branch, subsequent PRs will resolve these requires normally.
+            let evaluatorModule;
+            let stagesModule;
+            try {
+              evaluatorModule = require('./.github/scripts/review-status-evaluator.js');
+              stagesModule = require('./.github/scripts/shared/review-stages.js');
+            } catch (error) {
+              if (error.code === 'MODULE_NOT_FOUND') {
+                core.info(
+                  'Evaluator script not present on the base branch yet — skipping. ' +
+                  'This is expected until this workflow (and review-status-evaluator.js) ' +
+                  'has been merged to the base branch; future PRs will evaluate normally.'
+                );
+                return;
+              }
+              throw error;
+            }
+
+            const { evaluateReviewStatus, formatStatusForLog } = evaluatorModule;
+            const { ROSTER_UNAVAILABLE } = stagesModule;
 
             const status = await evaluateReviewStatus(github, context);
 
