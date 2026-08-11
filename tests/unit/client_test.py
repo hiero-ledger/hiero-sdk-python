@@ -608,7 +608,7 @@ def test_for_network_invalid_shard_realm_raises_error(invalid_map, error_msg):
 
 def test_set_receipt_failover_set_values():
     """Test that receipt failover is set to the provided value."""
-    client = Client.from_env()
+    client = Client.for_testnet()
     # default
     assert client.allow_receipt_node_failover is False
 
@@ -620,6 +620,6 @@ def test_set_receipt_failover_set_values():
 @pytest.mark.parametrize("allow", ["true", 1, 0.1, [], {}, None])
 def test_set_receipt_failover_rejects_non_bool(allow):
     """Test that non-boolean values are rejected."""
-    client = Client.from_env()
+    client = Client.for_testnet()
     with pytest.raises(TypeError, match="allow must be an instance of bool"):
         client.set_allow_receipt_node_failover(allow)
