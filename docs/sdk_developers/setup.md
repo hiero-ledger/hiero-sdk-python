@@ -23,7 +23,7 @@ This guide walks you through setting up your development environment for contrib
 Before you begin, make sure you have:
 - **Git** installed ([Download Git](https://git-scm.com/downloads))
 - **Python 3.10+** installed ([Download Python](https://www.python.org/downloads/))
-- A **GitHub account** ([Sign up](https://github.com/join))
+- A **GitHub account** ([Sign up](https://docs.github.com/en/account-and-profile/how-tos/account-management/creating-an-account-on-github))
 
 ### Step 1: Fork the Repository
 
