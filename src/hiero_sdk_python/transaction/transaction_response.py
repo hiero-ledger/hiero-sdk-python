@@ -35,7 +35,7 @@ class TransactionResponse:
         self.transaction: Transaction | None = None
         self._transaction_node_ids: list[AccountId] | None = None
 
-    def get_receipt_query(self, client: Client | None = None, validate_status: bool = False):
+    def get_receipt_query(self, validate_status: bool = False, client: Client | None = None):
         """
         Create a receipt query for this transaction.
 

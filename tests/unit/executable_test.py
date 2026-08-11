@@ -1175,8 +1175,9 @@ def test_transaction_receipt_query_with_single_node_does_not_advance():
         patch("hiero_sdk_python.node._Node.is_healthy", side_effect=[False, True]),
         patch("hiero_sdk_python.executable._delay_for_attempt") as mock_delay,
     ):
-        query.execute(client)
+        receipt = query.execute(client)
 
+        assert receipt.status == receipt_response.transactionGetReceipt.receipt.status
         assert mock_delay.call_count > 0
         assert query._node_account_ids.index == initial_index
         assert query._node_account_ids.current == node_id
@@ -1209,8 +1210,9 @@ def test_transaction_receipt_query_with_mutiple_node_advance_to_next():
         mock_hedera_servers(response_sequences) as client,
         patch("hiero_sdk_python.node._Node.is_healthy", side_effect=[False, True]),
     ):
-        query.execute(client)
+        receipt = query.execute(client)
 
+        assert receipt.status == receipt_response.transactionGetReceipt.receipt.status
         assert query._node_account_ids.index == initial_index + 1
         assert query._node_account_ids.current == node_ids[1]
 
@@ -1257,7 +1259,11 @@ def test_transaction_record_query_with_single_node_does_not_advance():
         patch("hiero_sdk_python.node._Node.is_healthy", side_effect=[False, True, True]),
         patch("hiero_sdk_python.executable._delay_for_attempt") as mock_delay,
     ):
-        query.execute(client)
+        record_response = query.execute(client)
+
+        assert record_response.receipt.status == record.receipt.status
+        assert record_response.transaction_fee == record.transactionFee
+        assert record_response.transaction_memo == record.memo
 
         assert mock_delay.call_count > 0
         assert query._node_account_ids.index == initial_index
@@ -1307,7 +1313,10 @@ def test_transaction_record_query_with_mutiple_node_advance_to_next():
         mock_hedera_servers(response_sequences) as client,
         patch("hiero_sdk_python.node._Node.is_healthy", side_effect=[False, True, True]),
     ):
-        query.execute(client)
+        record_response = query.execute(client)
 
+        assert record_response.receipt.status == record.receipt.status
+        assert record_response.transaction_fee == record.transactionFee
+        assert record_response.transaction_memo == record.memo
         assert query._node_account_ids.index == initial_index + 1
         assert query._node_account_ids.current == node_ids[1]
