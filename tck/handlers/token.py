@@ -961,10 +961,13 @@ def get_token_nft_info(params: GetTokenNftInfoParams) -> GetTokenNftInfoResponse
 
     if not params.nftId:
         raise JsonRpcError.invalid_params_error("nftId is required")
+
     try:
-        query.set_nft_id(NftId.from_string(params.nftId))
-    except Exception as e:
+        nft_id = NftId.from_string(params.nftId)
+    except ValueError as e:
         raise JsonRpcError.invalid_params_error(f"Invalid nftId: {e}")
+
+    query.set_nft_id(nft_id)
 
     if params.queryPayment is not None:
         query.set_query_payment(Hbar.from_tinybars(int(params.queryPayment)))
