@@ -168,6 +168,8 @@ class FreezeTokenParams(BaseTransactionParams):
 
 @dataclass
 class UnfreezeTokenParams(BaseTransactionParams):
+    """Request parameters for the unfreezeToken endpoint."""
+
     tokenId: str | None = None
     accountId: str | None = None
 
