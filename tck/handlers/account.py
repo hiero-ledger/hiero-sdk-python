@@ -97,10 +97,10 @@ def create_account(params: CreateAccountParams) -> CreateAccountResponse:
         account_id = str(receipt.account_id)
 
     return CreateAccountResponse(
-            account_id,
-            ResponseCode(receipt.status).name,
-            str(response.transaction_id) if response.transaction_id is not None else None,
-        )
+        account_id,
+        ResponseCode(receipt.status).name,
+        str(response.transaction_id) if response.transaction_id is not None else None,
+    )
 
 def _build_update_account_transaction(params: UpdateAccountParams) -> AccountUpdateTransaction:
     transaction = AccountUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
@@ -294,7 +294,11 @@ def _map_receipt_proto_to_exchange_rate(proto) -> ExchangeRateResponse | None:
     if proto is None:
         return None
     current = proto.currentRate
-    return ExchangeRateResponse(hbars=int(current.hbarEquiv), cents=int(current.centEquiv), expirationTime=str(current.expirationTime.seconds) if hasattr(current, "expirationTime") else None)
+    return ExchangeRateResponse(
+        hbars=int(current.hbarEquiv),
+        cents=int(current.centEquiv),
+        expirationTime=str(current.expirationTime.seconds) if hasattr(current, "expirationTime") else None
+        )
 
 
 def _map_transaction_receipt(receipt: TransactionReceipt) -> GetTransactionReceiptResponse:
@@ -320,7 +324,9 @@ def _map_transaction_receipt(receipt: TransactionReceipt) -> GetTransactionRecei
         topicSequenceNumber=str(receipt.topic_sequence_number) if receipt.topic_sequence_number is not None else None,
         topicRunningHash=receipt.topic_running_hash.hex() if receipt.topic_running_hash is not None else None,
         totalSupply=str(receipt.new_total_supply) if receipt.new_total_supply is not None else None,
-        scheduledTransactionId=str(receipt.scheduled_transaction_id) if receipt.scheduled_transaction_id is not None else None,
+        scheduledTransactionId=str(receipt.scheduled_transaction_id)
+        if receipt.scheduled_transaction_id is not None
+        else None,
         serials=serials,
         duplicates=duplicates,
         children=children,
@@ -335,7 +341,7 @@ def get_transaction_receipt(params: GetTransactionReceiptParams) -> GetTransacti
 
     query = TransactionGetReceiptQuery()
     query.set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
-    if  params.transactionId is not None:
+    if params.transactionId is not None:
         query.set_transaction_id(TransactionId.from_string(params.transactionId))
 
     if params.includeChildren is not None:

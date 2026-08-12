@@ -162,7 +162,7 @@ class TransactionGetReceiptQuery(Query):
             query_pb2.Query: The protobuf Query object containing the transaction receipt query.
 
         Raises:
-            ValueError: If the transaction ID is not set.
+            PrecheckError: If the transaction ID is not set.
             AttributeError: If the Query protobuf structure is invalid.
             Exception: If any other error occurs during request construction.
         """

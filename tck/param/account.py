@@ -133,10 +133,12 @@ class GetAccountBalanceParams(BaseParams):
 @dataclass
 class GetTransactionReceiptParams(BaseParams):
     """Request parameters for the getTransactionReceipt endpoint."""
+
     transactionId: str | None = None
     includeDuplicates: bool | None = None
     includeChildren: bool | None = None
     validateStatus: bool | None = None
+
 
     @classmethod
     def parse_json_params(cls, params: dict) -> GetTransactionReceiptParams:
