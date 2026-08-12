@@ -121,12 +121,11 @@ def test_build_transaction_body(mock_account_ids, new_token_data):
 
 
 def test_build_proto_body_without_token_id():
-    """Test that proto body has no token_id when not set."""
+    """Test that _build_proto_body raises when token_id is not set."""
     update_tx = TokenUpdateTransaction()
 
-    body = update_tx._build_proto_body()
-
-    assert not body.HasField("token")
+    with pytest.raises(ValueError, match="Missing token ID"):
+        update_tx._build_proto_body()
 
 
 def test_set_methods(mock_account_ids, private_key, new_token_data):

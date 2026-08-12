@@ -168,13 +168,12 @@ class FileAppendTransaction(ChunkedTransaction):
         # Calculate the current chunk's content
         if self.file_id is None:
             raise ValueError("Missing required FileID")
+        if not self.contents:
+            raise ValueError("Missing required file contents")
 
-        if self.contents is None:
-            chunk_contents = b""
-        else:
-            start_index = self._current_chunk_index * self.chunk_size
-            end_index = min(start_index + self.chunk_size, len(self.contents))
-            chunk_contents = self.contents[start_index:end_index]
+        start_index = self._current_chunk_index * self.chunk_size
+        end_index = min(start_index + self.chunk_size, len(self.contents))
+        chunk_contents = self.contents[start_index:end_index]
 
         return file_append_pb2.FileAppendTransactionBody(
             fileID=self.file_id._to_proto() if self.file_id else None, contents=chunk_contents

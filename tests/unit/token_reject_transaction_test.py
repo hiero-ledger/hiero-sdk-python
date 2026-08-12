@@ -233,6 +233,37 @@ def test_add_nft_id_rejects_invalid_type(mock_account_ids):
     assert reject_tx.nft_ids == []
 
 
+def test_set_token_ids_rejects_invalid_type(mock_account_ids):
+    """Test that set_token_ids rejects lists containing non-TokenId elements."""
+    _, _, _, token_id, _ = mock_account_ids
+    nft_id = NftId(token_id=token_id, serial_number=1)
+
+    reject_tx = TokenRejectTransaction()
+
+    with pytest.raises(TypeError, match="token_ids must contain only TokenId instances."):
+        reject_tx.set_token_ids([nft_id])
+
+    with pytest.raises(TypeError, match="token_ids must contain only TokenId instances."):
+        reject_tx.set_token_ids([token_id, "0.0.100"])
+
+    assert reject_tx.token_ids == []
+
+
+def test_set_nft_ids_rejects_invalid_type(mock_account_ids):
+    """Test that set_nft_ids rejects lists containing non-NftId elements."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    reject_tx = TokenRejectTransaction()
+
+    with pytest.raises(TypeError, match="nft_ids must contain only NftId instances."):
+        reject_tx.set_nft_ids([token_id])
+
+    with pytest.raises(TypeError, match="nft_ids must contain only NftId instances."):
+        reject_tx.set_nft_ids(["not-an-nft"])
+
+    assert reject_tx.nft_ids == []
+
+
 def test_add_id_methods_do_not_mutate_caller_lists(mock_account_ids):
     """Test that add_token_id/add_nft_id do not mutate lists passed to the constructor."""
     _, _, _, token_id_1, token_id_2 = mock_account_ids

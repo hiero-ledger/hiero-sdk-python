@@ -64,6 +64,8 @@ class TokenRejectTransaction(Transaction):
     def set_token_ids(self, token_ids: list[TokenId]) -> TokenRejectTransaction:
         """Set the list of fungible token IDs to reject."""
         self._require_not_frozen()
+        if not all(isinstance(t, TokenId) for t in token_ids):
+            raise TypeError("token_ids must contain only TokenId instances.")
         self.token_ids = list(token_ids)
         return self
 
@@ -89,6 +91,8 @@ class TokenRejectTransaction(Transaction):
     def set_nft_ids(self, nft_ids: list[NftId]) -> TokenRejectTransaction:
         """Set the list of NFT IDs to reject."""
         self._require_not_frozen()
+        if not all(isinstance(n, NftId) for n in nft_ids):
+            raise TypeError("nft_ids must contain only NftId instances.")
         self.nft_ids = list(nft_ids)
         return self
 

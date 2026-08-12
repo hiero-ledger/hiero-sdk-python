@@ -243,6 +243,10 @@ class TopicUpdateTransaction(Transaction):
 
         Returns:
             ConsensusUpdateTopicTransactionBody: The protobuf body for this transaction.
+
+        Note:
+            topic_id is intentionally not validated client-side; the network enforces its
+            presence and rejects the transaction if absent, matching TCK behavior.
         """
 
         custom_fees = (

@@ -159,6 +159,17 @@ def test_build_transaction_body_missing_file_id():
         file_tx.build_transaction_body()
 
 
+def test_build_proto_body_raises_on_empty_contents():
+    """Test _build_proto_body raises when contents is None or empty."""
+    file_id = FileId(0, 0, 99)
+
+    with pytest.raises(ValueError, match="Missing required file contents"):
+        FileAppendTransaction(file_id=file_id)._build_proto_body()
+
+    with pytest.raises(ValueError, match="Missing required file contents"):
+        FileAppendTransaction(file_id=file_id, contents=b"")._build_proto_body()
+
+
 def test_build_scheduled_body():
     """Test building a schedulable file append transaction body."""
     file_id = FileId(0, 0, 12345)
