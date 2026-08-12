@@ -521,6 +521,23 @@ def test_from_bytes(topic_id):
     assert reconstructed.message == "hello world"
 
 
+def test_from_bytes_binary_message(topic_id):
+    """Covers the non-UTF-8 binary message branch in _from_protobuf (raw bytes preserved)."""
+    binary_payload = b"\xff\xfe\xfd\x00\x01\x02"
+
+    tx = TopicMessageSubmitTransaction()
+    tx.set_topic_id(topic_id)
+    tx.set_message(binary_payload)
+    tx.transaction_id = TransactionId.generate(AccountId(0, 0, 1))
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TopicMessageSubmitTransaction)
+    assert reconstructed.message == binary_payload
+
+
 def test_from_bytes_with_chunk_info(topic_id):
     """Covers chunkInfo and initialTransactionID branches in _from_protobuf."""
     from hiero_sdk_python.hapi.services import transaction_pb2

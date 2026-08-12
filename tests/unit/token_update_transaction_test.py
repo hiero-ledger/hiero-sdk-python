@@ -541,3 +541,24 @@ def test_from_bytes_with_all_optional_keys(mock_account_ids):
     assert reconstructed.pause_key is not None
     assert reconstructed.kyc_key is not None
     assert reconstructed.fee_schedule_key is not None
+
+
+def test_from_bytes_with_no_validation_mode(mock_account_ids):
+    """Covers NO_VALIDATION key_verification_mode branch in _from_protobuf."""
+    from hiero_sdk_python.tokens.token_key_validation import TokenKeyValidation
+
+    operator_id, _, node_account_id, token_id_1, _ = mock_account_ids
+    key = PrivateKey.generate().public_key()
+
+    tx = TokenUpdateTransaction()
+    tx.set_token_id(token_id_1)
+    tx.set_admin_key(key)
+    tx.set_key_verification_mode(TokenKeyValidation.NO_VALIDATION)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenUpdateTransaction)
+    assert reconstructed.token_key_verification_mode == TokenKeyValidation.NO_VALIDATION

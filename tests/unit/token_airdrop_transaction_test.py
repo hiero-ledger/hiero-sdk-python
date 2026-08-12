@@ -501,3 +501,41 @@ def test_from_protobuf_raises_on_nft_transfer_without_sender_or_receiver(mock_ac
 
     with pytest.raises(ValueError, match="NFT transfer missing sender or receiver"):
         TokenAirdropTransaction._from_protobuf(tx_body, b"", None)
+
+
+def test_from_bytes_with_approval(mock_account_ids):
+    """Covers is_approval=True branch in _from_protobuf for fungible transfers."""
+    sender, receiver, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenAirdropTransaction()
+    tx.add_approved_token_transfer(token_id=token_id_1, account_id=sender, amount=-1)
+    tx.add_approved_token_transfer(token_id=token_id_1, account_id=receiver, amount=1)
+    tx.transaction_id = TransactionId.generate(sender)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenAirdropTransaction)
+    transfers = reconstructed.token_transfers[token_id_1]
+    assert len(transfers) == 2
+    assert all(t.is_approved for t in transfers)
+
+
+def test_from_bytes_with_expected_decimals(mock_account_ids):
+    """Covers expected_decimals branch in _from_protobuf for fungible transfers."""
+    sender, receiver, node_account_id, token_id_1, _ = mock_account_ids
+
+    tx = TokenAirdropTransaction()
+    tx.add_token_transfer_with_decimals(token_id=token_id_1, account_id=sender, amount=-10, decimals=2)
+    tx.add_token_transfer_with_decimals(token_id=token_id_1, account_id=receiver, amount=10, decimals=2)
+    tx.transaction_id = TransactionId.generate(sender)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenAirdropTransaction)
+    transfers = reconstructed.token_transfers[token_id_1]
+    assert len(transfers) == 2
+    assert all(t.expected_decimals == 2 for t in transfers)

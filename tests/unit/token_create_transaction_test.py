@@ -997,7 +997,9 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed._token_params.initial_supply == 1000
     assert reconstructed._token_params.treasury_account_id == treasury_account
     assert reconstructed._keys.admin_key is not None
+    assert reconstructed._keys.admin_key.to_bytes_raw() == admin_key.to_bytes_raw()
     assert reconstructed._keys.supply_key is not None
+    assert reconstructed._keys.supply_key.to_bytes_raw() == supply_key.to_bytes_raw()
 
 
 def test_from_bytes_with_all_optional_keys(mock_account_ids):

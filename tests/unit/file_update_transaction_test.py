@@ -388,3 +388,21 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed.expiration_time.seconds == expiration.seconds
     assert len(reconstructed.keys) == 1
     assert reconstructed.keys[0].to_bytes_raw() == key.to_bytes_raw()
+
+
+def test_from_bytes_empty_keys(mock_account_ids):
+    """Covers the explicit empty KeyList branch (makes file immutable) in _from_protobuf."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    test_file_id = FileId(0, 0, 5)
+
+    tx = FileUpdateTransaction()
+    tx.set_file_id(test_file_id)
+    tx.set_keys([])
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, FileUpdateTransaction)
+    assert reconstructed.keys == []

@@ -83,3 +83,21 @@ def test_all_non_none_entries_importable():
         cls = Transaction._get_transaction_class(tx_type)
         assert cls is not None, f"Failed to import class for '{tx_type}'"
         assert callable(cls), f"Class for '{tx_type}' is not callable"
+
+
+@pytest.mark.parametrize(
+    "tx_type,expected_class_name",
+    [
+        ("freeze", "FreezeTransaction"),
+        ("token_pause", "TokenPauseTransaction"),
+        ("token_unpause", "TokenUnpauseTransaction"),
+        ("token_fee_schedule_update", "TokenFeeScheduleUpdateTransaction"),
+        ("token_update_nfts", "TokenUpdateNftsTransaction"),
+        ("tokenFreeze", "TokenFreezeTransaction"),
+        ("tokenUnfreeze", "TokenUnfreezeTransaction"),
+    ],
+)
+def test_get_transaction_class_returns_correct_class_extended(tx_type, expected_class_name):
+    cls = Transaction._get_transaction_class(tx_type)
+    assert cls is not None
+    assert cls.__name__ == expected_class_name

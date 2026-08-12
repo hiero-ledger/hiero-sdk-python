@@ -300,3 +300,28 @@ def test_from_bytes(mock_account_ids):
     assert airdrop.sender_id == sender
     assert airdrop.receiver_id == receiver
     assert airdrop.token_id == token_id_1
+
+
+def test_from_bytes_nft(mock_account_ids):
+    """Test round-trip via _from_protobuf for TokenCancelAirdropTransaction with an NFT PendingAirdropId."""
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    sender, receiver, node_account_id, token_id_1, _ = mock_account_ids
+    nft_id = NftId(token_id=token_id_1, serial_number=99)
+
+    pending = PendingAirdropId(sender, receiver, None, nft_id)
+    tx = TokenCancelAirdropTransaction(pending_airdrops=[pending])
+    tx.transaction_id = TransactionId.generate(sender)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenCancelAirdropTransaction)
+    assert len(reconstructed.pending_airdrops) == 1
+    airdrop = reconstructed.pending_airdrops[0]
+    assert airdrop.sender_id == sender
+    assert airdrop.receiver_id == receiver
+    assert airdrop.token_id is None
+    assert airdrop.nft_id == nft_id

@@ -420,3 +420,27 @@ def test_from_bytes_with_admin_key(mock_account_ids):
     assert isinstance(reconstructed, NodeCreateTransaction)
     assert reconstructed.admin_key is not None
     assert reconstructed.admin_key.to_bytes_raw() == admin_key.to_bytes_raw()
+
+
+def test_from_bytes_with_decline_reward_and_grpc_proxy(mock_account_ids):
+    """Covers decline_reward and grpc_proxy_endpoint branches in _from_protobuf."""
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = NodeCreateTransaction()
+    tx.set_account_id(AccountId(0, 0, 77))
+    tx.set_decline_reward(True)
+    tx.set_grpc_web_proxy_endpoint(Endpoint(domain_name="proxy.example.com", port=8080))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, NodeCreateTransaction)
+    assert reconstructed.decline_reward is True
+    assert reconstructed.grpc_web_proxy_endpoint is not None
+    assert reconstructed.grpc_web_proxy_endpoint.get_domain_name() == "proxy.example.com"
+    assert reconstructed.grpc_web_proxy_endpoint.get_port() == 8080
