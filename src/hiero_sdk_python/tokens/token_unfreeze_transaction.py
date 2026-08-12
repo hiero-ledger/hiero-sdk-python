@@ -76,9 +76,6 @@ class TokenUnfreezeTransaction(Transaction):
 
         Returns:
             TokenUnfreezeAccountTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If account ID or token ID is not set.
         """
         body = token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody()
 
