@@ -126,3 +126,22 @@ def test_str_representation(mock_account_ids, nft_id):
     assert str(creation_time) in string_repr
     assert str(metadata) in string_repr
     assert str(spender_id) in string_repr
+
+def test_from_proto_without_spender_id():
+    """Test creating a TokenNftInfo from a protobuf object when spender_id is missing"""
+    # Create a mock protobuf without setting spender_id
+    proto = token_get_nft_info_pb2.TokenNftInfo(
+        nftID=basic_types_pb2.NftID(
+            token_ID=basic_types_pb2.TokenID(shardNum=0, realmNum=0, tokenNum=123), serial_number=456
+        ),
+        accountID=basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=789),
+        creationTime=timestamp_pb2.Timestamp(seconds=1623456789),
+        metadata=b"test metadata",
+    )
+
+    # Create TokenNftInfo from proto
+token_nft_info = TokenNftInfo._from_proto(proto)
+
+# Verify type and that spender_id is None when not present in proto
+assert isinstance(token_nft_info, TokenNftInfo)
+assert token_nft_info.spender_id is None

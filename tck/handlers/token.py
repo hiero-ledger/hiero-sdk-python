@@ -85,7 +85,6 @@ from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
 from tck.util.param_utils import to_int
-from tck.errors import JsonRpcError
 def _parse_hex(value: str, field_name: str) -> bytes:
     try:
         return bytes.fromhex(value)
