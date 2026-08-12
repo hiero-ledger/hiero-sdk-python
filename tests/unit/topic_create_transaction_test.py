@@ -670,7 +670,7 @@ def test_from_bytes(mock_account_ids):
     tx.set_submit_key(submit_key)
     tx.set_auto_renew_period(auto_renew_period)
     tx.transaction_id = TransactionId.generate(account_id_sender)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -695,7 +695,7 @@ def test_from_bytes_with_fee_schedule_key(mock_account_ids):
     tx.set_fee_schedule_key(fee_schedule_key)
     tx.set_custom_fees([custom_fee])
     tx.transaction_id = TransactionId.generate(account_id_sender)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

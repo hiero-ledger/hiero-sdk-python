@@ -336,7 +336,7 @@ def test_from_bytes(mock_account_ids, topic_id):
     tx.set_auto_renew_period(auto_renew_period)
     tx.set_auto_renew_account(auto_renew_account)
     tx.transaction_id = TransactionId.generate(AccountId(0, 0, 2))
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -369,7 +369,7 @@ def test_from_bytes_with_expiration_and_fees(mock_account_ids, topic_id):
     tx.set_custom_fees([custom_fee])
     tx.set_fee_exempt_keys([exempt_key])
     tx.transaction_id = TransactionId.generate(AccountId(0, 0, 2))
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

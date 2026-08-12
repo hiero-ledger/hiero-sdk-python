@@ -395,9 +395,10 @@ def test_from_bytes(mock_account_ids):
     tx = ContractExecuteTransaction()
     tx.set_contract_id(ContractId(0, 0, 777))
     tx.set_gas(200_000)
+    tx.set_payable_amount(123_456)
     tx.set_function_parameters(b"\x01\x02\x03")
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -405,4 +406,5 @@ def test_from_bytes(mock_account_ids):
     assert isinstance(reconstructed, ContractExecuteTransaction)
     assert reconstructed.contract_id == ContractId(0, 0, 777)
     assert reconstructed.gas == 200_000
+    assert reconstructed.amount == 123_456
     assert reconstructed.function_parameters == b"\x01\x02\x03"

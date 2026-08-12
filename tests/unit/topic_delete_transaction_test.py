@@ -123,7 +123,7 @@ def test_from_bytes(mock_account_ids, topic_id):
 
     tx = TopicDeleteTransaction(topic_id=topic_id)
     tx.transaction_id = TransactionId.generate(AccountId(0, 0, 2))
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

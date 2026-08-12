@@ -381,7 +381,7 @@ def test_from_bytes(mock_account_ids):
     tx.set_gossip_ca_certificate(b"test-ca-cert")
     tx.set_grpc_certificate_hash(b"test-cert-hash")
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -412,7 +412,7 @@ def test_from_bytes_with_admin_key(mock_account_ids):
     tx.set_account_id(AccountId(0, 0, 99))
     tx.set_admin_key(admin_key)
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

@@ -222,7 +222,7 @@ class FileUpdateTransaction(Transaction):
             body = transaction_body.fileUpdate
             if body.HasField("fileID"):
                 transaction.file_id = FileId._from_proto(body.fileID)
-            transaction.keys = [Key.from_proto_key(k) for k in body.keys.keys] if body.keys.keys else None
+            transaction.keys = [Key.from_proto_key(k) for k in body.keys.keys] if body.HasField("keys") else None
             transaction.contents = body.contents if body.contents else None
             if body.HasField("expirationTime"):
                 transaction.expiration_time = Timestamp._from_protobuf(body.expirationTime)

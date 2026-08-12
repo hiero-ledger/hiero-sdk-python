@@ -511,7 +511,7 @@ def test_from_bytes(topic_id):
     tx.set_topic_id(topic_id)
     tx.set_message("hello world")
     tx.transaction_id = TransactionId.generate(AccountId(0, 0, 1))
-    tx.node_account_id = AccountId(0, 0, 3)
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -552,6 +552,7 @@ def test_from_bytes_with_chunk_info(topic_id):
     assert result._total_chunks == 3
     assert result._current_chunk_index == 1
     assert result._initial_transaction_id is not None
+    assert result._initial_transaction_id == initial_tx_id
 
 
 def test_topic_submit_execute_returns_failed_receipt_by_default(topic_id):

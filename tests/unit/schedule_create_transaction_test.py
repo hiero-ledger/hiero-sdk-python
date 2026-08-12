@@ -303,7 +303,7 @@ def test_from_bytes(mock_account_ids):
     tx.set_payer_account_id(account_id_sender)
     tx._set_schedulable_body(schedulable_body)
     tx.transaction_id = TransactionId.generate(account_id_sender)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -320,7 +320,7 @@ def test_from_bytes_with_admin_key_and_expiration(mock_account_ids):
     account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
 
     admin_key = PrivateKey.generate_ed25519().public_key()
-    expiry = Timestamp(seconds=9_999_999_999, nanos=0)
+    expiry = Timestamp(seconds=9_999_999_999, nanos=123)
 
     inner_tx = TokenGrantKycTransaction()
     inner_tx.set_token_id(token_id_1)
@@ -332,11 +332,13 @@ def test_from_bytes_with_admin_key_and_expiration(mock_account_ids):
     tx.set_expiration_time(expiry)
     tx._set_schedulable_body(schedulable_body)
     tx.transaction_id = TransactionId.generate(account_id_sender)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
 
     assert isinstance(reconstructed, ScheduleCreateTransaction)
     assert reconstructed.admin_key is not None
+    assert reconstructed.admin_key.to_bytes_raw() == admin_key.to_bytes_raw()
     assert reconstructed.expiration_time.seconds == expiry.seconds
+    assert reconstructed.expiration_time.nanos == expiry.nanos

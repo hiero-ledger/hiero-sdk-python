@@ -487,7 +487,7 @@ def test_from_bytes(mock_account_ids, new_token_data):
     tx.set_expiration_time(new_token_data["expiration_time"])
     tx.set_admin_key(key)
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -528,7 +528,7 @@ def test_from_bytes_with_all_optional_keys(mock_account_ids):
     tx.set_kyc_key(kyc_key)
     tx.set_fee_schedule_key(fee_schedule_key)
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

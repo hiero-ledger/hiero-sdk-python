@@ -462,7 +462,7 @@ def test_from_bytes(mock_account_ids):
     tx.set_bytecode(b"\x60\x80\x60\x40")
     tx.set_contract_memo("hello")
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -489,7 +489,7 @@ def test_from_bytes_with_optional_fields(mock_account_ids):
     tx.set_auto_renew_account_id(AccountId(0, 0, 5))
     tx.set_staked_account_id(AccountId(0, 0, 6))
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -514,7 +514,7 @@ def test_from_bytes_with_staked_node_id(mock_account_ids):
     tx.set_gas(1000)
     tx.set_staked_node_id(7)
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

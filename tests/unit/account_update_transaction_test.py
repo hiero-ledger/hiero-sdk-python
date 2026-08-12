@@ -830,7 +830,7 @@ def test_from_bytes(mock_account_ids):
     tx.set_receiver_signature_required(False)
     tx.set_max_automatic_token_associations(10)
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -839,8 +839,8 @@ def test_from_bytes(mock_account_ids):
     assert reconstructed.account_id == account_id_sender
     assert reconstructed.account_memo == "updated"
     assert reconstructed.staked_node_id == 5
-    assert reconstructed.decline_staking_reward == False
-    assert reconstructed.receiver_signature_required == False
+    assert reconstructed.decline_staking_reward is False
+    assert reconstructed.receiver_signature_required is False
     assert reconstructed.max_automatic_token_associations == 10
 
 
@@ -857,7 +857,7 @@ def test_from_bytes_with_key_expiration_and_staked_account(mock_account_ids):
     tx.set_expiration_time(expiry)
     tx.set_staked_account_id(AccountId(0, 0, 9))
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

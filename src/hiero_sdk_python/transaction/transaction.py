@@ -880,6 +880,9 @@ class Transaction(_Executable):
         transaction._high_volume = transaction_body.high_volume
         transaction.memo = transaction_body.memo
 
+        if transaction_body.HasField("batch_key"):
+            transaction.batch_key = Key.from_proto_key(transaction_body.batch_key)
+
         if transaction_body.max_custom_fees:
             from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 

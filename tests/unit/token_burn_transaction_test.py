@@ -191,7 +191,7 @@ def test_from_bytes_fungible(mock_account_ids):
 
     tx = TokenBurnTransaction(token_id=token_id_1, amount=100)
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -209,7 +209,7 @@ def test_from_bytes_nft(mock_account_ids):
 
     tx = TokenBurnTransaction(token_id=token_id_1, serials=serials)
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

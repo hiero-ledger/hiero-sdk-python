@@ -370,7 +370,7 @@ def test_from_bytes(mock_account_ids):
     tx.set_owner_id(owner_id)
     tx.set_token_ids([token_id])
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -393,7 +393,7 @@ def test_from_bytes_with_nft(mock_account_ids):
     tx.set_owner_id(owner_id)
     tx.set_nft_ids([nft])
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

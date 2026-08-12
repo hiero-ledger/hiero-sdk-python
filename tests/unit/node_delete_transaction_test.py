@@ -201,7 +201,7 @@ def test_from_bytes(mock_account_ids):
     tx = NodeDeleteTransaction()
     tx.set_node_id(42)
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

@@ -415,7 +415,7 @@ def test_from_bytes(mock_account_ids):
     tx.add_token_transfer(token_id=token_id_1, account_id=sender, amount=-1)
     tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=1)
     tx.transaction_id = TransactionId.generate(sender)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -436,7 +436,7 @@ def test_from_bytes_nft(mock_account_ids):
     tx = TokenAirdropTransaction()
     tx.add_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver, is_approved=False)
     tx.transaction_id = TransactionId.generate(sender)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

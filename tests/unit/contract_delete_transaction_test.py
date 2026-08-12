@@ -422,7 +422,7 @@ def test_from_bytes(mock_account_ids):
     tx.set_contract_id(ContractId(0, 0, 999))
     tx.set_transfer_account_id(AccountId(0, 0, 1))
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -443,7 +443,7 @@ def test_from_bytes_with_permanent_removal(mock_account_ids):
     tx.set_contract_id(ContractId(0, 0, 123))
     tx.set_permanent_removal(True)
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())
@@ -466,7 +466,7 @@ def test_from_bytes_with_transfer_contract_id(mock_account_ids):
     tx.set_contract_id(ContractId(0, 0, 10))
     tx.set_transfer_contract_id(ContractId(0, 0, 20))
     tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze()
 
     reconstructed = Transaction.from_bytes(tx.to_bytes())

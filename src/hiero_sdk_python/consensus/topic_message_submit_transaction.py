@@ -184,6 +184,8 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         Raises:
             ValueError: If required fields (topic_id, message) are missing.
         """
+        if self.topic_id is None:
+            raise ValueError("Missing required fields: topic_id.")
         if not self.message:
             raise ValueError("Missing required fields: message.")
 
@@ -252,7 +254,13 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             body = transaction_body.consensusSubmitMessage
             if body.HasField("topicID"):
                 transaction.topic_id = TopicId._from_proto(body.topicID)
-            transaction.message = body.message.decode("utf-8", errors="replace") if body.message else None
+            if body.message:
+                try:
+                    transaction.message = body.message.decode("utf-8")
+                except UnicodeDecodeError:
+                    transaction.message = body.message
+            else:
+                transaction.message = None
             if body.HasField("chunkInfo"):
                 chunk = body.chunkInfo
                 transaction._total_chunks = chunk.total
