@@ -13,30 +13,30 @@ from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
+from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
-from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.account import (
     CreateAccountParams,
     DeleteAccountParams,
     GetAccountBalanceParams,
     GetAccountInfoParams,
-    UpdateAccountParams,
     GetTransactionReceiptParams,
+    UpdateAccountParams,
 )
 from tck.response.account import (
     CreateAccountResponse,
     DeleteAccountResponse,
+    ExchangeRateResponse,
     GetAccountBalanceResponse,
     GetAccountInfoResponse,
+    GetTransactionReceiptResponse,
     StakingInfoResponse,
     TokenRelationshipResponse,
     UpdateAccountResponse,
-    GetTransactionReceiptResponse,
-    ExchangeRateResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
@@ -299,7 +299,7 @@ def _map_receipt_proto_to_exchange_rate(proto) -> ExchangeRateResponse | None:
 
 def _map_transaction_receipt(receipt: TransactionReceipt) -> GetTransactionReceiptResponse:
     proto = receipt._to_proto()
-    
+
     exchange_rate = None
     if proto.HasField("exchangeRate") and proto.exchangeRate is not None:
         exchange_rate = _map_receipt_proto_to_exchange_rate(proto.exchangeRate)
@@ -335,7 +335,8 @@ def get_transaction_receipt(params: GetTransactionReceiptParams) -> GetTransacti
 
     query = TransactionGetReceiptQuery()
     query.set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
-    query.set_transaction_id(TransactionId.from_string(params.transactionId))
+    if  params.transactionId is not None:
+        query.set_transaction_id(TransactionId.from_string(params.transactionId))
 
     if params.includeChildren is not None:
         query.set_include_children(params.includeChildren)
@@ -348,5 +349,4 @@ def get_transaction_receipt(params: GetTransactionReceiptParams) -> GetTransacti
     query.set_validate_status(validate_status)
 
     receipt = query.execute(client)
-    receipt_response = _map_transaction_receipt(receipt)
-    return receipt_response
+    return _map_transaction_receipt(receipt)

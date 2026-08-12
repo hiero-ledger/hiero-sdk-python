@@ -166,10 +166,13 @@ class TransactionGetReceiptQuery(Query):
             AttributeError: If the Query protobuf structure is invalid.
             Exception: If any other error occurs during request construction.
         """
+        if not self.transaction_id:
+            raise PrecheckError(
+                ResponseCode.INVALID_TRANSACTION_ID,
+                None,
+                "Transaction ID must be set before making the request.",
+            )
         try:
-            if not self.transaction_id:
-                raise ValueError("Transaction ID must be set before making the request.")
-
             query_header = query_header_pb2.QueryHeader()
             query_header.responseType = query_header_pb2.ResponseType.ANSWER_ONLY
 
