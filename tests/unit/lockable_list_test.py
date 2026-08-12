@@ -228,7 +228,7 @@ def test_append_locked():
     """Test append() raises RuntimeError when the list is locked."""
     lst = _LockableList[int]().set_lock(True)
 
-    with pytest.raises(Exception, match="list is unmutable"):
+    with pytest.raises(RuntimeError, match="list is unmutable"):
         lst.append(1)
 
 
@@ -236,7 +236,7 @@ def test_extend_locked():
     """Test extend() raises RuntimeError when the list is locked."""
     lst = _LockableList[int]().set_lock(True)
 
-    with pytest.raises(Exception, match="list is unmutable"):
+    with pytest.raises(RuntimeError, match="list is unmutable"):
         lst.extend([1])
 
 
@@ -244,7 +244,7 @@ def test_set_list_locked():
     """Test set_list() raises RuntimeError when the list is locked."""
     lst = _LockableList[int]().set_lock(True)
 
-    with pytest.raises(Exception, match="list is unmutable"):
+    with pytest.raises(RuntimeError, match="list is unmutable"):
         lst.set_list([1])
 
 
@@ -252,7 +252,7 @@ def test_clear_locked():
     """Test clear() raises RuntimeError when the list is locked."""
     lst = _LockableList[int]().set_list([1]).set_lock(True)
 
-    with pytest.raises(Exception, match="list is unmutable"):
+    with pytest.raises(RuntimeError, match="list is unmutable"):
         lst.clear()
 
 
@@ -260,5 +260,5 @@ def test_set_locked():
     """Test set() raises RuntimeError when the list is locked."""
     lst = _LockableList[int]().set_list([1]).set_lock(True)
 
-    with pytest.raises(Exception, match="list is unmutable"):
+    with pytest.raises(RuntimeError, match="list is unmutable"):
         lst.set(0, 2)
