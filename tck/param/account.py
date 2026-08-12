@@ -139,7 +139,6 @@ class GetTransactionReceiptParams(BaseParams):
     includeChildren: bool | None = None
     validateStatus: bool | None = None
 
-
     @classmethod
     def parse_json_params(cls, params: dict) -> GetTransactionReceiptParams:
         """Parse JSON-RPC params into a GetTransactionReceiptParams instance."""

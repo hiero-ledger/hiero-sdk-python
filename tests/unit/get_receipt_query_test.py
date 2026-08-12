@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.exceptions import MaxAttemptsError, ReceiptStatusError
+from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -468,3 +468,14 @@ def test_account_id_returns_none_when_not_set(transaction_id):
 
         # Verify: account_id is None when accountID is not set in protobuf
         assert result.account_id is None
+
+
+def test_make_request_raises_precheck_error_when_transaction_id_is_none():
+    """Test that _make_request raises PrecheckError with INVALID_TRANSACTION_ID when transaction_id is not set."""
+    query = TransactionGetReceiptQuery()
+
+    with pytest.raises(PrecheckError) as exc_info:
+        query._make_request()
+
+    assert exc_info.value.status == ResponseCode.INVALID_TRANSACTION_ID
+    assert str(exc_info.value) == "Transaction ID must be set before making the request."

@@ -102,6 +102,7 @@ def create_account(params: CreateAccountParams) -> CreateAccountResponse:
         str(response.transaction_id) if response.transaction_id is not None else None,
     )
 
+
 def _build_update_account_transaction(params: UpdateAccountParams) -> AccountUpdateTransaction:
     transaction = AccountUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
     transaction.set_auto_renew_period(None)
@@ -297,8 +298,8 @@ def _map_receipt_proto_to_exchange_rate(proto) -> ExchangeRateResponse | None:
     return ExchangeRateResponse(
         hbars=int(current.hbarEquiv),
         cents=int(current.centEquiv),
-        expirationTime=str(current.expirationTime.seconds) if hasattr(current, "expirationTime") else None
-        )
+        expirationTime=str(current.expirationTime.seconds) if hasattr(current, "expirationTime") else None,
+    )
 
 
 def _map_transaction_receipt(receipt: TransactionReceipt) -> GetTransactionReceiptResponse:

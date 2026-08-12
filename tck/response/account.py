@@ -100,6 +100,7 @@ class ExchangeRateResponse:
     cents: int | None = None
     expirationTime: str | None = None
 
+
 @dataclass
 class GetTransactionReceiptResponse:
     """Response payload for getTransactionReceipt."""
