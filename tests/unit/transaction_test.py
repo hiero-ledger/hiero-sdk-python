@@ -660,7 +660,7 @@ def test_changing_node_ids_after_freeze_raises_error(mock_client):
     # Using freeze_with(client)
     transaction1 = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
     transaction1.freeze_with(mock_client)
-    with pytest.raises(Exception, match="list is unmutable"):
+    with pytest.raises(RuntimeError, match="list is unmutable"):
         transaction1.set_node_account_ids([node_ids_2])
 
     # Using freeze()
@@ -671,7 +671,7 @@ def test_changing_node_ids_after_freeze_raises_error(mock_client):
         .set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.2")))
     )
     transaction2.freeze()
-    with pytest.raises(Exception, match="list is unmutable"):
+    with pytest.raises(RuntimeError, match="list is unmutable"):
         transaction2.set_node_account_ids([node_ids_2])
 
 
