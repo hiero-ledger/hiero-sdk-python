@@ -27,7 +27,7 @@ class ScheduleCreateParams:
     Attributes:
         payer_account_id (AccountId, optional): The account ID of the payer
             for the scheduled transaction.
-        admin_key (Key, optional): The key that can delete or sign the schedule.
+        admin_key (Key, optional): The key that can delete the schedule.
         schedulable_body (SchedulableTransactionBody, optional): The body of the transaction
             to be scheduled.
         schedule_memo (str, optional): A memo to include with the schedule.

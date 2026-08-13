@@ -15,6 +15,7 @@ from hiero_sdk_python.hapi.services.contract_get_info_pb2 import ContractGetInfo
 from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
+from hiero_sdk_python.utils.key_format import format_key
 
 
 @dataclass
@@ -150,7 +151,7 @@ class ContractInfo:
             f"  contract_id={self.contract_id},\n"
             f"  account_id={self.account_id},\n"
             f"  contract_account_id={self.contract_account_id},\n"
-            f"  admin_key={self.admin_key},\n"
+            f"  admin_key={format_key(self.admin_key)},\n"
             f"  auto_renew_account_id={self.auto_renew_account_id},\n"
             f"  auto_renew_period={self.auto_renew_period},\n"
             f"  storage={self.storage},\n"

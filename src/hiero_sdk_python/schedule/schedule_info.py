@@ -20,6 +20,7 @@ from hiero_sdk_python.hapi.services.schedule_get_info_pb2 import (
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_id import TransactionId
+from hiero_sdk_python.utils.key_format import format_key
 
 
 @dataclass()
@@ -40,7 +41,7 @@ class ScheduleInfo:
         scheduled_transaction_body (SchedulableTransactionBody, optional):
             The body of the scheduled transaction.
         schedule_memo (str, optional): The memo associated with the schedule.
-        admin_key (Key, optional): The key that can delete or update the schedule.
+        admin_key (Key, optional): The key that can delete the schedule.
         signers (list[PublicKey]): The list of public keys that have signed the schedule.
         ledger_id (bytes, optional): The ID of the ledger this schedule exists in.
         wait_for_expiry (bool, optional): Whether the schedule is set to wait for expiry.
@@ -152,7 +153,7 @@ class ScheduleInfo:
             f"  scheduled_transaction_id={self.scheduled_transaction_id},\n"
             f"  scheduled_transaction_body={self.scheduled_transaction_body},\n"
             f"  schedule_memo='{self.schedule_memo}',\n"
-            f"  admin_key={self.admin_key.to_string() if self.admin_key else None},\n"
+            f"  admin_key={format_key(self.admin_key)},\n"
             f"  signers={signers_str},\n"
             f"  ledger_id={ledger_id_display},\n"
             f"  wait_for_expiry={self.wait_for_expiry}\n"

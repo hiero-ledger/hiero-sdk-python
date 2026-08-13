@@ -229,6 +229,14 @@ def test_admin_key_key_list_round_trip():
     assert restored_info.admin_key.to_proto_key() == admin_key.to_proto_key()
 
 
+def test_str_safely_formats_generic_admin_keys():
+    """Test string formatting supports key lists without exposing private keys."""
+    private_key = PrivateKey.generate_ed25519()
+
+    assert private_key.to_string_raw() not in str(ContractInfo(admin_key=private_key))
+    assert "admin_key=keyList(...)" in str(ContractInfo(admin_key=KeyList([private_key.public_key()])))
+
+
 def test_to_proto(contract_info):
     """Test the to_proto method of the ContractInfo class"""
     proto = contract_info._to_proto()
