@@ -11,7 +11,7 @@ from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, StringValue
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import contract_update_pb2, transaction_pb2
@@ -31,7 +31,7 @@ class ContractUpdateParams:
     Attributes:
         contract_id (ContractId, optional): The contract ID to update.
         expiration_time (Timestamp, optional): The new expiration time for the contract.
-        admin_key (PublicKey, optional): The new admin key for the contract.
+        admin_key (Key, optional): The new admin key for the contract.
         auto_renew_period (Duration, optional): The new auto-renew period for the contract.
         contract_memo (str, optional): The new memo for the contract.
         max_automatic_token_associations (int, optional): The new maximum number of
@@ -45,7 +45,7 @@ class ContractUpdateParams:
 
     contract_id: ContractId | None = None
     expiration_time: Timestamp | None = None
-    admin_key: PublicKey | None = None
+    admin_key: Key | None = None
     auto_renew_period: Duration | None = None
     contract_memo: str | None = None
     max_automatic_token_associations: int | None = None
@@ -86,7 +86,7 @@ class ContractUpdateTransaction(Transaction):
         params = contract_params or ContractUpdateParams()
         self.contract_id: ContractId | None = params.contract_id
         self.expiration_time: Timestamp | None = params.expiration_time
-        self.admin_key: PublicKey | None = params.admin_key
+        self.admin_key: Key | None = params.admin_key
         self.auto_renew_period: Duration | None = params.auto_renew_period
         self.contract_memo: str | None = params.contract_memo
         self.max_automatic_token_associations: int | None = params.max_automatic_token_associations
@@ -124,12 +124,12 @@ class ContractUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def set_admin_key(self, admin_key: PublicKey | None) -> ContractUpdateTransaction:
+    def set_admin_key(self, admin_key: Key | None) -> ContractUpdateTransaction:
         """
         Sets the new admin key for the contract.
 
         Args:
-            admin_key (PublicKey | None): The new admin key for the contract.
+            admin_key (Key | None): The new admin key for the contract.
                 This key can update or delete the contract.
 
         Returns:
@@ -264,7 +264,7 @@ class ContractUpdateTransaction(Transaction):
         return contract_update_pb2.ContractUpdateTransactionBody(
             contractID=self.contract_id._to_proto(),
             expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
-            adminKey=self._convert_to_proto(self.admin_key),
+            adminKey=self.admin_key.to_proto_key() if self.admin_key else None,
             autoRenewPeriod=self._convert_to_proto(self.auto_renew_period),
             staked_node_id=self.staked_node_id,
             memoWrapper=(StringValue(value=self.contract_memo) if self.contract_memo is not None else None),
