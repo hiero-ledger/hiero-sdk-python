@@ -9,12 +9,13 @@ from dataclasses import dataclass, field
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_id import ContractId
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services.contract_get_info_pb2 import ContractGetInfoResponse
 from hiero_sdk_python.staking_info import StakingInfo
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_relationship import TokenRelationship
+from hiero_sdk_python.utils.key_format import format_key
 
 
 @dataclass
@@ -26,7 +27,7 @@ class ContractInfo:
         contract_id (ContractId, optional): The ID of the contract
         account_id (AccountId, optional): The ID of the account owned by the contract
         contract_account_id (str, optional): The contract's EVM address (hex).
-        admin_key (PublicKey, optional): The key that can modify this contract
+        admin_key (Key, optional): The key that can modify this contract
         expiration_time (Timestamp, optional): When the contract will expire
         auto_renew_period (Duration, optional): The period for which the contract will auto-renew
         auto_renew_account_id (AccountId, optional):
@@ -45,7 +46,7 @@ class ContractInfo:
     contract_id: ContractId | None = None
     account_id: AccountId | None = None
     contract_account_id: str | None = None
-    admin_key: PublicKey | None = None
+    admin_key: Key | None = None
     expiration_time: Timestamp | None = None
     auto_renew_period: Duration | None = None
     auto_renew_account_id: AccountId | None = None
@@ -76,7 +77,7 @@ class ContractInfo:
             contract_id=(cls._from_proto_field(proto, "contractID", ContractId._from_proto)),
             account_id=(cls._from_proto_field(proto, "accountID", AccountId._from_proto)),
             contract_account_id=proto.contractAccountID,
-            admin_key=(cls._from_proto_field(proto, "adminKey", PublicKey._from_proto)),
+            admin_key=(cls._from_proto_field(proto, "adminKey", Key.from_proto_key)),
             expiration_time=(cls._from_proto_field(proto, "expirationTime", Timestamp._from_protobuf)),
             auto_renew_period=(cls._from_proto_field(proto, "autoRenewPeriod", Duration._from_proto)),
             auto_renew_account_id=(cls._from_proto_field(proto, "auto_renew_account_id", AccountId._from_proto)),
@@ -103,7 +104,7 @@ class ContractInfo:
             accountID=self.account_id._to_proto() if self.account_id else None,
             contractID=self.contract_id._to_proto() if self.contract_id else None,
             contractAccountID=self.contract_account_id,
-            adminKey=self.admin_key._to_proto() if self.admin_key else None,
+            adminKey=self.admin_key.to_proto_key() if self.admin_key else None,
             expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
             autoRenewPeriod=(self.auto_renew_period._to_proto() if self.auto_renew_period else None),
             storage=self.storage,
@@ -150,7 +151,7 @@ class ContractInfo:
             f"  contract_id={self.contract_id},\n"
             f"  account_id={self.account_id},\n"
             f"  contract_account_id={self.contract_account_id},\n"
-            f"  admin_key={self.admin_key},\n"
+            f"  admin_key={format_key(self.admin_key)},\n"
             f"  auto_renew_account_id={self.auto_renew_account_id},\n"
             f"  auto_renew_period={self.auto_renew_period},\n"
             f"  storage={self.storage},\n"
