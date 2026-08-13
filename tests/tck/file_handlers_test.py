@@ -91,3 +91,4 @@ class TestDeleteFile:
 
         with pytest.raises(ValueError, match="[Ff]ile"):
             delete_file(params)
+
