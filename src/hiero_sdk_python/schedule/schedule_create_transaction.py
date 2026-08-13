@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
@@ -27,7 +27,7 @@ class ScheduleCreateParams:
     Attributes:
         payer_account_id (AccountId, optional): The account ID of the payer
             for the scheduled transaction.
-        admin_key (PublicKey, optional): The key that can delete or sign the schedule.
+        admin_key (Key, optional): The key that can delete or sign the schedule.
         schedulable_body (SchedulableTransactionBody, optional): The body of the transaction
             to be scheduled.
         schedule_memo (str, optional): A memo to include with the schedule.
@@ -38,7 +38,7 @@ class ScheduleCreateParams:
     """
 
     payer_account_id: AccountId | None = None
-    admin_key: PublicKey | None = None
+    admin_key: Key | None = None
     schedulable_body: SchedulableTransactionBody | None = None
     schedule_memo: str | None = None
     expiration_time: Timestamp | None = None
@@ -70,7 +70,7 @@ class ScheduleCreateTransaction(Transaction):
         super().__init__()
         schedule_params = schedule_params or ScheduleCreateParams()
         self.payer_account_id: AccountId | None = schedule_params.payer_account_id
-        self.admin_key: PublicKey | None = schedule_params.admin_key
+        self.admin_key: Key | None = schedule_params.admin_key
         self.schedulable_body: SchedulableTransactionBody | None = schedule_params.schedulable_body
         self.schedule_memo: str | None = schedule_params.schedule_memo
         self.expiration_time: Timestamp | None = schedule_params.expiration_time
@@ -164,12 +164,12 @@ class ScheduleCreateTransaction(Transaction):
         self.wait_for_expiry = wait_for_expiry
         return self
 
-    def set_admin_key(self, admin_key: PublicKey | None) -> ScheduleCreateTransaction:
+    def set_admin_key(self, admin_key: Key | None) -> ScheduleCreateTransaction:
         """
         Sets the admin key for this schedule create transaction.
 
         Args:
-            admin_key (PublicKey | None): The admin key for the schedule.
+            admin_key (Key | None): The admin key for the schedule.
 
         Returns:
             ScheduleCreateTransaction: This transaction instance.
@@ -188,7 +188,7 @@ class ScheduleCreateTransaction(Transaction):
         return ScheduleCreateTransactionBody(
             wait_for_expiry=self.wait_for_expiry,
             memo=self.schedule_memo,
-            adminKey=self.admin_key._to_proto() if self.admin_key else None,
+            adminKey=self.admin_key.to_proto_key() if self.admin_key else None,
             scheduledTransactionBody=self.schedulable_body,
             expiration_time=(self.expiration_time._to_protobuf() if self.expiration_time else None),
             payerAccountID=(self.payer_account_id._to_proto() if self.payer_account_id else None),

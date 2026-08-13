@@ -7,6 +7,7 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -158,6 +159,19 @@ def test_from_proto_none_raises_error():
     """Test the from_proto method of the ScheduleInfo class with a None proto"""
     with pytest.raises(ValueError, match="Schedule info proto is None"):
         ScheduleInfo._from_proto(None)
+
+
+def test_admin_key_key_list_round_trip():
+    """Test serializing and deserializing a key-list schedule admin key."""
+    admin_key = KeyList(
+        [PrivateKey.generate().public_key(), PrivateKey.generate().public_key()],
+        threshold=1,
+    )
+
+    restored_info = ScheduleInfo._from_proto(ScheduleInfo(admin_key=admin_key)._to_proto())
+
+    assert isinstance(restored_info.admin_key, KeyList)
+    assert restored_info.admin_key.to_proto_key() == admin_key.to_proto_key()
 
 
 def test_to_proto(schedule_info):

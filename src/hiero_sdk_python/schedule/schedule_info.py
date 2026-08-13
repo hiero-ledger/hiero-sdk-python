@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -39,7 +40,7 @@ class ScheduleInfo:
         scheduled_transaction_body (SchedulableTransactionBody, optional):
             The body of the scheduled transaction.
         schedule_memo (str, optional): The memo associated with the schedule.
-        admin_key (PublicKey, optional): The key that can delete or update the schedule.
+        admin_key (Key, optional): The key that can delete or update the schedule.
         signers (list[PublicKey]): The list of public keys that have signed the schedule.
         ledger_id (bytes, optional): The ID of the ledger this schedule exists in.
         wait_for_expiry (bool, optional): Whether the schedule is set to wait for expiry.
@@ -54,7 +55,7 @@ class ScheduleInfo:
     scheduled_transaction_id: TransactionId | None = None
     scheduled_transaction_body: SchedulableTransactionBody | None = None
     schedule_memo: str | None = None
-    admin_key: PublicKey | None = None
+    admin_key: Key | None = None
     signers: list[PublicKey] = field(default_factory=list)
     ledger_id: bytes | None = None
     wait_for_expiry: bool | None = None
@@ -86,7 +87,7 @@ class ScheduleInfo:
             ),
             scheduled_transaction_body=proto.scheduledTransactionBody,
             schedule_memo=proto.memo,
-            admin_key=(cls._from_proto_field(proto, "adminKey", PublicKey._from_proto)),
+            admin_key=(cls._from_proto_field(proto, "adminKey", Key.from_proto_key)),
             signers=[PublicKey._from_proto(key) for key in proto.signers.keys],
             ledger_id=proto.ledger_id,
             wait_for_expiry=proto.wait_for_expiry,
@@ -109,7 +110,7 @@ class ScheduleInfo:
             scheduledTransactionID=(self._convert_to_proto(self.scheduled_transaction_id, TransactionId._to_proto)),
             scheduledTransactionBody=self.scheduled_transaction_body,
             memo=self.schedule_memo,
-            adminKey=self._convert_to_proto(self.admin_key, PublicKey._to_proto),
+            adminKey=self.admin_key.to_proto_key() if self.admin_key else None,
             signers=KeyListProto(keys=[self._convert_to_proto(key, PublicKey._to_proto) for key in self.signers or []]),
             ledger_id=self.ledger_id,
             wait_for_expiry=self.wait_for_expiry,

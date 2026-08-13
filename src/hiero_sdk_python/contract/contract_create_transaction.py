@@ -10,7 +10,7 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.contract.contract_function_parameters import (
     ContractFunctionParameters,
 )
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.file.file_id import FileId
@@ -36,7 +36,7 @@ class ContractCreateParams:
         bytecode_file_id (FileId, optional): The FileId of the file containing
             the contract bytecode.
         proxy_account_id (AccountId, optional): The AccountId of the proxy account.
-        admin_key (PublicKey, optional): The admin key for the contract.
+        admin_key (Key, optional): The admin key for the contract.
         gas (int, optional): The gas limit for contract creation.
         initial_balance (int, optional): The initial balance for the contract
             in tinybars.
@@ -56,7 +56,7 @@ class ContractCreateParams:
 
     bytecode_file_id: FileId | None = None
     proxy_account_id: AccountId | None = None
-    admin_key: PublicKey | None = None
+    admin_key: Key | None = None
     gas: int | None = None
     initial_balance: int | None = None
     auto_renew_period: Duration = Duration(DEFAULT_AUTO_RENEW_PERIOD)
@@ -96,7 +96,7 @@ class ContractCreateTransaction(Transaction):
         params = contract_params or ContractCreateParams()
         self.bytecode_file_id: FileId | None = params.bytecode_file_id
         self.proxy_account_id: AccountId | None = params.proxy_account_id
-        self.admin_key: PublicKey | None = params.admin_key
+        self.admin_key: Key | None = params.admin_key
         self.gas: int | None = params.gas
         self.initial_balance: int | None = params.initial_balance
         self.auto_renew_period: Duration = params.auto_renew_period
@@ -158,12 +158,12 @@ class ContractCreateTransaction(Transaction):
         self.proxy_account_id = proxy_account_id
         return self
 
-    def set_admin_key(self, admin_key: PublicKey | None) -> ContractCreateTransaction:
+    def set_admin_key(self, admin_key: Key | None) -> ContractCreateTransaction:
         """
         Sets the admin key for the contract.
 
         Args:
-            admin_key (PublicKey | None): The admin key.
+            admin_key (Key | None): The admin key.
 
         Returns:
             ContractCreateTransaction: This transaction instance.
@@ -355,7 +355,7 @@ class ContractCreateTransaction(Transaction):
             staked_node_id=self.staked_node_id,
             autoRenewPeriod=self.auto_renew_period._to_proto(),
             proxyAccountID=(self.proxy_account_id._to_proto() if self.proxy_account_id else None),
-            adminKey=(self.admin_key._to_proto() if self.admin_key else None),
+            adminKey=(self.admin_key.to_proto_key() if self.admin_key else None),
             fileID=self.bytecode_file_id._to_proto() if self.bytecode_file_id else None,
             initcode=self.bytecode,
         )

@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.schedule.schedule_create_transaction import (
     ScheduleCreateParams,
@@ -87,11 +88,29 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, schedule
     # Verify all fields are correctly set
     schedule_create = transaction_body.scheduleCreate
     assert schedule_create.payerAccountID == schedule_params["payer_account_id"]._to_proto()
-    assert schedule_create.adminKey == schedule_params["admin_key"]._to_proto()
+    assert schedule_create.adminKey == schedule_params["admin_key"].to_proto_key()
     assert schedule_create.scheduledTransactionBody == schedule_params["schedulable_body"]
     assert schedule_create.memo == schedule_params["schedule_memo"]
     assert schedule_create.expiration_time == schedule_params["expiration_time"]._to_protobuf()
     assert schedule_create.wait_for_expiry == schedule_params["wait_for_expiry"]
+
+
+@pytest.mark.parametrize(
+    "admin_key",
+    [
+        PrivateKey.generate(),
+        KeyList([PrivateKey.generate().public_key(), PrivateKey.generate().public_key()]),
+    ],
+    ids=["private-key", "key-list"],
+)
+def test_build_proto_body_with_generic_admin_key(admin_key):
+    """Test building a schedule create body with generic admin key types."""
+    schedule_tx = ScheduleCreateTransaction().set_admin_key(admin_key)
+
+    proto_body = schedule_tx._build_proto_body()
+
+    assert schedule_tx.admin_key is admin_key
+    assert proto_body.adminKey == admin_key.to_proto_key()
 
 
 def test_set_schedulable_body(schedule_params):
