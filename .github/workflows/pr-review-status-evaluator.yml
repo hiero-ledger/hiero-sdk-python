@@ -83,9 +83,15 @@ jobs:
             // raised deeper in the require chain (e.g. the evaluator exists
             // but one of its own dependencies is missing on the base ref)
             // is a real breakage and must fail the run, not skip it.
+            //
+            // Match on the trailing repo-relative path: github-script
+            // resolves relative specifiers against the workspace before
+            // requiring, so the error reports an absolute path
+            // (/home/runner/_work/.../.github/scripts/...) rather than the
+            // './.github/scripts/...' string passed to require().
             const TOP_LEVEL_MODULES = [
-              './.github/scripts/review-status-evaluator.js',
-              './.github/scripts/shared/review-stages.js',
+              '.github/scripts/review-status-evaluator.js',
+              '.github/scripts/shared/review-stages.js',
             ];
 
             let evaluatorModule;
@@ -99,7 +105,20 @@ jobs:
                   ? (String(error.message).match(/Cannot find module '([^']+)'/) || [])[1]
                   : null;
 
-              if (missingModule && TOP_LEVEL_MODULES.includes(missingModule)) {
+              // If the failure came from inside our own scripts, the
+              // evaluator itself resolved fine and something it depends on
+              // is broken — never skip that.
+              const raisedInsideOurScripts = (error.requireStack || []).some((entry) =>
+                String(entry).replace(/\\/g, '/').includes('/.github/scripts/')
+              );
+
+              const isTopLevelModule =
+                missingModule &&
+                TOP_LEVEL_MODULES.some((mod) =>
+                  String(missingModule).replace(/\\/g, '/').endsWith(mod)
+                );
+
+              if (isTopLevelModule && !raisedInsideOurScripts) {
                 core.info(
                   'Evaluator script not present on the base branch yet — skipping. ' +
                   'This is expected until this workflow (and review-status-evaluator.js) ' +
