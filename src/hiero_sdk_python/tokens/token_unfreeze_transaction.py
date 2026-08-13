@@ -76,19 +76,16 @@ class TokenUnfreezeTransaction(Transaction):
 
         Returns:
             TokenUnfreezeAccountTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If account ID or token ID is not set.
         """
-        if not self.token_id:
-            raise ValueError("Missing required TokenID.")
+        body = token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody()
 
-        if not self.account_id:
-            raise ValueError("Missing required AccountID.")
+        if self.token_id is not None:
+            body.token.CopyFrom(self.token_id._to_proto())
 
-        return token_unfreeze_account_pb2.TokenUnfreezeAccountTransactionBody(
-            account=self.account_id._to_proto(), token=self.token_id._to_proto()
-        )
+        if self.account_id is not None:
+            body.account.CopyFrom(self.account_id._to_proto())
+
+        return body
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """

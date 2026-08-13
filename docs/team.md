@@ -13,16 +13,11 @@ GitHub IDs and names are provided as listed on GitHub.
 
 | Name | GitHub ID |
 | :--- | :--- |
-| Emiliyan Kadiyski | @emiliyank |
-| drtoxic69 | @drtoxic69 |
-| prajeeta | @prajeeta |
-| parvninama | @parvninama |
 | Sophie Bulloch | @exploreriii |
-| Priyanshu | @tech0priyanshu |
-| Nadine Loepfe | @nadineloepfe |
-| undefinedIsMyLife | @undefinedIsMyLife |
-| Mounil2005 | @Mounil2005 |
+| Manish Dait | @manishdait |
 | cheese-cakee | @cheese-cakee |
+| prajeeta15 | @prajeeta15 |
+| Priyanshu | @tech0priyanshu |
 
 ## Committer Members
 
@@ -30,13 +25,16 @@ GitHub IDs and names are provided as listed on GitHub.
 
 | Name | GitHub ID |
 | :--- | :--- |
-| MonaaEid | @MonaaEid |
-| Dosi Kolev | @Dosik13 |
+| Sophie Bulloch | @exploreriii |
+| Manish Dait | @manishdait |
 | aceppaluni | @aceppaluni |
-| AntonioCeppellini | @AntonioCeppellini |
 | Adityarya11 | @Adityarya11 |
 | Akshat | @Akshat8510 |
-| Nadine Loepfe | @nadineloepfe |
+| AntonioCeppellini | @AntonioCeppellini |
+| Dosi Kolev | @Dosik13 |
+| parvninama | @parvninama |
+| Daniel Ntege | @danielmarv |
+| Mounil2005 | @Mounil2005 |
 
 ## Maintainer Members
 
@@ -44,8 +42,8 @@ GitHub IDs and names are provided as listed on GitHub.
 
 | Name | GitHub ID |
 | :--- | :--- |
-| Manish Dait | @manishdait |
 | Sophie Bulloch | @exploreriii |
-| Nadine Loepfe | @nadineloepfe |
+| Manish Dait | @manishdait |
+| MonaaEid | @MonaaEid |
 
 Read more at [MAINTAINERS.md](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/MAINTAINERS.md)

@@ -12,6 +12,7 @@ from hiero_sdk_python.contract.contract_update_transaction import (
     ContractUpdateParams,
     ContractUpdateTransaction,
 )
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
@@ -213,6 +214,24 @@ def test_build_transaction_body_success(contract_id, mock_account_ids, transacti
     assert transaction_body.contractUpdateInstance.contractID.contractNum == contract_id.contract
     assert transaction_body.contractUpdateInstance.contractID.shardNum == contract_id.shard
     assert transaction_body.contractUpdateInstance.contractID.realmNum == contract_id.realm
+
+
+@pytest.mark.parametrize(
+    "admin_key",
+    [
+        PrivateKey.generate(),
+        KeyList([PrivateKey.generate().public_key(), PrivateKey.generate().public_key()]),
+    ],
+    ids=["private-key", "key-list"],
+)
+def test_build_proto_body_with_generic_admin_key(contract_id, admin_key):
+    """Test building a contract update body with generic admin key types."""
+    tx = ContractUpdateTransaction().set_contract_id(contract_id).set_admin_key(admin_key)
+
+    proto_body = tx._build_proto_body()
+
+    assert tx.admin_key is admin_key
+    assert proto_body.adminKey == admin_key.to_proto_key()
 
 
 def test_build_transaction_body_missing_contract_id():
