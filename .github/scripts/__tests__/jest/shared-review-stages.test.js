@@ -57,6 +57,18 @@ function freshRequire() {
   return require('../../shared/review-stages');
 }
 
+// For tests that pass label names in: pull the label values from the same
+// config module the production code uses (shared/labels.js) rather than
+// hardcoding the strings, so a renamed default label can't silently
+// desynchronize these tests from getExpectedReviewers' actual behavior.
+function freshRequireWithLabels() {
+  jest.resetModules();
+  return {
+    stages: require('../../shared/review-stages'),
+    labels: require('../../shared/labels'),
+  };
+}
+
 describe('review-stages.js — stage constants', () => {
   let stages;
   let envSnapshot;
@@ -124,12 +136,13 @@ describe('review-stages.js — reviewer type constants', () => {
 
 describe('review-stages.js — getExpectedReviewers', () => {
   let stages;
+  let labels;
   let envSnapshot;
 
   beforeEach(() => {
     envSnapshot = snapshotEnv(ALL_ENV_KEYS);
     clearEnv(ALL_ENV_KEYS);
-    stages = freshRequire();
+    ({ stages, labels } = freshRequireWithLabels());
   });
 
   afterEach(() => {
@@ -137,22 +150,22 @@ describe('review-stages.js — getExpectedReviewers', () => {
   });
 
   test('GFI label maps to [TRIAGE, COMMITTER]', () => {
-    expect(stages.getExpectedReviewers(['Good First Issue']))
+    expect(stages.getExpectedReviewers([labels.GOOD_FIRST_ISSUE_LABEL]))
       .toEqual([stages.TRIAGE, stages.COMMITTER]);
   });
 
   test('beginner label maps to [TRIAGE, COMMITTER]', () => {
-    expect(stages.getExpectedReviewers(['skill: beginner']))
+    expect(stages.getExpectedReviewers([labels.BEGINNER_LABEL]))
       .toEqual([stages.TRIAGE, stages.COMMITTER]);
   });
 
   test('intermediate label maps to [COMMITTER, MAINTAINER]', () => {
-    expect(stages.getExpectedReviewers(['skill: intermediate']))
+    expect(stages.getExpectedReviewers([labels.INTERMEDIATE_LABEL]))
       .toEqual([stages.COMMITTER, stages.MAINTAINER]);
   });
 
   test('advanced label maps to [COMMITTER, MAINTAINER]', () => {
-    expect(stages.getExpectedReviewers(['skill: advanced']))
+    expect(stages.getExpectedReviewers([labels.ADVANCED_LABEL]))
       .toEqual([stages.COMMITTER, stages.MAINTAINER]);
   });
 
@@ -167,12 +180,12 @@ describe('review-stages.js — getExpectedReviewers', () => {
   });
 
   test('PR with both beginner and advanced labels uses the higher difficulty', () => {
-    expect(stages.getExpectedReviewers(['skill: beginner', 'skill: advanced']))
+    expect(stages.getExpectedReviewers([labels.BEGINNER_LABEL, labels.ADVANCED_LABEL]))
       .toEqual([stages.COMMITTER, stages.MAINTAINER]);
   });
 
   test('PR with both GFI and intermediate labels uses the higher difficulty', () => {
-    expect(stages.getExpectedReviewers(['Good First Issue', 'skill: intermediate']))
+    expect(stages.getExpectedReviewers([labels.GOOD_FIRST_ISSUE_LABEL, labels.INTERMEDIATE_LABEL]))
       .toEqual([stages.COMMITTER, stages.MAINTAINER]);
   });
 
@@ -206,10 +219,10 @@ describe('review-stages.js — environment variable overrides', () => {
   test('overrides TRIAGE reviewer type from env', () => {
     process.env.REVIEWER_TYPE_TRIAGE = 'custom-triage';
 
-    const stages = freshRequire();
+    const { stages, labels } = freshRequireWithLabels();
 
     expect(stages.TRIAGE).toBe('custom-triage');
-    expect(stages.getExpectedReviewers(['Good First Issue']))
+    expect(stages.getExpectedReviewers([labels.GOOD_FIRST_ISSUE_LABEL]))
       .toContain('custom-triage');
   });
 

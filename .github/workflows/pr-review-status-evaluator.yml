@@ -19,18 +19,35 @@ on:
     types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
   pull_request_review:
     types: [submitted, dismissed]
+  # Manual smoke-test path: because this workflow always runs the *base-ref*
+  # copy of the evaluator (see security note above), the PR that changes the
+  # evaluator never exercises its own changes in CI. workflow_dispatch from
+  # a trusted branch is the way to verify the evaluator end-to-end against
+  # a real PR after merging.
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to evaluate"
+        required: true
+        type: number
 
 permissions:
   contents: read
   pull-requests: read
 
 concurrency:
-  group: pr-review-status-evaluator-${{ github.event.pull_request.number }}
+  group: pr-review-status-evaluator-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: true
 
 jobs:
   evaluate-status:
     runs-on: hl-sdk-py-lin-md
+    outputs:
+      current_stage: ${{ steps.evaluate.outputs.current_stage }}
+      expected_reviewers: ${{ steps.evaluate.outputs.expected_reviewers }}
+      waiting_on: ${{ steps.evaluate.outputs.waiting_on }}
+      next_action: ${{ steps.evaluate.outputs.next_action }}
+      summary: ${{ steps.evaluate.outputs.summary }}
 
     steps:
       - name: Harden the runner
@@ -41,12 +58,17 @@ jobs:
       - name: Checkout trusted evaluator scripts (PR base ref, not head)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          # For PR events, the trusted base branch; for workflow_dispatch,
+          # the (trusted) ref the workflow was dispatched from.
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
           persist-credentials: false
           fetch-depth: 1
 
       - name: Evaluate PR review status
+        id: evaluate
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
         with:
           script: |
             // On the base ref checked out above, the evaluator itself may
@@ -55,13 +77,29 @@ jobs:
             // expected, non-failing outcome rather than crashing: once this
             // workflow (and any future changes to it) lands on the base
             // branch, subsequent PRs will resolve these requires normally.
+            //
+            // Only the two modules required *here* are excused, and only
+            // when the missing module is one of them. A MODULE_NOT_FOUND
+            // raised deeper in the require chain (e.g. the evaluator exists
+            // but one of its own dependencies is missing on the base ref)
+            // is a real breakage and must fail the run, not skip it.
+            const TOP_LEVEL_MODULES = [
+              './.github/scripts/review-status-evaluator.js',
+              './.github/scripts/shared/review-stages.js',
+            ];
+
             let evaluatorModule;
             let stagesModule;
             try {
               evaluatorModule = require('./.github/scripts/review-status-evaluator.js');
               stagesModule = require('./.github/scripts/shared/review-stages.js');
             } catch (error) {
-              if (error.code === 'MODULE_NOT_FOUND') {
+              const missingModule =
+                error.code === 'MODULE_NOT_FOUND'
+                  ? (String(error.message).match(/Cannot find module '([^']+)'/) || [])[1]
+                  : null;
+
+              if (missingModule && TOP_LEVEL_MODULES.includes(missingModule)) {
                 core.info(
                   'Evaluator script not present on the base branch yet — skipping. ' +
                   'This is expected until this workflow (and review-status-evaluator.js) ' +

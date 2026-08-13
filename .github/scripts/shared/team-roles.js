@@ -57,13 +57,20 @@ function extractSection(contents, heading) {
 
 /**
  * Reads docs/team.md and returns the GitHub IDs (lowercased) for each of
- * the three team roles, plus whether the read succeeded.
+ * the three team roles, plus whether the roster is usable.
  *
- * On failure, `available` is false and all role sets are empty — callers
- * MUST check `available` before treating empty sets as "nobody holds this
- * role" (see review-status-evaluator.js's ROSTER_UNAVAILABLE handling).
- * An empty set from a failed read is not the same fact as an empty set
- * from a successfully-parsed-but-genuinely-empty section.
+ * `available` is false when the file can't be read, AND when it reads fine
+ * but yields no maintainers. A valid roster always has maintainers, so an
+ * empty maintainer set means the file's headings/format have drifted from
+ * what this parser expects (e.g. "## Maintainer Members" was renamed) —
+ * without this check, such drift would silently make every approval look
+ * unqualified and report every PR as "waiting on committer, maintainer"
+ * forever, which is indistinguishable from a genuinely-early review state.
+ *
+ * Callers MUST check `available` before treating empty sets as "nobody
+ * holds this role" (see review-status-evaluator.js's ROSTER_UNAVAILABLE
+ * handling). On failure the role sets carry whatever could be parsed
+ * (possibly empty) for debuggability.
  *
  * @param {string} [repoRoot] - Directory to read docs/team.md from.
  * @returns {{
@@ -89,12 +96,24 @@ function getTeamRoles(repoRoot = process.cwd()) {
         };
     }
 
-    return {
+    const roles = {
         available: true,
         triage: extractSection(contents, SECTION_HEADINGS.triage),
         committer: extractSection(contents, SECTION_HEADINGS.committer),
         maintainer: extractSection(contents, SECTION_HEADINGS.maintainer),
     };
+
+    if (roles.maintainer.size === 0) {
+        console.log(
+            `docs/team.md was read but no maintainers were parsed — the file's ` +
+                `headings/format have likely drifted from what team-roles.js expects ` +
+                `("${SECTION_HEADINGS.maintainer}" table of "| Name | @GitHub-ID |" rows). ` +
+                `Treating the roster as unavailable rather than misreporting review status.`
+        );
+        roles.available = false;
+    }
+
+    return roles;
 }
 
 module.exports = { getTeamRoles };

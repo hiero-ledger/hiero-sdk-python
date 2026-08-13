@@ -30,12 +30,14 @@
  * reaches that position.
  *
  * Roster-failure handling:
- * If docs/team.md can't be read/parsed, shared/team-roles.js reports
- * `available: false`. computeStatus treats that as its own distinct
- * ROSTER_UNAVAILABLE stage rather than silently falling through to normal
- * gate-checking — an empty roster would otherwise make every approval look
- * unqualified and every role look "still pending", which is indistinguishable
- * from a genuinely-early review state and would misreport PR status.
+ * If docs/team.md can't be read — or reads fine but parses to zero
+ * maintainers, which signals heading/format drift since a valid roster
+ * always has maintainers — shared/team-roles.js reports `available: false`.
+ * computeStatus treats that as its own distinct ROSTER_UNAVAILABLE stage
+ * rather than silently falling through to normal gate-checking — an empty
+ * roster would otherwise make every approval look unqualified and every
+ * role look "still pending", which is indistinguishable from a
+ * genuinely-early review state and would misreport PR status.
  */
 
 const {
