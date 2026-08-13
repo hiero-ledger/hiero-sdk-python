@@ -138,10 +138,8 @@ def test_from_proto_without_spender_id():
         creationTime=timestamp_pb2.Timestamp(seconds=1623456789),
         metadata=b"test metadata",
     )
-
     # Create TokenNftInfo from proto
-token_nft_info = TokenNftInfo._from_proto(proto)
-
-# Verify type and that spender_id is None when not present in proto
-assert isinstance(token_nft_info, TokenNftInfo)
-assert token_nft_info.spender_id is None
+    token_nft_info = TokenNftInfo._from_proto(proto)
+    # Verify type and that spender_id is None when not present in proto
+    assert isinstance(token_nft_info, TokenNftInfo)
+    assert token_nft_info.spender_id is None
