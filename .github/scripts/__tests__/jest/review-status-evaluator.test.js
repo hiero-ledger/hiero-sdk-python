@@ -21,6 +21,12 @@ const {
     evaluateReviewStatus,
 } = require('../../review-status-evaluator');
 const { getTeamRoles } = require('../../shared/team-roles');
+const {
+    GOOD_FIRST_ISSUE_LABEL,
+    BEGINNER_LABEL,
+    INTERMEDIATE_LABEL,
+    ADVANCED_LABEL,
+} = require('../../shared/labels');
 
 // Shared fixture roster, used both directly (passed into computeStatus) and
 // via the getTeamRoles() mock (for evaluateReviewStatus's orchestration).
@@ -128,9 +134,9 @@ function createMockGithub({
 
 describe('getPRLabels', () => {
     test('returns label names from paginated REST response', async () => {
-        const github = createMockGithub({ labels: ['skill: beginner', 'bug'] });
+        const github = createMockGithub({ labels: [BEGINNER_LABEL, 'bug'] });
         const labels = await getPRLabels(github, 'o', 'r', 1);
-        expect(labels).toEqual(['skill: beginner', 'bug']);
+        expect(labels).toEqual([BEGINNER_LABEL, 'bug']);
     });
 
     test('returns empty array when PR has no labels', async () => {
@@ -148,14 +154,14 @@ describe('getPRLabels', () => {
     test('aggregates labels across multiple pages', async () => {
         const github = createMockGithub({
             labelPages: [
-                ['skill: beginner', 'bug'],
+                [BEGINNER_LABEL, 'bug'],
                 ['help wanted'],
             ],
         });
 
         const labels = await getPRLabels(github, 'o', 'r', 1);
 
-        expect(labels).toEqual(['skill: beginner', 'bug', 'help wanted']);
+        expect(labels).toEqual([BEGINNER_LABEL, 'bug', 'help wanted']);
     });
 });
 
@@ -249,7 +255,7 @@ describe('computeStatus', () => {
         // expected reviewer set needs. alice is triage-only in the fixture
         // roster, so her approval alone must not be enough to satisfy the
         // committer + maintainer gates that 'skill: intermediate' expects.
-        const status = computeStatus(['skill: intermediate'], 'APPROVED', [
+        const status = computeStatus([INTERMEDIATE_LABEL], 'APPROVED', [
             { reviewer: 'alice', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
         ], testTeamRoles);
 
@@ -261,7 +267,7 @@ describe('computeStatus', () => {
         // bob is a maintainer in the fixture roster, and maintainer is a
         // superset of committer authority, so bob's single approval clears
         // both roles that 'skill: intermediate' expects.
-        const status = computeStatus(['skill: intermediate'], 'APPROVED', [
+        const status = computeStatus([INTERMEDIATE_LABEL], 'APPROVED', [
             { reviewer: 'bob', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
         ], testTeamRoles);
 
@@ -270,7 +276,7 @@ describe('computeStatus', () => {
     });
 
     test('CHANGES_REQUESTED reviewDecision → changes_requested stage, full expected list outstanding', () => {
-        const status = computeStatus(['skill: advanced'], 'CHANGES_REQUESTED', [
+        const status = computeStatus([ADVANCED_LABEL], 'CHANGES_REQUESTED', [
             { reviewer: 'alice', state: 'CHANGES_REQUESTED', submittedAt: '2026-01-01T00:00:00Z' },
         ], testTeamRoles);
 
@@ -279,14 +285,14 @@ describe('computeStatus', () => {
     });
 
     test('no reviewDecision, GFI label, zero approvals → awaiting_triage stage', () => {
-        const status = computeStatus(['Good First Issue'], null, [], testTeamRoles);
+        const status = computeStatus([GOOD_FIRST_ISSUE_LABEL], null, [], testTeamRoles);
 
         expect(status.currentStage).toBe('awaiting_triage');
         expect(status.waitingOn).toEqual(['triage', 'committer']);
     });
 
     test('no reviewDecision, GFI label, one approval → awaiting_review stage (triage gate cleared)', () => {
-        const status = computeStatus(['skill: beginner'], 'REVIEW_REQUIRED', [
+        const status = computeStatus([BEGINNER_LABEL], 'REVIEW_REQUIRED', [
             { reviewer: 'alice', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
         ], testTeamRoles);
 
@@ -304,7 +310,7 @@ describe('computeStatus', () => {
 
     test('all expected reviewers have approved → waitingOn is empty even without formal reviewDecision', () => {
         const status = computeStatus(
-            ['skill: intermediate'],
+            [INTERMEDIATE_LABEL],
             'REVIEW_REQUIRED',
             [
                 { reviewer: 'alice', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' },
@@ -331,7 +337,7 @@ describe('computeStatus', () => {
 
     test('roster unavailable → roster_unavailable stage, regardless of reviewDecision or approvals', () => {
         const status = computeStatus(
-            ['skill: intermediate'],
+            [INTERMEDIATE_LABEL],
             'APPROVED',
             [{ reviewer: 'alice', state: 'APPROVED', submittedAt: '2026-01-01T00:00:00Z' }],
             rosterUnavailable
@@ -352,7 +358,7 @@ describe('computeStatus', () => {
             { reviewer: 'bob', state: 'COMMENTED', submittedAt: '2026-01-02T00:00:00Z' },
         ];
 
-        const status = computeStatus(['skill: intermediate'], 'REVIEW_REQUIRED', detailedReviews, testTeamRoles);
+        const status = computeStatus([INTERMEDIATE_LABEL], 'REVIEW_REQUIRED', detailedReviews, testTeamRoles);
 
         // bob is the maintainer fixture reviewer, so if the earlier APPROVED
         // had been erased by the later COMMENTED, both gates would still be
@@ -367,7 +373,7 @@ describe('computeStatus', () => {
 
 describe('formatStatusForLog', () => {
     test('includes review status, expected reviewers, waiting on, and next action lines', () => {
-        const status = computeStatus(['skill: advanced'], 'CHANGES_REQUESTED', [], testTeamRoles);
+        const status = computeStatus([ADVANCED_LABEL], 'CHANGES_REQUESTED', [], testTeamRoles);
         const formatted = formatStatusForLog(status);
 
         expect(formatted).toContain('Review status:');
@@ -456,7 +462,7 @@ describe('evaluateReviewStatus', () => {
         // so a single approval from bob clears both the committer and
         // maintainer gates that 'skill: intermediate' expects.
         const github = createMockGithub({
-            labels: ['skill: intermediate'],
+            labels: [INTERMEDIATE_LABEL],
             reviewDecision: 'APPROVED',
             reviews: [{ user: { login: 'bob' }, state: 'APPROVED', submitted_at: '2026-01-01T00:00:00Z' }],
         });
