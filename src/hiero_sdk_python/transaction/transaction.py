@@ -319,7 +319,7 @@ class Transaction(_Executable):
 
             for node_account_id in self._node_account_ids.get_list():
                 transaction_body = self.build_transaction_body()
-                transaction_body.transactionID.CopyFrom(self._transaction_ids.get(0)._to_proto())
+                transaction_body.transactionID.CopyFrom(transaction_id._to_proto())
                 transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
 
                 node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
