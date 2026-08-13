@@ -14,6 +14,11 @@ class CreateTopicResponse:
 
 
 @dataclass
+class UpdateTopicResponse(StatusOnlyResponse):
+    """Response payload for updateTopic."""
+
+
+@dataclass
 class DeleteTopicResponse(StatusOnlyResponse):
     """Response payload for deleteTopic."""
 

@@ -47,25 +47,29 @@ def test_build_transaction_body(mock_account_ids):
 
 
 def test_missing_token_id(mock_account_ids):
-    """Test that building a transaction without setting
-    TokenID raises a ValueError.
-    """
-    account_id, freeze_id, node_account_id, token_id, _ = mock_account_ids
+    """Test that building the protobuf body without TokenID ignores the missing ID."""
+    _, freeze_id, _, _, _ = mock_account_ids
 
     unfreeze_tx = TokenUnfreezeTransaction()
     unfreeze_tx.set_account_id(freeze_id)
-    with pytest.raises(ValueError, match="Missing required TokenID."):
-        unfreeze_tx.build_transaction_body()
+
+    body = unfreeze_tx._build_proto_body()
+
+    assert not body.HasField("token")
+    assert body.account == freeze_id._to_proto()
 
 
 def test_missing_account_id(mock_account_ids):
-    """Test that building a transaction without setting AccountID raises a ValueError."""
-    account_id, freeze_id, node_account_id, token_id, _ = mock_account_ids
+    """Test that building the protobuf body without AccountID ignores the missing ID."""
+    _, _, _, token_id, _ = mock_account_ids
 
     unfreeze_tx = TokenUnfreezeTransaction()
     unfreeze_tx.set_token_id(token_id)
-    with pytest.raises(ValueError, match="Missing required AccountID."):
-        unfreeze_tx.build_transaction_body()
+
+    body = unfreeze_tx._build_proto_body()
+
+    assert not body.HasField("account")
+    assert body.token == token_id._to_proto()
 
 
 def test_sign_transaction(mock_account_ids, mock_client):
