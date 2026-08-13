@@ -42,7 +42,7 @@ def generate_key(params: KeyGenerationParams) -> KeyGenerationResponse:
             "invalid parameters: keys are only allowed for keyList or thresholdKey types."
         )
 
-    if params.type in {KeyType.THRESHOLD_KEY, KeyType.LIST_KEY} and not params.keys:
+    if params.type in {KeyType.THRESHOLD_KEY, KeyType.LIST_KEY} and params.keys is None:
         raise JsonRpcError.invalid_params_error(
             "invalid parameters: keys must be provided for keyList or thresholdKey types."
         )

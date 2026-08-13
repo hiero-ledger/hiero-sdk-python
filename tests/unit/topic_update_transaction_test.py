@@ -130,7 +130,7 @@ def test_build_topic_update_transaction_body_with_all_key_types(mock_account_ids
     )
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -209,7 +209,7 @@ def test_build_topic_update_transaction_body(mock_account_ids, topic_id):
     tx = TopicUpdateTransaction(topic_id=topic_id, memo="Updated Memo")
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
     assert transaction_body.consensusUpdateTopic.topicID.topicNum == 1234
@@ -260,15 +260,16 @@ def test_build_scheduled_body(topic_id):
 
 # This test uses fixture mock_account_ids as parameter
 def test_missing_topic_id_in_update(mock_account_ids):
-    """Test that building fails if no topic ID is provided."""
+    """Test that a missing topic ID is deferred to network validation."""
     _, _, node_account_id, _, _ = mock_account_ids
 
     tx = TopicUpdateTransaction(topic_id=None, memo="No ID")
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
-    with pytest.raises(ValueError, match="Missing required fields"):
-        tx.build_transaction_body()
+    transaction_body = tx.build_transaction_body()
+
+    assert not transaction_body.consensusUpdateTopic.HasField("topicID")
 
 
 # This test uses fixtures (mock_account_ids, topic_id, private_key) as parameters
@@ -277,7 +278,7 @@ def test_sign_topic_update_transaction(mock_account_ids, topic_id, private_key):
     _, _, node_account_id, _, _ = mock_account_ids
     tx = TopicUpdateTransaction(topic_id=topic_id, memo="Signature test")
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body_bytes = tx.build_transaction_body().SerializeToString()
     tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
@@ -359,3 +360,84 @@ def test_topic_update_transaction_with_all_fields(topic_id):
 
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
+
+
+def test_topic_memo_and_transaction_memo_independent_in_protobuf(
+    mock_account_ids,
+    topic_id,
+):
+    """Topic and transaction memos serialize independently."""
+
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    tx = TopicUpdateTransaction(
+        topic_id=topic_id,
+        memo="my topic memo",
+    )
+
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.set_node_account_ids([node_account_id])
+
+    tx.set_transaction_memo("some unrelated audit note")
+
+    body = tx.build_transaction_body()
+
+    assert body.memo == "some unrelated audit note"
+    assert body.consensusUpdateTopic.memo.value == "my topic memo"
+
+
+def test_set_memo_updates_topic_memo_only():
+    """Verify set_memo() only updates the topic memo."""
+    tx = TopicUpdateTransaction()
+    tx.set_transaction_memo("audit note")
+    tx.set_memo("new topic memo")
+
+    assert tx.topic_memo == "new topic memo"
+    assert tx.memo == "audit note"
+
+
+def test_topic_memo_serialization_distinguishes_unset_and_empty(
+    mock_account_ids,
+    topic_id,
+):
+    """Unset and explicit empty topic memos serialize differently."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    tx = TopicUpdateTransaction(topic_id=topic_id)
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.set_node_account_ids([node_account_id])
+
+    body = tx.build_transaction_body().consensusUpdateTopic
+    assert not body.HasField("memo")
+
+    tx = TopicUpdateTransaction(topic_id=topic_id, memo="")
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.set_node_account_ids([node_account_id])
+
+    body = tx.build_transaction_body().consensusUpdateTopic
+    assert body.HasField("memo")
+    assert body.memo.value == ""
+
+    tx = TopicUpdateTransaction(topic_id=topic_id, memo="hello")
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.set_node_account_ids([node_account_id])
+
+    body = tx.build_transaction_body().consensusUpdateTopic
+    assert body.HasField("memo")
+    assert body.memo.value == "hello"
+
+
+def test_auto_renew_period_omitted_when_unset(
+    mock_account_ids,
+    topic_id,
+):
+    """Unset auto-renew period should not be serialized."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
+    tx = TopicUpdateTransaction(topic_id=topic_id)
+    tx.operator_account_id = AccountId(0, 0, 2)
+    tx.set_node_account_ids([node_account_id])
+
+    body = tx.build_transaction_body().consensusUpdateTopic
+
+    assert not body.HasField("autoRenewPeriod")

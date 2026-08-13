@@ -37,7 +37,7 @@ def test_build_transaction_body(mock_account_ids):
     freeze_tx.set_token_id(token_id)
     freeze_tx.set_account_id(freeze_id)
     freeze_tx.transaction_id = generate_transaction_id(account_id)
-    freeze_tx.node_account_id = node_account_id
+    freeze_tx.set_node_account_ids([node_account_id])
 
     transaction_body = freeze_tx.build_transaction_body()
 

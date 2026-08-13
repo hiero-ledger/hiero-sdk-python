@@ -103,7 +103,7 @@ def test_build_transaction_body(mock_account_ids, new_token_data):
 
     # Set operator and node account IDs needed for building transaction body
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = node_account_id
+    update_tx.set_node_account_ids([node_account_id])
     transaction_body = update_tx.build_transaction_body()
 
     assert transaction_body.tokenUpdate.token == token_id._to_proto()
@@ -118,13 +118,13 @@ def test_build_transaction_body(mock_account_ids, new_token_data):
     assert transaction_body.tokenUpdate.key_verification_mode == TokenKeyValidation.FULL_VALIDATION
 
 
-def test_build_transaction_body_validation_errors():
-    """Test that build_transaction_body raises appropriate validation errors."""
-    # Test missing token_id
+def test_build_proto_body_without_token_id():
+    """Test that proto body has no token_id when not set."""
     update_tx = TokenUpdateTransaction()
 
-    with pytest.raises(ValueError, match="Missing token ID"):
-        update_tx.build_transaction_body()
+    body = update_tx._build_proto_body()
+
+    assert not body.HasField("token")
 
 
 def test_set_methods(mock_account_ids, private_key, new_token_data):
@@ -352,7 +352,7 @@ def test_single_key_fields(mock_account_ids, key_type, use_private, field_name, 
     assert getattr(tx, field_name).to_bytes() == key.to_bytes()
 
     tx.operator_account_id = operator_id
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     # Build transaction body
     transaction_body = tx.build_transaction_body()
@@ -397,7 +397,7 @@ def test_constructor_with_public_key(mock_account_ids, key_type, use_private):
 
     # Verify keys are correctly stored
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = operator_id  # Using operator_id as node_account_id for test
+    update_tx.set_node_account_ids([operator_id])  # Using operator_id as node_account_id for test
     transaction_body = update_tx.build_transaction_body()
 
     verify_key_in_proto(transaction_body.tokenUpdate.adminKey, expected_admin_public, key_type)
@@ -425,7 +425,7 @@ def test_mixed_key_types_in_constructor(mock_account_ids):
         token_keys=token_keys,
     )
     tx.operator_account_id = operator_id
-    tx.node_account_id = operator_id
+    tx.set_node_account_ids([operator_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -459,7 +459,7 @@ def test_build_transaction_body_with_keys(mock_account_ids, key_type, use_privat
     update_tx.set_freeze_key(freeze_key)
     update_tx.set_token_name(new_token_data["name"])
     update_tx.operator_account_id = operator_id
-    update_tx.node_account_id = node_account_id
+    update_tx.set_node_account_ids([node_account_id])
 
     transaction_body = update_tx.build_transaction_body()
 

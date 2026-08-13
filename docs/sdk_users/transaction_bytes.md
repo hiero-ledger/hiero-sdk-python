@@ -12,7 +12,7 @@ Freezes a transaction with manually set IDs for **single-node execution**.
 
 **Requirements:**
 - `transaction_id` must be set
-- `node_account_id` must be set
+- `node_account_ids` must be set
 
 **Returns:** `Transaction` (self) for method chaining
 
@@ -27,7 +27,7 @@ from hiero_sdk_python.account.account_id import AccountId
 
 transaction = TransferTransaction().add_hbar_transfer(...)
 transaction.transaction_id = TransactionId.generate(AccountId.from_string("0.0.1234"))
-transaction.node_account_id = AccountId.from_string("0.0.3")
+transaction.set_node_account_ids([AccountId.from_string("0.0.3")])
 transaction.freeze()
 ```
 
@@ -140,12 +140,12 @@ receipt = final_tx.execute(client)
 | Feature | `freeze()` | `freeze_with(client)` |
 |---------|-----------|----------------------|
 | Sets transaction_id | ❌ Manual required | ✅ Automatic |
-| Sets node_account_id | ❌ Manual required | ✅ Automatic |
-| Builds for single node | ✅ Yes | ❌ No |
-| Builds for all nodes | ❌ No | ✅ Yes |
-| Supports node failover | ❌ No | ✅ Yes |
+| Sets node_account_ids | ❌ Manual required | ✅ Automatic (if not already set) |
+| Build transactions for user-provided `node_account_ids` | ✅ Yes | ✅ Yes |
+| Builds transactions for all available client nodes | ❌ No | ✅ Yes (if user does not manually set then) |
+| Supports node retry/failover | ✅ Yes (if multiple node account IDs are provided) | ✅ Yes |
 | Use for offline signing | ✅ Yes | ✅ Yes |
-| Use for execute(client) | ⚠️ Single node only | ✅ Recommended |
+| Use for execute(client) | ⚠️ Requires `transaction_id` and `node_account_ids` to be set | ✅ Recommended |
 
 ## Use Cases
 
@@ -157,7 +157,7 @@ Create transaction bytes on an online system, transfer to an offline system for 
 # Online system
 transaction = TransferTransaction().add_hbar_transfer(...)
 transaction.transaction_id = TransactionId.generate(account_id)
-transaction.node_account_id = AccountId.from_string("0.0.3")
+transaction.set_node_account_ids([AccountId.from_string("0.0.3")])
 transaction.freeze()
 unsigned_bytes = transaction.to_bytes()
 

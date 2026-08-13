@@ -15,6 +15,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.exceptions import MaxAttemptsError
 from hiero_sdk_python.hapi.services import query_pb2, transaction_pb2
+from hiero_sdk_python.lockable_list import _LockableList
 from hiero_sdk_python.logger.logger import Logger
 from hiero_sdk_python.response_code import ResponseCode
 
@@ -86,24 +87,23 @@ class _Executable(ABC):
         self._grpc_deadline: float | None = None
         self._request_timeout: float | None = None
 
-        self.node_account_id: AccountId | None = None
-        self.node_account_ids: list[AccountId] = []
+        self._node_account_ids: _LockableList[AccountId] = _LockableList[AccountId]()
 
-        self._used_node_account_id: AccountId | None = None
-        self._node_account_ids_index: int = 0
+    @property
+    def node_account_id(self) -> AccountId | None:
+        warnings.warn(
+            "'node_account_id' is deprecated; use 'node_account_ids' instead.", DeprecationWarning, stacklevel=2
+        )
+        return self._node_account_ids.current if not self._node_account_ids.is_empty else None
 
-    def set_node_account_ids(self, node_account_ids: list[AccountId]):
-        """
-        Explicitly set the node account IDs to execute against.
+    @node_account_id.setter
+    def node_account_id(self, node_account_id: AccountId):
+        warnings.warn(
+            "'node_account_id' is deprecated; use 'node_account_ids' instead.", DeprecationWarning, stacklevel=2
+        )
 
-        Args:
-            node_account_ids (list[AccountId]): List of node account IDs
-
-        Returns:
-            The current instance of the class for chaining.
-        """
-        self.node_account_ids = node_account_ids
-        return self
+        if node_account_id is not None:
+            self.set_node_account_ids([node_account_id])
 
     def set_node_account_id(self, node_account_id: AccountId):
         """
@@ -115,7 +115,34 @@ class _Executable(ABC):
         Returns:
             The current instance of the class for chaining.
         """
+        warnings.warn(
+            "Method 'set_node_account_id()' is deprecated; use 'set_node_account_ids()' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self.set_node_account_ids([node_account_id])
+
+    @property
+    def node_account_ids(self) -> list[AccountId]:
+        """Return a copy of the node account IDs."""
+        return self._node_account_ids.get_list()
+
+    @node_account_ids.setter
+    def node_account_ids(self, node_account_ids: list[AccountId]):
+        self.set_node_account_ids(node_account_ids)
+
+    def set_node_account_ids(self, node_account_ids: list[AccountId]):
+        """
+        Explicitly set the node account IDs to execute against.
+
+        Args:
+            node_account_ids (list[AccountId]): List of node account IDs
+
+        Returns:
+            The current instance of the class for chaining.
+        """
+        self._node_account_ids.set_list(node_account_ids)
+        return self
 
     def set_max_attempts(self, max_attempts: int):
         """
@@ -239,25 +266,6 @@ class _Executable(ABC):
         self._max_backoff = float(max_backoff)
         return self
 
-    def _select_node_account_id(self) -> AccountId | None:
-        """
-        Select the next node account ID from node_account_ids in a round-robin fashion.
-
-        Returns:
-            Selected AccountId or None if no nodes are configured
-        """
-        if self.node_account_ids:
-            # Use modulo to cycle through the list
-            selected = self.node_account_ids[self._node_account_ids_index % len(self.node_account_ids)]
-            self._used_node_account_id = selected
-            return selected
-        return None
-
-    def _advance_node_index(self):
-        """Advance to the next node in the list."""
-        if self.node_account_ids:
-            self._node_account_ids_index += 1
-
     @abstractmethod
     def _should_retry(self, response) -> _ExecutionState:
         """
@@ -346,12 +354,12 @@ class _Executable(ABC):
             if getattr(self, attr) is None:
                 setattr(self, attr, default)
 
-        # nodes to which the executaion must be run against, if not provided used nodes from client
-        if not self.node_account_ids:
-            self.node_account_ids = [node._account_id for node in client.network._healthy_nodes]
+        # If_node_account_ids is empty during execution then use all the available node in client
+        if self._node_account_ids.is_empty:
+            self._node_account_ids.set_list([node._account_id for node in client.network.nodes])
 
-        if not self.node_account_ids:
-            raise RuntimeError("No healthy nodes available for execution")
+        if self._node_account_ids.is_empty:
+            raise RuntimeError("No nodes available for execution")
 
     def _should_retry_exponentially(self, err: Exception) -> bool:
         """
@@ -384,10 +392,10 @@ class _Executable(ABC):
             )
             return True
 
-        if self._node_account_ids_index == len(self.node_account_ids) - 1:
+        if self._node_account_ids.index == len(self._node_account_ids) - 1:
             raise RuntimeError("All nodes are unhealthy")
 
-        self._advance_node_index()
+        self._node_account_ids.advance()
         return True
 
     def _execute(self, client: Client, timeout: int | float | None = None):
@@ -425,14 +433,11 @@ class _Executable(ABC):
                 break
 
             # Select node
-            node_id = self._select_node_account_id()
+            node_id = self._node_account_ids.current
             node = client.network._get_node(node_id)
 
             if node is None:
-                raise RuntimeError(f"No node found for node_account_id: {self.node_account_id}")
-
-            # Store for logging and receipts
-            self.node_account_id = node._account_id
+                raise RuntimeError(f"No node found for node_account_id: {self._node_account_ids.current}")
 
             # Create a channel wrapper from the client's channel
             channel = node._get_channel()
@@ -442,7 +447,7 @@ class _Executable(ABC):
                 "requestId",
                 self._get_request_id(),
                 "nodeAccountID",
-                self.node_account_id,
+                self._node_account_ids.current,
                 "attempt",
                 attempt + 1,
                 "maxAttempts",
@@ -470,7 +475,7 @@ class _Executable(ABC):
 
                 client.network._increase_backoff(node)
                 err_persistant = e
-                self._advance_node_index()
+                self._node_account_ids.advance()
                 continue
 
             client.network._decrease_backoff(node)
@@ -483,7 +488,7 @@ class _Executable(ABC):
             logger.trace(
                 f"{self.__class__.__name__} status received",
                 "nodeAccountID",
-                self.node_account_id,
+                self._node_account_ids.current,
                 "network",
                 client.network.network,
                 "state",
@@ -499,6 +504,7 @@ class _Executable(ABC):
                         client.network._increase_backoff(node)
                         # update nodes from the mirror_node
                         client.update_network()
+                        self._node_account_ids.advance()
 
                     # If we should retry, wait for the backoff period and try again
                     err_persistant = status_error
@@ -509,7 +515,6 @@ class _Executable(ABC):
                         logger,
                         err_persistant,
                     )
-                    self._advance_node_index()
                     continue
                 case _ExecutionState.EXPIRED:
                     raise status_error
@@ -518,7 +523,7 @@ class _Executable(ABC):
                 case _ExecutionState.FINISHED:
                     # If the transaction completed successfully, map the response and return it
                     logger.trace(f"{self.__class__.__name__} finished execution")
-                    return self._map_response(response, self.node_account_id, proto_request)
+                    return self._map_response(response, self._node_account_ids.current, proto_request)
 
         logger.error(
             "Exceeded maximum attempts for request",
@@ -529,7 +534,7 @@ class _Executable(ABC):
         )
         raise MaxAttemptsError(
             "Exceeded maximum attempts or request timeout",
-            self.node_account_id,
+            self._node_account_ids.current,
             err_persistant,
         )
 

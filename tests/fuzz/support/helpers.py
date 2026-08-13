@@ -51,8 +51,8 @@ def build_valid_transaction_bytes() -> tuple[bytes, bytes]:
     receiver_id = AccountId.from_string("0.0.5678")
 
     tx = TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
-    tx.transaction_id = TransactionId.generate(operator_id)
-    tx.node_account_id = node_id
+    tx.set_transaction_id(TransactionId.generate(operator_id))
+    tx.set_node_account_ids([node_id])
     tx.freeze()
     unsigned_bytes = tx.to_bytes()
 

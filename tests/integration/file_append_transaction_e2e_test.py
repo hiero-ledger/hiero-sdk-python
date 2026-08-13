@@ -233,7 +233,9 @@ def test_integration_file_append_transaction_max_chunks_exceeded(env):
     )
 
     # Should fail with max chunks exceeded
-    with pytest.raises(ValueError, match="more than.*chunks"):
+    with pytest.raises(
+        ValueError, match="Message requires 100 chunks but max_chunks=5. Increase limit with set_max_chunks()."
+    ):
         append_tx.execute(env.client)
 
 
@@ -312,7 +314,7 @@ def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
         .set_chunk_size(1024)
         .set_contents(content)
         .set_transaction_id(TransactionId.generate(env.client.operator_account_id))
-        .set_node_account_id(AccountId(0, 0, 3))
+        .set_node_account_ids([AccountId(0, 0, 3)])
         .freeze()
     )
 

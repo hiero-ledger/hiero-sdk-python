@@ -139,7 +139,7 @@ def test_build_topic_create_transaction_body(mock_account_ids, custom_fixed_fee,
     )
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -228,7 +228,7 @@ def test_missing_operator_in_topic_create(mock_account_ids):
     _, _, node_account_id, _, _ = mock_account_ids
 
     tx = TopicCreateTransaction(memo="No Operator")
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     with pytest.raises(ValueError, match="Operator account ID is not set."):
         tx.build_transaction_body()
@@ -253,7 +253,7 @@ def test_sign_topic_create_transaction(mock_account_ids, private_key):
     _, _, node_account_id, _, _ = mock_account_ids
     tx = TopicCreateTransaction(memo="Signing test")
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     body_bytes = tx.build_transaction_body().SerializeToString()
     tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
@@ -328,7 +328,7 @@ def test_constructor(multiple_custom_fees, key_type, use_private):
         fee_exempt_keys=fee_exempt_keys,
     )
 
-    assert tx.memo == "Test Topic"
+    assert tx.topic_memo == "Test Topic"
     assert tx.admin_key == admin_key
     assert tx.submit_key == submit_key
     assert tx.custom_fees == multiple_custom_fees
@@ -339,7 +339,7 @@ def test_constructor(multiple_custom_fees, key_type, use_private):
 def test_constructor_default_values():
     """Test constructor with default values."""
     tx_default = TopicCreateTransaction()
-    assert tx_default.memo == ""
+    assert tx_default.topic_memo == ""
     assert tx_default.admin_key is None
     assert tx_default.submit_key is None
     assert tx_default.custom_fees == []
@@ -452,7 +452,7 @@ def test_set_methods_require_not_frozen(mock_account_ids, custom_fixed_fee, mock
 
     tx = TopicCreateTransaction()
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
     tx.freeze_with(mock_client)  # Freeze the transaction
 
     fee_schedule_key = create_key(key_type, use_private)
@@ -503,7 +503,7 @@ def test_single_key_fields(mock_account_ids, key_type, use_private, field_name, 
     assert getattr(tx, field_name).to_bytes() == key.to_bytes()
 
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     # Build transaction body
     transaction_body = tx.build_transaction_body()
@@ -538,7 +538,7 @@ def test_fee_exempt_keys(mock_account_ids, key_type, use_private):
     tx = TopicCreateTransaction()
     tx.set_fee_exempt_keys([key1, key2])
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     # Build transaction body
     transaction_body = tx.build_transaction_body()
@@ -566,7 +566,7 @@ def test_mixed_key_types_in_constructor(mock_account_ids):
         fee_exempt_keys=[ecdsa_public, ed25519_private],
     )
     tx.operator_account_id = AccountId(0, 0, 2)
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -627,3 +627,27 @@ def test_freeze_with_leaves_auto_renew_account_unset_without_operator(mock_clien
     body = frozen_tx.build_transaction_body()
 
     assert not body.consensusCreateTopic.HasField("autoRenewAccount")
+
+
+def test_topic_memo_does_not_collide_with_transaction_memo():
+    """Regression test for: topic and transaction memos remain independent."""
+    tx = TopicCreateTransaction(memo="my topic memo")
+    assert tx.topic_memo == "my topic memo"
+    assert tx.memo == ""  # base Transaction-level memo defaults independently
+
+    tx.set_transaction_memo("some unrelated audit note")
+
+    assert tx.topic_memo == "my topic memo", "topic_memo was clobbered by set_transaction_memo()"
+    assert tx.memo == "some unrelated audit note"
+
+
+def test_topic_memo_reflected_in_protobuf_independent_of_transaction_memo(mock_client):
+    """Verify protobuf preserves separate topic and transaction memos."""
+    tx = TopicCreateTransaction(memo="my topic memo")
+    tx.set_transaction_memo("some unrelated audit note")
+    tx.transaction_id = TransactionId.generate(AccountId(0, 0, 1234))
+    frozen_tx = tx.freeze_with(mock_client)
+    body = frozen_tx.build_transaction_body()
+
+    assert body.consensusCreateTopic.memo == "my topic memo"
+    assert body.memo == "some unrelated audit note"

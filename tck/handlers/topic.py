@@ -2,29 +2,41 @@ from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
+from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_info import TopicInfo
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
+from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTransaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.custom_fee import CustomFeeLimitParams, CustomFeeParams
-from tck.param.topic import CreateTopicParams, TopicMessageInfoParams, TopicMessageSubmitParams
+from tck.param.topic import (
+    CreateTopicParams,
+    DeleteTopicParams,
+    TopicMessageInfoParams,
+    TopicMessageSubmitParams,
+    UpdateTopicParams,
+)
 from tck.response.topic import (
     CreateTopicResponse,
     CustomFeeResponse,
+    DeleteTopicResponse,
     FixedFeeResponse,
     TopicInfoResponse,
     TopicMessageSubmitResponse,
+    UpdateTopicResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string, key_to_string
+from tck.util.param_utils import to_int
 
 
 def _build_custom_fee(custom_fee_params: CustomFeeParams) -> CustomFixedFee:
@@ -76,6 +88,42 @@ def _build_create_topic_transaction(params: CreateTopicParams) -> TopicCreateTra
     return transaction
 
 
+def _build_update_topic_transaction(params: UpdateTopicParams) -> TopicUpdateTransaction:
+    transaction = TopicUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.topicId is not None:
+        transaction.set_topic_id(TopicId.from_string(params.topicId))
+
+    if params.memo is not None:
+        transaction.set_memo(params.memo)
+
+    if params.adminKey is not None:
+        transaction.set_admin_key(get_key_from_string(params.adminKey))
+
+    if params.submitKey is not None:
+        transaction.set_submit_key(get_key_from_string(params.submitKey))
+
+    if params.autoRenewPeriod is not None:
+        transaction.set_auto_renew_period(to_int(params.autoRenewPeriod))
+
+    if params.autoRenewAccountId is not None:
+        transaction.set_auto_renew_account(AccountId.from_string(params.autoRenewAccountId))
+
+    if params.expirationTime is not None:
+        transaction.set_expiration_time(Timestamp(seconds=to_int(params.expirationTime), nanos=0))
+
+    if params.feeScheduleKey is not None:
+        transaction.set_fee_schedule_key(get_key_from_string(params.feeScheduleKey))
+
+    if params.feeExemptKeys is not None:
+        transaction.set_fee_exempt_keys([get_key_from_string(key) for key in params.feeExemptKeys])
+
+    if params.customFees is not None:
+        transaction.set_custom_fees([_build_custom_fee(custom_fee_params) for custom_fee_params in params.customFees])
+
+    return transaction
+
+
 @rpc_method("createTopic")
 def create_topic(params: CreateTopicParams) -> CreateTopicResponse:
     client = get_client(params.sessionId)
@@ -95,6 +143,40 @@ def create_topic(params: CreateTopicParams) -> CreateTopicResponse:
     return CreateTopicResponse(topic_id, ResponseCode(receipt.status).name)
 
 
+@rpc_method("updateTopic")
+def update_topic(params: UpdateTopicParams) -> UpdateTopicResponse:
+    client = get_client(params.sessionId)
+
+    transaction = _build_update_topic_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UpdateTopicResponse(ResponseCode(receipt.status).name)
+
+
+@rpc_method("deleteTopic")
+def delete_topic(params: DeleteTopicParams) -> DeleteTopicResponse:
+    """Delete topic."""
+    client = get_client(params.sessionId)
+
+    transaction = TopicDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.topicId is not None:
+        transaction.set_topic_id(TopicId.from_string(params.topicId))
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return DeleteTopicResponse(ResponseCode(receipt.status).name)
+
+
 def _build_custom_fee_limit(params: CustomFeeLimitParams) -> CustomFeeLimit:
     """Build custom fee limit from params."""
     custom_fee_limit = CustomFeeLimit()
@@ -106,7 +188,7 @@ def _build_custom_fee_limit(params: CustomFeeLimitParams) -> CustomFeeLimit:
         for fee in params.fixedFees:
             fixed_fee = CustomFixedFee()
             if fee.amount is not None:
-                fixed_fee.set_amount_in_tinybars(int(fee.amount))
+                fixed_fee.set_hbar_amount(Hbar.from_tinybars(int(fee.amount)))
 
             if fee.denominatingTokenId is not None:
                 fixed_fee.set_denominating_token_id(TokenId.from_string(fee.denominatingTokenId))

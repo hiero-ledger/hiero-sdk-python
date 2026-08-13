@@ -206,7 +206,7 @@ def test_build_transaction_body_success(contract_id, mock_account_ids, transacti
     tx.set_contract_id(contract_id)
     tx.set_contract_memo("Test memo")
     tx.transaction_id = transaction_id
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -241,7 +241,7 @@ def test_build_transaction_body_with_all_parameters(update_params, mock_account_
     )
     tx = ContractUpdateTransaction(contract_params=constructor_params)
     tx.transaction_id = transaction_id
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     transaction_body = tx.build_transaction_body()
 
@@ -271,7 +271,7 @@ def test_build_scheduled_body_with_all_parameters(update_params, mock_account_id
     )
     tx = ContractUpdateTransaction(contract_params=constructor_params)
     tx.transaction_id = transaction_id
-    tx.node_account_id = node_account_id
+    tx.set_node_account_ids([node_account_id])
 
     schedulable_body = tx.build_scheduled_body()
 

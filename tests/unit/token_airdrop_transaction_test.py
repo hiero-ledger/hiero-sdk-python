@@ -30,7 +30,7 @@ def test_build_transaction_body(mock_account_ids):
     airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
     airdrop_tx.add_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver)
     airdrop_tx.operator_account_id = sender
-    airdrop_tx.node_account_id = node_account_id
+    airdrop_tx.set_node_account_ids([node_account_id])
     transaction_body = airdrop_tx.build_transaction_body()
 
     assert len(transaction_body.tokenAirdrop.token_transfers) == 2
@@ -70,7 +70,7 @@ def test_build_transaction_body_with_approved_transfer(mock_account_ids):
     airdrop_tx.add_approved_token_transfer(token_id=token_id_1, account_id=receiver, amount=amount)
     airdrop_tx.add_approved_nft_transfer(nft_id=nft_id, sender_id=sender, receiver_id=receiver)
     airdrop_tx.operator_account_id = sender
-    airdrop_tx.node_account_id = node_account_id
+    airdrop_tx.set_node_account_ids([node_account_id])
     transaction_body = airdrop_tx.build_transaction_body()
 
     assert len(transaction_body.tokenAirdrop.token_transfers) == 2
@@ -116,7 +116,7 @@ def test_build_transaction_body_with_expected_decimal(mock_account_ids):
         token_id=token_id_2, account_id=receiver, amount=amount, decimals=decimal
     )
     airdrop_tx.operator_account_id = sender
-    airdrop_tx.node_account_id = node_account_id
+    airdrop_tx.set_node_account_ids([node_account_id])
     transaction_body = airdrop_tx.build_transaction_body()
 
     assert len(transaction_body.tokenAirdrop.token_transfers) == 2
@@ -144,21 +144,22 @@ def test_build_transaction_body_with_expected_decimal(mock_account_ids):
     assert token_transfer_2.transfers[1].is_approval == True
 
 
-def test_add_zero_transfer_amount(mock_account_ids):
+@pytest.mark.parametrize("amount", [True, "0", "string", {}, [], None, 3.14])
+def test_add_non_int_transfer_amount(amount, mock_account_ids):
     account_id, _, _, token_id, _ = mock_account_ids
     airdrop_tx = TokenAirdropTransaction()
 
-    with pytest.raises(ValueError):
-        airdrop_tx.add_token_transfer(token_id, account_id, 0)
+    with pytest.raises(ValueError, match="Amount must be an integer"):
+        airdrop_tx.add_token_transfer(token_id, account_id, amount)
 
-    with pytest.raises(ValueError):
-        airdrop_tx.add_token_transfer_with_decimals(token_id, account_id, 0, 1)
+    with pytest.raises(ValueError, match="Amount must be an integer"):
+        airdrop_tx.add_token_transfer_with_decimals(token_id, account_id, amount, 1)
 
-    with pytest.raises(ValueError):
-        airdrop_tx.add_approved_token_transfer(token_id, account_id, 0)
+    with pytest.raises(ValueError, match="Amount must be an integer"):
+        airdrop_tx.add_approved_token_transfer(token_id, account_id, amount)
 
-    with pytest.raises(ValueError):
-        airdrop_tx.add_approved_token_transfer_with_decimals(token_id, account_id, 0, 1)
+    with pytest.raises(ValueError, match="Amount must be an integer"):
+        airdrop_tx.add_approved_token_transfer_with_decimals(token_id, account_id, amount, 1)
 
 
 def test_add_unbalanced_transfer_amount(mock_account_ids):

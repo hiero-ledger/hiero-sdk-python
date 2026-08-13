@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import traceback
+import logging
 from typing import Any
 
 from hiero_sdk_python.account.account_balance import AccountBalance
@@ -11,6 +11,9 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import crypto_get_account_balance_pb2, query_pb2
 from hiero_sdk_python.query.query import Query
+
+
+logger = logging.getLogger(__name__)
 
 
 class CryptoGetAccountBalanceQuery(Query):
@@ -110,8 +113,7 @@ class CryptoGetAccountBalanceQuery(Query):
 
             return query
         except Exception as e:
-            print(f"Exception in _make_request: {e}")
-            traceback.print_exc()
+            logger.error("Exception in _make_request: %s", e, exc_info=True)
             raise
 
     def _get_method(self, channel: _Channel) -> _Method:

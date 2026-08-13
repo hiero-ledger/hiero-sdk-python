@@ -1,11 +1,16 @@
 from __future__ import annotations
 
+import logging
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_info import AccountInfo
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import crypto_get_info_pb2, query_pb2
 from hiero_sdk_python.query.query import Query
+
+
+logger = logging.getLogger(__name__)
 
 
 class AccountInfoQuery(Query):
@@ -67,7 +72,7 @@ class AccountInfoQuery(Query):
 
             return query
         except Exception as e:
-            print(f"Exception in _make_request: {e}")
+            logger.error("Exception in _make_request: %s", e, exc_info=True)
             raise
 
     def _get_method(self, channel: _Channel) -> _Method:

@@ -50,7 +50,11 @@ def create_account(client, operator_key):
     print("\nSTEP 1: Creating a new recipient account...")
     recipient_key = PrivateKey.generate()
     try:
-        tx = AccountCreateTransaction().set_key(recipient_key.public_key()).set_initial_balance(Hbar.from_tinybars(0))
+        tx = (
+            AccountCreateTransaction()
+            .set_key_without_alias(recipient_key.public_key())
+            .set_initial_balance(Hbar.from_tinybars(0))
+        )
 
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)
 

@@ -22,7 +22,7 @@ By inheriting from `Transaction`, your new class automatically gains essential f
 - **Freezing:** `freeze()` and `freeze_with(client)`
 - **Execution:** `execute(client)`
 - **Fee Calculation:** Handling `transaction_fee` and `max_transaction_fee`
-- **ID Management:** `transaction_id`, `node_account_id`
+- **ID Management:** `transaction_id`, `node_account_ids`
 
 Your job in the subclass is to define **what** data is being sent, while the base class handles **how** it is sent.
 

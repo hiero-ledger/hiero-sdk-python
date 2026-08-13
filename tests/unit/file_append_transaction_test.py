@@ -119,7 +119,9 @@ def test_validate_chunking():
     file_tx = FileAppendTransaction(contents=large_content, chunk_size=100, max_chunks=5)
 
     # Should raise error when required chunks > max_chunks
-    with pytest.raises(ValueError, match="Cannot execute FileAppendTransaction with more than 5 chunks"):
+    with pytest.raises(
+        ValueError, match="Message requires 140 chunks but max_chunks=5. Increase limit with set_max_chunks()."
+    ):
         file_tx._validate_chunking()
 
 
@@ -390,7 +392,7 @@ def test_chunk_transaction_id_nanosecond_overflow(file_id):
         .set_contents("a" * 20)
         .set_chunk_size(10)
         .set_transaction_id(tx_id)
-        .set_node_account_id(AccountId(0, 0, 3))
+        .set_node_account_ids([AccountId(0, 0, 3)])
         .freeze()
     )
 

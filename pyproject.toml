@@ -16,7 +16,7 @@ requires-python = ">=3.10, <4"
 dependencies = [
     "protobuf>=4.21.12,<8",
     "grpcio>=1.76.0,<2",
-    "cryptography>=44.0.1,<50",
+    "cryptography>=50.0.0,<51",
     "requests>=2.31.0,<3",
     "pycryptodome>=3.18.0,<4",
     "eth-abi>=5.1.0,<6",
@@ -65,7 +65,7 @@ default-groups = ["dev", "lint"]
 [build-system]
 requires = [
     "pdm-backend>=2.4.8,<3",
-    "setuptools>=82,<84",
+    "setuptools>=83,<85",
     "setuptools_scm>=7,<11",
     "grpcio-tools>=1.76.0,<2"
 ]
