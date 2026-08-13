@@ -35,6 +35,7 @@ from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransactio
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
 from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
+from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
@@ -55,6 +56,7 @@ from tck.param.token import (
     PauseTokenParams,
     RejectTokenParams,
     RevokeTokenKycParams,
+    UnfreezeTokenParams,
     UpdateTokenParams,
     WipeTokenParams,
 )
@@ -74,6 +76,7 @@ from tck.response.token import (
     PauseTokenResponse,
     RejectTokenResponse,
     RevokeTokenKycResponse,
+    UnfreezeTokenResponse,
     UpdateTokenResponse,
     WipeTokenResponse,
 )
@@ -417,6 +420,37 @@ def dissociate_token(params: DissociateTokenParams) -> DissociateTokenResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return DissociateTokenResponse(status=ResponseCode(receipt.status).name)
+
+
+def _build_unfreeze_token_transaction(
+    params: UnfreezeTokenParams,
+) -> TokenUnfreezeTransaction:
+    """Build a TokenUnfreezeTransaction from TCK params."""
+    transaction = TokenUnfreezeTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    if params.accountId is not None:
+        transaction.set_account_id(AccountId.from_string(params.accountId))
+
+    return transaction
+
+
+@rpc_method("unfreezeToken")
+def unfreeze_token(params: UnfreezeTokenParams) -> UnfreezeTokenResponse:
+    """Unfreeze a token for an account using TCK unfreezeToken parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_unfreeze_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UnfreezeTokenResponse(status=ResponseCode(receipt.status).name)
 
 
 @rpc_method("freezeToken")

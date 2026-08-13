@@ -20,8 +20,7 @@ Maintainers are assigned the following scopes in this repository:
 | -------------- | ------------- | ----- | ---- | -------------- | ----- | ------------------- |
 | Sophie Bulloch | exploreriii   |       |      | explorer3      |       |                     |
 | Manish Dait    | manishdait    |       |      | manish24       |       |                     |
-| Nadine Loepfe  | nadineloepfe  |       |      | nadine_90669   |       | Hashgraph           |
-| Richard Bair   | rbair23       |       |      | rbair          |       | Hashgraph           |
+| MonaaEid       | MonaaEid      |       |      |                |       |                     |
 
 ## Emeritus Maintainers
 
