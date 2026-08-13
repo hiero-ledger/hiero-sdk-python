@@ -33,3 +33,21 @@ class CreateFileParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class DeleteFileParams(BaseTransactionParams):
+    """Parameters for deleting a file. Extends BaseTransactionParams to include common transaction parameters."""
+
+    fileId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteFileParams:
+        """Parse JSON-RPC params into a DeleteFileParams instance."""
+        # Spec's input table says "fileID" but every property test, the JSON
+        # example, and the JS reference handler use "fileId".
+        return cls(
+            fileId=params.get("fileId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )

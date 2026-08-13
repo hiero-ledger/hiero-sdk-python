@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
+from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.file import CreateFileParams
-from tck.response.file import CreateFileResponse
+from tck.param.file import CreateFileParams, DeleteFileParams
+from tck.response.file import CreateFileResponse, DeleteFileResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
@@ -53,3 +55,29 @@ def create_file(params: CreateFileParams) -> CreateFileResponse:
         file_id = str(receipt.file_id)
 
     return CreateFileResponse(file_id, ResponseCode(receipt.status).name)
+
+
+@rpc_method("deleteFile")
+def delete_file(params: DeleteFileParams) -> DeleteFileResponse:
+    """Delete a file."""
+    client = get_client(params.sessionId)
+
+    transaction = FileDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.fileId is not None:
+        transaction.set_file_id(FileId.from_string(params.fileId))
+    else:
+        # The JS reference leaves fileId unset and lets the node reject it, but
+        # the Python SDK raises ValueError("Missing required FileID") locally
+        # before the transaction is built. Send an explicit 0.0.0 so the request
+        # reaches the network, which resolves it to INVALID_FILE_ID -- matching
+        # the spec's expectation for an omitted fileId.
+        transaction.set_file_id(FileId(0, 0, 0))
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return DeleteFileResponse(ResponseCode(receipt.status).name)
