@@ -15,6 +15,7 @@ from hiero_sdk_python.contract.contract_create_transaction import (
 from hiero_sdk_python.contract.contract_function_parameters import (
     ContractFunctionParameters,
 )
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
@@ -144,7 +145,7 @@ def test_build_transaction_body_with_bytecode_file_id(mock_account_ids, contract
     assert transaction_body.contractCreateInstance.fileID == contract_params["bytecode_file_id"]._to_proto()
     assert transaction_body.contractCreateInstance.gas == contract_params["gas"]
     assert transaction_body.contractCreateInstance.initialBalance == contract_params["initial_balance"]
-    assert transaction_body.contractCreateInstance.adminKey == contract_params["admin_key"]._to_proto()
+    assert transaction_body.contractCreateInstance.adminKey == contract_params["admin_key"].to_proto_key()
     assert transaction_body.contractCreateInstance.memo == contract_params["contract_memo"]
     assert transaction_body.contractCreateInstance.constructorParameters == contract_params["parameters"]
     assert transaction_body.contractCreateInstance.initcode == b""
@@ -203,7 +204,7 @@ def test_build_scheduled_body(mock_account_ids, contract_params):
     assert schedulable_body.contractCreateInstance.fileID == contract_params["bytecode_file_id"]._to_proto()
     assert schedulable_body.contractCreateInstance.gas == contract_params["gas"]
     assert schedulable_body.contractCreateInstance.initialBalance == contract_params["initial_balance"]
-    assert schedulable_body.contractCreateInstance.adminKey == contract_params["admin_key"]._to_proto()
+    assert schedulable_body.contractCreateInstance.adminKey == contract_params["admin_key"].to_proto_key()
     assert schedulable_body.contractCreateInstance.memo == contract_params["contract_memo"]
     assert schedulable_body.contractCreateInstance.constructorParameters == contract_params["parameters"]
     assert schedulable_body.contractCreateInstance.initcode == b""
@@ -222,6 +223,27 @@ def test_build_transaction_body_validation_errors():
 
     with pytest.raises(ValueError, match="Gas limit must be provided"):
         contract_tx.build_transaction_body()
+
+
+@pytest.mark.parametrize(
+    "admin_key",
+    [
+        PrivateKey.generate(),
+        KeyList([PrivateKey.generate().public_key(), PrivateKey.generate().public_key()]),
+    ],
+    ids=["private-key", "key-list"],
+)
+def test_build_transaction_body_with_generic_admin_key(mock_account_ids, admin_key):
+    """Test building a contract create transaction with generic admin key types."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    contract_tx = ContractCreateTransaction().set_bytecode(b"test bytecode").set_gas(100000).set_admin_key(admin_key)
+    contract_tx.operator_account_id = operator_id
+    contract_tx.set_node_account_ids([node_account_id])
+
+    transaction_body = contract_tx.build_transaction_body()
+
+    assert contract_tx.admin_key is admin_key
+    assert transaction_body.contractCreateInstance.adminKey == admin_key.to_proto_key()
 
 
 def test_set_methods(contract_params):
