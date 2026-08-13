@@ -115,8 +115,8 @@ except ReceiptStatusError as e:
 from hiero_sdk_python.response_code import ResponseCode
 
 code = ResponseCode.INSUFFICIENT_TX_FEE
-print(code.name)    # "INSUFFICIENT_TX_FEE"
-print(int(code))    # integer value
+print(code.name)  # "INSUFFICIENT_TX_FEE"
+print(int(code))  # integer value
 
 # Synthetic codes (returned when the status is unrecognised) expose is_unknown
 if code.is_unknown:
@@ -175,7 +175,7 @@ for attempt in range(3):
     except MaxAttemptsError:
         if attempt == 2:
             raise
-        time.sleep(2 ** attempt)  # 1s, 2s, 4s backoff
+        time.sleep(2**attempt)  # 1s, 2s, 4s backoff
 ```
 
 ## See Also

@@ -376,7 +376,6 @@ The Network and Client are separate but interdependent:
 ### Example: Complete Setup
 
 ```python
-
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.account.account_id import AccountId

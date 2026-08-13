@@ -140,7 +140,17 @@ Key Steps:
 
   * Used throughout execution:
    ```python
-   logger.trace("Executing", "requestId", self._get_request_id(), "nodeAccountID", self._node_account_ids.current, "attempt", attempt + 1, "maxAttempts", max_attempts)
+   logger.trace(
+       "Executing",
+       "requestId",
+       self._get_request_id(),
+       "nodeAccountID",
+       self._node_account_ids.current,
+       "attempt",
+       attempt + 1,
+       "maxAttempts",
+       max_attempts,
+   )
    logger.trace("Executing gRPC call", "requestId", self._get_request_id())
    logger.trace("Retrying request attempt", "requestId", request_id, "delay", current_backoff, ...)
    ```
@@ -148,11 +158,15 @@ Key Steps:
   * At each attempt start:
    ```python
    logger.trace(
-    "Executing",
-    "requestId", self._get_request_id(),
-    "nodeAccountID", self._node_account_ids.current,      # Which node this attempt uses
-    "attempt", attempt + 1,                      # Current attempt (1-based)
-    "maxAttempts", max_attempts                  # Total allowed attempts
+       "Executing",
+       "requestId",
+       self._get_request_id(),
+       "nodeAccountID",
+       self._node_account_ids.current,  # Which node this attempt uses
+       "attempt",
+       attempt + 1,  # Current attempt (1-based)
+       "maxAttempts",
+       max_attempts,  # Total allowed attempts
    )
   ```
   * During gRPC call:
@@ -326,12 +340,13 @@ Problem patterns:
 8. Enable Verbose Logging for Production Issues
   * For real-world debugging:
   ```python
-   # Set higher log level before executing
-   client.logger.set_level("debug")
+  # Set higher log level before executing
+  client.logger.set_level("debug")
 
-   # Or configure structured logging
-   import logging
-   logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+  # Or configure structured logging
+  import logging
+
+  logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
   ```
   Captures:
    * => Request ID, attempt number, node ID

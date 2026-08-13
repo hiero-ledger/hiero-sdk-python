@@ -127,6 +127,7 @@ def test_str_representation(mock_account_ids, nft_id):
     assert str(metadata) in string_repr
     assert str(spender_id) in string_repr
 
+
 def test_from_proto_without_spender_id():
     """Test creating a TokenNftInfo from a protobuf object when spender_id is missing"""
     # Create a mock protobuf without setting spender_id

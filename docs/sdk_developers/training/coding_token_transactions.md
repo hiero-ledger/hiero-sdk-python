@@ -9,11 +9,11 @@ All token transactions must inherit from the base `Transaction` class.
 ```python
 from hiero_sdk_python.transaction.transaction import Transaction
 
+
 class TokenAssociateTransaction(Transaction):
     """
     Represents a token associate transaction on the Hedera network.
     """
-
 ```
 
 By inheriting from `Transaction`, your new class automatically gains essential functionality:
@@ -33,15 +33,10 @@ In the Python SDK, we prefer a flexible initialization pattern. Constructors (`_
 ### Pattern:
 
 ```python
-def __init__(
-    self,
-    account_id: Optional[AccountId] = None,
-    token_ids: Optional[List[TokenId]] = None
-) -> None:
+def __init__(self, account_id: Optional[AccountId] = None, token_ids: Optional[List[TokenId]] = None) -> None:
     super().__init__()  # Initialize the base Transaction
     self.account_id = account_id
     self.token_ids = list(token_ids) if token_ids is not None else []
-
 ```
 
 - **Why?** It supports both "all-in-one" instantiation and progressive building.
@@ -62,7 +57,6 @@ def set_account_id(self, account_id: AccountId) -> "TokenAssociateTransaction":
     self._require_not_frozen()  # Critical check from base class
     self.account_id = account_id
     return self
-
 ```
 
 This feature enables chaining.
@@ -99,10 +93,8 @@ def _build_proto_body(self) -> token_associate_pb2.TokenAssociateTransactionBody
         raise ValueError("Account ID and token IDs must be set.")
 
     return token_associate_pb2.TokenAssociateTransactionBody(
-        account=self.account_id._to_proto(),
-        tokens=[token_id._to_proto() for token_id in self.token_ids]
+        account=self.account_id._to_proto(), tokens=[token_id._to_proto() for token_id in self.token_ids]
     )
-
 ```
 
 ### Step B: Implement `build_transaction_body()`
@@ -121,7 +113,6 @@ def build_transaction_body(self) -> transaction_pb2.TransactionBody:
     transaction_body.tokenAssociate.CopyFrom(token_associate_body)
 
     return transaction_body
-
 ```
 
 ### Step C: Implement `build_scheduled_body()`
@@ -134,7 +125,6 @@ def build_scheduled_body(self) -> SchedulableTransactionBody:
     schedulable_body = self.build_base_scheduled_body()
     schedulable_body.tokenAssociate.CopyFrom(token_associate_body)
     return schedulable_body
-
 ```
 
 ## 5. Network Routing (`_get_method`)
@@ -144,10 +134,9 @@ Finally, you must tell the base class which gRPC method to call on the node. Thi
 ```python
 def _get_method(self, channel: _Channel) -> _Method:
     return _Method(
-        transaction_func=channel.token.associateTokens, # The gRPC function
-        query_func=None
+        transaction_func=channel.token.associateTokens,  # The gRPC function
+        query_func=None,
     )
-
 ```
 
 ---

@@ -6,6 +6,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.custom_fee import CustomFee
@@ -30,6 +31,7 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_info import TokenInfo
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.tokens.token_nft_info import TokenNftInfo
 from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
@@ -38,8 +40,6 @@ from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
-from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
-from hiero_sdk_python.tokens.token_nft_info import TokenNftInfo
 from tck.handlers.registry import rpc_method
 from tck.param.custom_fee import CustomFeeParams, FixedFeeParams
 from tck.param.token import (
@@ -85,6 +85,8 @@ from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
 from tck.util.param_utils import to_int
+
+
 def _parse_hex(value: str, field_name: str) -> bytes:
     try:
         return bytes.fromhex(value)
@@ -936,6 +938,7 @@ def burn_token(params: BurnTokenParams) -> BurnTokenResponse:
         newTotalSupply=str(receipt.new_total_supply),
         status=ResponseCode(receipt.status).name,
     )
+
 
 def _build_token_nft_info_response(info: TokenNftInfo, client) -> GetTokenNftInfoResponse:
     """Build a GetTokenNftInfoResponse from a TokenNftInfo object."""

@@ -341,6 +341,8 @@ class RejectTokenParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
 @dataclass
 class GetTokenNftInfoParams(BaseParams):
     """Request parameters for the getTokenNftInfo endpoint."""
@@ -358,6 +360,7 @@ class GetTokenNftInfoParams(BaseParams):
             maxQueryPayment=params.get("maxQueryPayment"),
             sessionId=parse_session_id(params),
         )
+
 
 @dataclass
 class WipeTokenParams(BaseTransactionParams):

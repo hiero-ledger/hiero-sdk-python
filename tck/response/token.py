@@ -118,6 +118,7 @@ class GetTokenInfoResponse:
     metadata: str | None = None
     ledgerId: str | None = None
 
+
 @dataclass
 class GetTokenNftInfoResponse:
     """Response payload for getTokenNftInfo."""
@@ -128,6 +129,7 @@ class GetTokenNftInfoResponse:
     metadata: str | None = None
     ledgerId: str | None = None
     spenderId: str | None = None
+
 
 @dataclass
 class WipeTokenResponse(StatusOnlyResponse):
