@@ -96,6 +96,27 @@ async function countCompletedGfiIssues(github, owner, repo, username) {
   return result?.search?.issueCount ?? 0;
 }
 
+function issueHasBeginnerLabel(issue) {
+  const beginnerLabel = BEGINNER_LABEL.toLowerCase();
+  return Array.isArray(issue?.labels) && issue.labels.some((label) => label.name?.toLowerCase() === beginnerLabel);
+}
+
+async function getFreshIssue(github, owner, repo, issueNumber) {
+  const { data } = await github.rest.issues.get({
+    owner,
+    repo,
+    issue_number: issueNumber,
+  });
+
+  return data;
+}
+
+function buildAlreadyAssignedComment({ commenter, issue, repo }) {
+  const currentAssignee = issue.assignees?.[0]?.login ?? "another contributor";
+
+  return `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "${BEGINNER_LABEL}" issues [here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3A%22${encodeURIComponent(BEGINNER_LABEL)}%22+no%3Aassignee).`;
+}
+
 module.exports = async ({ github, context }) => {
   try {
     const { payload } = context;
@@ -116,8 +137,7 @@ module.exports = async ({ github, context }) => {
     }
 
     // 2. Label Check (Fix 2: Defensive Check)
-    const beginnerLabel = BEGINNER_LABEL.toLowerCase();
-    const hasBeginnerLabel = Array.isArray(issue.labels) && issue.labels.some((label) => label.name?.toLowerCase() === beginnerLabel);
+    const hasBeginnerLabel = issueHasBeginnerLabel(issue);
     if (!hasBeginnerLabel) {
       console.log(`[Beginner Bot] Issue #${issue.number} does not have '${BEGINNER_LABEL}' label. Exiting.`);
       return;
@@ -258,12 +278,11 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
       // --- ASSIGNMENT LOGIC ---
       if (issue.assignees && issue.assignees.length > 0) {
         try{
-          const currentAssignee = issue.assignees[0]?.login ?? "another contributor";
           await github.rest.issues.createComment({
             owner: repo.owner.login,
             repo: repo.name,
             issue_number: issue.number,
-            body: `👋 Hi @${commenter}, thanks for your interest! This issue is already assigned to @${currentAssignee}, but we'd love your help on another one. You can find more "${BEGINNER_LABEL}" issues [here](https://github.com/${repo.owner.login}/${repo.name}/issues?q=is%3Aissue+is%3Aopen+label%3A%22${encodeURIComponent(BEGINNER_LABEL)}%22+no%3Aassignee).`,
+            body: buildAlreadyAssignedComment({ commenter, issue, repo }),
           });
         } catch (error) {
           console.error("[Beginner Bot] Failed to post already-assigned message:", {
@@ -325,7 +344,53 @@ Please try a GFI first, then come back — we’ll be happy to assign this! 😊
         return;
       }
 
-      console.log(`[Beginner Bot] Assigning issue #${issue.number} to @${commenter}...`);
+      console.log(`[Beginner Bot] Checking current issue state before assigning #${issue.number} to @${commenter}...`);
+
+      let currentIssue;
+      try {
+        currentIssue = await getFreshIssue(
+          github,
+          repo.owner.login,
+          repo.name,
+          issue.number
+        );
+      } catch (error) {
+        console.error("[Beginner Bot] Failed to fetch current issue state before assignment:", {
+          issue: issue.number,
+          commenter,
+          message: error.message,
+          status: error.status,
+        });
+        return;
+      }
+
+      if (!issueHasBeginnerLabel(currentIssue)) {
+        console.log(`[Beginner Bot] Issue #${issue.number} no longer has '${BEGINNER_LABEL}' label. Exiting.`);
+        return;
+      }
+
+      if (currentIssue.state !== "open") {
+        console.log(`[Beginner Bot] Issue #${issue.number} is '${currentIssue.state}'. Exiting.`);
+        return;
+      }
+
+      if (currentIssue.assignees && currentIssue.assignees.length > 0) {
+        try{
+          await github.rest.issues.createComment({
+            owner: repo.owner.login,
+            repo: repo.name,
+            issue_number: issue.number,
+            body: buildAlreadyAssignedComment({ commenter, issue: currentIssue, repo }),
+          });
+        } catch (error) {
+          console.error("[Beginner Bot] Failed to post already-assigned message:", {
+            issue: issue.number,
+            commenter,
+            message: error.message,
+          });
+        }
+        return;
+      }
 
       // Fix 4: Granular Try/Catch for Assign API
       try {
