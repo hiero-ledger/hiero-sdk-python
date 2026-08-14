@@ -10,11 +10,13 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
+from tck.handlers.account import _build_create_account_transaction
 from tck.handlers.allowance import _build_approve_allowance_transaction
 from tck.handlers.registry import rpc_method
 from tck.handlers.token import _build_burn_token_transaction, _build_mint_token_transaction
 from tck.handlers.topic import _build_create_topic_transaction, _build_topic_message_submit_transaction
 from tck.handlers.transfer import _build_transfer_transaction
+from tck.param.account import CreateAccountParams
 from tck.param.allowance import ApproveAllowanceParams
 from tck.param.base import BaseTransactionParams
 from tck.param.common import CommonTransactionParams
@@ -33,6 +35,7 @@ from tck.util.param_utils import to_int
 # "submitMessage" is the name used by the TCK inside scheduledTransaction, while
 # "submitTopicMessage" is the top-level JSON-RPC method name; both are accepted.
 _SCHEDULABLE: dict[str, tuple[type[BaseTransactionParams], Callable[[Any], Transaction]]] = {
+    "createAccount": (CreateAccountParams, _build_create_account_transaction),
     "transferCrypto": (TransferCryptoParams, _build_transfer_transaction),
     "submitMessage": (TopicMessageSubmitParams, _build_topic_message_submit_transaction),
     "submitTopicMessage": (TopicMessageSubmitParams, _build_topic_message_submit_transaction),
