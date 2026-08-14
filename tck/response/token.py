@@ -45,6 +45,11 @@ class FreezeTokenResponse(StatusOnlyResponse):
 
 
 @dataclass
+class UnfreezeTokenResponse(StatusOnlyResponse):
+    """Response payload for unfreezeToken."""
+
+
+@dataclass
 class GrantTokenKycResponse(StatusOnlyResponse):
     """Response payload for grantTokenKyc."""
 

@@ -7,6 +7,7 @@ const {
   ADVANCED_LABEL,
 } = require('./labels');
 
+const path = require('path');
 const { isSafeLabel } = require('./helpers/validation');
 
 /**
@@ -55,6 +56,14 @@ const CONFIG = {
     [LEVEL_KEYS.ADVANCED]:     { requiredLevel: LEVEL_KEYS.INTERMEDIATE, requiredCount: 3, displayName: 'Advanced'         },
   },
 
+  // Maximum simultaneous assignments .
+  assignmentLimits: {
+    [LEVEL_KEYS.GFI]: 2,
+    [LEVEL_KEYS.BEGINNER]: 2,
+    [LEVEL_KEYS.INTERMEDIATE]: 2,
+    [LEVEL_KEYS.ADVANCED]: 2,
+  },
+
   // Repos tried in order for each fallback step.
   // Home repo must be first — contributor history is resolved against it.
   repos: [
@@ -85,6 +94,17 @@ const CONFIG = {
       },
     },
   ],
+
+  // Spam-listed contributor policy.
+  spamPolicy: {
+    spamListPath: path.join(__dirname, "..", "..", "spam-list.txt"),
+    // Spam-listed contributors may only request these levels.
+    allowedLevels: [
+      LEVEL_KEYS.GFI,
+    ],
+    // Maximum simultaneous assignments for spam-listed contributors.
+    assignmentLimit: 1,
+  },
 
   maxRecommendations: 5,
   fetchPerPage:       50,
