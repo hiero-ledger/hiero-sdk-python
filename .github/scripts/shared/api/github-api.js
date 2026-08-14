@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const { CONFIG } = require('../config');
+const { isValidSearchToken } = require("../helpers/validation");
 
 /**
  * Counts closed issues historically assigned to a contributor at a given label,
@@ -64,7 +65,158 @@ async function fetchIssuesBatch(github, repoConfig) {
   }
 }
 
+async function getOpenAssignments({ github, owner, repo, username }) {
+  try {
+    const issues = await github.paginate(github.rest.issues.listForRepo, {
+      owner,
+      repo,
+      assignee: username,
+      state: 'open',
+      per_page: 100,
+    });
+
+    // listForRepo returns both issues and pull requests.
+    // Only open issues should consume assignment capacity.
+    return issues.filter((item) => !item.pull_request).length;
+  } catch (error) {
+    console.error('[github-api] getOpenAssignments failed:', {
+      owner,
+      repo,
+      username,
+      message: error.message,
+    });
+
+    return null;
+  }
+}
+
+/**
+ * Counts closed issues carrying `label` (in the given repo) assigned to
+ * `username`. Returns null (rather than throwing) on unsafe input or API
+ * error so callers can choose to fail open.
+ */
+async function countCompletedIssuesWithLabel({ github, owner, repo, username, label }) {
+  if (!isValidSearchToken(owner) || !isValidSearchToken(repo) || !isValidSearchToken(username)) {
+    return null;
+  }
+
+  const searchQuery = [
+    `repo:${owner}/${repo}`,
+    `label:"${label}"`,
+    'is:issue',
+    'is:closed',
+    `assignee:${username}`,
+  ].join(' ');
+
+  try {
+    const result = await github.graphql(
+      `
+      query ($searchQuery: String!) {
+        search(type: ISSUE, query: $searchQuery) {
+          issueCount
+        }
+      }
+      `,
+      { searchQuery }
+    );
+    return result?.search?.issueCount ?? 0;
+  } catch (error) {
+    console.error('[github-api] countCompletedIssuesWithLabel failed:', {
+      owner,
+      repo,
+      username,
+      label,
+      message: error.message,
+    });
+    return null;
+  }
+}
+
+/**
+
+ * Determines whether a user has repository collaborator access.
+ *
+ * Repository owners are always considered collaborators.
+ * GitHub returns 204 when the user is a collaborator and 404 otherwise.
+ * Unexpected API failures are treated as non-collaborator access.
+ */
+async function isRepoCollaborator({ github, owner, repo, username }) {
+  if (username === owner) {
+    console.log(`[github-api] @${username} is the repo owner — treated as collaborator.`);
+    return true;
+  }
+
+  try {
+    await github.rest.repos.checkCollaborator({
+      owner,
+      repo,
+      username,
+    });
+
+    console.log('[github-api] isRepoCollaborator: collaborator', {
+      username,
+    });
+
+    return true;
+  } catch (error) {
+    if (error?.status === 404) {
+      console.log('[github-api] isRepoCollaborator: not a collaborator', {
+        username,
+      });
+      return false;
+    }
+
+    console.error('[github-api] isRepoCollaborator: unexpected error', {
+      username,
+      status: error?.status,
+      message: error.message,
+    });
+
+    return false;
+  }
+}
+
+async function postIssueComment({ github, owner, repo, issueNumber, body }, logLabel) {
+  try {
+    await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
+    console.log(`[github-api] Posted comment: ${logLabel}`);
+  } catch (error) {
+    console.error(`[github-api] Failed to post comment (${logLabel}):`, { message: error.message });
+    throw error;
+  }
+}
+
+async function fetchAllComments({ github, owner, repo, issueNumber }) {
+  return github.paginate(github.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: issueNumber,
+    per_page: 100,
+  });
+}
+
+async function assignIssue({
+    github,
+    owner,
+    repo,
+    issueNumber,
+    username,
+}) {
+    await github.rest.issues.addAssignees({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        assignees: [username],
+    });
+}
+
 module.exports = {
   fetchIssuesBatch,
   countClosedIssuesByAssignee,
+  getOpenAssignments,
+  countCompletedIssuesWithLabel,
+  isRepoCollaborator,
+  postIssueComment,
+  fetchAllComments,
+  assignIssue,
 };
