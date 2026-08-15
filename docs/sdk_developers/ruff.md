@@ -121,7 +121,7 @@ Sometimes, a linter rule conflicts with a specific technical requirement. You ca
 import unused_module  # noqa: F401
 
 # Ignore multiple errors on a line
-x = 1 # noqa: E701, F841
+x = 1  # noqa: E701, F841
 ```
 Each error has a code. You can look up the full details of any code in the [Ruff Documentation](https://docs.astral.sh/ruff/rules/).
 

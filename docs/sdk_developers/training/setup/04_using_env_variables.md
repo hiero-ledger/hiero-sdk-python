@@ -16,11 +16,10 @@ from os import getenv
 load_dotenv()
 
 # Read the variables
-operator_id_string = getenv('OPERATOR_ID')
-operator_key_string = getenv('OPERATOR_KEY')
+operator_id_string = getenv("OPERATOR_ID")
+operator_key_string = getenv("OPERATOR_KEY")
 
 # Printing confirming loading and reading
 print(f"Congratulations! We loaded your operator ID: {operator_id_string}.")
 print("Your operator key was loaded successfully (not printed for security).")
-
 ```

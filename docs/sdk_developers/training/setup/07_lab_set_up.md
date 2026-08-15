@@ -53,6 +53,7 @@ def main():
     client, operator_id = set_up_network_and_client()
     query_account_balance(client, operator_id)
 
+
 if __name__ == "__main__":
     main()
 ```
@@ -71,15 +72,16 @@ from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 
+
 def set_up_network_and_client():
     load_dotenv()
 
-    network_name = getenv('NETWORK','')
+    network_name = getenv("NETWORK", "")
     network = Network(network_name)
     client = Client(network)
 
-    operator_id_string = getenv('OPERATOR_ID','')
-    operator_key_string = getenv('OPERATOR_KEY','')
+    operator_id_string = getenv("OPERATOR_ID", "")
+    operator_key_string = getenv("OPERATOR_KEY", "")
 
     operator_id = AccountId.from_string(operator_id_string)
     operator_key = PrivateKey.from_string(operator_key_string)
@@ -88,14 +90,17 @@ def set_up_network_and_client():
     print(f"Connected to Hedera {network_name} as operator {client.operator_account_id}")
     return client, operator_id
 
+
 def query_account_balance(client, operator_id):
     balance = CryptoGetAccountBalanceQuery(operator_id).execute(client)
     print(f" Hbar balance is {balance.hbars}")
     print(f" Token balance is {balance.token_balances}")
 
+
 def main():
     client, operator_id = set_up_network_and_client()
     query_account_balance(client, operator_id)
+
 
 if __name__ == "__main__":
     main()

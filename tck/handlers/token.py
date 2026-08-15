@@ -6,6 +6,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
+from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.custom_fee import CustomFee
@@ -30,6 +31,7 @@ from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_info import TokenInfo
 from hiero_sdk_python.tokens.token_kyc_status import TokenKycStatus
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.tokens.token_nft_info import TokenNftInfo
 from hiero_sdk_python.tokens.token_pause_status import TokenPauseStatus
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
@@ -51,6 +53,7 @@ from tck.param.token import (
     DissociateTokenParams,
     FreezeTokenParams,
     GetTokenInfoParams,
+    GetTokenNftInfoParams,
     GrantTokenKycParams,
     MintTokenParams,
     PauseTokenParams,
@@ -71,6 +74,7 @@ from tck.response.token import (
     DissociateTokenResponse,
     FreezeTokenResponse,
     GetTokenInfoResponse,
+    GetTokenNftInfoResponse,
     GrantTokenKycResponse,
     MintTokenResponse,
     PauseTokenResponse,
@@ -968,3 +972,35 @@ def burn_token(params: BurnTokenParams) -> BurnTokenResponse:
         newTotalSupply=str(receipt.new_total_supply),
         status=ResponseCode(receipt.status).name,
     )
+
+
+def _build_token_nft_info_response(info: TokenNftInfo, client) -> GetTokenNftInfoResponse:
+    """Build a GetTokenNftInfoResponse from a TokenNftInfo object."""
+    return GetTokenNftInfoResponse(
+        nftId=str(info.nft_id) if info.nft_id else None,
+        accountId=str(info.account_id) if info.account_id else None,
+        creationTime=str(info.creation_time) if info.creation_time else None,
+        metadata=info.metadata.hex() if info.metadata else "",
+        ledgerId=client.network.ledger_id.hex() if client.network and client.network.ledger_id else "",
+        spenderId=str(info.spender_id) if info.spender_id else None,
+    )
+
+
+@rpc_method("getTokenNftInfo")
+def get_token_nft_info(params: GetTokenNftInfoParams) -> GetTokenNftInfoResponse:
+    """Query token NFT info using TCK getTokenNftInfo parameters."""
+    client = get_client(params.sessionId)
+
+    query = TokenNftInfoQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.nftId is not None:
+        query.set_nft_id(NftId.from_string(params.nftId))
+
+    if params.queryPayment is not None:
+        query.set_query_payment(Hbar.from_tinybars(int(params.queryPayment)))
+
+    if params.maxQueryPayment is not None:
+        query.set_max_query_payment(Hbar.from_tinybars(int(params.maxQueryPayment)))
+
+    info = query.execute(client)
+    return _build_token_nft_info_response(info, client)
