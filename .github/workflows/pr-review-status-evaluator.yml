@@ -1,0 +1,166 @@
+# This workflow computes and logs the current review status of a PR (what
+# stage it's in, who's expected to review, who it's still waiting on) using
+# .github/scripts/review-status-evaluator.js. It is read-only: it never
+# comments on or otherwise mutates the PR, so it only needs read permissions
+# and can safely run on pull_request (not pull_request_target).
+#
+# Security note: this workflow deliberately checks out the PR's *base* ref
+# (i.e. the trusted branch the PR targets, typically main) rather than the
+# PR's own head/merge ref when loading the evaluator script. A malicious
+# fork PR could otherwise modify review-status-evaluator.js or its shared
+# dependencies, and actions/github-script would execute that modified code
+# with the authenticated `github` client. Checking out the base ref means
+# the workflow always runs the script as it exists on the trusted branch,
+# regardless of what the PR itself changes.
+name: PR Review Status Evaluator
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+  pull_request_review:
+    types: [submitted, dismissed]
+  # Manual smoke-test path: because this workflow always runs the *base-ref*
+  # copy of the evaluator (see security note above), the PR that changes the
+  # evaluator never exercises its own changes in CI. workflow_dispatch from
+  # a trusted branch is the way to verify the evaluator end-to-end against
+  # a real PR after merging.
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to evaluate"
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-review-status-evaluator-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  evaluate-status:
+    runs-on: hl-sdk-py-lin-md
+    outputs:
+      current_stage: ${{ steps.evaluate.outputs.current_stage }}
+      expected_reviewers: ${{ steps.evaluate.outputs.expected_reviewers }}
+      waiting_on: ${{ steps.evaluate.outputs.waiting_on }}
+      next_action: ${{ steps.evaluate.outputs.next_action }}
+      summary: ${{ steps.evaluate.outputs.summary }}
+
+    steps:
+      - name: Harden the runner
+        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        with:
+          egress-policy: audit
+
+      - name: Checkout trusted evaluator scripts (PR base ref, not head)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # For PR events, the trusted base branch; for workflow_dispatch,
+          # the (trusted) ref the workflow was dispatched from.
+          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Evaluate PR review status
+        id: evaluate
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
+        with:
+          script: |
+            // On the base ref checked out above, the evaluator itself may
+            // not exist yet — most notably on the very PR that introduces
+            // it, before it's merged to the base branch. Treat that as an
+            // expected, non-failing outcome rather than crashing: once this
+            // workflow (and any future changes to it) lands on the base
+            // branch, subsequent PRs will resolve these requires normally.
+            //
+            // Only the two modules required *here* are excused, and only
+            // when the missing module is one of them. A MODULE_NOT_FOUND
+            // raised deeper in the require chain (e.g. the evaluator exists
+            // but one of its own dependencies is missing on the base ref)
+            // is a real breakage and must fail the run, not skip it.
+            //
+            // Match on the trailing repo-relative path: github-script
+            // resolves relative specifiers against the workspace before
+            // requiring, so the error reports an absolute path
+            // (/home/runner/_work/.../.github/scripts/...) rather than the
+            // './.github/scripts/...' string passed to require().
+            const TOP_LEVEL_MODULES = [
+              '.github/scripts/review-status-evaluator.js',
+              '.github/scripts/shared/review-stages.js',
+            ];
+
+            let evaluatorModule;
+            let stagesModule;
+            try {
+              evaluatorModule = require('./.github/scripts/review-status-evaluator.js');
+              stagesModule = require('./.github/scripts/shared/review-stages.js');
+            } catch (error) {
+              const missingModule =
+                error.code === 'MODULE_NOT_FOUND'
+                  ? (String(error.message).match(/Cannot find module '([^']+)'/) || [])[1]
+                  : null;
+
+              // If the failure came from inside our own scripts, the
+              // evaluator itself resolved fine and something it depends on
+              // is broken — never skip that.
+              const raisedInsideOurScripts = (error.requireStack || []).some((entry) =>
+                String(entry).replace(/\\/g, '/').includes('/.github/scripts/')
+              );
+
+              const isTopLevelModule =
+                missingModule &&
+                TOP_LEVEL_MODULES.some((mod) =>
+                  String(missingModule).replace(/\\/g, '/').endsWith(mod)
+                );
+
+              if (isTopLevelModule && !raisedInsideOurScripts) {
+                core.info(
+                  'Evaluator script not present on the base branch yet — skipping. ' +
+                  'This is expected until this workflow (and review-status-evaluator.js) ' +
+                  'has been merged to the base branch; future PRs will evaluate normally.'
+                );
+                return;
+              }
+              throw error;
+            }
+
+            const { evaluateReviewStatus, formatStatusForLog } = evaluatorModule;
+            const { ROSTER_UNAVAILABLE } = stagesModule;
+
+            const status = await evaluateReviewStatus(github, context);
+
+            if (!status) {
+              core.info('No review status computed (no PR number resolved).');
+              return;
+            }
+
+            core.info(formatStatusForLog(status));
+
+            core.setOutput('current_stage', status.currentStage);
+            core.setOutput('expected_reviewers', status.expectedReviewers.join(','));
+            core.setOutput('waiting_on', status.waitingOn.join(','));
+            core.setOutput('next_action', status.nextAction);
+            core.setOutput('summary', status.summary);
+
+            await core.summary
+              .addHeading('PR Review Status')
+              .addTable([
+                [{ data: 'Field', header: true }, { data: 'Value', header: true }],
+                ['Current stage', status.currentStage],
+                ['Expected reviewers', status.expectedReviewers.join(', ') || 'none'],
+                ['Waiting on', status.waitingOn.join(', ') || 'none'],
+                ['Next action', status.nextAction],
+              ])
+              .write();
+
+            // A roster read failure means reviewer roles couldn't be
+            // verified at all — surface this as a failed check, not just a
+            // quiet log line, so it doesn't go unnoticed.
+            if (status.currentStage === ROSTER_UNAVAILABLE) {
+              core.setFailed(status.nextAction);
+            }
