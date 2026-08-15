@@ -194,7 +194,7 @@ transaction = AccountUpdateTransaction(
         account_memo=memo,
         receiver_signature_required=receiver_sig_required,
         auto_renew_period=Duration(seconds),
-        expiration_time=future_expiration
+        expiration_time=future_expiration,
     )
 ).freeze_with(client)
 
@@ -215,8 +215,8 @@ transaction = (
     .set_expiration_time(future_expiration)
     .freeze_with(client)
 )
-transaction.sign(old_private_key)   # Sign with old key
-transaction.sign(new_private_key)   # Sign with new key
+transaction.sign(old_private_key)  # Sign with old key
+transaction.sign(new_private_key)  # Sign with new key
 transaction.execute(client)
 ```
 
@@ -230,7 +230,7 @@ transaction = AccountAllowanceApproveTransaction(
         HbarAllowance(
             owner_account_id=owner_account_id,
             spender_account_id=spender_account_id,
-            amount=Hbar(100)  # Allow spender to transfer up to 100 HBAR
+            amount=Hbar(100),  # Allow spender to transfer up to 100 HBAR
         )
     ]
 ).freeze_with(client)
@@ -245,7 +245,7 @@ transaction = AccountAllowanceApproveTransaction(
             token_id=token_id,
             owner_account_id=owner_account_id,
             spender_account_id=spender_account_id,
-            amount=1000  # Allow spender to transfer up to 1000 tokens
+            amount=1000,  # Allow spender to transfer up to 1000 tokens
         )
     ]
 ).freeze_with(client)
@@ -260,7 +260,7 @@ transaction = AccountAllowanceApproveTransaction(
             token_id=nft_token_id,
             owner_account_id=owner_account_id,
             spender_account_id=spender_account_id,
-            serial_numbers=[1, 2, 3]  # Allow spender to transfer specific NFTs
+            serial_numbers=[1, 2, 3],  # Allow spender to transfer specific NFTs
         )
     ]
 ).freeze_with(client)
@@ -277,7 +277,7 @@ transaction = (
     .approve_hbar_allowance(
         owner_account_id=owner_account_id,
         spender_account_id=spender_account_id,
-        amount=Hbar(100)  # Allow spender to transfer up to 100 HBAR
+        amount=Hbar(100),  # Allow spender to transfer up to 100 HBAR
     )
     .freeze_with(client)
 )
@@ -292,7 +292,7 @@ transaction = (
         token_id=token_id,
         owner_account_id=owner_account_id,
         spender_account_id=spender_account_id,
-        amount=1000  # Allow spender to transfer up to 1000 tokens
+        amount=1000,  # Allow spender to transfer up to 1000 tokens
     )
     .freeze_with(client)
 )
@@ -306,7 +306,7 @@ transaction = (
     .approve_token_nft_allowance(
         nft_id=NftId(token_id=nft_token_id, serial_number=1),
         owner_account_id=owner_account_id,
-        spender_account_id=spender_account_id
+        spender_account_id=spender_account_id,
     )
     .freeze_with(client)
 )
@@ -325,7 +325,7 @@ transaction = AccountAllowanceDeleteTransaction(
         TokenNftAllowance(
             token_id=nft_token_id,
             owner_account_id=owner_account_id,
-            serial_numbers=[1, 2, 3]  # Remove allowance for specific NFTs
+            serial_numbers=[1, 2, 3],  # Remove allowance for specific NFTs
         )
     ]
 ).freeze_with(client)
@@ -340,8 +340,7 @@ transaction.execute(client)
 transaction = (
     AccountAllowanceDeleteTransaction()
     .delete_all_token_nft_allowances(
-        nft_id=NftId(token_id=nft_token_id, serial_number=1),
-        owner_account_id=owner_account_id
+        nft_id=NftId(token_id=nft_token_id, serial_number=1), owner_account_id=owner_account_id
     )
     .freeze_with(client)
 )
@@ -362,11 +361,7 @@ for record in records:
 
 #### Method Chaining:
 ```python
-records = (
-    AccountRecordsQuery()
-    .set_account_id(account_id)
-    .execute(client)
-)
+records = AccountRecordsQuery().set_account_id(account_id).execute(client)
 
 for record in records:
     print(record)
@@ -1044,10 +1039,7 @@ print(info)
 
 #### Method Chaining:
 ```python
-info_query = (
-    TokenInfoQuery()
-    .set_token_id(token_id)
-)
+info_query = TokenInfoQuery().set_token_id(token_id)
 
 info = info_query.execute(client)
 print(info)
@@ -1061,15 +1053,15 @@ print(info)
 # Note: Royalty fees are only for NON_FUNGIBLE_UNIQUE tokens.
 new_fees = [
     CustomFixedFee(amount=100, fee_collector_account_id=collector_account_id),
-    CustomRoyaltyFee(numerator=5, denominator=10, fee_collector_account_id=collector_account_id)
+    CustomRoyaltyFee(numerator=5, denominator=10, fee_collector_account_id=collector_account_id),
 ]
 
 transaction = TokenFeeScheduleUpdateTransaction(
-    token_id=token_id, # assumed NFT in this example
-    custom_fees=new_fees
+    token_id=token_id,  # assumed NFT in this example
+    custom_fees=new_fees,
 ).freeze_with(client)
 
-transaction.sign(fee_schedule_key) # The fee_schedule_key MUST sign
+transaction.sign(fee_schedule_key)  # The fee_schedule_key MUST sign
 transaction.execute(client)
 ```
 
@@ -1077,18 +1069,16 @@ transaction.execute(client)
 
 ```python
 # Note: Fractional fees are only for FUNGIBLE_COMMON tokens.
-new_fees = [
-    CustomFixedFee(amount=100, fee_collector_account_id=collector_account_id)
-]
+new_fees = [CustomFixedFee(amount=100, fee_collector_account_id=collector_account_id)]
 
 transaction = (
     TokenFeeScheduleUpdateTransaction()
-    .set_token_id(token_id) # assumed FUNGIBLE in this example
+    .set_token_id(token_id)  # assumed FUNGIBLE in this example
     .set_custom_fees(new_fees)
     .freeze_with(client)
 )
 
-transaction.sign(fee_schedule_key) # The fee_schedule_key MUST sign
+transaction.sign(fee_schedule_key)  # The fee_schedule_key MUST sign
 transaction.execute(client)
 ```
 ## HBAR Transactions
@@ -1407,10 +1397,9 @@ transaction.execute(client)
 
 #### Pythonic Syntax:
 ```python
-transaction = FileAppendTransaction(
-    file_id=file_id,
-    contents=b"Additional content to append to the file"
-).freeze_with(client)
+transaction = FileAppendTransaction(file_id=file_id, contents=b"Additional content to append to the file").freeze_with(
+    client
+)
 
 transaction.sign(file_private_key)
 transaction.execute(client)
@@ -1665,7 +1654,7 @@ transaction = ContractUpdateTransaction(
 ).freeze_with(client)
 
 transaction.sign(current_admin_key)  # Sign with current admin key
-transaction.sign(new_admin_key)      # Sign with new admin key
+transaction.sign(new_admin_key)  # Sign with new admin key
 transaction.execute(client)
 ```
 
@@ -1684,7 +1673,7 @@ transaction = (
 )
 
 transaction.sign(current_admin_key)  # Sign with current admin key
-transaction.sign(new_admin_key)      # Sign with new admin key
+transaction.sign(new_admin_key)  # Sign with new admin key
 transaction.execute(client)
 ```
 
@@ -1699,7 +1688,7 @@ func_params = ContractFunctionParameters("setMessage").add_bytes32(b"New message
 transaction = ContractExecuteTransaction(
     contract_id=contract_id,
     gas=1000000,
-    function_parameters=func_params.to_bytes() # function to execute
+    function_parameters=func_params.to_bytes(),  # function to execute
 ).freeze_with(client)
 
 transaction.sign(operator_key)
@@ -1714,7 +1703,7 @@ transaction = (
     ContractExecuteTransaction()
     .set_contract_id(contract_id)
     .set_gas(1000000)
-    .set_function("setMessage",ContractFunctionParameters().add_bytes32(b"New message"))
+    .set_function("setMessage", ContractFunctionParameters().add_bytes32(b"New message"))
     .freeze_with(client)
 )
 
@@ -1736,19 +1725,17 @@ transaction.execute(client)
 #### Pythonic Syntax:
 ```python
 # Option 1: Transfer contract balance to an account
-transaction = ContractDeleteTransaction(
-    contract_id=contract_id,
-    transfer_account_id=recipient_account_id
-).freeze_with(client)
+transaction = ContractDeleteTransaction(contract_id=contract_id, transfer_account_id=recipient_account_id).freeze_with(
+    client
+)
 
 transaction.sign(admin_key)  # Admin key must have been set during contract creation
 transaction.execute(client)
 
 # Option 2: Transfer contract balance to another contract
-transaction = ContractDeleteTransaction(
-    contract_id=contract_id,
-    transfer_contract_id=transfer_contract_id
-).freeze_with(client)
+transaction = ContractDeleteTransaction(contract_id=contract_id, transfer_contract_id=transfer_contract_id).freeze_with(
+    client
+)
 
 transaction.sign(admin_key)  # Admin key must have been set during contract creation
 transaction.execute(client)
@@ -1784,9 +1771,7 @@ transaction.execute(client)
 #### Pythonic Syntax:
 ```python
 # You must provide signed Ethereum transaction data (see how to generate this in examples/ethereum_transaction_execute.py)
-transaction = EthereumTransaction(
-    ethereum_data=ethereum_transaction_data
-).freeze_with(client)
+transaction = EthereumTransaction(ethereum_data=ethereum_transaction_data).freeze_with(client)
 
 transaction.execute(client)
 ```
@@ -1794,11 +1779,7 @@ transaction.execute(client)
 #### Method Chaining:
 ```python
 # You must provide signed Ethereum transaction data (see how to generate this in examples/ethereum_transaction_execute.py)
-transaction = (
-    EthereumTransaction()
-    .set_ethereum_data(ethereum_transaction_data)
-    .freeze_with(client)
-)
+transaction = EthereumTransaction().set_ethereum_data(ethereum_transaction_data).freeze_with(client)
 
 transaction.execute(client)
 ```
@@ -1813,7 +1794,7 @@ transaction.execute(client)
 transfer_tx = TransferTransaction(
     hbar_transfers={
         sender_id: -amount,  # Negative amount = debit
-        recipient_id: amount  # Positive amount = credit
+        recipient_id: amount,  # Positive amount = credit
     }
 )
 
@@ -1831,7 +1812,7 @@ schedule_tx = ScheduleCreateTransaction(
         payer_account_id=client.operator_account_id,
         admin_key=admin_key.public_key(),
         expiration_time=expiration_time,  # Timestamp when the schedule expires
-        wait_for_expiry=True  # If true, executes only when expired even if all signatures present
+        wait_for_expiry=True,  # If true, executes only when expired even if all signatures present
     )
 )
 # Set the transaction to be scheduled
@@ -1841,7 +1822,7 @@ schedule_tx.freeze_with(client)
 # Sign with required keys (any account being debited must sign)
 schedule_tx.sign(sender_private_key)
 schedule_tx.sign(admin_key)
-schedule_tx.sign(payer_account_private_key) # Sign with the payer key
+schedule_tx.sign(payer_account_private_key)  # Sign with the payer key
 ```
 
 #### Method Chaining:
@@ -1861,15 +1842,14 @@ schedule_tx = transfer_tx.schedule()
 
 # Configure the scheduled transaction
 receipt = (
-    schedule_tx
-    .set_payer_account_id(payer_account_id)
+    schedule_tx.set_payer_account_id(payer_account_id)
     .set_admin_key(admin_key.public_key())
     .set_expiration_time(expiration_time)  # Timestamp when the schedule expires
     .set_wait_for_expiry(True)  # If true, executes only when expired even if all signatures present
     .freeze_with(client)
     .sign(sender_private_key)  # Sign with the account being debited
     .sign(admin_key)  # Sign with the admin key
-    .sign(payer_account_private_key) # Sign with the payer key
+    .sign(payer_account_private_key)  # Sign with the payer key
     .execute(client)
 )
 ```
@@ -1885,11 +1865,7 @@ print(schedule_info)
 
 #### Method Chaining:
 ```python
-schedule_info = (
-    ScheduleInfoQuery()
-    .set_schedule_id(schedule_id)
-    .execute(client)
-)
+schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(client)
 print(schedule_info)
 ```
 
@@ -1908,9 +1884,7 @@ receipt = schedule_sign_tx.execute(client)
 
 #### Pythonic Syntax:
 ```python
-transaction = ScheduleDeleteTransaction(
-    schedule_id=schedule_id
-).freeze_with(client)
+transaction = ScheduleDeleteTransaction(schedule_id=schedule_id).freeze_with(client)
 
 transaction.sign(admin_key)  # Admin key must have been set during schedule creation
 receipt = transaction.execute(client)
@@ -1947,16 +1921,16 @@ transaction = NodeCreateTransaction(
         description="Example node",
         gossip_endpoints=[
             Endpoint(domain_name="gossip1.example.com", port=50211),
-            Endpoint(domain_name="gossip2.example.com", port=50212)
+            Endpoint(domain_name="gossip2.example.com", port=50212),
         ],
         service_endpoints=[
             Endpoint(domain_name="service1.example.com", port=50211),
-            Endpoint(domain_name="service2.example.com", port=50212)
+            Endpoint(domain_name="service2.example.com", port=50212),
         ],
         gossip_ca_certificate=gossip_ca_cert,
         admin_key=admin_key.public_key(),
         decline_reward=True,
-        grpc_web_proxy_endpoint=Endpoint(domain_name="grpc.example.com", port=50213)
+        grpc_web_proxy_endpoint=Endpoint(domain_name="grpc.example.com", port=50213),
     )
 ).freeze_with(client)
 
@@ -1970,14 +1944,18 @@ transaction = (
     NodeCreateTransaction()
     .set_account_id(account_id)
     .set_description("Example node")
-    .set_gossip_endpoints([
-        Endpoint(domain_name="gossip1.example.com", port=50211),
-        Endpoint(domain_name="gossip2.example.com", port=50212)
-    ])
-    .set_service_endpoints([
-        Endpoint(domain_name="service1.example.com", port=50211),
-        Endpoint(domain_name="service2.example.com", port=50212)
-    ])
+    .set_gossip_endpoints(
+        [
+            Endpoint(domain_name="gossip1.example.com", port=50211),
+            Endpoint(domain_name="gossip2.example.com", port=50212),
+        ]
+    )
+    .set_service_endpoints(
+        [
+            Endpoint(domain_name="service1.example.com", port=50211),
+            Endpoint(domain_name="service2.example.com", port=50212),
+        ]
+    )
     .set_gossip_ca_certificate(gossip_ca_cert)
     .set_admin_key(admin_key.public_key())
     .set_grpc_web_proxy_endpoint(Endpoint(domain_name="grpc.example.com", port=50213))
@@ -2066,12 +2044,7 @@ receipt = transaction.execute(client)
 #### Pythonic Syntax:
 ```python
 # Create a transaction to be batched (e.g., a transfer transaction)
-transfer_tx = TransferTransaction(
-    hbar_transfers={
-        sender_id: -amount,
-        recipient_id: amount
-    }
-)
+transfer_tx = TransferTransaction(hbar_transfers={sender_id: -amount, recipient_id: amount})
 
 # There are two approaches to mark a transaction as an inner transaction:
 
@@ -2104,7 +2077,7 @@ transfer_tx = (
     .batchify(client, batch_key)
 )
 
-#Approch 2: Manually configure the transaction for batching
+# Approch 2: Manually configure the transaction for batching
 transfer_tx = (
     TransferTransaction()
     .add_hbar_transfer(sender_id, -amount)
@@ -2115,13 +2088,7 @@ transfer_tx = (
 )
 
 # Build the BatchTransaction with method chaining
-receipt = (
-    BatchTransaction()
-    .add_inner_transaction(transfer_tx)
-    .freeze_with(client)
-    .sign(batch_key)
-    .execute(client)
-)
+receipt = BatchTransaction().add_inner_transaction(transfer_tx).freeze_with(client).sign(batch_key).execute(client)
 ```
 
 ## Miscellaneous Queries
@@ -2195,22 +2162,14 @@ print(f"PRNG bytes in hex: {record.prng_bytes.hex()}")
 transaction = PrngTransaction().set_range(1000).execute(client)
 
 # Get the transaction record to see the generated number
-record = (
-    TransactionRecordQuery()
-    .set_transaction_id(transaction.transaction_id)
-    .execute(client)
-)
+record = TransactionRecordQuery().set_transaction_id(transaction.transaction_id).execute(client)
 print(f"Generated PRNG number: {record.prng_number}")
 
 # Generate random bytes without a range
 transaction = PrngTransaction().execute(client)
 
 # Get the transaction record to see the generated bytes
-record = (
-    TransactionRecordQuery()
-    .set_transaction_id(transaction.transaction_id)
-    .execute(client)
-)
+record = TransactionRecordQuery().set_transaction_id(transaction.transaction_id).execute(client)
 print(f"Generated PRNG bytes length: {len(record.prng_bytes)} bytes")
 print(f"PRNG bytes in hex: {record.prng_bytes.hex()}")
 ```

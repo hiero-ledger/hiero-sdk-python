@@ -37,10 +37,10 @@ from hiero_sdk_python.response_code import ResponseCode
 
 # 1. Setup Client
 load_dotenv()
-operator_id = AccountId.from_string(getenv('OPERATOR_ID',''))
-operator_key = PrivateKey.from_string(getenv('OPERATOR_KEY',''))
+operator_id = AccountId.from_string(getenv("OPERATOR_ID", ""))
+operator_key = PrivateKey.from_string(getenv("OPERATOR_KEY", ""))
 
-network = Network(getenv('NETWORK',''))
+network = Network(getenv("NETWORK", ""))
 client = Client(network)
 client.set_operator(operator_id, operator_key)
 

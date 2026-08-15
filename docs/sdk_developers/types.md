@@ -54,10 +54,10 @@ Python code can be written using various built-in types that define their behavi
 ### Example
 
 ```python
-x: int       = 3
-y: float     = 1.0
+x: int = 3
+y: float = 1.0
 frozen: bool = True
-name: str    = "Rupert"
+name: str = "Rupert"
 ```
 
 ## What are Type Hints?
@@ -79,9 +79,11 @@ Type hints let you declare the expected types of variables, function parameters,
 ```python
 name: str = ""
 
+
 def greet(name: str) -> str:
     """Return a personalized greeting."""
     return f"Hello, {name}!"
+
 
 print(greet("Beatrice"))
 ```
@@ -89,6 +91,7 @@ print(greet("Beatrice"))
 #### Example 2: Incorrect
 ```python
 name: str = ""
+
 
 def greet(name: str) -> str:
     """
@@ -101,6 +104,7 @@ def greet(name: str) -> str:
         bool:       ❌ wrong type here!
     """
     return f"Hello, {name}!"
+
 
 print(greet("Beatrice"))
 ```
@@ -124,20 +128,25 @@ Most common types (e.g., `str`, `int`, `float`, `bool`, `bytes`, `list`, `dict`,
 
 ```python
 from typing import (
-    Any,            # “escape hatch” for unknown types
-    Union,         # still available, though often replaced by |
-    Optional,      # same as Union[..., None]
-    Callable,      # for callables with specific signatures
-    TypeVar, Generic,  # for custom generics
-    ClassVar,      # annotate class-level constants
-    Literal, Final,  # exact values & constants
-    TypedDict,     # dicts with fixed key types
-    Protocol,      # structural/subtype interfaces
-    NewType,       # distinct alias for an existing type
-    TypeAlias,     # name a complex type
-    Annotated,     # add metadata to existing types
-    ParamSpec, Concatenate,  # for decorator/dependent signatures
-    overload, cast, NoReturn,  # various mypy helpers
+    Any,  # “escape hatch” for unknown types
+    Union,  # still available, though often replaced by |
+    Optional,  # same as Union[..., None]
+    Callable,  # for callables with specific signatures
+    TypeVar,
+    Generic,  # for custom generics
+    ClassVar,  # annotate class-level constants
+    Literal,
+    Final,  # exact values & constants
+    TypedDict,  # dicts with fixed key types
+    Protocol,  # structural/subtype interfaces
+    NewType,  # distinct alias for an existing type
+    TypeAlias,  # name a complex type
+    Annotated,  # add metadata to existing types
+    ParamSpec,
+    Concatenate,  # for decorator/dependent signatures
+    overload,
+    cast,
+    NoReturn,  # various mypy helpers
 )
 ```
 
@@ -145,12 +154,15 @@ from typing import (
 ```python
 from typing import TypedDict, Literal
 
+
 class User(TypedDict):
-    id:     int
-    name:   str
+    id: int
+    name: str
     active: bool
 
+
 Status = Literal["pending", "active", "disabled"]
+
 
 def find_user(uid: int) -> User | None:
     """
@@ -171,11 +183,13 @@ You can use custom types whenever you’ve defined your own classes.
 from dataclasses import dataclass
 from hiero_sdk import CryptoGetAccountBalanceQuery
 
+
 @dataclass
 class AccountId:
-    shard:  int
-    realm:  int
+    shard: int
+    realm: int
     serial: int
+
 
 def query_hbar_balance(account: AccountId) -> None:
     """
@@ -183,6 +197,7 @@ def query_hbar_balance(account: AccountId) -> None:
     """
     balance = CryptoGetAccountBalanceQuery(account)
     print(f"Your Hbar balance is: {balance.hbars}")
+
 
 if __name__ == "__main__":
     account = AccountId(0, 0, 200)
@@ -197,6 +212,7 @@ from dataclasses import dataclass
 from hiero_sdk import AccountId
 from hiero_sdk import CryptoGetAccountBalanceQuery
 
+
 def build_balance_query(account: AccountId) -> CryptoGetAccountBalanceQuery:
     """
     Construct and return a CryptoGetAccountBalanceQuery for the given account.
@@ -208,6 +224,7 @@ def build_balance_query(account: AccountId) -> CryptoGetAccountBalanceQuery:
         CryptoGetAccountBalanceQuery: A query object you can execute to fetch the balance.
     """
     return CryptoGetAccountBalanceQuery(account)
+
 
 if __name__ == "__main__":
     account = AccountId(0, 0, 200)

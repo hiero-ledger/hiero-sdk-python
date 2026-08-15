@@ -198,8 +198,7 @@ Note: This snippet is a simplified illustration. Refer to the Reference Implemen
 def _make_request(self):
     header = self._make_request_header()
     body = crypto_get_account_balance_pb2.CryptoGetAccountBalanceQuery(
-        header=header,
-        accountID=self.account_id._to_proto()
+        header=header, accountID=self.account_id._to_proto()
     )
     return query_pb2.Query(cryptoGetAccountBalance=body)
 ```
@@ -312,7 +311,6 @@ class CryptoGetAccountBalanceQuery(Query):
             transaction_func=None,
             query_func=channel.crypto.cryptoGetBalance,
         )
-
 ```
 
 ### Usage Example
@@ -330,7 +328,6 @@ query.set_custom_payment(Hbar(1))
 # Execute query; all retries and payment handled automatically
 balance = query.execute(client)
 print(f"Account balance: {balance.balance} Hbar")
-
 ```
 
 ### Notes for Contributors

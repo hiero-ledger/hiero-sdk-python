@@ -22,14 +22,12 @@ When preparing a pull request, always evaluate whether any existing user code wo
 
 For example - before:
 ```python
-def transfer_tokens(account_id: str, amount: int):
-    ...
+def transfer_tokens(account_id: str, amount: int): ...
 ```
 
 For example - after - breaking:
 ```python
-def transfer_tokens(account_id: AccountId, amount: int, memo: str = None):
-    ...
+def transfer_tokens(account_id: AccountId, amount: int, memo: str = None): ...
 ```
 User code passing a string account_id now fails, and adding a required memo parameter breaks all existing calls.
 
