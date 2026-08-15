@@ -45,16 +45,17 @@ class TransactionResponse:
 
         Returns:
             TransactionGetReceiptQuery: A configured receipt query.
+
+        Raises:
+            TypeError: If `validate_status` is not a bool or `client` is not a Client.
         """
         from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 
-        if client is None or not client.allow_receipt_node_failover:
-            return (
-                TransactionGetReceiptQuery()
-                .set_transaction_id(self.transaction_id)
-                .set_node_account_ids([self.node_id])
-                .set_validate_status(validate_status)
-            )
+        if not isinstance(validate_status, bool):
+            raise TypeError("validate_status must be a boolean")
+
+        if client is not None and not isinstance(client, Client):
+            raise TypeError("client must be an instance of Client")
 
         node_account_ids = self._resolve_node_account_ids(client)
         return (
@@ -90,11 +91,14 @@ class TransactionResponse:
 
         Returns:
             TransactionRecordQuery: A configured record query.
+
+        Raises:
+            TypeError: If `client` is not a Client.
         """
         from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 
-        if client is None or not client.allow_receipt_node_failover:
-            return TransactionRecordQuery().set_transaction_id(self.transaction_id).set_node_account_ids([self.node_id])
+        if client is not None and not isinstance(client, Client):
+            raise TypeError("client must be an instance of Client")
 
         node_account_ids = self._resolve_node_account_ids(client)
         return TransactionRecordQuery().set_transaction_id(self.transaction_id).set_node_account_ids(node_account_ids)
@@ -114,8 +118,11 @@ class TransactionResponse:
 
     def _resolve_node_account_ids(self, client: Client) -> list[AccountId]:
         """Resolve node account IDs for receipt or record query failover."""
-        available_node_ids = self._transaction_node_ids if self._transaction_node_ids else client.get_node_account_ids()
-
         node_account_ids = [self.node_id]
+
+        if client is None or not client.allow_receipt_node_failover:
+            return node_account_ids
+
+        available_node_ids = self._transaction_node_ids if self._transaction_node_ids else client.get_node_account_ids()
         node_account_ids.extend(node_id for node_id in available_node_ids if node_id != self.node_id)
         return node_account_ids
