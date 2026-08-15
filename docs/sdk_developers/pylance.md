@@ -159,14 +159,12 @@ Let’s look at a real-world Hiero SDK example.
 
 
 ```python
-
 CustomFractionalFee(
     numerator=numerator,
     denominator=denominator,
     minimum_amount=min_amount,
     maximum_amount=max_amount,
 )
-
 ```
 
 
@@ -217,14 +215,12 @@ So, you should instead write:
 
 
 ```python
-
 CustomFractionalFee(
     numerator=numerator,
     denominator=denominator,
     min_amount=min_amount,
     max_amount=max_amount,
 )
-
 ```
 
 

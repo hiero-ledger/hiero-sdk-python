@@ -103,6 +103,7 @@ Sometimes an abstract pattern triggers a false positive that has been reviewed a
 ```python
 # Suppress alerts for executing a fixed, safe system command
 import subprocess
+
 subprocess.Popen(["/bin/ls", "-l"], shell=False)  # nosec B602, B607
 
 # Tell Bandit this specific assert statement is intentional and safe

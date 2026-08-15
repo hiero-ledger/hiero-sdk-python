@@ -52,10 +52,12 @@ Unit tests are automated tests that verify the behavior of **individual function
 import pytest
 from hiero_sdk_python.hbar import Hbar
 
+
 def test_hbar_conversion_to_tinybars():
     """Test that Hbar correctly converts to tinybars."""
     hbar = Hbar(1)
     assert hbar.to_tinybars() == 100_000_000
+
 
 def test_hbar_from_tinybars():
     """Test that Hbar can be created from tinybars."""
@@ -115,25 +117,23 @@ from tests.integration.utils import IntegrationTestEnv
 
 @pytest.mark.integration
 def test_integration_account_create_transaction_can_execute():
-   """Test that an account can be created on the network."""
-   env = IntegrationTestEnv()
-   try:
-      new_account_private_key = PrivateKey.generate()
-      new_account_public_key = new_account_private_key.public_key()
-      initial_balance = Hbar(2)
+    """Test that an account can be created on the network."""
+    env = IntegrationTestEnv()
+    try:
+        new_account_private_key = PrivateKey.generate()
+        new_account_public_key = new_account_private_key.public_key()
+        initial_balance = Hbar(2)
 
-      transaction = AccountCreateTransaction(
-         key=new_account_public_key,
-         initial_balance=initial_balance,
-         memo="Test Account"
-      )
-      transaction.freeze_with(env.client)
-      receipt = transaction.execute(env.client)
+        transaction = AccountCreateTransaction(
+            key=new_account_public_key, initial_balance=initial_balance, memo="Test Account"
+        )
+        transaction.freeze_with(env.client)
+        receipt = transaction.execute(env.client)
 
-      assert receipt.account_id is not None, "Account ID should be present"
-      assert receipt.status == ResponseCode.SUCCESS
-   finally:
-      env.close()
+        assert receipt.account_id is not None, "Account ID should be present"
+        assert receipt.status == ResponseCode.SUCCESS
+    finally:
+        env.close()
 ```
 
 ### When to Write Integration Tests
@@ -527,6 +527,7 @@ def test_hbar_to_tinybars_conversion():
     hbar = Hbar(1)
     assert hbar.to_tinybars() == 100_000_000
 
+
 # Bad - Tests multiple behaviors
 def test_hbar_everything():
     hbar = Hbar(1)
@@ -544,6 +545,7 @@ Test names should describe what is being tested:
 def test_account_create_fails_with_insufficient_balance():
     pass
 
+
 # Bad
 def test_account():
     pass
@@ -557,17 +559,21 @@ Tests should not depend on each other:
 # Bad - Tests depend on execution order
 account = None
 
+
 def test_create_account():
     global account
     account = create_account()
 
+
 def test_update_account():
     update_account(account)  # Depends on previous test
+
 
 # Good - Each test is independent
 def test_create_account():
     account = create_account()
     assert account is not None
+
 
 def test_update_account():
     account = create_account()  # Create fresh account
@@ -581,6 +587,7 @@ def test_update_account():
 
 ```python
 from unittest.mock import Mock, patch
+
 
 def test_transaction_execution_calls_network():
     """Test that transaction execution calls the network correctly."""
@@ -601,9 +608,11 @@ def test_hbar_handles_zero():
     hbar = Hbar(0)
     assert hbar.to_tinybars() == 0
 
+
 def test_hbar_handles_large_values():
     hbar = Hbar(1_000_000)
     assert hbar.to_tinybars() == 100_000_000_000_000
+
 
 def test_hbar_handles_negative_values():
     with pytest.raises(ValueError):
@@ -615,15 +624,18 @@ def test_hbar_handles_negative_values():
 ```python
 import pytest
 
+
 @pytest.fixture
 def sample_account_id():
     """Provide a sample account ID for tests."""
     return AccountId(0, 0, 1001)
 
+
 @pytest.fixture
 def sample_token_id():
     """Provide a sample token ID for tests."""
     return TokenId(0, 0, 12345)
+
 
 def test_with_fixtures(sample_account_id, sample_token_id):
     """Test using pytest fixtures."""
@@ -643,11 +655,11 @@ from tests.integration.utils import env
 
 @pytest.mark.integration
 def test_with_env_fixture(env):
-   """Test using the env fixture."""
-   # env.client is already configured
-   # env.operator_id and env.operator_key are available
-   account = env.create_account()  # Helper method
-   assert account.id is not None
+    """Test using the env fixture."""
+    # env.client is already configured
+    # env.operator_id and env.operator_key are available
+    account = env.create_account()  # Helper method
+    assert account.id is not None
 ```
 
 #### 2. **Always Clean Up Resources**
@@ -677,6 +689,7 @@ def test_account_create_succeeds(env):
     receipt = create_account(env)
     assert receipt.status == ResponseCode.SUCCESS
 
+
 @pytest.mark.integration
 def test_account_create_fails_with_invalid_key(env):
     """Test that account creation fails with invalid key."""
@@ -698,6 +711,7 @@ def _create_and_associate_token(env, account):
 
     return token_id
 
+
 @pytest.mark.integration
 def test_token_transfer(env):
     sender = env.create_account()
@@ -712,9 +726,7 @@ Always check that transactions succeed:
 
 ```python
 receipt = transaction.execute(env.client)
-assert receipt.status == ResponseCode.SUCCESS, (
-    f"Transaction failed with status: {ResponseCode(receipt.status).name}"
-)
+assert receipt.status == ResponseCode.SUCCESS, f"Transaction failed with status: {ResponseCode(receipt.status).name}"
 ```
 
 ### Testing Error Handling
@@ -724,6 +736,7 @@ assert receipt.status == ResponseCode.SUCCESS, (
 ```python
 import pytest
 from hiero_sdk_python.exceptions import PrecheckError
+
 
 def test_invalid_account_raises_error():
     """Test that invalid account ID raises appropriate error."""
@@ -757,17 +770,17 @@ from tests.integration.utils import IntegrationTestEnv, env
 # Create environment manually
 env = IntegrationTestEnv()
 try:
-   # Use env.client, env.operator_id, env.operator_key
-   pass
+    # Use env.client, env.operator_id, env.operator_key
+    pass
 finally:
-   env.close()
+    env.close()
 
 
 # Or use the pytest fixture (recommended)
 @pytest.mark.integration
 def test_example(env):
-   # env is automatically created and cleaned up
-   account = env.create_account()
+    # env is automatically created and cleaned up
+    account = env.create_account()
 ```
 
 **Key Methods:**
@@ -780,26 +793,19 @@ def test_example(env):
 #### Helper Functions
 
 ```python
-from tests.integration.utils import (
-   create_fungible_token,
-   create_nft_token,
-   env
-)
+from tests.integration.utils import create_fungible_token, create_nft_token, env
 
 
 @pytest.mark.integration
 def test_with_helpers(env):
-   # Create a fungible token with default settings
-   token_id = create_fungible_token(env)
+    # Create a fungible token with default settings
+    token_id = create_fungible_token(env)
 
-   # Create an NFT token
-   nft_id = create_nft_token(env)
+    # Create an NFT token
+    nft_id = create_nft_token(env)
 
-   # Use custom configuration with lambdas
-   token_id = create_fungible_token(env, [
-      lambda tx: tx.set_decimals(8),
-      lambda tx: tx.set_initial_supply(1000000)
-   ])
+    # Use custom configuration with lambdas
+    token_id = create_fungible_token(env, [lambda tx: tx.set_decimals(8), lambda tx: tx.set_initial_supply(1000000)])
 ```
 
 ### Pytest Markers
@@ -812,10 +818,12 @@ Use markers to categorize tests:
 def test_network_operation(env):
     pass
 
+
 # Mark as slow test
 @pytest.mark.slow
 def test_long_running_operation():
     pass
+
 
 # Skip test conditionally
 @pytest.mark.skipif(condition, reason="Reason for skipping")
@@ -837,12 +845,15 @@ uv run pytest -m "not slow"
 Test multiple inputs efficiently:
 
 ```python
-@pytest.mark.parametrize("amount,expected", [
-    (1, 100_000_000),
-    (5, 500_000_000),
-    (10, 1_000_000_000),
-    (0, 0),
-])
+@pytest.mark.parametrize(
+    "amount,expected",
+    [
+        (1, 100_000_000),
+        (5, 500_000_000),
+        (10, 1_000_000_000),
+        (0, 0),
+    ],
+)
 def test_hbar_conversions(amount, expected):
     """Test Hbar to tinybar conversions with different values."""
     hbar = Hbar(amount)
@@ -962,12 +973,13 @@ ModuleNotFoundError: No module named 'hiero_sdk_python'
 Example:
 ```python
 # Wrong - patches where defined
-@patch('hiero_sdk_python.client.Client.execute')
+@patch("hiero_sdk_python.client.Client.execute")
 def test_wrong():
     pass
 
+
 # Correct - patches where used
-@patch('my_module.Client.execute')
+@patch("my_module.Client.execute")
 def test_correct():
     pass
 ```
@@ -985,6 +997,7 @@ def test_correct():
 4. Load manually in test if needed:
 ```python
 from dotenv import load_dotenv
+
 load_dotenv()
 ```
 
@@ -1014,6 +1027,7 @@ from unittest.mock import Mock, patch
 import pytest
 from hiero_sdk_python.response_code import ResponseCode
 
+
 def test_transaction_handles_network_error():
     """Test that transaction properly handles network errors."""
     mock_client = Mock()
@@ -1024,14 +1038,12 @@ def test_transaction_handles_network_error():
     with pytest.raises(Exception, match="Network timeout"):
         transaction.execute(mock_client)
 
+
 def test_transaction_retries_on_failure():
     """Test that transaction retries on transient failures."""
     mock_client = Mock()
     # First call fails, second succeeds
-    mock_client.execute.side_effect = [
-        {"status": ResponseCode.BUSY},
-        {"status": ResponseCode.SUCCESS}
-    ]
+    mock_client.execute.side_effect = [{"status": ResponseCode.BUSY}, {"status": ResponseCode.SUCCESS}]
 
     transaction = SomeTransaction()
     result = transaction.execute_with_retry(mock_client, max_retries=2)
@@ -1047,6 +1059,7 @@ If your SDK has async functionality:
 ```python
 import pytest
 import asyncio
+
 
 @pytest.mark.asyncio
 async def test_async_transaction():
@@ -1065,6 +1078,7 @@ Use hypothesis for property-based testing:
 
 ```python
 from hypothesis import given, strategies as st
+
 
 @given(st.integers(min_value=0, max_value=1000000))
 def test_hbar_conversion_property(amount):
@@ -1096,6 +1110,7 @@ Test performance characteristics:
 
 ```python
 import time
+
 
 def test_transaction_performance():
     """Test that transaction creation is fast."""

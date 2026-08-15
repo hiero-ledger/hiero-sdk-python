@@ -22,19 +22,12 @@ Start by creating a transaction object and populating it with the necessary data
 ```python
 from hiero_sdk_python import TokenAssociateTransaction
 
-transaction = TokenAssociateTransaction(
-    account_id=account_id,
-    token_ids=[token_id]
-)
+transaction = TokenAssociateTransaction(account_id=account_id, token_ids=[token_id])
 ```
 
 ### Method Chaining
 ```python
-transaction = (
-    TokenAssociateTransaction()
-    .set_account_id(account_id)
-    .add_token_id(token_id)
-)
+transaction = TokenAssociateTransaction().set_account_id(account_id).add_token_id(token_id)
 ```
 
 This step collects all information for the transaction body. Fields can still be modified at this point.
@@ -123,6 +116,7 @@ Here's a clean example associating a token with an account:
 import sys
 from hiero_sdk_python import TokenAssociateTransaction, ResponseCode
 
+
 def associate_token_with_account(client, account_id, account_private_key, token_id):
     """Associate a token with an account."""
 
@@ -130,9 +124,9 @@ def associate_token_with_account(client, account_id, account_private_key, token_
         TokenAssociateTransaction()
         .set_account_id(account_id)
         .add_token_id(token_id)
-        .freeze_with(client)          # Lock fields
-        .sign(account_private_key)    # Authorize
-        .execute(client)              # Submit to Hedera
+        .freeze_with(client)  # Lock fields
+        .sign(account_private_key)  # Authorize
+        .execute(client)  # Submit to Hedera
     )
 
     if receipt.status != ResponseCode.SUCCESS:
@@ -153,7 +147,9 @@ transaction = TokenAssociateTransaction().set_account_id(account_id).freeze_with
 
 ### Incorrect (Signing before freezing)
 ```python
-transaction = TokenAssociateTransaction().set_account_id(account_id).sign(key).freeze_with(client)  # Error: Cannot sign unfrozen transaction
+transaction = (
+    TokenAssociateTransaction().set_account_id(account_id).sign(key).freeze_with(client)
+)  # Error: Cannot sign unfrozen transaction
 ```
 
 ### Incorrect (Modifying after freezing)
