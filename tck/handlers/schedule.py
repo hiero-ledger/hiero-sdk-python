@@ -49,8 +49,11 @@ _SCHEDULABLE: dict[str, tuple[type[BaseTransactionParams], Callable[[Any], Trans
 def _apply_schedulable_common_params(transaction: Transaction, common: CommonTransactionParams | None) -> None:
     """Apply the common params that survive into a SchedulableTransactionBody.
 
-    Only the fee and memo are carried over. The full apply_common_params() path freezes
-    and signs the transaction, which would make build_scheduled_body() unusable.
+    A SchedulableTransactionBody carries only transactionFee and memo, so the rest of
+    apply_common_params() would be silently discarded: transactionId and
+    validTransactionDuration are not part of the body, and signers would freeze and sign a
+    transaction that is never submitted. Schedule signers belong on the outer
+    ScheduleCreateTransaction, which create_schedule() already handles.
     """
     if common is None:
         return

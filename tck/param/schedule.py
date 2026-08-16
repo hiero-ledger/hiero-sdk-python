@@ -29,13 +29,6 @@ class ScheduledTransactionParams:
         if not isinstance(inner_params, dict):
             raise ValueError("scheduledTransaction.params must be an object")
 
-        inner_params = dict(inner_params)
-
-        # commonTransactionParams may be a sibling of method/params instead of nested inside params.
-        common_params = params.get("commonTransactionParams")
-        if common_params is not None and inner_params.get("commonTransactionParams") is None:
-            inner_params["commonTransactionParams"] = common_params
-
         return cls(method=method, params=inner_params)
 
 
