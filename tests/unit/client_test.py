@@ -248,30 +248,30 @@ def test_default_max_transaction_fee_is_none():
     ],
 )
 def test_set_default_max_transaction_fee_valid_param(valid_amount, expected):
-    """Test set_max_transaction_fee converts inputs to Hbar and stores them."""
+    """Test set_default_max_transaction_fee converts inputs to Hbar and stores them."""
     client = Client.for_testnet()
 
-    returned = client.set_max_transaction_fee(valid_amount)
+    returned = client.set_default_max_transaction_fee(valid_amount)
     assert client.default_max_transaction_fee == expected
     assert returned is client
 
 
 @pytest.mark.parametrize("invalid_amount", ["1", True, False, None, object()])
 def test_set_default_max_transaction_fee_invalid_param(invalid_amount):
-    """Test set_max_transaction_fee rejects invalid types."""
+    """Test set_default_max_transaction_fee rejects invalid types."""
     client = Client.for_testnet()
 
     with pytest.raises(TypeError):
-        client.set_max_transaction_fee(invalid_amount)
+        client.set_default_max_transaction_fee(invalid_amount)
 
 
 @pytest.mark.parametrize("negative_amount", [-1, -0.1, Decimal("-0.1"), Hbar(-1)])
 def test_set_default_max_transaction_fee_negative_value(negative_amount):
-    """Test set_max_transaction_fee rejects negative values."""
+    """Test set_default_max_transaction_fee rejects negative values."""
     client = Client.for_testnet()
 
     with pytest.raises(ValueError):
-        client.set_max_transaction_fee(negative_amount)
+        client.set_default_max_transaction_fee(negative_amount)
 
 
 @pytest.mark.parametrize("negative_amount", [-1, -0.1, Decimal("-0.1"), Decimal("-1"), Hbar(-1)])

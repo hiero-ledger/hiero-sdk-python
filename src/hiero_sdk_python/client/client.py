@@ -289,7 +289,7 @@ class Client:
         self.default_max_query_payment = value
         return self
 
-    def set_max_transaction_fee(
+    def set_default_max_transaction_fee(
         self,
         max_transaction_fee: int | float | Decimal | Hbar,
     ) -> Client:

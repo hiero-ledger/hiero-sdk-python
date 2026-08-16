@@ -242,14 +242,14 @@ def test_integration_account_update_transaction_invalid_auto_renew_period(env):
 
 def _apply_tiny_max_fee_if_supported(tx, client) -> bool:
     # Try tx-level setters
-    for attr in ("set_max_transaction_fee", "set_max_fee", "set_transaction_fee"):
+    for attr in ("set_default_max_transaction_fee", "set_max_fee", "set_transaction_fee"):
         if hasattr(tx, attr):
             getattr(tx, attr)(Hbar.from_tinybars(1))
             return True
     # Try client-level default
     for attr in (
         "set_default_max_transaction_fee",
-        "set_max_transaction_fee",
+        "set_default_max_transaction_fee",
         "set_default_max_fee",
         "setMaxTransactionFee",
     ):

@@ -315,7 +315,7 @@ class Transaction(_Executable):
         # populated the transaction counts as frozen, and the transaction_fee
         # setter calls _require_not_frozen().
         if self.transaction_fee is None:
-            if client is not None and getattr(client, "default_max_transaction_fee", None) is not None:
+            if client is not None and client.default_max_transaction_fee is not None:
                 self.transaction_fee = client.default_max_transaction_fee
             else:
                 self.transaction_fee = self._default_transaction_fee
@@ -486,7 +486,7 @@ class Transaction(_Executable):
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(selected_node._to_proto())
 
-        fee = self._transaction_fee or self._default_transaction_fee
+        fee = self._transaction_fee if self._transaction_fee is not None else self._default_transaction_fee
         if hasattr(fee, "to_tinybars"):
             transaction_body.transactionFee = int(fee.to_tinybars())
         else:
@@ -794,7 +794,7 @@ class Transaction(_Executable):
             transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
         )
 
-    def set_max_transaction_fee(self, max_transaction_fee):
+    def set_default_max_transaction_fee(self, max_transaction_fee):
         """
          Sets the maximum transaction fee for this transaction.
 
