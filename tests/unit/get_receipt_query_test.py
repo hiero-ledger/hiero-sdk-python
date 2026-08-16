@@ -468,3 +468,13 @@ def test_account_id_returns_none_when_not_set(transaction_id):
 
         # Verify: account_id is None when accountID is not set in protobuf
         assert result.account_id is None
+
+
+def test_make_request_with_no_transaction_id():
+    """Test that _make_request builds a valid query with no transactionID field"""
+    query = TransactionGetReceiptQuery()
+
+    request = query._make_request()
+
+    assert request.HasField("transactionGetReceipt")
+    assert request.transactionGetReceipt.transactionID == basic_types_pb2.TransactionID()
