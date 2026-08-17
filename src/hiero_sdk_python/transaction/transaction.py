@@ -316,12 +316,11 @@ class Transaction(_Executable):
         # TODO: Can use the first txId since the non-chunk transaction will only have one txId.
         for transaction_id in self._transaction_ids.get_list():
             node_transaction_bodies = {}
+            transaction_body = self.build_transaction_body()
 
             for node_account_id in self._node_account_ids.get_list():
-                transaction_body = self.build_transaction_body()
                 transaction_body.transactionID.CopyFrom(transaction_id._to_proto())
                 transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
-
                 node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
 
             self._transaction_body_bytes[transaction_id] = node_transaction_bodies
@@ -434,10 +433,11 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
 
-        node_body_bytes = self._transaction_body_bytes.get(self._transaction_ids.current)
+        node_transaction_bodies = self._transaction_body_bytes.get(self._transaction_ids.current)
+        if node_transaction_bodies is None:
+            return False
 
-        sig_map = self._signature_map.get(node_body_bytes.get(self._node_account_ids.current))
-
+        sig_map = self._signature_map.get(node_transaction_bodies.get(self._node_account_ids.current))
         if sig_map is None:
             return False
 
