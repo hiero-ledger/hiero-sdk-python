@@ -108,10 +108,7 @@ def _build_create_schedule_transaction(params: CreateScheduleParams) -> Schedule
         transaction.set_payer_account_id(AccountId.from_string(params.payerAccountId))
 
     if params.expirationTime is not None:
-        expiration_time = to_int(params.expirationTime)
-        if expiration_time is None:
-            raise JsonRpcError.invalid_params_error("expirationTime must be an integer")
-        transaction.set_expiration_time(Timestamp(seconds=expiration_time, nanos=0))
+        transaction.set_expiration_time(Timestamp(seconds=to_int(params.expirationTime), nanos=0))
 
     if params.waitForExpiry is not None:
         transaction.set_wait_for_expiry(params.waitForExpiry)
