@@ -19,6 +19,7 @@ from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
+from hiero_sdk_python.tokens.token_airdrop_transaction_cancel import TokenCancelAirdropTransaction
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction
@@ -47,6 +48,7 @@ from tck.param.token import (
     AirdropTokenParams,
     AssociateTokenParams,
     BurnTokenParams,
+    CancelAirdropParams,
     ClaimTokenParams,
     CreateTokenParams,
     DeleteTokenParams,
@@ -67,6 +69,7 @@ from tck.response.token import (
     AirdropTokenResponse,
     AssociateTokenResponse,
     BurnTokenResponse,
+    CancelAirdropResponse,
     ClaimTokenResponse,
     CreateTokenResponse,
     CustomFeeResponse,
@@ -255,6 +258,52 @@ def create_token(params: CreateTokenParams) -> CreateTokenResponse:
         tokenId=token_id,
         status=ResponseCode(receipt.status).name,
     )
+
+
+def _build_cancel_airdrop_transaction(params: CancelAirdropParams) -> TokenCancelAirdropTransaction:
+    """Build a TokenCancelAirdropTransaction from TCK params."""
+    transaction = TokenCancelAirdropTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    sender_id = AccountId.from_string(params.senderAccountId)
+    receiver_id = AccountId.from_string(params.receiverAccountId)
+    token_id = TokenId.from_string(params.tokenId)
+
+    if params.serialNumbers:
+        for serial_number in params.serialNumbers:
+            nft_id = NftId(token_id, int(serial_number))
+            pending_airdrop = PendingAirdropId(
+                sender_id,
+                receiver_id,
+                nft_id=nft_id,
+            )
+            transaction.add_pending_airdrop(pending_airdrop)
+        else:
+            pending_airdrop = PendingAirdropId(
+                sender_id,
+                receiver_id,
+                token_id=token_id,
+            )
+            transaction.add_pending_airdrop(pending_airdrop)
+
+        transaction.set_max_transaction_fee(transaction.get_max_transaction_fee())
+        transaction.set_transaction_valid_duration(transaction.get_transaction_valid_duration())
+    return transaction
+
+
+@rpc_method("cancelAirdrop")
+def cancel_airdrop(params: CancelAirdropParams) -> CancelAirdropResponse:
+    """Cancel a token airdrop using TCK cancelAirdrop parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_cancel_airdrop_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return CancelAirdropResponse(status=ResponseCode(receipt.status).name)
 
 
 def _build_mint_token_transaction(params: MintTokenParams) -> TokenMintTransaction:

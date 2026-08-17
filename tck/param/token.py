@@ -311,6 +311,35 @@ class ClaimTokenParams(BaseTransactionParams):
         )
 
 
+class CancelAirdropParams(BaseTransactionParams):
+    """Request parameters for the cancelAirdrop endpoint."""
+
+    senderAccountId: str | None = None
+    receiverAccountId: str | None = None
+    tokenId: str | None = None
+    serialNumbers: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> CancelAirdropParams:
+        """Parse JSON-RPC params into a CancelAirdropParams instance."""
+        serial_numbers = params.get("serialNumbers")
+
+        if serial_numbers is not None and (
+            not isinstance(serial_numbers, list)
+            or not all(isinstance(serial_number, str) for serial_number in serial_numbers)
+        ):
+            raise ValueError("serialNumbers must be a list of strings")
+
+        return cls(
+            senderAccountId=params.get("senderAccountId"),
+            receiverAccountId=params.get("receiverAccountId"),
+            tokenId=params.get("tokenId"),
+            serialNumbers=params.get("serialNumbers"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
 @dataclass
 class GetTokenInfoParams(BaseParams):
     """Request parameters for the getTokenInfo endpoint."""
