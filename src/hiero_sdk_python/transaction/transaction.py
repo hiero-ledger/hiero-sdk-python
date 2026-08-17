@@ -434,9 +434,9 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
 
-        sig_map = self._signature_map.get(
-            self._transaction_body_bytes.get(self._transaction_ids.current).get(self._node_account_ids.current)
-        )
+        node_body_bytes = self._transaction_body_bytes.get(self._transaction_ids.current)
+
+        sig_map = self._signature_map.get(node_body_bytes.get(self._node_account_ids.current))
 
         if sig_map is None:
             return False
@@ -1023,9 +1023,10 @@ class Transaction(_Executable):
     def body_size(self) -> int:
         """Returns just the transaction body size in bytes after encoding"""
         self._require_frozen()
-        transaction_body = self.build_transaction_body()
-        transaction_body.transactionID.CopyFrom(self._transaction_ids.current._to_proto())
-        transaction_body.nodeAccountID.CopyFrom(self._node_account_ids.current._to_proto())
+        transaction_body = transaction_pb2.TransactionBody()
+        transaction_body.ParseFromString(
+            self._transaction_body_bytes.get(self._transaction_ids.current).get(self._node_account_ids.current)
+        )
         return transaction_body.ByteSize()
 
     @property
