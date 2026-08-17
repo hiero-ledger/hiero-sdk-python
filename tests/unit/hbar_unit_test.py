@@ -21,7 +21,9 @@ pytestmark = pytest.mark.unit
     ],
 )
 def test_member_symbols(unit: HbarUnit, expected_symbol: str) -> None:
-    assert unit.symbol == expected_symbol
+    assert unit.symbol == expected_symbol, (
+        f"Wrong symbol for {unit.name}: expected {expected_symbol!r}, got {unit.symbol!r}"
+    )
 
 
 @pytest.mark.parametrize(
@@ -37,7 +39,9 @@ def test_member_symbols(unit: HbarUnit, expected_symbol: str) -> None:
     ],
 )
 def test_member_tinybar_factors(unit: HbarUnit, expected_tinybar: int) -> None:
-    assert unit.tinybar == expected_tinybar
+    assert unit.tinybar == expected_tinybar, (
+        f"Wrong tinybar factor for {unit.name}: expected {expected_tinybar}, got {unit.tinybar}"
+    )
 
 
 @pytest.mark.parametrize(
@@ -53,7 +57,13 @@ def test_member_tinybar_factors(unit: HbarUnit, expected_tinybar: int) -> None:
     ],
 )
 def test_from_string_valid(symbol: str, expected_unit: HbarUnit) -> None:
-    assert HbarUnit.from_string(symbol) == expected_unit
+    result = HbarUnit.from_string(symbol)
+    assert isinstance(result, HbarUnit), (
+        f"Expected HbarUnit.from_string({symbol!r}) to return HbarUnit"
+    )
+    assert result is expected_unit, (
+        f"Wrong unit for {symbol!r}: expected {expected_unit.name}, got {result.name}"
+    )
 
 
 @pytest.mark.parametrize("invalid_symbol", ["", "h", "xyz"])
@@ -63,11 +73,26 @@ def test_from_string_invalid(invalid_symbol: str) -> None:
 
 
 def test_name() -> None:
-    assert len(list(HbarUnit)) == 7
-    assert HbarUnit.TINYBAR.name == "TINYBAR"
-    assert HbarUnit.MICROBAR.name == "MICROBAR"
-    assert HbarUnit.MILLIBAR.name == "MILLIBAR"
-    assert HbarUnit.HBAR.name == "HBAR"
-    assert HbarUnit.KILOBAR.name == "KILOBAR"
-    assert HbarUnit.MEGABAR.name == "MEGABAR"
-    assert HbarUnit.GIGABAR.name == "GIGABAR"
+    members = list(HbarUnit)
+    assert len(members) == 7, f"Expected 7 members in HbarUnit, found {len(members)}"
+    assert HbarUnit.TINYBAR.name == "TINYBAR", (
+        f"Expected TINYBAR.name to be 'TINYBAR', got {HbarUnit.TINYBAR.name!r}"
+    )
+    assert HbarUnit.MICROBAR.name == "MICROBAR", (
+        f"Expected MICROBAR.name to be 'MICROBAR', got {HbarUnit.MICROBAR.name!r}"
+    )
+    assert HbarUnit.MILLIBAR.name == "MILLIBAR", (
+        f"Expected MILLIBAR.name to be 'MILLIBAR', got {HbarUnit.MILLIBAR.name!r}"
+    )
+    assert HbarUnit.HBAR.name == "HBAR", (
+        f"Expected HBAR.name to be 'HBAR', got {HbarUnit.HBAR.name!r}"
+    )
+    assert HbarUnit.KILOBAR.name == "KILOBAR", (
+        f"Expected KILOBAR.name to be 'KILOBAR', got {HbarUnit.KILOBAR.name!r}"
+    )
+    assert HbarUnit.MEGABAR.name == "MEGABAR", (
+        f"Expected MEGABAR.name to be 'MEGABAR', got {HbarUnit.MEGABAR.name!r}"
+    )
+    assert HbarUnit.GIGABAR.name == "GIGABAR", (
+        f"Expected GIGABAR.name to be 'GIGABAR', got {HbarUnit.GIGABAR.name!r}"
+    )
