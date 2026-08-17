@@ -139,25 +139,24 @@ class ChunkedTransaction(Transaction, ABC):
         self._initial_transaction_id = self._transaction_ids.get(0)
 
         required_chunks = self.get_required_chunks()
+        # Generate transaction IDs for all chunks if not already done
         self._generate_transaction_ids(self._transaction_ids.get(0), required_chunks)
 
         self._node_account_ids.set_lock(True)
         self._transaction_ids.set_lock(True)
 
-        # Generate transaction IDs for all chunks if not already done
         for chunk in range(required_chunks):
             self._current_chunk_index = chunk
 
-            node_bytes = {}
+            node_transaction_bodies = {}
+            transaction_body = self.build_transaction_body()
 
             for node_account_id in self.node_account_ids:
-                transaction_body = self.build_transaction_body()
                 transaction_body.transactionID.CopyFrom(self._transaction_ids.current._to_proto())
                 transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
+                node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
 
-                node_bytes[node_account_id] = transaction_body.SerializeToString()
-
-            self._transaction_body_bytes[self._transaction_ids.current] = node_bytes
+            self._transaction_body_bytes[self._transaction_ids.current] = node_transaction_bodies
             self._transaction_ids.advance()
 
         self._current_chunk_index = None
