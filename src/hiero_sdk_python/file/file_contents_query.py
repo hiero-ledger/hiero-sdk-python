@@ -63,18 +63,16 @@ class FileContentsQuery(Query):
             Query: The protobuf query message.
 
         Raises:
-            ValueError: If the file ID is not set.
-            Exception: If any other error occurs during request construction.
+            Exception: If any error occurs during request construction.
         """
         try:
-            if not self.file_id:
-                raise ValueError("File ID must be set before making the request.")
-
             query_header = self._make_request_header()
 
             file_contents_query = file_get_contents_pb2.FileGetContentsQuery()
             file_contents_query.header.CopyFrom(query_header)
-            file_contents_query.fileID.CopyFrom(self.file_id._to_proto())
+
+            if self.file_id is not None:
+                file_contents_query.fileID.CopyFrom(self.file_id._to_proto())
 
             query = query_pb2.Query()
             query.fileGetContents.CopyFrom(file_contents_query)
