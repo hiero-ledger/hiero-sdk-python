@@ -7,7 +7,6 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_update_transaction import (
     ContractUpdateParams,
     ContractUpdateTransaction,
@@ -25,16 +24,10 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.fixture
-def contract_id():
-    """Fixture for contract ID."""
-    return ContractId(0, 0, 123)
-
-
-@pytest.fixture
-def update_params():
+def update_params(contract_id):
     """Fixture for contract update parameters."""
     return {
-        "contract_id": ContractId(0, 0, 123),
+        "contract_id": contract_id,
         "memo": "Updated contract memo",
         "admin_key": PrivateKey.generate().public_key(),
         "auto_renew_period": Duration(7776000),  # 90 days
