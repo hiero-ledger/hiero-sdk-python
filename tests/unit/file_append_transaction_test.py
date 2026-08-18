@@ -470,3 +470,51 @@ def test_body_bytes_for_each_chunk_and_node_on_manual_freeze(file_id):
 
     assert tx._node_account_ids._locked is True
     assert tx._node_account_ids.index == 0
+
+
+def test_file_append_transaction_creates_proper_chunk_content(file_id, mock_client):
+    """Test file content is correctly added to each chunk transaction."""
+    content = "ABCD"
+    tx = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_contents(content)
+        .set_chunk_size(1)  # intentionally one so we can check the content
+    )
+
+    tx.freeze_with(mock_client)
+
+    transaction_bytes = tx._transaction_body_bytes
+    assert len(transaction_bytes) == 4
+    assert len(set(tx._transaction_ids)) == 4
+
+    expected = ["A", "B", "C", "D"]
+
+    for index, transaction_id in enumerate(tx._transaction_ids):
+        for node_bytes in transaction_bytes[transaction_id].values():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(node_bytes)
+
+            assert body.fileAppend.contents.decode("utf-8") == expected[index]
+            assert body.transactionID == transaction_id._to_proto()
+
+
+def test_file_append_transaction_create_proper_content(file_id, mock_client):
+    """Test file content is correctly added to transaction."""
+    content = "ABCD"
+    tx = FileAppendTransaction().set_file_id(file_id).set_contents(content).set_chunk_size(1024)
+
+    tx.freeze_with(mock_client)
+
+    transaction_bytes = tx._transaction_body_bytes
+    assert len(transaction_bytes) == 1
+    assert len(set(tx._transaction_ids)) == 1
+
+    transaction_id = tx._transaction_ids.current
+
+    for node_bytes in transaction_bytes[transaction_id].values():
+        body = transaction_pb2.TransactionBody()
+        body.ParseFromString(node_bytes)
+
+        assert body.fileAppend.contents.decode("utf-8") == content
+        assert body.transactionID == transaction_id._to_proto()
