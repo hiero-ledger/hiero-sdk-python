@@ -490,6 +490,9 @@ def test_file_append_transaction_creates_proper_chunk_content(file_id, mock_clie
 
     expected = ["A", "B", "C", "D"]
 
+    # check initial_transaciton_id and first transaction_id is same
+    assert tx._initial_transaction_id == tx._transaction_ids.get(0)
+
     for index, transaction_id in enumerate(tx._transaction_ids):
         for node_bytes in transaction_bytes[transaction_id].values():
             body = transaction_pb2.TransactionBody()
@@ -511,6 +514,9 @@ def test_file_append_transaction_create_proper_content(file_id, mock_client):
     assert len(set(tx._transaction_ids)) == 1
 
     transaction_id = tx._transaction_ids.current
+
+    # check initial_transaciton_id and transaction_id is same
+    assert tx._initial_transaction_id == transaction_id
 
     for node_bytes in transaction_bytes[transaction_id].values():
         body = transaction_pb2.TransactionBody()
