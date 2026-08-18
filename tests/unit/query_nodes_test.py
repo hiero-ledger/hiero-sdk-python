@@ -8,6 +8,9 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.query.query import Query
 
 
+pytestmark = pytest.mark.unit
+
+
 def test_set_single_node_account_id():
     q = Query()
     node = AccountId(0, 0, 3)
