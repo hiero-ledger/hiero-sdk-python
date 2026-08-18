@@ -313,9 +313,10 @@ class Transaction(_Executable):
         self._node_account_ids.set_lock(True)
         self._transaction_ids.set_lock(True)
 
-        # TODO: Can use the first txId since the non-chunk transaction will only have one txId.
-        for transaction_id in self._transaction_ids.get_list():
+        for index, transaction_id in enumerate(self._transaction_ids):
             node_transaction_bodies = {}
+
+            self._set_current_chunk(index)
             transaction_body = self.build_transaction_body()
 
             for node_account_id in self._node_account_ids.get_list():
@@ -325,9 +326,11 @@ class Transaction(_Executable):
 
             self._transaction_body_bytes[transaction_id] = node_transaction_bodies
 
+        self._set_current_chunk(None)
+
         return self
 
-    def _generate_transaction_ids(self, initial_id: TransactionId, count: int):
+    def _generate_transaction_ids(self, initial_id: TransactionId, count: int) -> None:
         """Generate all transaction_id for require chunks."""
         self._transaction_ids.clear()
 
@@ -348,6 +351,10 @@ class Transaction(_Executable):
             transaction_id = TransactionId(
                 account_id=self._transaction_ids.get(0).account_id, valid_start=next_valid_start
             )
+
+    def _set_current_chunk(self, index: int | None) -> None:
+        """Set the current chunk index before building the transaction body."""
+        pass
 
     @overload
     def execute(
