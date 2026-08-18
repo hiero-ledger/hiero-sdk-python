@@ -11,13 +11,13 @@ class SubscriptionHandle:
     Calling .cancel() will signal the subscription thread to stop.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._cancelled = threading.Event()
         self._thread: threading.Thread | None = None
         self._call: Any | None = None
         self._lock = threading.Lock()
 
-    def _set_call(self, call: Any):
+    def _set_call(self, call: Any) -> None:
         """Sets the active gRPC call so it can be cancelled."""
         should_cancel = False
 
@@ -30,7 +30,7 @@ class SubscriptionHandle:
         if should_cancel:
             self._call.cancel()
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Signals to cancel the subscription."""
         should_cancel = False
 
@@ -47,11 +47,16 @@ class SubscriptionHandle:
         """Returns True if this subscription is already cancelled."""
         return self._cancelled.is_set()
 
-    def set_thread(self, thread: threading.Thread):
+    def set_thread(self, thread: threading.Thread) -> None:
         """(Optional) Store the thread object for reference."""
         self._thread = thread
 
-    def join(self, timeout=None):
-        """(Optional) Wait for the subscription thread to end."""
+    def join(self, timeout: float | None = None) -> None:
+        """(Optional) Wait for the subscription thread to end.
+
+        Args:
+            timeout: Maximum time to wait in seconds. ``None`` means
+                wait indefinitely.
+        """
         if self._thread:
             self._thread.join(timeout)
