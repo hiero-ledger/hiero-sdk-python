@@ -29,6 +29,9 @@ from hiero_sdk_python.transaction.transaction_response import TransactionRespons
 from tests.unit.mock_server import mock_hedera_servers
 
 
+pytestmark = pytest.mark.unit
+
+
 def test_constructor_with_parameters():
     """Test creating a file append transaction with constructor parameters."""
     file_id = FileId(0, 0, 12345)

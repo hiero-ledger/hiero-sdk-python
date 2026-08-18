@@ -8,6 +8,9 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.transaction.transaction import Transaction
 
 
+pytestmark = pytest.mark.unit
+
+
 class DummyTransaction(Transaction):
     """
     Minimal subclass of Transaction for testing.
