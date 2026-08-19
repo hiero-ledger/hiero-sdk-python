@@ -68,7 +68,7 @@ def show_with_checksum(client: Client, token_id: TokenId) -> None:
     print(f"  TokenId with checksum: {token_id_with_checksum}")
 
 
-def main():
+def main() -> None:
     """Demonstrate TokenId functionality."""
     token_id = TokenId(shard=0, realm=0, num=1234)
     network = Network("testnet")
