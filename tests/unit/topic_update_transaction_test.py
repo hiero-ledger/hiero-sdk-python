@@ -441,3 +441,35 @@ def test_auto_renew_period_omitted_when_unset(
     body = tx.build_transaction_body().consensusUpdateTopic
 
     assert not body.HasField("autoRenewPeriod")
+
+
+def test_add_custom_fee():
+    """Test adding a custom fee to the transaction."""
+    tx = TopicUpdateTransaction()
+    fee1 = CustomFixedFee(100, fee_collector_account_id=AccountId(0, 0, 123))
+    fee2 = CustomFixedFee(200, fee_collector_account_id=AccountId(0, 0, 456))
+
+    result = tx.add_custom_fee(fee1)
+
+    assert len(tx.custom_fees) == 1
+    assert tx.custom_fees[0] == fee1
+    assert result is tx
+
+    tx.add_custom_fee(fee2)
+
+    assert len(tx.custom_fees) == 2
+    assert tx.custom_fees[0] == fee1
+    assert tx.custom_fees[1] == fee2
+
+
+def test_add_custom_fee_frozen(mock_client, topic_id):
+    """Test calling add_custom_fee() after freezing raises an exception."""
+    tx = TopicUpdateTransaction()
+
+    tx.set_topic_id(topic_id)
+    tx.freeze_with(mock_client)
+
+    fee = CustomFixedFee(100, fee_collector_account_id=AccountId(0, 0, 123))
+
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
+        tx.add_custom_fee(fee)
