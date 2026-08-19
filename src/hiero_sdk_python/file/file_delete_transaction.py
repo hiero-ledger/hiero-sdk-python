@@ -9,6 +9,7 @@ from hiero_sdk_python.hapi.services.file_delete_pb2 import FileDeleteTransaction
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -19,9 +20,7 @@ DEFAULT_TRANSACTION_FEE = Hbar(2).to_tinybars()
 class FileDeleteTransaction(Transaction):
     """
     Represents a file deletion transaction on the network.
-
     This transaction deletes a specified file, rendering it inactive.
-
     Inherits from the base Transaction class and implements the required methods
     to build and execute a file deletion transaction.
     """
@@ -29,7 +28,6 @@ class FileDeleteTransaction(Transaction):
     def __init__(self, file_id: FileId | None = None):
         """
         Initializes a new FileDeleteTransaction instance with optional file_id.
-
         Args:
             file_id (FileId, optional): The ID of the file to be deleted.
         """
@@ -40,10 +38,8 @@ class FileDeleteTransaction(Transaction):
     def set_file_id(self, file_id: FileId) -> FileDeleteTransaction:
         """
         Sets the ID of the file to be deleted.
-
         Args:
             file_id (FileId): The ID of the file to be deleted.
-
         Returns:
             FileDeleteTransaction: Returns self for method chaining.
         """
@@ -51,25 +47,18 @@ class FileDeleteTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def _build_proto_body(self):
+    def _build_proto_body(self) -> FileDeleteTransactionBody:
         """
         Returns the protobuf body for the file delete transaction.
 
         Returns:
             FileDeleteTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If file_id is not set.
         """
-        if self.file_id is None:
-            raise ValueError("Missing required FileID")
+        return FileDeleteTransactionBody(fileID=self.file_id._to_proto() if self.file_id is not None else None)
 
-        return FileDeleteTransactionBody(fileID=self.file_id._to_proto())
-
-    def build_transaction_body(self):
+    def build_transaction_body(self) -> TransactionBody:
         """
         Builds and returns the protobuf transaction body for file deletion.
-
         Returns:
             TransactionBody: The protobuf transaction body containing the file deletion details.
         """
@@ -81,7 +70,6 @@ class FileDeleteTransaction(Transaction):
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this file delete transaction.
-
         Returns:
             SchedulableTransactionBody: The built scheduled transaction body.
         """
@@ -93,13 +81,10 @@ class FileDeleteTransaction(Transaction):
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Gets the method to execute the file delete transaction.
-
         This internal method returns a _Method object containing the appropriate gRPC
         function to call when executing this transaction on the network.
-
         Args:
             channel (_Channel): The channel containing service stubs
-
         Returns:
             _Method: An object containing the transaction function to delete a file.
         """
