@@ -226,6 +226,9 @@ class TopicUpdateTransaction(Transaction):
 
         self._require_not_frozen()
 
+        if not isinstance(custom_fee, CustomFixedFee):
+            raise TypeError("custom_fee must be a CustomFixedFee")
+
         if self.custom_fees is None:
             self.custom_fees = []
         self.custom_fees.append(custom_fee)

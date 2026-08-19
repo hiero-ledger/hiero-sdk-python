@@ -473,3 +473,14 @@ def test_add_custom_fee_frozen(mock_client, topic_id):
 
     with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
         tx.add_custom_fee(fee)
+
+
+def test_add_custom_fee_type_error():
+    """Test passing None or a non-CustomFixedFee argument raises TypeError."""
+    tx = TopicUpdateTransaction()
+
+    with pytest.raises(TypeError):
+        tx.add_custom_fee("this_is_a_string")  # type: ignore
+
+    with pytest.raises(TypeError):
+        tx.add_custom_fee(None)  # type: ignore
