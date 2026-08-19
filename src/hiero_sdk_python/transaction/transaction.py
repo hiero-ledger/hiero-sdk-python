@@ -317,7 +317,7 @@ class Transaction(_Executable):
         for index, transaction_id in enumerate(self._transaction_ids):
             node_transaction_bodies = {}
 
-            self._set_current_chunk(index)
+            self._set_current_chunk_index(index)
             transaction_body = self.build_transaction_body()
 
             for node_account_id in self._node_account_ids.get_list():
@@ -327,7 +327,7 @@ class Transaction(_Executable):
 
             self._transaction_body_bytes[transaction_id] = node_transaction_bodies
 
-        self._set_current_chunk(None)
+        self._set_current_chunk_index(None)
 
         return self
 
@@ -353,8 +353,8 @@ class Transaction(_Executable):
                 account_id=self._transaction_ids.get(0).account_id, valid_start=next_valid_start
             )
 
-    def _set_current_chunk(self, index: int | None) -> None:
-        """Set the current chunk index before building the transaction body."""
+    def _set_current_chunk_index(self, index: int | None) -> None:
+        """Helper to set the current chunk index before building the transaction body."""
         pass
 
     @overload
@@ -649,9 +649,18 @@ class Transaction(_Executable):
             Transaction: The current transaction instance for method chaining.
 
         Raises:
+            TypeError: If transaction_id is not a TransactionId instance.
+            ValueError: If transaction_id does not contain an account ID or valid start time.
             Exception: If the transaction has already been frozen.
         """
         self._require_not_frozen()
+
+        if transaction_id is None or not isinstance(transaction_id, TransactionId):
+            raise TypeError("transaction_id must be of type TransactionId")
+
+        if transaction_id.account_id is None or transaction_id.valid_start is None:
+            raise ValueError("transaction_id must have account_id and a valid_start period")
+
         self._transaction_ids.set_list([transaction_id])
         return self
 
