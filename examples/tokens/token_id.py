@@ -6,7 +6,8 @@ uv run examples/tokens/token_id.py
 python examples/tokens/token_id.py
 """
 
-from hiero_sdk_python import Client, Network, TokenId
+from hiero_sdk_python import Client, Network
+from hiero_sdk_python.tokens.token_id import TokenId
 
 
 def create_token_id() -> TokenId:
