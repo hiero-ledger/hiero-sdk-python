@@ -140,9 +140,21 @@ class ChunkedTransaction(Transaction, ABC):
 
         return super().freeze_with(client)
 
-    def _set_current_chunk(self: T, index: int | None) -> None:
-        """Set the current chunk index before building the transaction body."""
+    def _set_current_chunk_index(self: T, index: int | None) -> None:
+        """Helper to set the current chunk index before building the transaction body."""
         self._current_chunk_index = index
+
+    def _current_chunk_slice(self, contents: bytes) -> bytes:
+        """
+        Return the portion of contents corresponding to the current chunk,
+        If _current_chunk_index is None, returns the complete contents.
+        """
+        if self._current_chunk_index is None:
+            return contents
+
+        start_index = self._current_chunk_index * self.chunk_size
+        end_index = min(start_index + self.chunk_size, len(contents))
+        return contents[start_index:end_index]
 
     @overload
     def execute(

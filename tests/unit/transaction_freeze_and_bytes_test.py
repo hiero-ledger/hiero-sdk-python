@@ -560,7 +560,7 @@ def test_changing_node_after_freeze_fails():
     transaction.freeze()
 
     # This should fail as node_account_ids list is locked
-    with pytest.raises(Exception, match="list is unmutable"):
+    with pytest.raises(Exception, match="list is immutable"):
         transaction.set_node_account_ids([node_id_2])
 
 

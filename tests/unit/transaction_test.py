@@ -23,6 +23,7 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -594,6 +595,58 @@ def test_transaction_default_max_fee(account_id):
     assert tx_body.transactionFee == Hbar(2).to_tinybars()
 
 
+def test_set_transaction_id():
+    """Test setting the transaction ID using the property and setter."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+
+    # backward compatiblity
+    tx = AccountCreateTransaction()
+    assert tx.transaction_id is None
+    assert tx._transaction_ids.is_empty
+
+    tx.transaction_id = transaction_id
+
+    assert tx.transaction_id == transaction_id
+    assert tx._transaction_ids.current == transaction_id
+
+    # using setter
+    tx = AccountCreateTransaction()
+    assert tx.transaction_id is None
+    assert tx._transaction_ids.is_empty
+
+    return_value = tx.set_transaction_id(transaction_id)
+    assert tx.transaction_id == transaction_id
+    assert tx._transaction_ids.current == transaction_id
+    assert return_value is tx
+
+
+@pytest.mark.parametrize("transaction_id", [None, "0.0.2", True, 1, 0.1, {}, []])
+def test_set_transaction_id_invalid_type(transaction_id):
+    """Test that setting an invalid transaction ID type raises a TypeError."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="transaction_id must be of type TransactionId"):
+        tx.transaction_id = transaction_id
+
+    with pytest.raises(TypeError, match="transaction_id must be of type TransactionId"):
+        tx.set_transaction_id(transaction_id)
+
+
+@pytest.mark.parametrize(
+    "transaction_id",
+    [TransactionId(), TransactionId(AccountId.from_string("0.0.2"), None), TransactionId(None, Timestamp.generate())],
+)
+def test_set_transaction_id_invalid_value(transaction_id):
+    """Test that setting an invalid transaction ID value raises a ValueError."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(ValueError, match="transaction_id must have account_id and a valid_start period"):
+        tx.transaction_id = transaction_id
+
+    with pytest.raises(ValueError, match="transaction_id must have account_id and a valid_start period"):
+        tx.set_transaction_id(transaction_id)
+
+
 def test_body_bytes_for_each_node_on_freeze(mock_client):
     """Test transaction body bytes are created for each network node when frozen."""
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
@@ -658,7 +711,7 @@ def test_changing_node_ids_after_freeze_raises_error(mock_client):
     # Using freeze_with(client)
     transaction1 = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
     transaction1.freeze_with(mock_client)
-    with pytest.raises(RuntimeError, match="list is unmutable"):
+    with pytest.raises(RuntimeError, match="list is immutable"):
         transaction1.set_node_account_ids([node_ids_2])
 
     # Using freeze()
@@ -669,7 +722,7 @@ def test_changing_node_ids_after_freeze_raises_error(mock_client):
         .set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.2")))
     )
     transaction2.freeze()
-    with pytest.raises(RuntimeError, match="list is unmutable"):
+    with pytest.raises(RuntimeError, match="list is immutable"):
         transaction2.set_node_account_ids([node_ids_2])
 
 

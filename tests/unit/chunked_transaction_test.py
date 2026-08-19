@@ -15,9 +15,10 @@ pytestmark = pytest.mark.unit
 
 
 class DummyChunkedTransaction(ChunkedTransaction):
-    def __init__(self, required_chunks: int = 1) -> None:
+    def __init__(self, required_chunks: int = 1, contents: str = "ABCDEF") -> None:
         super().__init__()
         self.required_chunks = required_chunks
+        self.contents = contents
 
     def _get_method(self, _channel):
         method = type("Method", (), {})()
@@ -107,18 +108,6 @@ def test_freeze_with_builds_chunk_transaction_ids(mock_client):
     assert tx._transaction_ids.get(2).valid_start.nanos == 458
 
 
-# TODO: Check using the signature map
-# def test_sign_tracks_signing_keys_once(mock_client, private_key):
-#     tx = DummyChunkedTransaction(required_chunks=1)
-#     tx.freeze_with(mock_client)
-
-#     tx.sign(private_key)
-#     tx.sign(private_key)
-
-#     assert tx._signing_keys == [private_key]
-#     assert tx.is_signed_by(private_key.public_key()) is True
-
-
 def test_body_size_all_chunks_restores_state(mock_client):
     tx = DummyChunkedTransaction(required_chunks=3)
     tx.transaction_id = TransactionId(
@@ -174,3 +163,28 @@ def test_validate_chunking_allows_required_equal_to_max_chunks():
     tx._validate_chunking()
     assert tx._total_chunks == 3
     assert tx._current_chunk_index is None
+
+
+@pytest.mark.parametrize(
+    "chunk_index, expected",
+    [
+        (None, b"ABCDEF"),
+        (0, b"AB"),
+        (1, b"CD"),
+        (2, b"EF"),
+    ],
+)
+def test_current_chunk_slice_returns_valid_slice(chunk_index, expected):
+    """Test that the current chunk slice contains the expected content."""
+    tx = DummyChunkedTransaction(contents=b"ABCDEF").set_chunk_size(2)
+    tx._set_current_chunk_index(chunk_index)
+
+    assert tx._current_chunk_slice(tx.contents) == expected
+
+
+def test_current_chunk_slice_returns_remaining_content_for_last_chunk():
+    """Test that the current chunk slice returns the remaining content for an uneven final chunk."""
+    tx = DummyChunkedTransaction(contents=b"ABC").set_chunk_size(2)
+    tx._set_current_chunk_index(1)
+
+    assert tx._current_chunk_slice(tx.contents) == b"C"

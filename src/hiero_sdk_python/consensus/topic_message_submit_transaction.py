@@ -9,6 +9,7 @@ from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, transac
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.schedule.schedule_create_transaction import ScheduleCreateTransaction
 from hiero_sdk_python.transaction.chunked_transaction import ChunkedTransaction
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 
@@ -158,7 +159,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         if not self.message:
             raise ValueError("Missing required fields: message.")
 
-        content = self._message_as_bytes()
+        contents = self._message_as_bytes()
 
         if self._total_chunks > 1 and self._current_chunk_index is not None:
             chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
@@ -167,9 +168,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
                 number=self._current_chunk_index + 1,
             )
 
-            start_index = self._current_chunk_index * self.chunk_size
-            end_index = min(start_index + self.chunk_size, len(content))
-            chunk_content = content[start_index:end_index]
+            chunk_content = self._current_chunk_slice(contents)
 
             return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
                 topicID=self.topic_id._to_proto() if self.topic_id else None,
@@ -178,7 +177,7 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             )
 
         return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
-            topicID=self.topic_id._to_proto() if self.topic_id else None, message=content
+            topicID=self.topic_id._to_proto() if self.topic_id else None, message=contents
         )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
@@ -192,6 +191,18 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.consensusSubmitMessage.CopyFrom(consensus_submit_message_body)
         return transaction_body
+
+    def schedule(self) -> ScheduleCreateTransaction:
+        """
+        Converts this transaction into a scheduled transaction.
+        """
+        if self.message is not None and len(self._message_as_bytes()) > self.chunk_size:
+            raise RuntimeError(
+                f"Cannot schedule TopicMessageSubmitTransaction because the message exceeds "
+                f"the maximum chunk size of {self.chunk_size} bytes"
+            )
+
+        return super().schedule()
 
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
