@@ -60,7 +60,7 @@ jobs:
         with:
           # For PR events, the trusted base branch; for workflow_dispatch,
           # the (trusted) ref the workflow was dispatched from.
-          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
           fetch-depth: 1
 
