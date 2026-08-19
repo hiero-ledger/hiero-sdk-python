@@ -735,3 +735,15 @@ def test_message_submit_transaction_create_proper_content(topic_id, mock_client)
         assert not proto.HasField("chunkInfo")
         assert body.consensusSubmitMessage.message.decode("utf-8") == message
         assert body.transactionID == transaction_id._to_proto()
+
+
+def test_schedule_transaction_rejects_message_exceeding_chunk_size(topic_id):
+    """Test that scheduling fails when the message exceeds the chunk size."""
+    tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))
+
+    with pytest.raises(
+        RuntimeError,
+        match=f"Cannot schedule TopicMessageSubmitTransaction because the message "
+        f"exceeds the maximum chunk size of {tx.chunk_size} bytes",
+    ):
+        tx.schedule()

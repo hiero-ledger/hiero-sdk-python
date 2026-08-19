@@ -524,3 +524,15 @@ def test_file_append_transaction_create_proper_content(file_id, mock_client):
 
         assert body.fileAppend.contents.decode("utf-8") == content
         assert body.transactionID == transaction_id._to_proto()
+
+
+def test_schedule_transaction_rejects_message_exceeding_chunk_size(file_id):
+    """Test that scheduling fails when the message exceeds the chunk size."""
+    tx = FileAppendTransaction().set_file_id(file_id).set_chunk_size(10).set_contents(bytes(20))
+
+    with pytest.raises(
+        RuntimeError,
+        match=f"Cannot schedule FileAppendTransaction because the contents "
+        f"exceeds the maximum chunk size of {tx.chunk_size} bytes",
+    ):
+        tx.schedule()
