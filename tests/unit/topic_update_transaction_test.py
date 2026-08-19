@@ -479,8 +479,10 @@ def test_add_custom_fee_type_error():
     """Test passing None or a non-CustomFixedFee argument raises TypeError."""
     tx = TopicUpdateTransaction()
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="custom_fee must be a CustomFixedFee"):
         tx.add_custom_fee("this_is_a_string")  # type: ignore
+    assert tx.custom_fees is None, "Invalid input must not change custom_fees"
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match="custom_fee must be a CustomFixedFee"):
         tx.add_custom_fee(None)  # type: ignore
+    assert tx.custom_fees is None, "Invalid input must not change custom_fees"
