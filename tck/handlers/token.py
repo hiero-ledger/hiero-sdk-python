@@ -264,29 +264,34 @@ def _build_cancel_airdrop_transaction(params: CancelAirdropParams) -> TokenCance
     """Build a TokenCancelAirdropTransaction from TCK params."""
     transaction = TokenCancelAirdropTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
-    sender_id = AccountId.from_string(params.senderAccountId)
-    receiver_id = AccountId.from_string(params.receiverAccountId)
-    token_id = TokenId.from_string(params.tokenId)
+    if params.pendingAirdrops:
+        for pending_airdrop in params.pendingAirdrops:
+            sender_id = AccountId.from_string(pending_airdrop.senderAccountId)
+            receiver_id = AccountId.from_string(pending_airdrop.receiverAccountId)
+            token_id = TokenId.from_string(pending_airdrop.tokenId)
 
-    if params.serialNumbers:
-        for serial_number in params.serialNumbers:
-            nft_id = NftId(token_id, int(serial_number))
-            pending_airdrop = PendingAirdropId(
-                sender_id,
-                receiver_id,
-                nft_id=nft_id,
-            )
-            transaction.add_pending_airdrop(pending_airdrop)
-        else:
-            pending_airdrop = PendingAirdropId(
-                sender_id,
-                receiver_id,
-                token_id=token_id,
-            )
-            transaction.add_pending_airdrop(pending_airdrop)
+            if pending_airdrop.serialNumbers:
+                for serial_number in pending_airdrop.serialNumbers:
+                    nft_id = NftId(token_id, int(serial_number))
+                    transaction.add_pending_airdrop(
+                        PendingAirdropId(
+                            sender_id,
+                            receiver_id,
+                            nft_id=nft_id,
+                        )
+                    )
+            else:
+                transaction.add_pending_airdrop(
+                    PendingAirdropId(
+                        sender_id,
+                        receiver_id,
+                        token_id=token_id,
+                    )
+                )
 
-        transaction.set_max_transaction_fee(transaction.get_max_transaction_fee())
-        transaction.set_transaction_valid_duration(transaction.get_transaction_valid_duration())
+    transaction.set_max_transaction_fee(transaction.get_max_transaction_fee())
+    transaction.set_transaction_valid_duration(transaction.get_transaction_valid_duration())
+
     return transaction
 
 
