@@ -289,9 +289,6 @@ def _build_cancel_airdrop_transaction(params: CancelAirdropParams) -> TokenCance
                     )
                 )
 
-    transaction.set_max_transaction_fee(transaction.get_max_transaction_fee())
-    transaction.set_transaction_valid_duration(transaction.get_transaction_valid_duration())
-
     return transaction
 
 
