@@ -18,9 +18,9 @@ on:
         required: true
         type: number
       dry_run:
-        description: 'If true, log label changes without applying them.'
+        description: 'If true, log label changes without applying them. Default true for manual runs.'
         required: false
-        default: 'false'
+        default: 'true'
         type: string
 
 permissions:

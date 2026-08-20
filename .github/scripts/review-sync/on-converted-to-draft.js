@@ -35,6 +35,11 @@ module.exports = async ({ github, context, core }) => {
     pr = data;
   }
 
+  if (pr.draft !== true) {
+    console.log(`PR #${pr.number}: not a draft. Skipping cleanup.`);
+    return;
+  }
+
   console.log(`Cleaning draft PR #${pr.number}...`);
 
   try {
