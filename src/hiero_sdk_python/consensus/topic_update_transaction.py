@@ -213,6 +213,27 @@ class TopicUpdateTransaction(Transaction):
         self.fee_exempt_keys = keys
         return self
 
+    def add_custom_fee(self, custom_fee: CustomFixedFee) -> TopicUpdateTransaction:
+        """
+        Adds a single custom fixed fee to the transaction's custom fee list.
+
+        Args:
+            custom_fee (CustomFixedFee): The custom fixed fee to add.
+
+        Returns:
+            TopicUpdateTransaction: The current instance for method chaining.
+        """
+
+        self._require_not_frozen()
+
+        if not isinstance(custom_fee, CustomFixedFee):
+            raise TypeError("custom_fee must be a CustomFixedFee")
+
+        if self.custom_fees is None:
+            self.custom_fees = []
+        self.custom_fees.append(custom_fee)
+        return self
+
     def clear_custom_fees(self) -> TopicUpdateTransaction:
         """
         Clears the custom fees for the topic update transaction and
