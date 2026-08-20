@@ -20,6 +20,9 @@
  *   Array of review objects returned by pulls.listReviews
  * @param {Record<string, boolean>} options.existingLabels
  *   Map of label name → true (label exists in repo)
+ * @param {string[]} options.removeLabelNotFound
+ *   Label names for which removeLabel() should throw a 404, simulating a
+ *   label that's already gone (race condition or manual removal)
  * @returns {{ calls: object, rest: object, paginate: function }}
  */
 function createMockGithub(options = {}) {
@@ -28,6 +31,7 @@ function createMockGithub(options = {}) {
     reviews = [],
     existingLabels = {},
     checkRuns = [],
+    removeLabelNotFound = [],
   } = options;
 
   const calls = {
@@ -74,6 +78,9 @@ function createMockGithub(options = {}) {
           return {};
         },
         removeLabel: async ({ name }) => {
+          if (removeLabelNotFound.includes(name)) {
+            throw Object.assign(new Error('Not found'), { status: 404 });
+          }
           calls.labelsRemoved.push(name);
           return {};
         },

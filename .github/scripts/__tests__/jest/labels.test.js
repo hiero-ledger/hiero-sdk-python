@@ -8,6 +8,7 @@ const {
   determineLabel,
   ensureLabel,
   syncLabel,
+  stripQueueLabels,
 } = require('../../review-sync/helpers/labels');
 const {
   QUEUE_LABELS,
@@ -365,5 +366,89 @@ describe('syncLabel', () => {
     expect(changed).toBe(true);
     expect(mock.calls.labelsAdded)
       .toContain(COMMUNITY_REVIEW.name);
+  });
+});
+
+describe('stripQueueLabels', () => {
+  test('draft with queue + community labels → removes both', async () => {
+    const mock = createMockGithub({});
+
+    const changed = await stripQueueLabels(
+      mock,
+      'o',
+      'r',
+      {
+        number: 1,
+        labels: [
+          { name: 'queue:junior-committer' },
+          { name: COMMUNITY_REVIEW.name },
+        ],
+      },
+      false
+    );
+
+    expect(changed).toBe(true);
+    expect(mock.calls.labelsRemoved).toContain('queue:junior-committer');
+    expect(mock.calls.labelsRemoved).toContain(COMMUNITY_REVIEW.name);
+  });
+
+  test('draft with no managed labels → no-op', async () => {
+    const mock = createMockGithub({});
+
+    const changed = await stripQueueLabels(
+      mock,
+      'o',
+      'r',
+      {
+        number: 1,
+        labels: [{ name: 'some-unrelated-label' }],
+      },
+      false
+    );
+
+    expect(changed).toBe(false);
+    expect(mock.calls.labelsRemoved).toHaveLength(0);
+  });
+
+  test('404 on removal → tolerated, run continues', async () => {
+    const mock = createMockGithub({
+      removeLabelNotFound: ['queue:committers'],
+    });
+
+    const changed = await stripQueueLabels(
+      mock,
+      'o',
+      'r',
+      {
+        number: 1,
+        labels: [
+          { name: 'queue:committers' },
+          { name: COMMUNITY_REVIEW.name },
+        ],
+      },
+      false
+    );
+
+    expect(changed).toBe(true);
+    expect(mock.calls.labelsRemoved).not.toContain('queue:committers');
+    expect(mock.calls.labelsRemoved).toContain(COMMUNITY_REVIEW.name);
+  });
+
+  test('dry run → logs only, no mutations', async () => {
+    const mock = createMockGithub({});
+
+    const changed = await stripQueueLabels(
+      mock,
+      'o',
+      'r',
+      {
+        number: 1,
+        labels: [{ name: 'status: ready-to-merge' }],
+      },
+      true
+    );
+
+    expect(changed).toBe(true);
+    expect(mock.calls.labelsRemoved).toHaveLength(0);
   });
 });
