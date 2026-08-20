@@ -23,6 +23,9 @@
  * @param {string[]} options.removeLabelNotFound
  *   Label names for which removeLabel() should throw a 404, simulating a
  *   label that's already gone (race condition or manual removal)
+ * @param {string[]} options.removeLabelServerError
+ *   Label names for which removeLabel() should throw a 500, simulating an
+ *   unexpected API failure that should NOT be swallowed
  * @returns {{ calls: object, rest: object, paginate: function }}
  */
 function createMockGithub(options = {}) {
@@ -32,6 +35,7 @@ function createMockGithub(options = {}) {
     existingLabels = {},
     checkRuns = [],
     removeLabelNotFound = [],
+    removeLabelServerError = [],
   } = options;
 
   const calls = {
@@ -80,6 +84,9 @@ function createMockGithub(options = {}) {
         removeLabel: async ({ name }) => {
           if (removeLabelNotFound.includes(name)) {
             throw Object.assign(new Error('Not found'), { status: 404 });
+          }
+          if (removeLabelServerError.includes(name)) {
+            throw Object.assign(new Error('Internal server error'), { status: 500 });
           }
           calls.labelsRemoved.push(name);
           return {};

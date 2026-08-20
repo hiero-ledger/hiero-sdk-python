@@ -451,4 +451,23 @@ describe('stripQueueLabels', () => {
     expect(changed).toBe(true);
     expect(mock.calls.labelsRemoved).toHaveLength(0);
   });
+
+  test('non-404 removal error → propagates', async () => {
+    const mock = createMockGithub({
+      removeLabelServerError: ['queue:maintainers'],
+    });
+
+    await expect(
+      stripQueueLabels(
+        mock,
+        'o',
+        'r',
+        {
+          number: 1,
+          labels: [{ name: 'queue:maintainers' }],
+        },
+        false
+      )
+    ).rejects.toThrow('Internal server error');
+  });
 });
