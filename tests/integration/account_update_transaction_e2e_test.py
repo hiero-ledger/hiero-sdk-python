@@ -12,6 +12,7 @@ from hiero_sdk_python.account.account_update_transaction import AccountUpdateTra
 from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -241,14 +242,14 @@ def test_integration_account_update_transaction_invalid_auto_renew_period(env):
 
 def _apply_tiny_max_fee_if_supported(tx, client) -> bool:
     # Try tx-level setters
-    for attr in ("set_max_transaction_fee", "set_max_fee", "set_transaction_fee"):
+    for attr in ("set_default_max_transaction_fee", "set_max_fee", "set_transaction_fee"):
         if hasattr(tx, attr):
             getattr(tx, attr)(Hbar.from_tinybars(1))
             return True
     # Try client-level default
     for attr in (
         "set_default_max_transaction_fee",
-        "set_max_transaction_fee",
+        "set_default_max_transaction_fee",
         "set_default_max_fee",
         "setMaxTransactionFee",
     ):
@@ -283,10 +284,11 @@ def test_account_update_insufficient_fee_with_valid_expiration_bump(env):
     if not _apply_tiny_max_fee_if_supported(tx, env.client):
         pytest.skip("SDK lacks a max-fee API; cannot deterministically trigger INSUFFICIENT_TX_FEE.")
 
-    receipt = tx.execute(env.client)
-    assert receipt.status == ResponseCode.INSUFFICIENT_TX_FEE, (
-        f"Expected INSUFFICIENT_TX_FEE but got {ResponseCode(receipt.status).name}"
-    )
+    # If it succeeds or raises a different error, the test will fail.
+    with pytest.raises(PrecheckError) as exc_info:
+        tx.execute(env.client)
+
+    assert exc_info.value.status == ResponseCode.INSUFFICIENT_TX_FEE
 
     # Confirm expiration time did not change
     info_after = AccountInfoQuery(account_id).execute(env.client)
