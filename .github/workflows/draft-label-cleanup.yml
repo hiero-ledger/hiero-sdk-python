@@ -5,14 +5,16 @@
 # This is the immediate counterpart to the review-sync cron job, which now
 # also cleans drafts on every run as a backstop for anything this event misses.
 #
-# The checkout is pinned to the default branch rather than the PR ref: this
-# job runs with issues: write, so it must never execute code from the PR
-# it's reacting to. Same pattern as on-review.yml.
+# Uses pull_request_target, not pull_request: fork and Dependabot PRs get a
+# read-only GITHUB_TOKEN under plain pull_request, so removeLabel would fail
+# for exactly the PRs this needs to work on. The checkout is still pinned to
+# the default branch rather than the PR ref, so this never runs PR-controlled
+# code even though it holds a write token. Same pattern as on-review.yml.
 
 name: Draft PR Label Cleanup
 
 on:
-  pull_request:
+  pull_request_target:
     types:
       - converted_to_draft
   workflow_dispatch:
