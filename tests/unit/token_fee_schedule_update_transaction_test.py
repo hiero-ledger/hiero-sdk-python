@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.tokens.custom_fee import CustomFee
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import (
@@ -114,3 +117,30 @@ def test_build_transaction_body_with_empty_custom_fees(mock_account_ids):
     assert transaction_body.HasField("token_fee_schedule_update")
     assert transaction_body.token_fee_schedule_update.token_id == token_id._to_proto()
     assert len(transaction_body.token_fee_schedule_update.custom_fees) == 0
+
+
+def test_get_method_returns_token_service_method():
+    channel = _Channel()
+    token_service = MagicMock()
+    channel._token = token_service
+
+    method = TokenFeeScheduleUpdateTransaction()._get_method(channel)
+
+    assert method.transaction == token_service.updateTokenFeeSchedule
+
+
+def test_get_method_raises_when_token_service_unavailable():
+    channel = _Channel()
+
+    with pytest.raises(ValueError, match="Token service not available on channel"):
+        TokenFeeScheduleUpdateTransaction()._get_method(channel)
+
+
+def test_repr_includes_token_id_and_fee_count(mock_account_ids):
+    _, _, _, token_id, _ = mock_account_ids
+    transaction = TokenFeeScheduleUpdateTransaction(token_id=token_id, custom_fees=[])
+
+    representation = repr(transaction)
+
+    assert "TokenFeeScheduleUpdateTransaction" in representation
+    assert "fees=0" in representation
