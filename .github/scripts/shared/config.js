@@ -58,7 +58,7 @@ const CONFIG = {
 
   // Maximum simultaneous assignments .
   assignmentLimits: {
-    [LEVEL_KEYS.GFI]: 2,
+    [LEVEL_KEYS.GFI]: 1,
     [LEVEL_KEYS.BEGINNER]: 2,
     [LEVEL_KEYS.INTERMEDIATE]: 2,
     [LEVEL_KEYS.ADVANCED]: 2,
