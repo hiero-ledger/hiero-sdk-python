@@ -51,3 +51,20 @@ class GetFileContentsParams(BaseParams):
             queryPayment=params.get("queryPayment"),
             maxQueryPayment=params.get("maxQueryPayment"),
         )
+
+
+@dataclass
+class DeleteFileParams(BaseTransactionParams):
+    """Parameters for deleting a file. Extends BaseTransactionParams to include common transaction parameters."""
+
+    fileId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteFileParams:
+        # Spec documents the key as fileID (capital ID). Bind it verbatim so the
+        # driver parameter maps correctly. Do not "fix" this to fileId.
+        return cls(
+            fileId=params.get("fileID"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
