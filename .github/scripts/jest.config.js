@@ -2,5 +2,5 @@
 /** @type {import('jest').Config} */
 module.exports = {
     testEnvironment: 'node',
-    testMatch: ['<rootDir>/__tests__/jest/**/*.test.js'],
+    testMatch: ['**/__tests__/jest/**/*.test.js'],
 };
