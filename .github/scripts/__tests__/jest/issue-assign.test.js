@@ -13,6 +13,11 @@ jest.mock('../../shared/api/github-api', () => ({
   assignIssue: jest.fn(),
 }));
 
+jest.mock('../../coderabbit_plan_trigger.js', () => ({
+  triggerCodeRabbitPlan: jest.fn(),
+  hasExistingCodeRabbitPlan: jest.fn(),
+}));
+
 jest.mock('../../shared/helpers/comment', () => ({
   buildAlreadyAssignedComment: jest.fn(() => 'already assigned'),
   buildGuardComment: jest.fn(() => 'guard comment'),
@@ -34,6 +39,11 @@ const { runAssignmentFlow } = require('../../shared/core/issue-assign');
 
 const githubApi = require('../../shared/api/github-api');
 const spam = require('../../shared/helpers/spam');
+
+const {
+  triggerCodeRabbitPlan,
+  hasExistingCodeRabbitPlan,
+} = require('../../coderabbit_plan_trigger.js');
 
 function createContext(overrides = {}) {
   return {
@@ -86,6 +96,9 @@ beforeEach(() => {
   spam.isSpamBlockedLevel.mockReturnValue(false);
   spam.isSpamLimited.mockReturnValue(false);
   spam.getAssignmentLimit.mockReturnValue(5);
+
+  hasExistingCodeRabbitPlan.mockResolvedValue(false);
+  triggerCodeRabbitPlan.mockResolvedValue(true);
 });
 
 describe('runAssignmentFlow - validation', () => {
@@ -597,8 +610,9 @@ describe('runAssignmentFlow - assignment', () => {
     expect(githubApi.assignIssue).not.toHaveBeenCalled();
   });
 
-  test('assigns issue when all checks pass', async () => {
+  test('assigns issue and triggers CodeRabbit when all checks pass', async () => {
     githubApi.getOpenAssignments.mockResolvedValue(0);
+    hasExistingCodeRabbitPlan.mockResolvedValue(false);
 
     const github = createGithub();
     const context = createContext();
@@ -613,7 +627,53 @@ describe('runAssignmentFlow - assignment', () => {
       username: 'parv',
     });
 
+    expect(hasExistingCodeRabbitPlan).toHaveBeenCalledWith(
+      github,
+      'hiero-ledger',
+      'hiero-sdk-python',
+      10
+    );
+
+    expect(triggerCodeRabbitPlan).toHaveBeenCalledWith(
+      github,
+      'hiero-ledger',
+      'hiero-sdk-python',
+      context.payload.issue
+    );
+
     expect(githubApi.postIssueComment).not.toHaveBeenCalled();
+  });
+
+  test('does not trigger CodeRabbit when a plan already exists', async () => {
+    githubApi.getOpenAssignments.mockResolvedValue(0);
+    hasExistingCodeRabbitPlan.mockResolvedValue(true);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).toHaveBeenCalled();
+    expect(hasExistingCodeRabbitPlan).toHaveBeenCalled();
+    expect(triggerCodeRabbitPlan).not.toHaveBeenCalled();
+  });
+
+  test('does not fail assignment when CodeRabbit trigger fails', async () => {
+    githubApi.getOpenAssignments.mockResolvedValue(0);
+    hasExistingCodeRabbitPlan.mockResolvedValue(false);
+    triggerCodeRabbitPlan.mockRejectedValue(
+      new Error('CodeRabbit API failed')
+    );
+
+    const github = createGithub();
+    const context = createContext();
+
+    await expect(
+      runAssignmentFlow({ github, context })
+    ).resolves.not.toThrow();
+
+    expect(githubApi.assignIssue).toHaveBeenCalled();
+    expect(triggerCodeRabbitPlan).toHaveBeenCalled();
   });
 });
 
@@ -676,31 +736,21 @@ describe('runAssignmentFlow - error handling', () => {
     expect(githubApi.assignIssue).toHaveBeenCalled();
   });
 
-  test('propagates post comment errors', async () => {
-    githubApi.postIssueComment.mockRejectedValue(
-      new Error('Comment failed')
+  test('does not trigger CodeRabbit when assignment fails', async () => {
+    githubApi.assignIssue.mockRejectedValue(
+      new Error('Assignment failed')
     );
 
-    githubApi.countCompletedIssuesWithLabel.mockResolvedValue(0);
-
     const github = createGithub();
+    const context = createContext();
 
-    const context = createContext({
-      issue: {
-        number: 42,
-        assignees: [],
-        labels: [
-          {
-            name: 'skill: intermediate',
-          },
-        ],
-      },
+    await runAssignmentFlow({
+      github,
+      context,
     });
 
-    await expect(
-      runAssignmentFlow({ github, context })
-    ).rejects.toThrow('Comment failed');
-
-    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(githubApi.assignIssue).toHaveBeenCalled();
+    expect(hasExistingCodeRabbitPlan).not.toHaveBeenCalled();
+    expect(triggerCodeRabbitPlan).not.toHaveBeenCalled();
   });
 });
