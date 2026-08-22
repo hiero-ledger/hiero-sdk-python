@@ -15,9 +15,10 @@ pytestmark = pytest.mark.unit
 
 
 class DummyChunkedTransaction(ChunkedTransaction):
-    def __init__(self, required_chunks: int = 1) -> None:
+    def __init__(self, required_chunks: int = 1, contents: str = "ABCDEF") -> None:
         super().__init__()
         self.required_chunks = required_chunks
+        self.contents = contents
 
     def _get_method(self, _channel):
         method = type("Method", (), {})()
@@ -44,10 +45,9 @@ def test_constructor_sets_default_chunk_configuration():
 
     assert tx.chunk_size == 1024
     assert tx.max_chunks == 20
-    assert tx._current_chunk_index == 0
+    assert tx._current_chunk_index is None
     assert tx._total_chunks == 1
-    assert tx._transaction_ids == []
-    assert tx._signing_keys == []
+    assert tx._transaction_ids.is_empty
 
 
 @pytest.mark.parametrize(
@@ -100,23 +100,12 @@ def test_freeze_with_builds_chunk_transaction_ids(mock_client):
 
     assert tx._total_chunks == 3
     assert len(tx._transaction_ids) == 3
-    assert tx._initial_transaction_id == tx.transaction_id
-    assert tx._transaction_ids[0] == tx.transaction_id
-    assert tx._transaction_ids[1].valid_start.seconds == 123
-    assert tx._transaction_ids[1].valid_start.nanos == 457
-    assert tx._transaction_ids[2].valid_start.seconds == 123
-    assert tx._transaction_ids[2].valid_start.nanos == 458
-
-
-def test_sign_tracks_signing_keys_once(mock_client, private_key):
-    tx = DummyChunkedTransaction(required_chunks=1)
-    tx.freeze_with(mock_client)
-
-    tx.sign(private_key)
-    tx.sign(private_key)
-
-    assert tx._signing_keys == [private_key]
-    assert tx.is_signed_by(private_key.public_key()) is True
+    assert tx._initial_transaction_id == tx._transaction_ids.current
+    assert tx._transaction_ids.get(0) == tx._transaction_ids.current
+    assert tx._transaction_ids.get(0).valid_start.seconds == 123
+    assert tx._transaction_ids.get(1).valid_start.nanos == 457
+    assert tx._transaction_ids.get(2).valid_start.seconds == 123
+    assert tx._transaction_ids.get(2).valid_start.nanos == 458
 
 
 def test_body_size_all_chunks_restores_state(mock_client):
@@ -164,7 +153,7 @@ def test_execute_all_multi_chunk_replays_each_chunk(mock_client, private_key):
 
     assert responses == ["chunk-1", "chunk-2", "chunk-3"]
     assert mock_execute.call_count == 3
-    assert tx._current_chunk_index == 2
+    assert tx._current_chunk_index is None
 
 
 def test_validate_chunking_allows_required_equal_to_max_chunks():
@@ -173,4 +162,29 @@ def test_validate_chunking_allows_required_equal_to_max_chunks():
 
     tx._validate_chunking()
     assert tx._total_chunks == 3
-    assert tx._current_chunk_index == 0
+    assert tx._current_chunk_index is None
+
+
+@pytest.mark.parametrize(
+    "chunk_index, expected",
+    [
+        (None, b"ABCDEF"),
+        (0, b"AB"),
+        (1, b"CD"),
+        (2, b"EF"),
+    ],
+)
+def test_current_chunk_slice_returns_valid_slice(chunk_index, expected):
+    """Test that the current chunk slice contains the expected content."""
+    tx = DummyChunkedTransaction(contents=b"ABCDEF").set_chunk_size(2)
+    tx._set_current_chunk_index(chunk_index)
+
+    assert tx._current_chunk_slice(tx.contents) == expected
+
+
+def test_current_chunk_slice_returns_remaining_content_for_last_chunk():
+    """Test that the current chunk slice returns the remaining content for an uneven final chunk."""
+    tx = DummyChunkedTransaction(contents=b"ABC").set_chunk_size(2)
+    tx._set_current_chunk_index(1)
+
+    assert tx._current_chunk_slice(tx.contents) == b"C"

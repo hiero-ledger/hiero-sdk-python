@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import PropertyMock, patch
+
 import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
@@ -21,6 +23,7 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -303,6 +306,37 @@ def test_file_append_chunk_tx_should_return_list_of_body_sizes(file_id, account_
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 3
+    assert tx._transaction_ids.index == 0
+
+
+def test_chunk_tx_should_call_body_size_for_each_chunk(file_id, account_id, transaction_id):
+    """Test file chunk tx should call body size for each chunks."""
+    chunk_size = 1024
+    content = "a" * (chunk_size * 3)
+
+    tx = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_chunk_size(chunk_size)
+        .set_contents(content)
+        .set_transaction_id(transaction_id)
+        .set_node_account_ids([account_id])
+        .freeze()
+    )
+
+    # mock to see the method call count
+    with patch.object(
+        FileAppendTransaction,
+        "body_size",
+        new_callable=PropertyMock,
+        return_value=123,
+    ) as mock_body_size:
+        sizes = tx.body_size_all_chunks
+
+    assert isinstance(sizes, list)
+    assert len(sizes) == 3
+    assert mock_body_size.call_count == 3
+    assert tx._transaction_ids.index == 0
 
 
 def test_file_append_single_chunk_tx_return_list_of_len_one(file_id, account_id, transaction_id):
@@ -320,6 +354,7 @@ def test_file_append_single_chunk_tx_return_list_of_len_one(file_id, account_id,
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 1
+    assert tx._transaction_ids.index == 0
 
 
 def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, account_id, transaction_id):
@@ -340,7 +375,8 @@ def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, acco
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 3
-    assert tx._current_chunk_index == 0
+    assert tx._current_chunk_index is None
+    assert tx._transaction_ids.index == 0
 
 
 def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, account_id, transaction_id):
@@ -358,6 +394,7 @@ def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, account
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 1
+    assert tx._transaction_ids.index == 0
 
 
 def test_tx_with_no_content_should_return_single_body_chunk(file_id, account_id, transaction_id):
@@ -374,6 +411,7 @@ def test_tx_with_no_content_should_return_single_body_chunk(file_id, account_id,
     sizes = tx.body_size_all_chunks
     assert isinstance(sizes, list)
     assert len(sizes) == 1
+    assert tx._transaction_ids.index == 0
 
 
 def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
@@ -408,7 +446,7 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
     assert large_size > 1024
     # The larger chunked transaction should be bigger than the single-chunk transaction
     assert large_size > small_size
-    assert large_tx._current_chunk_index == 0
+    assert large_tx._current_chunk_index is None
 
 
 def test_chunked_tx_differ_size_if_chunk_are_not_equal(topic_id, account_id, transaction_id):
@@ -485,7 +523,8 @@ def test_high_volume_is_included_in_protobuf_output(
 
     assert transaction._transaction_body_bytes
 
-    body_bytes = next(iter(transaction._transaction_body_bytes.values()))
+    node_body_bytes = next(iter(transaction._transaction_body_bytes.values()))
+    body_bytes = next(iter(node_body_bytes.values()))
 
     body = transaction_pb2.TransactionBody()
     body.ParseFromString(body_bytes)
@@ -502,7 +541,8 @@ def test_high_volume_is_included_in_protobuf_output(
         .freeze()
     )
 
-    body_bytes_false = next(iter(transaction_false._transaction_body_bytes.values()))
+    node_bytes_false = next(iter(transaction_false._transaction_body_bytes.values()))
+    body_bytes_false = next(iter(node_bytes_false.values()))
 
     body_false = transaction_pb2.TransactionBody()
     body_false.ParseFromString(body_bytes_false)
@@ -555,35 +595,156 @@ def test_transaction_default_max_fee(account_id):
     assert tx_body.transactionFee == Hbar(2).to_tinybars()
 
 
-def test_transaction_body_bytes_for_each_node_id_on_freeze(mock_client):
-    """Test create transaction body bytes for each network node when frozen."""
+def test_set_transaction_id():
+    """Test setting the transaction ID using the property and setter."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+
+    # backward compatiblity
+    tx = AccountCreateTransaction()
+    assert tx.transaction_id is None
+    assert tx._transaction_ids.is_empty
+
+    tx.transaction_id = transaction_id
+
+    assert tx.transaction_id == transaction_id
+    assert tx._transaction_ids.current == transaction_id
+
+    # using setter
+    tx = AccountCreateTransaction()
+    assert tx.transaction_id is None
+    assert tx._transaction_ids.is_empty
+
+    return_value = tx.set_transaction_id(transaction_id)
+    assert tx.transaction_id == transaction_id
+    assert tx._transaction_ids.current == transaction_id
+    assert return_value is tx
+
+
+@pytest.mark.parametrize("transaction_id", [None, "0.0.2", True, 1, 0.1, {}, []])
+def test_set_transaction_id_invalid_type(transaction_id):
+    """Test that setting an invalid transaction ID type raises a TypeError."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="transaction_id must be of type TransactionId"):
+        tx.transaction_id = transaction_id
+
+    with pytest.raises(TypeError, match="transaction_id must be of type TransactionId"):
+        tx.set_transaction_id(transaction_id)
+
+
+@pytest.mark.parametrize(
+    "transaction_id",
+    [TransactionId(), TransactionId(AccountId.from_string("0.0.2"), None), TransactionId(None, Timestamp.generate())],
+)
+def test_set_transaction_id_invalid_value(transaction_id):
+    """Test that setting an invalid transaction ID value raises a ValueError."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(ValueError, match="transaction_id must have account_id and a valid_start period"):
+        tx.transaction_id = transaction_id
+
+    with pytest.raises(ValueError, match="transaction_id must have account_id and a valid_start period"):
+        tx.set_transaction_id(transaction_id)
+
+
+def test_body_bytes_for_each_node_on_freeze(mock_client):
+    """Test transaction body bytes are created for each network node when frozen."""
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
     tx.freeze_with(mock_client)
 
-    body_bytes = tx._transaction_body_bytes
+    transaction_body_bytes = tx._transaction_body_bytes
+    transaction_id = tx._transaction_ids.current
 
-    assert body_bytes
-    assert body_bytes.keys() == {node._account_id for node in mock_client.network.nodes}
+    assert transaction_body_bytes
+    assert transaction_body_bytes.keys() == {transaction_id}
 
-    for node_id, body_bytes_value in body_bytes.items():
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes.keys() == {node._account_id for node in mock_client.network.nodes}
+
+    for node_id, body_bytes in node_body_bytes.items():
         body = transaction_pb2.TransactionBody()
-        body.ParseFromString(body_bytes_value)
-        assert body.nodeAccountID == AccountId._to_proto(node_id)
+        body.ParseFromString(body_bytes)
+        assert body.transactionID == transaction_id._to_proto()
+        assert body.nodeAccountID == node_id._to_proto()
+
+    assert tx._transaction_ids._locked is True
+    assert tx._transaction_ids.index == 0
+
+    assert tx._node_account_ids._locked is True
+    assert tx._node_account_ids.index == 0
 
 
-def test_transaction_body_bytes_for_each_node_id_on_freeze_manual(mock_client):
-    """Test create transaction body bytes for manually configured node account IDs."""
+def test_body_bytes_for_each_node_on_manual_freeze(mock_client):
+    """Test transaction body bytes are created for each manually configured node when frozen."""
     node_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
 
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa()).set_node_account_ids(node_ids)
     tx.freeze_with(mock_client)
 
-    body_bytes = tx._transaction_body_bytes
+    transaction_body_bytes = tx._transaction_body_bytes
+    transaction_id = tx._transaction_ids.current
 
-    assert body_bytes
-    assert set(body_bytes) == set(node_ids)
+    assert transaction_body_bytes
+    assert set(transaction_body_bytes.keys()) == {transaction_id}
 
-    for node_id, body_bytes_value in body_bytes.items():
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert set(node_body_bytes.keys()) == set(node_ids)
+
+    for node_id, body_bytes in node_body_bytes.items():
         body = transaction_pb2.TransactionBody()
-        body.ParseFromString(body_bytes_value)
-        assert body.nodeAccountID == AccountId._to_proto(node_id)
+        body.ParseFromString(body_bytes)
+        assert body.transactionID == transaction_id._to_proto()
+        assert body.nodeAccountID == node_id._to_proto()
+
+    assert tx._transaction_ids._locked is True
+    assert tx._transaction_ids.index == 0
+
+    assert tx._node_account_ids._locked is True
+    assert tx._node_account_ids.index == 0
+
+
+def test_changing_node_ids_after_freeze_raises_error(mock_client):
+    """Test changing node account IDs after freezing raises an error."""
+    node_ids_1 = [AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")]
+    node_ids_2 = [AccountId.from_string("0.0.5"), AccountId.from_string("0.0.6")]
+
+    # Using freeze_with(client)
+    transaction1 = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
+    transaction1.freeze_with(mock_client)
+    with pytest.raises(RuntimeError, match="list is immutable"):
+        transaction1.set_node_account_ids([node_ids_2])
+
+    # Using freeze()
+    transaction2 = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_node_account_ids(node_ids_1)
+        .set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.2")))
+    )
+    transaction2.freeze()
+    with pytest.raises(RuntimeError, match="list is immutable"):
+        transaction2.set_node_account_ids([node_ids_2])
+
+
+def test_changing_transaction_id_after_freeze_raises_error(mock_client):
+    """Test changing the transaction ID after freezing raises an error."""
+    node_ids = [AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")]
+    transaction_id_1 = TransactionId.generate(AccountId.from_string("0.0.100"))
+    transaction_id_2 = TransactionId.generate(AccountId.from_string("0.0.101"))
+
+    # Using freeze_with(client)
+    transaction1 = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
+    transaction1.freeze_with(mock_client)
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
+        transaction1.set_transaction_id(transaction_id_1)
+
+    # Using freeze()
+    transaction2 = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_node_account_ids(node_ids)
+        .set_transaction_id(transaction_id_1)
+    )
+    transaction2.freeze()
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
+        transaction2.set_transaction_id(transaction_id_2)
