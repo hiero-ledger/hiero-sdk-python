@@ -182,6 +182,13 @@ class FileCreateTransaction(Transaction):
         """
         return _Method(transaction_func=channel.file.createFile, query_func=None)
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("fileCreate"):
+            transaction._from_proto(transaction_body.fileCreate)
+        return transaction
+
     def _from_proto(self, proto: file_create_pb2.FileCreateTransactionBody) -> FileCreateTransaction:
         """
         Initializes a new FileCreateTransaction instance from a protobuf object.
@@ -193,7 +200,9 @@ class FileCreateTransaction(Transaction):
             FileCreateTransaction: This transaction instance.
         """
         self.keys = KeyList.from_proto(proto.keys).keys
-        self.contents = proto.contents
-        self.expiration_time = Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None
-        self.file_memo = proto.memo
+        self.contents = proto.contents or None
+        self.expiration_time = (
+            Timestamp._from_protobuf(proto.expirationTime) if proto.HasField("expirationTime") else None
+        )
+        self.file_memo = proto.memo or None
         return self

@@ -149,6 +149,19 @@ class TokenWipeTransaction(Transaction):
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(transaction_func=channel.token.wipeTokenAccount, query_func=None)
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenWipe"):
+            body = transaction_body.tokenWipe
+            if body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(body.token)
+            if body.HasField("account"):
+                transaction.account_id = AccountId._from_proto(body.account)
+            transaction.amount = body.amount if body.amount else None
+            transaction.serial = list(body.serialNumbers)
+        return transaction
+
     def _from_proto(self, proto: TokenWipeAccountTransactionBody) -> TokenWipeTransaction:
         """
         Deserializes a TokenWipeAccountTransactionBody from a protobuf object.

@@ -16,6 +16,9 @@ from hiero_sdk_python.schedule.schedule_create_transaction import (
     ScheduleCreateTransaction,
 )
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 
@@ -284,3 +287,58 @@ def test_to_proto(mock_client):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via _from_protobuf for ScheduleCreateTransaction."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    inner_tx = TokenGrantKycTransaction()
+    inner_tx.set_token_id(token_id_1)
+    inner_tx.set_account_id(account_id_sender)
+    schedulable_body = inner_tx.build_scheduled_body()
+
+    tx = ScheduleCreateTransaction()
+    tx.set_schedule_memo("test memo")
+    tx.set_payer_account_id(account_id_sender)
+    tx._set_schedulable_body(schedulable_body)
+    tx.transaction_id = TransactionId.generate(account_id_sender)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ScheduleCreateTransaction)
+    assert reconstructed.schedule_memo == "test memo"
+    assert reconstructed.payer_account_id == account_id_sender
+    assert reconstructed.schedulable_body == schedulable_body
+    assert reconstructed.schedulable_body.HasField("tokenGrantKyc")
+
+
+def test_from_bytes_with_admin_key_and_expiration(mock_account_ids):
+    """Covers admin_key and expiration_time branches in _from_protobuf."""
+    account_id_sender, _, node_account_id, token_id_1, _ = mock_account_ids
+
+    admin_key = PrivateKey.generate_ed25519().public_key()
+    expiry = Timestamp(seconds=9_999_999_999, nanos=123)
+
+    inner_tx = TokenGrantKycTransaction()
+    inner_tx.set_token_id(token_id_1)
+    inner_tx.set_account_id(account_id_sender)
+    schedulable_body = inner_tx.build_scheduled_body()
+
+    tx = ScheduleCreateTransaction()
+    tx.set_admin_key(admin_key)
+    tx.set_expiration_time(expiry)
+    tx._set_schedulable_body(schedulable_body)
+    tx.transaction_id = TransactionId.generate(account_id_sender)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, ScheduleCreateTransaction)
+    assert reconstructed.admin_key is not None
+    assert reconstructed.admin_key.to_bytes_raw() == admin_key.to_bytes_raw()
+    assert reconstructed.expiration_time.seconds == expiry.seconds
+    assert reconstructed.expiration_time.nanos == expiry.nanos

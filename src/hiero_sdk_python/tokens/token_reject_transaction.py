@@ -64,6 +64,8 @@ class TokenRejectTransaction(Transaction):
     def set_token_ids(self, token_ids: list[TokenId]) -> TokenRejectTransaction:
         """Set the list of fungible token IDs to reject."""
         self._require_not_frozen()
+        if not all(isinstance(t, TokenId) for t in token_ids):
+            raise TypeError("token_ids must contain only TokenId instances.")
         self.token_ids = list(token_ids)
         return self
 
@@ -89,6 +91,8 @@ class TokenRejectTransaction(Transaction):
     def set_nft_ids(self, nft_ids: list[NftId]) -> TokenRejectTransaction:
         """Set the list of NFT IDs to reject."""
         self._require_not_frozen()
+        if not all(isinstance(n, NftId) for n in nft_ids):
+            raise TypeError("nft_ids must contain only NftId instances.")
         self.nft_ids = list(nft_ids)
         return self
 
@@ -165,6 +169,19 @@ class TokenRejectTransaction(Transaction):
             _Method: An object containing the transaction function to reject tokens.
         """
         return _Method(transaction_func=channel.token.rejectToken, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenReject"):
+            body = transaction_body.tokenReject
+            if body.HasField("owner"):
+                transaction.owner_id = AccountId._from_proto(body.owner)
+            transaction.token_ids = [
+                TokenId._from_proto(e.fungible_token) for e in body.rejections if e.HasField("fungible_token")
+            ]
+            transaction.nft_ids = [NftId._from_proto(e.nft) for e in body.rejections if e.HasField("nft")]
+        return transaction
 
     def _from_proto(self, proto: TokenRejectTransactionBody) -> TokenRejectTransaction:
         """

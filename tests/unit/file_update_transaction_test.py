@@ -32,6 +32,8 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -358,3 +360,49 @@ def test_encode_contents_string():
     # Test None handling
     encoded = file_tx._encode_contents(None)
     assert encoded is None
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via _from_protobuf for FileUpdateTransaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    test_file_id = FileId(0, 0, 5)
+    key = PrivateKey.generate().public_key()
+    expiration = Timestamp(seconds=9999999999, nanos=0)
+
+    tx = FileUpdateTransaction()
+    tx.set_file_id(test_file_id)
+    tx.set_contents(b"updated")
+    tx.set_file_memo("updated memo")
+    tx.set_expiration_time(expiration)
+    tx.set_keys([key])
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, FileUpdateTransaction)
+    assert reconstructed.file_id == test_file_id
+    assert reconstructed.contents == b"updated"
+    assert reconstructed.file_memo == "updated memo"
+    assert reconstructed.expiration_time.seconds == expiration.seconds
+    assert len(reconstructed.keys) == 1
+    assert reconstructed.keys[0].to_bytes_raw() == key.to_bytes_raw()
+
+
+def test_from_bytes_empty_keys(mock_account_ids):
+    """Covers the explicit empty KeyList branch (makes file immutable) in _from_protobuf."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    test_file_id = FileId(0, 0, 5)
+
+    tx = FileUpdateTransaction()
+    tx.set_file_id(test_file_id)
+    tx.set_keys([])
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, FileUpdateTransaction)
+    assert reconstructed.keys == []

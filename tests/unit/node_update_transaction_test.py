@@ -385,3 +385,86 @@ def test_node_update_transaction_from_protobuf_with_admin_key():
 
     assert parsed_transaction.admin_key is not None
     assert parsed_transaction.admin_key.to_proto_key() == body.admin_key
+
+
+def test_from_bytes(mock_account_ids):
+    """Test round-trip via _from_protobuf for NodeUpdateTransaction."""
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = NodeUpdateTransaction()
+    tx.set_node_id(5)
+    tx.set_account_id(AccountId(0, 0, 123))
+    tx.set_description("updated node")
+    tx.set_gossip_endpoints([Endpoint(domain_name="gossip.example.com", port=50211)])
+    tx.set_service_endpoints([Endpoint(domain_name="service.example.com", port=50212)])
+    tx.set_gossip_ca_certificate(b"test-ca-cert")
+    tx.set_grpc_certificate_hash(b"test-cert-hash")
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, NodeUpdateTransaction)
+    assert reconstructed.node_id == 5
+    assert reconstructed.account_id == AccountId(0, 0, 123)
+    assert reconstructed.description == "updated node"
+    assert len(reconstructed.gossip_endpoints) == 1
+    assert reconstructed.gossip_endpoints[0].get_domain_name() == "gossip.example.com"
+    assert reconstructed.gossip_endpoints[0].get_port() == 50211
+    assert len(reconstructed.service_endpoints) == 1
+    assert reconstructed.service_endpoints[0].get_domain_name() == "service.example.com"
+    assert reconstructed.gossip_ca_certificate == b"test-ca-cert"
+    assert reconstructed.grpc_certificate_hash == b"test-cert-hash"
+
+
+def test_from_bytes_with_admin_key(mock_account_ids):
+    """Covers admin_key branch in _from_protobuf for NodeUpdateTransaction."""
+    from hiero_sdk_python.crypto.private_key import PrivateKey
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    admin_key = PrivateKey.generate_ed25519().public_key()
+
+    tx = NodeUpdateTransaction()
+    tx.set_node_id(2)
+    tx.set_admin_key(admin_key)
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, NodeUpdateTransaction)
+    assert reconstructed.admin_key is not None
+    assert reconstructed.admin_key.to_bytes_raw() == admin_key.to_bytes_raw()
+
+
+def test_from_bytes_with_decline_reward_and_grpc_proxy(mock_account_ids):
+    """Covers decline_reward and grpc_proxy_endpoint branches in _from_protobuf."""
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx = NodeUpdateTransaction()
+    tx.set_node_id(8)
+    tx.set_account_id(AccountId(0, 0, 55))
+    tx.set_decline_reward(True)
+    tx.set_grpc_web_proxy_endpoint(Endpoint(domain_name="proxy.example.com", port=8080))
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, NodeUpdateTransaction)
+    assert reconstructed.decline_reward is True
+    assert reconstructed.grpc_web_proxy_endpoint is not None
+    assert reconstructed.grpc_web_proxy_endpoint.get_domain_name() == "proxy.example.com"
+    assert reconstructed.grpc_web_proxy_endpoint.get_port() == 8080

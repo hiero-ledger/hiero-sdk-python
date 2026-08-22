@@ -414,12 +414,14 @@ class TokenUpdateTransaction(Transaction):
         Raises:
             ValueError: If token_id is not set.
         """
+        if self.token_id is None:
+            raise ValueError("Missing token ID")
         token_update_body = token_update_pb2.TokenUpdateTransactionBody(
-            token=self.token_id._to_proto() if self.token_id else None,
+            token=self.token_id._to_proto(),
             treasury=self.treasury_account_id._to_proto() if self.treasury_account_id else None,
             name=self.token_name,
-            memo=StringValue(value=self.token_memo) if self.token_memo else None,
-            metadata=BytesValue(value=self.metadata) if self.metadata else None,
+            memo=StringValue(value=self.token_memo) if self.token_memo is not None else None,
+            metadata=BytesValue(value=self.metadata) if self.metadata is not None else None,
             symbol=self.token_symbol,
             key_verification_mode=self.token_key_verification_mode._to_proto(),
             expiry=self.expiration_time._to_protobuf() if self.expiration_time else None,
@@ -467,6 +469,44 @@ class TokenUpdateTransaction(Transaction):
             _Method: An object containing the transaction function to update tokens.
         """
         return _Method(transaction_func=channel.token.updateToken, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):  # noqa: PLR0912
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        if transaction_body.HasField("tokenUpdate"):
+            body = transaction_body.tokenUpdate
+            if body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(body.token)
+            if body.HasField("treasury"):
+                transaction.treasury_account_id = AccountId._from_proto(body.treasury)
+            transaction.token_name = body.name if body.name else None
+            transaction.token_symbol = body.symbol if body.symbol else None
+            transaction.token_memo = body.memo.value if body.HasField("memo") else None
+            transaction.metadata = body.metadata.value if body.HasField("metadata") else None
+            if body.HasField("expiry"):
+                transaction.expiration_time = Timestamp._from_protobuf(body.expiry)
+            if body.HasField("autoRenewAccount"):
+                transaction.auto_renew_account_id = AccountId._from_proto(body.autoRenewAccount)
+            if body.HasField("autoRenewPeriod"):
+                transaction.auto_renew_period = Duration._from_proto(body.autoRenewPeriod)
+            transaction.token_key_verification_mode = TokenKeyValidation._from_proto(body.key_verification_mode)
+            if body.HasField("adminKey"):
+                transaction.admin_key = Key.from_proto_key(body.adminKey)
+            if body.HasField("freezeKey"):
+                transaction.freeze_key = Key.from_proto_key(body.freezeKey)
+            if body.HasField("wipeKey"):
+                transaction.wipe_key = Key.from_proto_key(body.wipeKey)
+            if body.HasField("supplyKey"):
+                transaction.supply_key = Key.from_proto_key(body.supplyKey)
+            if body.HasField("metadata_key"):
+                transaction.metadata_key = Key.from_proto_key(body.metadata_key)
+            if body.HasField("pause_key"):
+                transaction.pause_key = Key.from_proto_key(body.pause_key)
+            if body.HasField("kycKey"):
+                transaction.kyc_key = Key.from_proto_key(body.kycKey)
+            if body.HasField("fee_schedule_key"):
+                transaction.fee_schedule_key = Key.from_proto_key(body.fee_schedule_key)
+        return transaction
 
     def _set_keys_to_proto(self, token_update_body: token_update_pb2.TokenUpdateTransactionBody) -> None:
         """Sets the keys to the protobuf transaction body."""

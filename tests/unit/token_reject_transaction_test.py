@@ -233,6 +233,37 @@ def test_add_nft_id_rejects_invalid_type(mock_account_ids):
     assert reject_tx.nft_ids == []
 
 
+def test_set_token_ids_rejects_invalid_type(mock_account_ids):
+    """Test that set_token_ids rejects lists containing non-TokenId elements."""
+    _, _, _, token_id, _ = mock_account_ids
+    nft_id = NftId(token_id=token_id, serial_number=1)
+
+    reject_tx = TokenRejectTransaction()
+
+    with pytest.raises(TypeError, match="token_ids must contain only TokenId instances."):
+        reject_tx.set_token_ids([nft_id])
+
+    with pytest.raises(TypeError, match="token_ids must contain only TokenId instances."):
+        reject_tx.set_token_ids([token_id, "0.0.100"])
+
+    assert reject_tx.token_ids == []
+
+
+def test_set_nft_ids_rejects_invalid_type(mock_account_ids):
+    """Test that set_nft_ids rejects lists containing non-NftId elements."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    reject_tx = TokenRejectTransaction()
+
+    with pytest.raises(TypeError, match="nft_ids must contain only NftId instances."):
+        reject_tx.set_nft_ids([token_id])
+
+    with pytest.raises(TypeError, match="nft_ids must contain only NftId instances."):
+        reject_tx.set_nft_ids(["not-an-nft"])
+
+    assert reject_tx.nft_ids == []
+
+
 def test_add_id_methods_do_not_mutate_caller_lists(mock_account_ids):
     """Test that add_token_id/add_nft_id do not mutate lists passed to the constructor."""
     _, _, _, token_id_1, token_id_2 = mock_account_ids
@@ -358,3 +389,48 @@ def test_build_scheduled_body_with_nft_ids(mock_account_ids):
     assert schedulable_body.tokenReject.rejections[0].HasField("nft")
     assert schedulable_body.tokenReject.rejections[0].nft.token_ID == token_id._to_proto()
     assert schedulable_body.tokenReject.rejections[0].nft.serial_number == 1
+
+
+def test_from_bytes(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, owner_id, node_account_id, token_id, _ = mock_account_ids
+
+    tx = TokenRejectTransaction()
+    tx.set_owner_id(owner_id)
+    tx.set_token_ids([token_id])
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenRejectTransaction)
+    assert reconstructed.owner_id == owner_id
+    assert len(reconstructed.token_ids) == 1
+    assert reconstructed.token_ids[0] == token_id
+    assert reconstructed.nft_ids == []
+
+
+def test_from_bytes_with_nft(mock_account_ids):
+    from hiero_sdk_python.transaction.transaction import Transaction
+    from hiero_sdk_python.transaction.transaction_id import TransactionId
+
+    operator_id, owner_id, node_account_id, token_id, _ = mock_account_ids
+
+    nft = NftId(token_id=token_id, serial_number=5)
+    tx = TokenRejectTransaction()
+    tx.set_owner_id(owner_id)
+    tx.set_nft_ids([nft])
+    tx.transaction_id = TransactionId.generate(operator_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.freeze()
+
+    reconstructed = Transaction.from_bytes(tx.to_bytes())
+
+    assert isinstance(reconstructed, TokenRejectTransaction)
+    assert reconstructed.owner_id == owner_id
+    assert reconstructed.token_ids == []
+    assert len(reconstructed.nft_ids) == 1
+    assert reconstructed.nft_ids[0].serial_number == 5
