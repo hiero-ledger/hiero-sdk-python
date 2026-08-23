@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 const { CONFIG } = require('../config');
+const { postIssueComment } = require('../api/github-api');
 
 /**
  * Extracts the first linked issue number from a PR body using closing keywords.
@@ -71,7 +72,10 @@ async function alreadyCommented(github, owner, repo, prNumber) {
  */
 async function postComment(github, owner, repo, prNumber, body, core) {
   try {
-    await github.rest.issues.createComment({ owner, repo, issue_number: prNumber, body });
+    await postIssueComment(
+      { github, owner, repo, issueNumber: prNumber, body },
+      'recommendation comment',
+    );
     core.info(`Posted recommendation comment to PR #${prNumber}`);
     return true;
   } catch (error) {
