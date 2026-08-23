@@ -72,10 +72,9 @@ async function alreadyCommented(github, owner, repo, prNumber) {
  */
 async function postComment(github, owner, repo, prNumber, body, core) {
   try {
-    await postIssueComment(
-      { github, owner, repo, issueNumber: prNumber, body },
-      'recommendation comment',
-    );
+    // No logLabel: this wrapper owns logging (via core), matching the
+    // pre-consolidation log output exactly.
+    await postIssueComment({ github, owner, repo, issueNumber: prNumber, body });
     core.info(`Posted recommendation comment to PR #${prNumber}`);
     return true;
   } catch (error) {
