@@ -218,7 +218,7 @@ class TransactionReceipt:
         Returns:
             int: The running hash of the topic if present, otherwise None.
         """
-        if self._receipt_proto.HasField("topicRunningHash"):
+        if self._receipt_proto.topicRunningHash:
             return self._receipt_proto.topicRunningHash
 
         return None

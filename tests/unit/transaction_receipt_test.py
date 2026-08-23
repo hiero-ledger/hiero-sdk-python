@@ -44,3 +44,20 @@ def test_transaction_receipt_new_total_supply_defaults_to_zero():
     receipt = TransactionReceipt(receipt_proto=proto, transaction_id=None)
 
     assert receipt.new_total_supply == 0
+
+
+def test_transaction_receipt_topic_running_hash():
+    """Test that topic_running_hash returns the hash when present in the receipt."""
+    hash_value = b"\xab\xcd\xef\x01\x23\x45\x67\x89"
+    proto = transaction_receipt_pb2.TransactionReceipt(topicRunningHash=hash_value)
+    receipt = TransactionReceipt(receipt_proto=proto, transaction_id=None)
+
+    assert receipt.topic_running_hash == hash_value
+
+
+def test_transaction_receipt_topic_running_hash_defaults_to_none():
+    """Test that topic_running_hash returns None when not present in the receipt."""
+    proto = transaction_receipt_pb2.TransactionReceipt()
+    receipt = TransactionReceipt(receipt_proto=proto, transaction_id=None)
+
+    assert receipt.topic_running_hash is None

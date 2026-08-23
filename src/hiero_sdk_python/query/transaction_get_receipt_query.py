@@ -162,20 +162,18 @@ class TransactionGetReceiptQuery(Query):
             query_pb2.Query: The protobuf Query object containing the transaction receipt query.
 
         Raises:
-            ValueError: If the transaction ID is not set.
             AttributeError: If the Query protobuf structure is invalid.
             Exception: If any other error occurs during request construction.
         """
         try:
-            if not self.transaction_id:
-                raise ValueError("Transaction ID must be set before making the request.")
-
             query_header = query_header_pb2.QueryHeader()
             query_header.responseType = query_header_pb2.ResponseType.ANSWER_ONLY
 
             transaction_get_receipt = transaction_get_receipt_pb2.TransactionGetReceiptQuery()
             transaction_get_receipt.header.CopyFrom(query_header)
-            transaction_get_receipt.transactionID.CopyFrom(self.transaction_id._to_proto())
+
+            if self.transaction_id is not None:
+                transaction_get_receipt.transactionID.CopyFrom(self.transaction_id._to_proto())
 
             transaction_get_receipt.include_child_receipts = self.include_children
             transaction_get_receipt.includeDuplicates = self.include_duplicates

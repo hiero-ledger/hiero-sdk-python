@@ -51,16 +51,15 @@ jobs:
 
     steps:
       - name: Harden the runner
-        uses: step-security/harden-runner@b09bb98e06d4d774595224525879c09bc6e98c40 # v2.20.1
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: audit
 
-      - name: Checkout trusted evaluator scripts (PR base ref, not head)
+      - name: Checkout trusted evaluator scripts (default branch))
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # For PR events, the trusted base branch; for workflow_dispatch,
-          # the (trusted) ref the workflow was dispatched from.
-          ref: ${{ github.event.pull_request.base.sha || github.sha }}
+          # Always check out trusted evaluator scripts from the repository default branch.
+          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
           fetch-depth: 1
 

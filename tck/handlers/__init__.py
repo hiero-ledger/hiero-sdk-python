@@ -7,6 +7,7 @@ from . import (
     allowance,
     file,
     key,
+    schedule,
     sdk,  # setup, reset
     token,
     topic,
