@@ -19,34 +19,35 @@ module.exports = async ({ github, context, core }) => {
   }
 
   let pr = context.payload.pull_request;
+  const prNumber = pr ? pr.number : Number(process.env.PR_NUMBER);
 
-  if (!pr) {
-    const prNumber = Number(process.env.PR_NUMBER);
-    if (!prNumber) {
-      core.setFailed('No pull_request in payload and no PR_NUMBER provided.');
-      return;
-    }
-    console.log(`No pull_request in payload. Fetching PR #${prNumber} directly.`);
-    const { data } = await github.rest.pulls.get({
-      owner,
-      repo,
-      pull_number: prNumber,
-    });
-    pr = data;
-  }
-
-  if (pr.draft !== true) {
-    console.log(`PR #${pr.number}: not a draft. Skipping cleanup.`);
+  if (!pr && !prNumber) {
+    core.setFailed('No pull_request in payload and no PR_NUMBER provided.');
     return;
   }
 
-  console.log(`Cleaning draft PR #${pr.number}...`);
-
   try {
+    if (!pr) {
+      console.log(`No pull_request in payload. Fetching PR #${prNumber} directly.`);
+      const { data } = await github.rest.pulls.get({
+        owner,
+        repo,
+        pull_number: prNumber,
+      });
+      pr = data;
+    }
+
+    if (pr.draft !== true) {
+      console.log(`PR #${pr.number}: not a draft. Skipping cleanup.`);
+      return;
+    }
+
+    console.log(`Cleaning draft PR #${pr.number}...`);
+
     const didClean = await stripQueueLabels(github, owner, repo, pr, dryRun);
     console.log(didClean ? `PR #${pr.number}: cleanup complete.` : `PR #${pr.number}: nothing to clean.`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    core.setFailed(`Failed to clean draft PR #${pr.number}: ${message}`);
+    core.setFailed(`Failed to clean draft PR #${prNumber}: ${message}`);
   }
 };
