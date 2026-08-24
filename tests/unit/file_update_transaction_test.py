@@ -11,6 +11,7 @@ import pytest
 # pylint: disable=no-name-in-module
 from google.protobuf.wrappers_pb2 import StringValue
 
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
@@ -105,26 +106,51 @@ def test_set_methods():
 def test_set_keys_variations():
     """Test setting keys with different input types."""
     file_tx = FileUpdateTransaction()
-    private_key1 = PrivateKey.generate()
-    private_key2 = PrivateKey.generate()
-    public_key1 = private_key1.public_key()
-    public_key2 = private_key2.public_key()
 
-    # Test with single PublicKey
-    file_tx.set_keys(public_key1)
+    private_key = PrivateKey.generate()
+    public_key = PrivateKey.generate().public_key()
+
+    key_list = KeyList([PrivateKey.generate()])
+    threshold_key = KeyList([PrivateKey.generate()], 1)
+
+    # Single PublicKey
+    file_tx.set_keys(public_key)
     assert isinstance(file_tx.keys, list)
     assert len(file_tx.keys) == 1
-    assert file_tx.keys[0] == public_key1
+    assert file_tx.keys == [public_key]
 
-    # Test with list of PublicKeys
-    file_tx.set_keys([public_key1, public_key2])
+    # Single PrivateKey
+    file_tx.set_keys(private_key)
     assert isinstance(file_tx.keys, list)
-    assert len(file_tx.keys) == 2
+    assert len(file_tx.keys) == 1
+    assert file_tx.keys == [private_key]
 
-    # Test with KeyList
-    key_list = [public_key1]
+    # Single KeyList
     file_tx.set_keys(key_list)
-    assert file_tx.keys is key_list
+    assert isinstance(file_tx.keys, list)
+    assert len(file_tx.keys) == 1
+    assert file_tx.keys == [key_list]
+
+    # Single ThresholdKey
+    file_tx.set_keys(threshold_key)
+    assert isinstance(file_tx.keys, list)
+    assert len(file_tx.keys) == 1
+    assert file_tx.keys == [threshold_key]
+
+    # Sequence of keys
+    keys = [private_key, public_key, key_list, threshold_key]
+    file_tx.set_keys(keys)
+    assert isinstance(file_tx.keys, list)
+    assert len(file_tx.keys) == 4
+    assert file_tx.keys == keys
+
+
+@pytest.mark.parametrize("key", ["Key", True, {}, 1, 0.1])
+def test_set_key_with_invalid_types(key):
+    """Test set_keys() raise error for invalid param type."""
+    file_tx = FileUpdateTransaction()
+    with pytest.raises(TypeError, match="keys must be a Key, list of Key objects, or None"):
+        file_tx.set_keys(key)
 
 
 def test_set_methods_require_not_frozen(mock_client, file_id):

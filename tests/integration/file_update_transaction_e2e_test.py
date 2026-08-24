@@ -135,7 +135,7 @@ def test_integration_file_update_transaction_fails_when_key_is_invalid(env):
 
 
 @pytest.mark.integration
-def test_integration_file_create_transaction_with_supported_key_types(env):
+def test_integration_file_update_transaction_with_supported_key_types(env):
     """Test FileUpdateTransaction with all supported key types."""
     initial_private_key = PrivateKey.generate()
 

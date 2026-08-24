@@ -107,9 +107,12 @@ class FileUpdateTransaction(Transaction):
         """
         self._require_not_frozen()
         if isinstance(keys, Key):
-            self.keys = [keys]
-        else:
-            self.keys = keys
+            keys = [keys]
+
+        if keys is not None and (not isinstance(keys, list) or not all(isinstance(key, Key) for key in keys)):
+            raise TypeError("keys must be a Key, list of Key objects, or None")
+
+        self.keys = keys
         return self
 
     def set_expiration_time(self, expiration_time: Timestamp | None) -> FileUpdateTransaction:
