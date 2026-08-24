@@ -18,6 +18,7 @@ from hiero_sdk_python import (
     CryptoGetAccountBalanceQuery,
     Hbar,
     PrivateKey,
+    ResponseCode,
     TokenAssociateTransaction,
     TokenCreateTransaction,
     TransferTransaction,
@@ -58,6 +59,9 @@ def create_account(client, operator_key):
             .set_initial_balance(Hbar.from_tinybars(100_000_000))
         )
         receipt = tx.freeze_with(client).sign(operator_key).execute(client)
+        if receipt.status != ResponseCode.SUCCESS:
+            raise RuntimeError(f"Transaction failed with status: {ResponseCode(receipt.status).name}")
+
         recipient_id = receipt.account_id
         print(f"✅ Success! Created a new recipient account with ID: {recipient_id}")
         return recipient_id, recipient_key
@@ -83,6 +87,9 @@ def create_token(client, operator_id, operator_key):
             .sign(operator_key)
         )
         token_receipt = token_tx.execute(client)
+        if token_receipt.status != ResponseCode.SUCCESS:
+            raise RuntimeError(f"Transaction failed with status: {ResponseCode(token_receipt.status).name}")
+
         token_id = token_receipt.token_id
 
         print(f"✅ Success! Created a token with Token ID: {token_id}")
@@ -103,7 +110,9 @@ def associate_token(client, recipient_id, recipient_key, token_id):
             .freeze_with(client)
             .sign(recipient_key)
         )
-        association_tx.execute(client)
+        receipt = association_tx.execute(client)
+        if receipt.status != ResponseCode.SUCCESS:
+            raise RuntimeError(f"Transaction failed with status: {ResponseCode(receipt.status).name}")
 
         print("✅ Success! Token association complete.")
     except Exception as e:
@@ -139,7 +148,10 @@ def transfer_transaction(client, operator_id, operator_key, recipient_id, token_
             .sign(operator_key)
         )
 
-        tx.execute(client)
+        receipt = tx.execute(client)
+        if receipt.status != ResponseCode.SUCCESS:
+            raise RuntimeError(f"Transaction failed with status: {ResponseCode(receipt.status).name}")
+
         print("✅ Success! Token transfer complete.\n")
 
     except Exception as e:
