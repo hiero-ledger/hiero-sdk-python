@@ -6,10 +6,10 @@ from __future__ import annotations
 from google.protobuf.wrappers_pb2 import StringValue
 
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
 from hiero_sdk_python.hapi.services.file_update_pb2 import FileUpdateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
@@ -39,7 +39,7 @@ class FileUpdateTransaction(Transaction):
     def __init__(
         self,
         file_id: FileId | None = None,
-        keys: list[PublicKey] | None = None,
+        keys: list[Key] | None = None,
         contents: str | bytes | None = None,
         expiration_time: Timestamp | None = None,
         file_memo: str | None = None,
@@ -49,7 +49,7 @@ class FileUpdateTransaction(Transaction):
 
         Args:
             file_id (FileId, optional): The ID of the file to update.
-            keys (Optional[list[PublicKey]], optional): The new keys that are allowed to
+            keys (Optional[list[Key]], optional): The new keys that are allowed to
             update/delete the file.
             contents (str | bytes, optional): The new contents of the file.
             Strings will be automatically encoded as UTF-8 bytes.
@@ -58,7 +58,7 @@ class FileUpdateTransaction(Transaction):
         """
         super().__init__()
         self.file_id: FileId | None = file_id
-        self.keys: list[PublicKey] | None = keys
+        self.keys: list[Key] | None = keys
         self.contents: bytes | None = self._encode_contents(contents)
         self.expiration_time: Timestamp | None = expiration_time
         self.file_memo: str | None = file_memo
@@ -94,7 +94,7 @@ class FileUpdateTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def set_keys(self, keys: list[PublicKey] | None | PublicKey) -> FileUpdateTransaction:
+    def set_keys(self, keys: list[Key] | None | Key) -> FileUpdateTransaction:
         """
         Sets the new list of keys that can modify or delete the file.
 
@@ -106,7 +106,7 @@ class FileUpdateTransaction(Transaction):
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        if isinstance(keys, PublicKey):
+        if isinstance(keys, Key):
             self.keys = [keys]
         else:
             self.keys = keys
@@ -170,7 +170,7 @@ class FileUpdateTransaction(Transaction):
 
         return FileUpdateTransactionBody(
             fileID=self.file_id._to_proto(),
-            keys=(KeyListProto(keys=[key._to_proto() for key in self.keys]) if self.keys else None),
+            keys=KeyList().set_keys(self.keys).to_proto() if self.keys is not None else None,
             contents=self.contents if self.contents is not None else b"",
             expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
             memo=(StringValue(value=self.file_memo) if self.file_memo is not None else None),
