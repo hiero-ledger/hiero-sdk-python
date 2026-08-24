@@ -65,6 +65,18 @@ async function fetchIssuesBatch(github, repoConfig) {
   }
 }
 
+/**
+ * Returns the number of open issues currently assigned to `username` in the
+ * given repository. Pull requests are excluded because they do not consume
+ * assignment capacity. Returns null on API failure so callers can fail open.
+ *
+ * @param {object} params
+ * @param {import('@actions/github').GitHub} params.github
+ * @param {string} params.owner    - Repo owner.
+ * @param {string} params.repo     - Repo name.
+ * @param {string} params.username - GitHub login of the contributor.
+ * @returns {Promise<number|null>} Count of open issue assignments, or null on failure.
+ */
 async function getOpenAssignments({ github, owner, repo, username }) {
   try {
     const issues = await github.paginate(github.rest.issues.listForRepo, {
@@ -94,6 +106,14 @@ async function getOpenAssignments({ github, owner, repo, username }) {
  * Counts closed issues carrying `label` (in the given repo) assigned to
  * `username`. Returns null (rather than throwing) on unsafe input or API
  * error so callers can choose to fail open.
+ *
+ * @param {object} params
+ * @param {import('@actions/github').GitHub} params.github
+ * @param {string} params.owner    - Repo owner.
+ * @param {string} params.repo     - Repo name.
+ * @param {string} params.username - GitHub login of the contributor.
+ * @param {string} params.label    - Label string to filter by.
+ * @returns {Promise<number|null>} Issue count, or null on invalid input or API failure.
  */
 async function countCompletedIssuesWithLabel({ github, owner, repo, username, label }) {
   if (!isValidSearchToken(owner) || !isValidSearchToken(repo) || !isValidSearchToken(username)) {
@@ -133,12 +153,18 @@ async function countCompletedIssuesWithLabel({ github, owner, repo, username, la
 }
 
 /**
-
  * Determines whether a user has repository collaborator access.
  *
  * Repository owners are always considered collaborators.
  * GitHub returns 204 when the user is a collaborator and 404 otherwise.
  * Unexpected API failures are treated as non-collaborator access.
+ *
+ * @param {object} params
+ * @param {import('@actions/github').GitHub} params.github
+ * @param {string} params.owner    - Repo owner.
+ * @param {string} params.repo     - Repo name.
+ * @param {string} params.username - GitHub login to check.
+ * @returns {Promise<boolean>} True if the user is a collaborator, false otherwise.
  */
 async function isRepoCollaborator({ github, owner, repo, username }) {
   if (username === owner) {
@@ -176,16 +202,46 @@ async function isRepoCollaborator({ github, owner, repo, username }) {
   }
 }
 
+/**
+ * Posts a comment on an issue or pull request via the GitHub REST API.
+ * When `logLabel` is provided, logs the outcome to the console; when omitted,
+ * stays silent so the caller owns all logging. Re-throws any API error either
+ * way so callers can handle or propagate failures themselves.
+ *
+ * @param {object} params
+ * @param {import('@actions/github').GitHub} params.github
+ * @param {string} params.owner       - Repo owner.
+ * @param {string} params.repo        - Repo name.
+ * @param {number} params.issueNumber - Issue or PR number to comment on.
+ * @param {string} params.body        - Markdown body of the comment.
+ * @param {string} [logLabel]         - Optional human-readable label used in console output.
+ * @returns {Promise<void>}
+ * @throws {Error} Re-throws the Octokit error on API failure.
+ */
 async function postIssueComment({ github, owner, repo, issueNumber, body }, logLabel) {
   try {
     await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body });
-    console.log(`[github-api] Posted comment: ${logLabel}`);
+    if (logLabel) {
+      console.log(`[github-api] Posted comment: ${logLabel}`);
+    }
   } catch (error) {
-    console.error(`[github-api] Failed to post comment (${logLabel}):`, { message: error.message });
+    if (logLabel) {
+      console.error(`[github-api] Failed to post comment (${logLabel}):`, { message: error.message });
+    }
     throw error;
   }
 }
 
+/**
+ * Fetches all comments on an issue or pull request, paginating automatically.
+ *
+ * @param {object} params
+ * @param {import('@actions/github').GitHub} params.github
+ * @param {string} params.owner       - Repo owner.
+ * @param {string} params.repo        - Repo name.
+ * @param {number} params.issueNumber - Issue or PR number.
+ * @returns {Promise<Array<object>>} Array of comment objects from the GitHub API.
+ */
 async function fetchAllComments({ github, owner, repo, issueNumber }) {
   return github.paginate(github.rest.issues.listComments, {
     owner,
@@ -195,6 +251,17 @@ async function fetchAllComments({ github, owner, repo, issueNumber }) {
   });
 }
 
+/**
+ * Assigns a contributor to an issue.
+ *
+ * @param {object} params
+ * @param {import('@actions/github').GitHub} params.github
+ * @param {string} params.owner       - Repo owner.
+ * @param {string} params.repo        - Repo name.
+ * @param {number} params.issueNumber - Issue number to assign.
+ * @param {string} params.username    - GitHub login of the contributor to assign.
+ * @returns {Promise<void>}
+ */
 async function assignIssue({
     github,
     owner,
