@@ -9,3 +9,10 @@ class CreateFileResponse:
 
     fileId: str | None = None
     status: str | None = None
+
+
+@dataclass
+class GetFileContentsResponse:
+    """Response payload for getFileContents."""
+
+    contents: str | None = None

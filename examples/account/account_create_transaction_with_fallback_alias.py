@@ -23,6 +23,7 @@ from hiero_sdk_python import (
     Client,
     Hbar,
     PrivateKey,
+    ResponseCode,
 )
 
 
@@ -68,6 +69,10 @@ def create_account_with_fallback_alias(client: Client, account_private_key: Priv
     transaction = transaction.freeze_with(client).sign(account_private_key)
 
     response = transaction.execute(client)
+
+    if response.status != ResponseCode.SUCCESS:
+        raise RuntimeError(f"Transaction failed with status: {ResponseCode(response.status).name}")
+
     new_account_id = response.account_id
 
     if new_account_id is None:
