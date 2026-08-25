@@ -109,6 +109,7 @@ class Transaction(_Executable):
         transaction_response.transaction_id = self.transaction_id
         transaction_response.node_id = node_id
         transaction_response.hash = tx_hash
+        transaction_response._transaction_node_ids = self._node_account_ids.get_list()
 
         return transaction_response
 
@@ -364,6 +365,12 @@ class Transaction(_Executable):
         if self.batch_key and not isinstance(self, (BatchTransaction)):
             raise ValueError("Cannot execute batchified transaction outside of BatchTransaction.")
 
+        if not isinstance(validate_status, bool):
+            raise TypeError("validate_status must be a boolean")
+
+        if client is not None and not isinstance(client, Client):
+            raise TypeError("client must be an instance of Client")
+
         if not self._transaction_body_bytes:
             self.freeze_with(client)
 
@@ -379,7 +386,6 @@ class Transaction(_Executable):
         response.validate_status = True
         response.transaction = self
         response.transaction_id = self.transaction_id
-        response._transaction_node_ids = self._node_account_ids.get_list()
 
         if wait_for_receipt:
             return response.get_receipt(client, timeout=timeout, validate_status=validate_status)
