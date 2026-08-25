@@ -365,10 +365,16 @@ class Transaction(_Executable):
         if self.batch_key and not isinstance(self, (BatchTransaction)):
             raise ValueError("Cannot execute batchified transaction outside of BatchTransaction.")
 
+        if timeout is not None and (isinstance(timeout, bool) or not isinstance(timeout, (int, float))):
+            raise TypeError("timeout must be a int or float")
+
         if not isinstance(validate_status, bool):
             raise TypeError("validate_status must be a boolean")
 
-        if client is not None and not isinstance(client, Client):
+        if not isinstance(wait_for_receipt, bool):
+            raise TypeError("wait_for_receipt must be a boolean")
+
+        if not isinstance(client, Client):
             raise TypeError("client must be an instance of Client")
 
         if not self._transaction_body_bytes:
