@@ -76,6 +76,7 @@ class Transaction(_Executable):
         self._default_transaction_fee = Hbar(2)
         self.operator_account_id = None
         self.batch_key: Key | None = None
+        self._client: Client | None = None
 
     def _make_request(self):
         """
@@ -304,22 +305,9 @@ class Transaction(_Executable):
             return self
 
         # Resolve transaction_id and node_accountids to be set when using freeze()
+        self._client = client
         self._resolve_transaction_id(client)
         self._resolve_node_ids(client)
-
-        # Resolve fee priority before building bodies:
-        # 1. Explicit transaction fee (self.transaction_fee)
-        # 2. Client default_max_transaction_fee
-        # 3. Transaction class default (_default_transaction_fee)
-        #
-        # This must run before the loop below: once _transaction_body_bytes is
-        # populated the transaction counts as frozen, and the transaction_fee
-        # setter calls _require_not_frozen().
-        if self.transaction_fee is None:
-            if client is not None and client.default_max_transaction_fee is not None:
-                self.transaction_fee = client.default_max_transaction_fee
-            else:
-                self.transaction_fee = self._default_transaction_fee
 
         # We iterate through every node in the node_account_id list and
         # For each node_account_id build the transaction body
@@ -499,7 +487,13 @@ class Transaction(_Executable):
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(selected_node._to_proto())
 
-        fee = self._transaction_fee if self._transaction_fee is not None else self._default_transaction_fee
+        if self._transaction_fee is None:
+            if self._client is not None and self._client.default_max_transaction_fee is not None:
+                self.transaction_fee = self._client.default_max_transaction_fee
+            else:
+                self.transaction_fee = self._default_transaction_fee
+
+        fee = self._transaction_fee
         if hasattr(fee, "to_tinybars"):
             transaction_body.transactionFee = int(fee.to_tinybars())
         else:
