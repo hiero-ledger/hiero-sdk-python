@@ -37,7 +37,7 @@ classifiers = [
 
 [project.optional-dependencies]
 eth = [
-    "eth-keys>=0.7.0,<0.8",
+    "eth-keys>=0.7.0,<0.9",
     "rlp>=4.0.1,<5",
 ]
 
