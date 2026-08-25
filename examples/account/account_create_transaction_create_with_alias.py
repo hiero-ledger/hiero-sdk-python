@@ -23,6 +23,7 @@ from hiero_sdk_python import (
     Client,
     Hbar,
     PrivateKey,
+    ResponseCode,
 )
 
 
@@ -103,6 +104,9 @@ def create_account_with_ecdsa_alias(
     transaction = transaction.freeze_with(client).sign(alias_private_key)
 
     response = transaction.execute(client)
+
+    if response.status != ResponseCode.SUCCESS:
+        raise RuntimeError(f"Transaction failed with status: {ResponseCode(response.status).name}")
 
     # Safe retrieval of account ID
     new_account_id = response.account_id
