@@ -65,6 +65,7 @@ class Transaction(_Executable):
         self._default_transaction_fee = Hbar(2)
         self.operator_account_id = None
         self.batch_key: Key | None = None
+        self._client: Client | None = None
 
     def _make_request(self):
         """
@@ -302,6 +303,7 @@ class Transaction(_Executable):
             return self
 
         # Resolve transaction_id and node_accountids to be set when using freeze()
+        self._client = client
         self._resolve_transaction_id(client)
         self._resolve_node_ids(client)
 
@@ -508,8 +510,16 @@ class Transaction(_Executable):
             ValueError: If required IDs are not set.
         """
         transaction_body = transaction_pb2.TransactionBody()
+        transaction_body.transactionID.CopyFrom(transaction_id_proto)
+        transaction_body.nodeAccountID.CopyFrom(selected_node._to_proto())
 
-        fee = self._transaction_fee if self._transaction_fee is not None else self._default_transaction_fee
+        if self._transaction_fee is None:
+            if self._client is not None and self._client.default_max_transaction_fee is not None:
+                self.transaction_fee = self._client.default_max_transaction_fee
+            else:
+                self.transaction_fee = self._default_transaction_fee
+
+        fee = self._transaction_fee
         if hasattr(fee, "to_tinybars"):
             transaction_body.transactionFee = int(fee.to_tinybars())
         else:
