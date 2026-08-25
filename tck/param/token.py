@@ -312,6 +312,56 @@ class ClaimTokenParams(BaseTransactionParams):
 
 
 @dataclass
+class PendingAirdropParams:
+    """Parameters identifying a pending airdrop."""
+
+    senderAccountId: str | None = None
+    receiverAccountId: str | None = None
+    tokenId: str | None = None
+    serialNumbers: list[str] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> PendingAirdropParams:
+        """Parse JSON parameters into a PendingAirdropParams instance."""
+        serial_numbers = params.get("serialNumbers")
+
+        if serial_numbers is not None and (
+            not isinstance(serial_numbers, list)
+            or not all(isinstance(serial_number, str) for serial_number in serial_numbers)
+        ):
+            raise ValueError("serialNumbers must be a list of strings")
+
+        return cls(
+            senderAccountId=params.get("senderAccountId"),
+            receiverAccountId=params.get("receiverAccountId"),
+            tokenId=params.get("tokenId"),
+            serialNumbers=serial_numbers,
+        )
+
+
+@dataclass
+class CancelAirdropParams(BaseTransactionParams):
+    """Request parameters for the cancelAirdrop endpoint."""
+
+    pendingAirdrops: list[PendingAirdropParams] | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> CancelAirdropParams:
+        """Parse JSON-RPC params into a CancelAirdropParams instance."""
+        pending_airdrops_raw = params.get("pendingAirdrops")
+
+        return cls(
+            pendingAirdrops=(
+                [PendingAirdropParams.parse_json_params(p) for p in pending_airdrops_raw]
+                if pending_airdrops_raw is not None
+                else None
+            ),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class GetTokenInfoParams(BaseParams):
     """Request parameters for the getTokenInfo endpoint."""
 
