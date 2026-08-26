@@ -68,16 +68,10 @@ class TokenCancelAirdropTransaction(Transaction):
 
         Returns:
             TokenCancelAirdropTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If pending airdrops list is invalid.
         """
         pending_airdrops_proto: list[basic_types_pb2.PendingAirdropId] = [
             pending_airdrop._to_proto() for pending_airdrop in self.pending_airdrops
         ]
-
-        if len(pending_airdrops_proto) < 1 or len(pending_airdrops_proto) > 10:
-            raise ValueError("Pending airdrops list must contain mininum 1 and maximum 10 pendingAirdrop.")
 
         return token_cancel_airdrop_pb2.TokenCancelAirdropTransactionBody(pending_airdrops=pending_airdrops_proto)
 

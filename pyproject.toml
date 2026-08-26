@@ -37,8 +37,8 @@ classifiers = [
 
 [project.optional-dependencies]
 eth = [
-    "eth-keys>=0.7.0,<0.8",
-    "rlp>=4.0.1,<5",
+    "eth-keys>=0.7.0,<0.9",
+    "rlp>=4.0.1,<6",
 ]
 
 tck = ["flask>=3.0.0,<4"]
