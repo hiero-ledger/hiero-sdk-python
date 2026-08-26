@@ -182,8 +182,13 @@ class ContractCreateTransaction(Transaction):
 
         Returns:
             ContractCreateTransaction: This transaction instance.
+
+        Raises:
+            ValueError: If gas is negative.
         """
         self._require_not_frozen()
+        if gas is not None and gas < 0:
+            raise ValueError("Gas cannot be negative")
         self.gas = gas
         return self
 
