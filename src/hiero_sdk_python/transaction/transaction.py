@@ -526,8 +526,8 @@ class Transaction(_Executable):
         """
         schedulable_body = SchedulableTransactionBody()
 
-        fee = self._transaction_fee or self._default_transaction_fee
-        if hasattr(fee, "to_tinybars"):
+        fee = self._transaction_fee if self._transaction_fee is not None else self._default_transaction_fee
+        if isinstance(fee, Hbar):
             schedulable_body.transactionFee = int(fee.to_tinybars())
         else:
             schedulable_body.transactionFee = int(fee)
