@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import importlib
+import sys
 
 import pytest
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from tck.errors import JsonRpcError
 from tck.handlers import contract as contract_handlers
-from tck.handlers.registry import get_handler
 from tck.param.contract import CreateContractParams
 from tck.util.param_utils import decode_hex
 
@@ -31,6 +31,15 @@ class TestDecodeHex:
     def test_rejects_odd_length(self):
         with pytest.raises(ValueError):
             decode_hex("0x123")
+
+    def test_rejects_embedded_whitespace(self):
+        """bytes.fromhex alone would accept "60 00"."""
+        with pytest.raises(ValueError):
+            decode_hex("60 00")
+
+    def test_rejects_surrounding_whitespace(self):
+        with pytest.raises(ValueError):
+            decode_hex(" 6000\n")
 
 
 class TestCreateContractParams:
@@ -101,7 +110,6 @@ class TestBuildCreateContractTransaction:
             autoRenewAccountId="0.0.5",
             memo="contract test",
             stakedAccountId="0.0.6",
-            stakedNodeId="3",
             declineStakingReward=True,
             maxAutomaticTokenAssociations=10,
         )
@@ -117,7 +125,7 @@ class TestBuildCreateContractTransaction:
         assert str(transaction.auto_renew_account_id) == "0.0.5"
         assert transaction.contract_memo == "contract test"
         assert str(transaction.staked_account_id) == "0.0.6"
-        assert transaction.staked_node_id == 3
+        assert transaction.staked_node_id is None
         assert transaction.decline_reward is True
         assert transaction.max_automatic_token_associations == 10
         assert transaction.admin_key is not None
@@ -184,6 +192,28 @@ class TestBuildCreateContractTransaction:
         with pytest.raises(JsonRpcError):
             contract_handlers._build_create_contract_transaction(params)
 
+    def test_maps_staked_node_id(self):
+        params = CreateContractParams(sessionId="session-1", stakedNodeId="3", gas="1000000")
+
+        transaction = contract_handlers._build_create_contract_transaction(params)
+
+        assert transaction.staked_node_id == 3
+        assert transaction.staked_account_id is None
+
+    def test_last_staking_target_wins_when_both_supplied(self):
+        """The SDK setters keep the staked_id oneof consistent; last applied (stakedNodeId) wins."""
+        params = CreateContractParams(
+            sessionId="session-1",
+            stakedAccountId="0.0.6",
+            stakedNodeId="3",
+            gas="1000000",
+        )
+
+        transaction = contract_handlers._build_create_contract_transaction(params)
+
+        assert transaction.staked_account_id is None
+        assert transaction.staked_node_id == 3
+
     def test_invalid_initcode_hex_raises_value_error(self):
         params = CreateContractParams(sessionId="session-1", initcode="0xZZ", gas="1000000")
 
@@ -191,6 +221,21 @@ class TestBuildCreateContractTransaction:
             contract_handlers._build_create_contract_transaction(params)
 
 
-def test_create_contract_is_registered():
-    importlib.reload(contract_handlers)
-    assert get_handler("createContract") is not None
+def test_create_contract_registered_via_package_import():
+    """Importing the tck.handlers package alone must register createContract.
+
+    Re-importing the package from scratch (which recreates the registry) makes
+    this test fail if tck/handlers/__init__.py stops importing the contract
+    module; module-level imports in this file cannot mask that.
+    """
+    saved = {
+        name: mod for name, mod in sys.modules.items() if name == "tck.handlers" or name.startswith("tck.handlers.")
+    }
+    try:
+        for name in saved:
+            del sys.modules[name]
+        fresh_handlers = importlib.import_module("tck.handlers")
+        assert fresh_handlers.get_handler("createContract") is not None
+    finally:
+        sys.modules.update(saved)
+        sys.modules["tck"].handlers = saved["tck.handlers"]
