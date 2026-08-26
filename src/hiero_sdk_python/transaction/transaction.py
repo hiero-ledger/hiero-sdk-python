@@ -9,17 +9,9 @@ from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import (
-    basic_types_pb2,
-    transaction_contents_pb2,
-    transaction_pb2,
-)
-from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
-    SchedulableTransactionBody,
-)
-from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
-    TransactionResponse as TransactionResponseProto,
-)
+from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_contents_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
+from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.fee_estimate_query import FeeEstimateQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -323,10 +315,6 @@ class Transaction(_Executable):
         # We iterate through every node in the node_account_id list and
         # For each node_account_id build the transaction body
         # This allows the transaction to be submitted to the given node in the network
-        #
-        # Batch inner transactions (node 0.0.0), explicitly-set nodes, and the
-        # fall-back to all client network nodes are all resolved by
-        # _resolve_node_ids(client) above, so this single loop covers every case.
 
         # TODO: Should lock the node_account_ids once freeze
         # self._node_account_ids.set_lock(True)
