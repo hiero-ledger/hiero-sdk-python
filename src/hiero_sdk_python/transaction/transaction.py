@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from decimal import Decimal
 from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -805,30 +806,24 @@ class Transaction(_Executable):
             transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
         )
 
-    def set_default_max_transaction_fee(self, max_transaction_fee):
+    def set_max_transaction_fee(self, max_transaction_fee: int | float | Decimal | Hbar) -> Transaction:
         """
-         Sets the maximum transaction fee for this transaction.
-
-        The maximum transaction fee specifies the highest fee that can be
-        charged when the transaction is executed. The value must be
-        non-negative.
+        Set the maximum transaction fee the payer is willing to pay for this transaction.
 
         Args:
-             max_transaction_fee (Hbar | int | str): The maximum transaction
-             fee. Accepted types are those supported by ``Hbar._coerce_fee``.
+            max_transaction_fee (int | float | Decimal | Hbar): The maximum fee.
+                Numeric values are interpreted as Hbar.
 
         Returns:
-            Self: This transaction instance, allowing method chaining.
+            Transaction: This transaction instance for method chaining.
 
         Raises:
-            ValueError: If ``max_transaction_fee`` is negative.
-            RuntimeError: If the transaction has been frozen.
+            TypeError: If the value is not int, float, Decimal, or Hbar.
+            ValueError: If the value is negative.
+            Exception: If the transaction has already been frozen.
         """
         self._require_not_frozen()
-        value = Hbar._coerce_fee(max_transaction_fee)
-        if value < Hbar.ZERO:
-            raise ValueError("max_transaction_fee must be non-negative")
-        self.transaction_fee = value
+        self.transaction_fee = Hbar._coerce_non_negative(max_transaction_fee, "max_transaction_fee")
         return self
 
     @staticmethod

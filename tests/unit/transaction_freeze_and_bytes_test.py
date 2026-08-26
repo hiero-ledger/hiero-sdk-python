@@ -79,30 +79,30 @@ def test_freeze_with_valid_parameters():
     ],
 )
 def test_set_max_transaction_fee_valid_param(valid_amount, expected):
-    """Transaction.set_default_max_transaction_fee should accept various numeric types and Hbar."""
+    """Transaction.set_max_transaction_fee should accept various numeric types and Hbar."""
     tx = TransferTransaction()
 
-    returned = tx.set_default_max_transaction_fee(valid_amount)
+    returned = tx.set_max_transaction_fee(valid_amount)
     assert tx.transaction_fee == expected
     assert returned is tx
 
 
 @pytest.mark.parametrize("invalid_amount", ["1", True, False, None, object()])
 def test_set_max_transaction_fee_invalid_param(invalid_amount):
-    """Transaction.set_default_max_transaction_fee should reject invalid types."""
+    """Transaction.set_max_transaction_fee should reject invalid types."""
     tx = TransferTransaction()
 
     with pytest.raises(TypeError):
-        tx.set_default_max_transaction_fee(invalid_amount)
+        tx.set_max_transaction_fee(invalid_amount)
 
 
 @pytest.mark.parametrize("negative_amount", [-1, -0.1, Decimal("-0.1"), Hbar(-1)])
 def test_set_max_transaction_fee_negative_value(negative_amount):
-    """Transaction.set_default_max_transaction_fee should reject negative values."""
+    """Transaction.set_max_transaction_fee should reject negative values."""
     tx = TransferTransaction()
 
     with pytest.raises(ValueError):
-        tx.set_default_max_transaction_fee(negative_amount)
+        tx.set_max_transaction_fee(negative_amount)
     # checking state un modified
     assert len(tx._transaction_body_bytes) == 0
 
@@ -735,7 +735,7 @@ def test_map_response_raises_if_proto_request_is_not_transaction():
 def test_fee_resolution_transaction_precedence(mock_client):
     """Transaction fee explicitly set should take precedence over client default."""
     tx = TransferTransaction()
-    tx.set_default_max_transaction_fee(Hbar(10))
+    tx.set_max_transaction_fee(Hbar(10))
 
     # client has different default
     mock_client.set_default_max_transaction_fee(Hbar(5))
@@ -775,7 +775,7 @@ def test_resolved_fee_serialized_into_transaction_body(mock_client):
     """The resolved fee must reach the serialized proto transactionFee."""
     tx = TransferTransaction()
 
-    tx.set_default_max_transaction_fee(Hbar(2))
+    tx.set_max_transaction_fee(Hbar(2))
 
     body = tx.build_base_scheduled_body()
 
@@ -786,7 +786,7 @@ def test_max_transaction_fee_survives_to_bytes_round_trip(mock_client):
     """An explicitly set max fee must survive a to_bytes -> from_bytes round trip."""
     tx = TransferTransaction()
 
-    tx.set_default_max_transaction_fee(Hbar(2))
+    tx.set_max_transaction_fee(Hbar(2))
 
     tx.freeze_with(mock_client)  # Serlize  to_bytes()
     data = tx.to_bytes()
