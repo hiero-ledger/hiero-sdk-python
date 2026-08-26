@@ -243,12 +243,15 @@ def test_build_scheduled_body(mock_account_ids, file_id):
     assert schedulable_body.fileUpdate.memo == StringValue(value=file_memo)
 
 
-def test_missing_file_id():
-    """Test that building a transaction without setting file_id raises a ValueError."""
+def test_missing_file_id(mock_account_ids):
+    """Test that building a transaction without setting file_id omits fileID in proto body."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
     file_tx = FileUpdateTransaction()
+    file_tx.operator_account_id = operator_id
+    file_tx.set_node_account_ids([node_account_id])
 
-    with pytest.raises(ValueError, match="Missing required FileID"):
-        file_tx.build_transaction_body()
+    transaction_body = file_tx.build_transaction_body()
+    assert not transaction_body.fileUpdate.HasField("fileID")
 
 
 def test_sign_transaction(mock_client, file_id):

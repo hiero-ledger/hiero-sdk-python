@@ -3,6 +3,8 @@ from __future__ import annotations
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.file.file_info import FileInfo
+from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
@@ -10,15 +12,21 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.file import CreateFileParams, GetFileContentsParams, UpdateFileParams
+from tck.param.file import (
+    CreateFileParams,
+    GetFileContentsParams,
+    GetFileInfoParams,
+    UpdateFileParams,
+)
 from tck.response.file import (
     CreateFileResponse,
     GetFileContentsResponse,
+    GetFileInfoResponse,
     UpdateFileResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
-from tck.util.key_utils import get_key_from_string
+from tck.util.key_utils import get_key_from_string, key_to_string
 from tck.util.param_utils import to_int
 
 
@@ -84,21 +92,13 @@ def get_file_contents(params: GetFileContentsParams) -> GetFileContentsResponse:
 
 
 def _build_update_file_transaction(params: UpdateFileParams) -> FileUpdateTransaction:
-    """Build a FileUpdateTransaction from parsed params.
-
-    Each setter is called only when the corresponding field is not None so that
-    omitted fields are left unchanged on-network. contents is pre-normalized so
-    that the exact empty string ("") from JSON-RPC params maps to None, therefore
-    set_contents is never invoked when the caller intends "leave unchanged".
-    """
+    """Build a FileUpdateTransaction from parsed params."""
     transaction = FileUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
     if params.fileId is not None:
-        # ValueError from FileId.from_string propagates as an SDK/internal error.
         transaction.set_file_id(FileId.from_string(params.fileId))
 
     if params.keys is not None:
-        # Threshold-key rejection is enforced by the network, not client-side.
         transaction.set_keys([get_key_from_string(k) for k in params.keys])
 
     if params.contents is not None:
@@ -130,3 +130,31 @@ def update_file(params: UpdateFileParams) -> UpdateFileResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return UpdateFileResponse(status=ResponseCode(receipt.status).name)
+
+
+def _build_file_info_response(info: FileInfo) -> GetFileInfoResponse:
+    """Build a GetFileResponse from a FileInfo object."""
+
+    keys = [key_to_string(k) for k in info.keys] if info.keys else []
+
+    return GetFileInfoResponse(
+        fileId=str(info.file_id) if info.file_id is not None else None,
+        size=str(info.size) if info.size is not None else None,
+        expirationTime=str(info.expiration_time.seconds) if info.expiration_time is not None else None,
+        isDeleted=info.is_deleted,
+        keys=keys,
+        memo=info.file_memo,
+        ledgerId=info.ledger_id.hex() if info.ledger_id is not None else None,
+    )
+
+
+@rpc_method("getFileInfo")
+def get_file_info(params: GetFileInfoParams) -> GetFileInfoResponse:
+    client = get_client(params.sessionId)
+    query = FileInfoQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.fileId is not None:
+        query.set_file_id(FileId.from_string(params.fileId))
+
+    info = query.execute(client)
+    return _build_file_info_response(info)

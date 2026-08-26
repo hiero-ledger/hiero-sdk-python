@@ -87,14 +87,10 @@ class UpdateFileParams(BaseTransactionParams):
                 if not isinstance(key, str) or not key.strip():
                     raise ValueError("keys must be a list of non-empty strings")
 
-        contents_raw = params.get("contents")
-
         return cls(
             fileId=params.get("fileId"),
             keys=keys,
-            # Per the spec, only the exact empty string ("") means "leave unchanged" (mapped to None).
-            # Other values (including whitespace) are preserved verbatim.
-            contents=None if contents_raw == "" else contents_raw,
+            contents=params.get("contents"),
             # expirationTime is kept as a raw string; int/Timestamp conversion
             # happens in the handler layer.
             expirationTime=params.get("expirationTime"),
@@ -102,3 +98,15 @@ class UpdateFileParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class GetFileInfoParams(BaseParams):
+    """Parameters for getting file information."""
+
+    fileId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GetFileInfoParams:
+        """Parse JSON-RPC params into a GetFileInfoParams instance."""
+        return cls(fileId=params.get("fileId"), sessionId=parse_session_id(params))
