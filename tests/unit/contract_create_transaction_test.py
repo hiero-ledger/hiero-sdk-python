@@ -210,19 +210,32 @@ def test_build_scheduled_body(mock_account_ids, contract_params):
     assert schedulable_body.contractCreateInstance.initcode == b""
 
 
-def test_build_transaction_body_validation_errors():
-    """Test that build_transaction_body raises appropriate validation errors."""
-    # Test missing bytecode_file_id and bytecode
+def test_build_transaction_body_without_bytecode_or_gas(mock_account_ids):
+    """Test that missing bytecode source and gas build an empty body for the network to reject."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
     contract_tx = ContractCreateTransaction()
+    contract_tx.operator_account_id = operator_id
+    contract_tx.set_node_account_ids([node_account_id])
 
-    with pytest.raises(ValueError, match="Either bytecode_file_id or bytecode must be provided"):
-        contract_tx.build_transaction_body()
+    transaction_body = contract_tx.build_transaction_body()
 
-    # Test missing gas
-    contract_tx = ContractCreateTransaction(contract_params=ContractCreateParams(bytecode=b"test bytecode"))
+    assert transaction_body.contractCreateInstance.WhichOneof("initcodeSource") is None
+    assert transaction_body.contractCreateInstance.gas == 0
 
-    with pytest.raises(ValueError, match="Gas limit must be provided"):
-        contract_tx.build_transaction_body()
+
+def test_bytecode_setters_clear_each_other():
+    """Test that the two bytecode-source setters keep the initcodeSource oneof consistent."""
+    contract_tx = ContractCreateTransaction()
+    file_id = FileId(0, 0, 123)
+
+    contract_tx.set_bytecode(b"test bytecode")
+    contract_tx.set_bytecode_file_id(file_id)
+    assert contract_tx.bytecode is None
+    assert contract_tx.bytecode_file_id == file_id
+
+    contract_tx.set_bytecode(b"test bytecode")
+    assert contract_tx.bytecode == b"test bytecode"
+    assert contract_tx.bytecode_file_id is None
 
 
 @pytest.mark.parametrize(
