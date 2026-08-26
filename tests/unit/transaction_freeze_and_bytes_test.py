@@ -15,6 +15,7 @@ import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.hapi.services import transaction_pb2
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
@@ -793,6 +794,20 @@ def test_max_transaction_fee_survives_to_bytes_round_trip(mock_client):
 
     restored = TransferTransaction.from_bytes(data)  # Deserialize from_bytes().
     assert restored._transaction_fee == Hbar(2).to_tinybars()
+
+
+def test_explicit_zero_fee_is_honored_on_direct_and_scheduled_paths(mock_client):
+    """An explicit zero fee must reach both the direct and the scheduled body unchanged."""
+    tx = TransferTransaction()
+    tx.set_max_transaction_fee(Hbar(0))
+
+    scheduled_body = tx.build_base_scheduled_body()
+    assert scheduled_body.transactionFee == 0
+
+    tx.freeze_with(mock_client)
+    body = transaction_pb2.TransactionBody()
+    body.ParseFromString(next(iter(tx._transaction_body_bytes.values())))
+    assert body.transactionFee == 0
 
 
 def test_freeze_with_bare_magicmock_client_resolves_default_fee():
