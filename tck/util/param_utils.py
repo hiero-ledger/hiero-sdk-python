@@ -52,6 +52,16 @@ def non_empty_string_list(values) -> list[str] | None:
     return cleaned_values
 
 
+def decode_hex(value: str) -> bytes:
+    """Decode a hex string (optionally 0x-prefixed) into bytes.
+
+    Raises ValueError on odd-length or non-hexadecimal input, matching the
+    behaviour of the other SDKs' TCK servers.
+    """
+    text = value[2:] if value.startswith("0x") else value
+    return bytes.fromhex(text)
+
+
 def to_bool(value) -> bool | None:
     """Helper to convert value to bool."""
     if isinstance(value, str):
