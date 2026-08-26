@@ -43,12 +43,12 @@ const QUEUE_LABELS = {
 const ALL_QUEUE_LABEL_NAMES = Object.values(QUEUE_LABELS).map((l) => l.name);
 
 /**
- * The permanent community review label appended to all open PRs.
+ * The permanent community review label appended to all open non-draft PRs.
  */
 const COMMUNITY_REVIEW = {
   name: 'open to community review',
   color: '008672',
-  description: 'PR is open for community review and feedback',
+  description: 'PR is open for community review and feedback (non-draft only)',
 };
 
 module.exports = { RATE_LIMIT_FLOOR, QUEUE_LABELS, ALL_QUEUE_LABEL_NAMES, COMMUNITY_REVIEW };
