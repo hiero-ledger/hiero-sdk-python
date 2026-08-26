@@ -202,6 +202,21 @@ def test_build_transaction_body_with_optional_fields(mock_account_ids, file_id):
     assert not transaction_body.fileUpdate.HasField("memo")
 
 
+def test_build_transaction_body_with_empty_keys(mock_account_ids, file_id):
+    """Test building transaction body with an explicit empty keys list sets empty KeyList proto."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    file_tx = FileUpdateTransaction(file_id=file_id)
+    file_tx.operator_account_id = operator_id
+    file_tx.set_node_account_ids([node_account_id])
+    file_tx.set_keys([])
+
+    transaction_body = file_tx.build_transaction_body()
+
+    assert transaction_body.fileUpdate.HasField("keys")
+    assert len(transaction_body.fileUpdate.keys.keys) == 0
+
+
 def test_build_scheduled_body(mock_account_ids, file_id):
     """Test building a schedulable file update transaction body."""
     operator_id, _, node_account_id, _, _ = mock_account_ids
