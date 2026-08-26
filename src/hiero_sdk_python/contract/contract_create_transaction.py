@@ -323,26 +323,16 @@ class ContractCreateTransaction(Transaction):
         self.decline_reward = decline_reward
         return self
 
-    def _validate_parameters(self):
-        """Validates the parameters for the contract creation transaction."""
-        if self.bytecode_file_id is None and self.bytecode is None:
-            raise ValueError("Either bytecode_file_id or bytecode must be provided")
-
-        if self.gas is None:
-            raise ValueError("Gas limit must be provided")
-
     def _build_proto_body(self):
         """
         Returns the protobuf body for the contract create transaction.
 
+        Missing fields are not validated client-side; the network reports
+        errors such as CONTRACT_BYTECODE_EMPTY or INSUFFICIENT_GAS.
+
         Returns:
             ContractCreateTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If required fields are missing.
         """
-        self._validate_parameters()
-
         return ContractCreateTransactionBody(
             gas=self.gas,
             initialBalance=self.initial_balance,
