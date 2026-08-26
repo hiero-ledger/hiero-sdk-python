@@ -721,7 +721,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -918,15 +918,15 @@ lint = [
 [package.metadata]
 requires-dist = [
     { name = "cryptography", specifier = ">=50.0.0,<51" },
-    { name = "eth-abi", specifier = ">=5.1.0,<6" },
-    { name = "eth-keys", marker = "extra == 'eth'", specifier = ">=0.7.0,<0.8" },
+    { name = "eth-abi", specifier = ">=5.1.0,<7" },
+    { name = "eth-keys", marker = "extra == 'eth'", specifier = ">=0.7.0,<0.9" },
     { name = "flask", marker = "extra == 'tck'", specifier = ">=3.0.0,<4" },
     { name = "grpcio", specifier = ">=1.76.0,<2" },
     { name = "protobuf", specifier = ">=4.21.12,<8" },
     { name = "pycryptodome", specifier = ">=3.18.0,<4" },
     { name = "python-dotenv", specifier = ">=1.2.1,<3" },
     { name = "requests", specifier = ">=2.31.0,<3" },
-    { name = "rlp", marker = "extra == 'eth'", specifier = ">=4.0.1,<5" },
+    { name = "rlp", marker = "extra == 'eth'", specifier = ">=4.0.1,<6" },
 ]
 provides-extras = ["eth", "tck"]
 
