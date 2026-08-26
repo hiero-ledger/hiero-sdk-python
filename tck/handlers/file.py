@@ -87,9 +87,9 @@ def _build_update_file_transaction(params: UpdateFileParams) -> FileUpdateTransa
     """Build a FileUpdateTransaction from parsed params.
 
     Each setter is called only when the corresponding field is not None so that
-    omitted fields are left unchanged on-network.  contents is already None when
-    the caller supplied an empty string (collapsed by non_empty_string_or_none in
-    the param layer), so set_contents is never invoked with an empty value.
+    omitted fields are left unchanged on-network. contents is pre-normalized so
+    that the exact empty string ("") from JSON-RPC params maps to None, therefore
+    set_contents is never invoked when the caller intends "leave unchanged".
     """
     transaction = FileUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
