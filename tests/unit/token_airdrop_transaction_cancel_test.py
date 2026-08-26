@@ -92,20 +92,31 @@ def test_build_transaction_body(mock_account_ids):
 
 def test_transaction_for_invalid_params(mock_account_ids):
     """Test building the token cancel airdrop transaction body with invalid params."""
-    sender_id, receiver_id, _, token_id, _ = mock_account_ids
-    sample_pending_airdrop = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, token_id=token_id)
+    sender_id, receiver_id, node_account_id, token_id, _ = mock_account_ids
+    sample_pending_airdrop = PendingAirdropId(
+        sender_id=sender_id,
+        receiver_id=receiver_id,
+        token_id=token_id,
+    )
 
-    # With empty pending airdrops list
     cancel_airdrop_tx_1 = TokenCancelAirdropTransaction()
-    with pytest.raises(ValueError, match="Pending airdrops list must contain mininum 1 and maximum 10 pendingAirdrop."):
-        cancel_airdrop_tx_1.build_transaction_body()
+    cancel_airdrop_tx_1.transaction_id = generate_transaction_id(sender_id)
+    cancel_airdrop_tx_1.set_node_account_ids([node_account_id])
 
-    # With pending airdrops list containing more than 10 ids
+    transaction_body = cancel_airdrop_tx_1.build_transaction_body()
+
+    assert len(transaction_body.tokenCancelAirdrop.pending_airdrops) == 0
+
     cancel_airdrop_tx_2 = TokenCancelAirdropTransaction()
     for _ in range(11):
         cancel_airdrop_tx_2.add_pending_airdrop(sample_pending_airdrop)
-    with pytest.raises(ValueError, match="Pending airdrops list must contain mininum 1 and maximum 10 pendingAirdrop."):
-        cancel_airdrop_tx_2.build_transaction_body()
+
+    cancel_airdrop_tx_2.transaction_id = generate_transaction_id(sender_id)
+    cancel_airdrop_tx_2.set_node_account_ids([node_account_id])
+
+    transaction_body = cancel_airdrop_tx_2.build_transaction_body()
+
+    assert len(transaction_body.tokenCancelAirdrop.pending_airdrops) == 11
 
 
 def test_set_pending_airdrops(mock_account_ids):
