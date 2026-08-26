@@ -233,6 +233,50 @@ def test_set_gas_rejects_negative_values():
     assert contract_tx.set_gas(0).gas == 0
 
 
+def test_constructor_rejects_negative_gas():
+    """Test that gas supplied via ContractCreateParams is validated like set_gas."""
+    with pytest.raises(ValueError, match="Gas cannot be negative"):
+        ContractCreateTransaction(contract_params=ContractCreateParams(gas=-1))
+
+
+def test_staked_setters_clear_each_other():
+    """Test that the two staking-target setters keep the staked_id oneof consistent."""
+    contract_tx = ContractCreateTransaction()
+    staked_account_id = AccountId(0, 0, 999)
+
+    contract_tx.set_staked_account_id(staked_account_id)
+    contract_tx.set_staked_node_id(1)
+    assert contract_tx.staked_account_id is None
+    assert contract_tx.staked_node_id == 1
+
+    contract_tx.set_staked_account_id(staked_account_id)
+    assert contract_tx.staked_account_id == staked_account_id
+    assert contract_tx.staked_node_id is None
+
+
+def test_staked_setters_unset_with_none_without_clearing_the_other():
+    """Test that unsetting one staking target does not wipe the other."""
+    contract_tx = ContractCreateTransaction().set_staked_node_id(1)
+
+    contract_tx.set_staked_account_id(None)
+
+    assert contract_tx.staked_node_id == 1
+    assert contract_tx.staked_account_id is None
+
+
+def test_build_proto_body_rejects_conflicting_staking_targets():
+    """Test the constructor path, where both staked_id fields can remain set."""
+    contract_tx = ContractCreateTransaction(
+        contract_params=ContractCreateParams(
+            staked_account_id=AccountId(0, 0, 999),
+            staked_node_id=1,
+        )
+    )
+
+    with pytest.raises(ValueError, match="Specify either staked_node_id or staked_account_id"):
+        contract_tx._build_proto_body()
+
+
 def test_bytecode_setters_clear_each_other():
     """Test that the two bytecode-source setters keep the initcodeSource oneof consistent."""
     contract_tx = ContractCreateTransaction()

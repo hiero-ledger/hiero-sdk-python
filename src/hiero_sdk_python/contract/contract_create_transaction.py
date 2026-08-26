@@ -94,6 +94,8 @@ class ContractCreateTransaction(Transaction):
         super().__init__()
 
         params = contract_params or ContractCreateParams()
+        if params.gas is not None and params.gas < 0:
+            raise ValueError("Gas cannot be negative")
         self.bytecode_file_id: FileId | None = params.bytecode_file_id
         self.proxy_account_id: AccountId | None = params.proxy_account_id
         self.admin_key: Key | None = params.admin_key
@@ -290,6 +292,9 @@ class ContractCreateTransaction(Transaction):
         """
         Sets the account ID to stake to.
 
+        The two staking targets share the protobuf staked_id oneof, so a
+        non-None value clears any staked node ID.
+
         Args:
             staked_account_id (AccountId | None): The staked account ID.
 
@@ -298,11 +303,16 @@ class ContractCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.staked_account_id = staked_account_id
+        if staked_account_id is not None:
+            self.staked_node_id = None
         return self
 
     def set_staked_node_id(self, staked_node_id: int | None) -> ContractCreateTransaction:
         """
         Sets the node ID to stake to.
+
+        The two staking targets share the protobuf staked_id oneof, so a
+        non-None value clears any staked account ID.
 
         Args:
             staked_node_id (int | None): The staked node ID.
@@ -312,6 +322,8 @@ class ContractCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.staked_node_id = staked_node_id
+        if staked_node_id is not None:
+            self.staked_account_id = None
         return self
 
     def set_decline_reward(self, decline_reward: bool | None) -> ContractCreateTransaction:
@@ -338,7 +350,13 @@ class ContractCreateTransaction(Transaction):
 
         Returns:
             ContractCreateTransactionBody: The protobuf body for this transaction.
+
+        Raises:
+            ValueError: If both staked_account_id and staked_node_id are set;
+                the protobuf staked_id oneof would silently drop one of them.
         """
+        if self.staked_account_id is not None and self.staked_node_id is not None:
+            raise ValueError("Specify either staked_node_id or staked_account_id, not both.")
         return ContractCreateTransactionBody(
             gas=self.gas,
             initialBalance=self.initial_balance,

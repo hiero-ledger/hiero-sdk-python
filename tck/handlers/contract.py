@@ -65,6 +65,9 @@ def _build_create_contract_transaction(params: CreateContractParams) -> Contract
     if params.bytecodeFileId is not None:
         transaction.set_bytecode_file_id(FileId.from_string(params.bytecodeFileId))
 
+    # The SDK's staking-target setters clear each other (the fields share the
+    # protobuf staked_id oneof), so if both are supplied the one applied last
+    # (stakedNodeId) wins, matching the JS TCK server.
     if params.stakedAccountId is not None:
         transaction.set_staked_account_id(AccountId.from_string(params.stakedAccountId))
 
