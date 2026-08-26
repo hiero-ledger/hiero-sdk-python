@@ -1,0 +1,68 @@
+# Strips review-queue and community-review labels from a PR the moment it is
+# converted to draft, so it doesn't sit around advertising a stale queue
+# label (or worse, "status: ready-to-merge") while the author reworks it.
+#
+# This is the immediate counterpart to the review-sync cron job, which now
+# also cleans drafts on every run as a backstop for anything this event misses.
+#
+# Uses pull_request_target, not pull_request: fork and Dependabot PRs get a
+# read-only GITHUB_TOKEN under plain pull_request, so removeLabel would fail
+# for exactly the PRs this needs to work on. The checkout is still pinned to
+# the default branch rather than the PR ref, so this never runs PR-controlled
+# code even though it holds a write token. Same pattern as on-review.yml.
+
+name: Draft PR Label Cleanup
+
+on:
+  pull_request_target:
+    types:
+      - converted_to_draft
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to process (for manual testing)'
+        required: true
+        type: number
+      dry_run:
+        description: 'If true, log label changes without applying them. Default true for manual runs.'
+        required: false
+        default: 'true'
+        type: string
+
+permissions:
+  issues: write
+  pull-requests: read
+  contents: read
+
+concurrency:
+  group: draft-label-cleanup-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  cleanup:
+    runs-on: hl-sdk-py-lin-md
+    env:
+      DRY_RUN: ${{ inputs.dry_run || 'false' }}
+      PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout scripts
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: |
+            .github/scripts
+          sparse-checkout-cone-mode: false
+
+      - name: Strip queue labels
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const fn = require('./.github/scripts/review-sync/on-converted-to-draft.js');
+            await fn({ github, context, core });
