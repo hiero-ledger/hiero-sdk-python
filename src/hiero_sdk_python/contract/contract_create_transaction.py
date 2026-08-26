@@ -124,6 +124,7 @@ class ContractCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.bytecode_file_id = bytecode_file_id
+        self.bytecode = None
         return self
 
     def set_bytecode(self, code: bytes | None) -> ContractCreateTransaction:
