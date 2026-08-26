@@ -9,6 +9,7 @@ and expected behavior.
 from __future__ import annotations
 
 from decimal import Decimal
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -792,3 +793,14 @@ def test_max_transaction_fee_survives_to_bytes_round_trip(mock_client):
 
     restored = TransferTransaction.from_bytes(data)  # Deserialize from_bytes().
     assert restored._transaction_fee == Hbar(2).to_tinybars()
+
+
+def test_freeze_with_bare_magicmock_client_resolves_default_fee():
+    """Freezing against a bare MagicMock client must not raise and must fall back to the per-type default fee."""
+    tx = TransferTransaction()
+    tx.set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.1234")))
+    tx.set_node_account_ids([AccountId.from_string("0.0.3")])
+
+    tx.freeze_with(MagicMock())
+
+    assert tx.transaction_fee == 100_000_000  # TransferTransaction per-type default, Hbar(1)
