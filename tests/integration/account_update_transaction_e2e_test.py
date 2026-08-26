@@ -249,7 +249,6 @@ def _apply_tiny_max_fee_if_supported(tx, client) -> bool:
     # Try client-level default
     for attr in (
         "set_default_max_transaction_fee",
-        "set_default_max_transaction_fee",
         "set_default_max_fee",
         "setMaxTransactionFee",
     ):
@@ -293,6 +292,29 @@ def test_account_update_insufficient_fee_with_valid_expiration_bump(env):
     # Confirm expiration time did not change
     info_after = AccountInfoQuery(account_id).execute(env.client)
     assert int(info_after.expiration_time.seconds) == base_expiry_secs
+
+
+@pytest.mark.integration
+def test_account_update_insufficient_fee_via_client_default(env):
+    """A client-level default max fee must apply to transactions that set no explicit fee."""
+    receipt = (
+        AccountCreateTransaction()
+        .set_key(env.operator_key.public_key())
+        .set_initial_balance(Hbar(1))
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS
+    account_id = receipt.account_id
+
+    env.client.set_default_max_transaction_fee(Hbar.from_tinybars(1))
+
+    # No tx-level fee: the 1-tinybar client default must be resolved at freeze and rejected at precheck.
+    tx = AccountUpdateTransaction().set_account_id(account_id).set_account_memo("client default fee test")
+
+    with pytest.raises(PrecheckError) as exc_info:
+        tx.execute(env.client)
+
+    assert exc_info.value.status == ResponseCode.INSUFFICIENT_TX_FEE
 
 
 @pytest.mark.integration
