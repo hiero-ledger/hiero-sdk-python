@@ -5,6 +5,7 @@
 from . import (
     account,
     allowance,
+    contract,
     file,
     key,
     schedule,
