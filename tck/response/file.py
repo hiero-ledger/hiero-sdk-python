@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 from tck.response.base import StatusOnlyResponse
 
 

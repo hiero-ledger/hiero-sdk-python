@@ -24,6 +24,7 @@ from tck.handlers.file import _build_update_file_transaction, update_file
 from tck.param.file import UpdateFileParams
 from tck.response.file import UpdateFileResponse
 
+
 pytestmark = pytest.mark.unit
 
 # A valid secp256k1 DER-encoded private key hex (reused from common_params_test).
@@ -241,8 +242,10 @@ class TestUpdateFileHandler:
 
         params = _make_params(fileId="0.0.999", memo="via handler")
 
-        with patch("tck.handlers.file.get_client", return_value=mock_client), \
-             patch("tck.handlers.file.FileUpdateTransaction.execute", return_value=mock_response):
+        with (
+            patch("tck.handlers.file.get_client", return_value=mock_client),
+            patch("tck.handlers.file.FileUpdateTransaction.execute", return_value=mock_response),
+        ):
             result = update_file(params)
 
         assert isinstance(result, UpdateFileResponse)
@@ -260,8 +263,10 @@ class TestUpdateFileHandler:
 
         params = _make_params(fileId="0.0.999", commonTransactionParams=mock_common)
 
-        with patch("tck.handlers.file.get_client", return_value=mock_client), \
-             patch("tck.handlers.file.FileUpdateTransaction.execute", return_value=mock_response):
+        with (
+            patch("tck.handlers.file.get_client", return_value=mock_client),
+            patch("tck.handlers.file.FileUpdateTransaction.execute", return_value=mock_response),
+        ):
             update_file(params)
 
         mock_common.apply_common_params.assert_called_once()
