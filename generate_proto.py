@@ -34,7 +34,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 
-VERSION = "v0.73.0"
+VERSION = "v0.76.1"
 SOURCES = [
     {
         "name": "hedera-protobufs",
