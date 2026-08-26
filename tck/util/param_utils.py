@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import re
+
+
+_HEX_DIGITS_RE = re.compile(r"[0-9a-fA-F]*")
+
 
 def parse_session_id(params: dict) -> str:
     """Parse sessionId from the json rpc params."""
@@ -55,10 +60,14 @@ def non_empty_string_list(values) -> list[str] | None:
 def decode_hex(value: str) -> bytes:
     """Decode a hex string (optionally 0x-prefixed) into bytes.
 
-    Raises ValueError on odd-length or non-hexadecimal input, matching the
-    behaviour of the other SDKs' TCK servers.
+    Raises ValueError on odd-length, whitespace-containing, or otherwise
+    non-hexadecimal input, matching the behaviour of the other SDKs' TCK
+    servers. bytes.fromhex alone is too lenient: it ignores embedded ASCII
+    whitespace.
     """
     text = value[2:] if value.startswith("0x") else value
+    if not _HEX_DIGITS_RE.fullmatch(text):
+        raise ValueError(f"non-hexadecimal characters in hex string: {value!r}")
     return bytes.fromhex(text)
 
 
