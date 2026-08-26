@@ -223,6 +223,16 @@ def test_build_transaction_body_without_bytecode_or_gas(mock_account_ids):
     assert transaction_body.contractCreateInstance.gas == 0
 
 
+def test_set_gas_rejects_negative_values():
+    """Test that set_gas rejects negative gas, matching the JS SDK."""
+    contract_tx = ContractCreateTransaction()
+
+    with pytest.raises(ValueError, match="Gas cannot be negative"):
+        contract_tx.set_gas(-1)
+
+    assert contract_tx.set_gas(0).gas == 0
+
+
 def test_bytecode_setters_clear_each_other():
     """Test that the two bytecode-source setters keep the initcodeSource oneof consistent."""
     contract_tx = ContractCreateTransaction()
