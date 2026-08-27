@@ -240,4 +240,63 @@ async function syncLabel(github, owner, repo, pr, dryRun) {
   return true;
 }
 
-module.exports = { ensureLabel, determineLabel, syncLabel, hasCIFailures };
+/**
+ * Strip all managed queue/community-review labels from a single PR.
+ *
+ * Used for draft PRs, where the goal is the opposite of syncLabel(): zero
+ * managed labels rather than exactly one queue label. Plain removal is fine
+ * here, so this does not need the add-before-remove ordering syncLabel uses.
+ *
+ * Skips countApprovals/hasCIFailures entirely — cleanup doesn't need approval
+ * or CI data, and skipping those calls protects the rate-limit budget.
+ *
+ * @param {object}  github - Octokit instance
+ * @param {string}  owner  - Repository owner
+ * @param {string}  repo   - Repository name
+ * @param {object}  pr     - Pull request object from the list API
+ * @param {boolean} dryRun - If true, log without making changes
+ * @returns {boolean} true if at least one managed label was targeted for removal
+ */
+async function stripQueueLabels(github, owner, repo, pr, dryRun) {
+  const prNumber = pr.number;
+  const currentLabels = (pr.labels || []).map((l) => l.name);
+
+  const managedLabels = currentLabels.filter(
+    (name) => ALL_QUEUE_LABEL_NAMES.includes(name) || name === COMMUNITY_REVIEW.name
+  );
+
+  if (managedLabels.length === 0) {
+    console.log(`  PR #${prNumber}: no managed labels present. No change needed.`);
+    return false;
+  }
+
+  if (dryRun) {
+    console.log(`  PR #${prNumber}: [DRY RUN] Would remove: ${managedLabels.join(', ')}.`);
+    return true;
+  }
+
+  for (const name of managedLabels) {
+    try {
+      await github.rest.issues.removeLabel({
+        owner,
+        repo,
+        issue_number: prNumber,
+        name,
+      });
+      console.log(`  PR #${prNumber}: - Removed "${name}".`);
+    } catch (error) {
+      // 404 = label was already removed (race condition or manual action)
+      if (error.status === 404) {
+        console.log(`  PR #${prNumber}: - Label "${name}" already gone (404). Skipping.`);
+      } else {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`  PR #${prNumber}: ✗ Failed to remove "${name}": ${message}`);
+        throw error;
+      }
+    }
+  }
+
+  return true;
+}
+
+module.exports = { ensureLabel, determineLabel, syncLabel, stripQueueLabels, hasCIFailures };

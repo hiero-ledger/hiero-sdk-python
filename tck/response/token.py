@@ -80,6 +80,11 @@ class ClaimTokenResponse(StatusOnlyResponse):
 
 
 @dataclass
+class CancelAirdropResponse(StatusOnlyResponse):
+    """Response payload for cancelAirdrop."""
+
+
+@dataclass
 class CustomFeeResponse:
     """Nested custom fee details for getTokenInfo."""
 

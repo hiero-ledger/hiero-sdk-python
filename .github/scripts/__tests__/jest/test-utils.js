@@ -20,6 +20,18 @@
  *   Array of review objects returned by pulls.listReviews
  * @param {Record<string, boolean>} options.existingLabels
  *   Map of label name → true (label exists in repo)
+ * @param {string[]} options.removeLabelNotFound
+ *   Label names for which removeLabel() should throw a 404, simulating a
+ *   label that's already gone (race condition or manual removal)
+ * @param {string[]} options.removeLabelServerError
+ *   Label names for which removeLabel() should throw a 500, simulating an
+ *   unexpected API failure that should NOT be swallowed
+ * @param {object|null} options.prData
+ *   Single PR object returned by pulls.get(). Defaults to a 404, simulating
+ *   a PR number that doesn't exist.
+ * @param {Array} options.prList
+ *   Array of PR objects returned by pulls.list() (and therefore paginate()),
+ *   simulating the open-PR listing the review-sync cron job fetches.
  * @returns {{ calls: object, rest: object, paginate: function }}
  */
 function createMockGithub(options = {}) {
@@ -28,6 +40,10 @@ function createMockGithub(options = {}) {
     reviews = [],
     existingLabels = {},
     checkRuns = [],
+    removeLabelNotFound = [],
+    removeLabelServerError = [],
+    prData = null,
+    prList = [],
   } = options;
 
   const calls = {
@@ -36,6 +52,7 @@ function createMockGithub(options = {}) {
     labelsCreated: [],
     labelsChecked: [],
     permissionsChecked: [],
+    pullsFetched: [],
   };
 
   const mock = {
@@ -53,6 +70,14 @@ function createMockGithub(options = {}) {
       },
       pulls: {
         listReviews: async () => ({ data: reviews }),
+        list: async () => ({ data: prList }),
+        get: async ({ pull_number }) => {
+          calls.pullsFetched.push(pull_number);
+          if (!prData) {
+            throw Object.assign(new Error('Not found'), { status: 404 });
+          }
+          return { data: prData };
+        },
       },
       checks: {
         listForRef: async () => ({ data: { check_runs: checkRuns } }),
@@ -74,6 +99,12 @@ function createMockGithub(options = {}) {
           return {};
         },
         removeLabel: async ({ name }) => {
+          if (removeLabelNotFound.includes(name)) {
+            throw Object.assign(new Error('Not found'), { status: 404 });
+          }
+          if (removeLabelServerError.includes(name)) {
+            throw Object.assign(new Error('Internal server error'), { status: 500 });
+          }
           calls.labelsRemoved.push(name);
           return {};
         },

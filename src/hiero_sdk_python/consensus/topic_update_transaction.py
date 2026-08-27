@@ -234,6 +234,27 @@ class TopicUpdateTransaction(Transaction):
         self.custom_fees.append(custom_fee)
         return self
 
+    def add_fee_exempt_key(self, key: Key) -> TopicUpdateTransaction:
+        """
+        Adds a single fee exempt key to the transaction's fee exempt key list.
+
+        Args:
+            key (Key): The fee exempt key to add.
+
+        Returns:
+            TopicUpdateTransaction: The current instance for method chaining.
+        """
+        self._require_not_frozen()
+
+        if not isinstance(key, Key):
+            raise TypeError("key must be a Key")
+
+        if self.fee_exempt_keys is None:
+            self.fee_exempt_keys = []
+
+        self.fee_exempt_keys.append(key)
+        return self
+
     def clear_custom_fees(self) -> TopicUpdateTransaction:
         """
         Clears the custom fees for the topic update transaction and
