@@ -66,9 +66,10 @@ def node_create():
 
     # Node account ID - this should be an existing account
     # that will be associated with the node
+    node_account_key = PrivateKey.generate_ecdsa()
     account_id = (
         AccountCreateTransaction()
-        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_key_without_alias(node_account_key)
         .freeze_with(client)
         .execute(client)
         .account_id
@@ -103,6 +104,7 @@ def node_create():
         .set_decline_reward(True)
         .freeze_with(client)
         .sign(admin_key)  # Sign with the admin key
+        .sign(node_account_key)  # Sign with the node account key
         .execute(client)
     )
 
