@@ -486,3 +486,49 @@ def test_add_custom_fee_type_error():
     with pytest.raises(TypeError, match="custom_fee must be a CustomFixedFee"):
         tx.add_custom_fee(None)  # type: ignore
     assert tx.custom_fees is None, "Invalid input must not change custom_fees"
+
+
+def test_add_fee_exempt_key():
+    """Test adding a fee exempt key to the transaction."""
+    tx = TopicUpdateTransaction()
+
+    key1 = PrivateKey.generate().public_key()
+    key2 = PrivateKey.generate().public_key()
+
+    result = tx.add_fee_exempt_key(key1)
+
+    assert len(tx.fee_exempt_keys) == 1
+    assert tx.fee_exempt_keys[0] == key1
+    assert result is tx
+
+    tx.add_fee_exempt_key(key2)
+
+    assert len(tx.fee_exempt_keys) == 2
+    assert tx.fee_exempt_keys[0] == key1
+    assert tx.fee_exempt_keys[1] == key2
+
+
+def test_add_fee_exempt_key_frozen(mock_client, topic_id):
+    """Test calling add_fee_exempt_key() after freezing raises an exception."""
+    tx = TopicUpdateTransaction()
+
+    tx.set_topic_id(topic_id)
+    tx.freeze_with(mock_client)
+
+    key = PrivateKey.generate().public_key()
+
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
+        tx.add_fee_exempt_key(key)
+
+
+def test_add_fee_exempt_key_type_error():
+    """Test passing None or a non-Key argument raises TypeError."""
+    tx = TopicUpdateTransaction()
+
+    with pytest.raises(TypeError, match="key must be a Key"):
+        tx.add_fee_exempt_key("this_is_a_string")  # type: ignore
+    assert tx.fee_exempt_keys is None, "Invalid input must not change fee_exempt_keys"
+
+    with pytest.raises(TypeError, match="key must be a Key"):
+        tx.add_fee_exempt_key(None)  # type: ignore
+    assert tx.fee_exempt_keys is None, "Invalid input must not change fee_exempt_keys"
