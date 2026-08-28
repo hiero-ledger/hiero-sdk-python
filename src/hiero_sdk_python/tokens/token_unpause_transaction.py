@@ -91,14 +91,8 @@ class TokenUnpauseTransaction(Transaction):
 
         Returns:
             TokenUnpauseTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If account ID or token ID is not set.
         """
-        if self.token_id is None:
-            raise ValueError("Missing token ID")
-
-        return TokenUnpauseTransactionBody(token=self.token_id._to_proto())
+        return TokenUnpauseTransactionBody(token=self.token_id._to_proto() if self.token_id is not None else None)
 
     def build_transaction_body(self) -> TransactionBody:
         """

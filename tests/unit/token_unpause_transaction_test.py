@@ -62,9 +62,10 @@ def test_build_transaction_body_when_token_id_not_set(mock_account_ids):
 
     unpause_tx = TokenUnpauseTransaction()
     unpause_tx.set_node_account_ids([node_account_id])
+    unpause_tx.operator_account_id = account_id
 
-    with pytest.raises(ValueError, match="Missing token ID"):
-        unpause_tx.build_transaction_body()
+    transaction_body = unpause_tx.build_transaction_body()
+    assert not transaction_body.token_unpause.HasField("token")
 
 
 def test_set_method(mock_account_ids):

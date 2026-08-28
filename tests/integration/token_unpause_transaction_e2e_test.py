@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pytest
 from pytest import fixture
 
 from hiero_sdk_python.crypto.private_key import PrivateKey
@@ -79,8 +78,8 @@ def test_unpause_token_with_invalid_pasue_key(env, pausable_token):
 def test_unpause_token_when_token_id_not_set(env):
     """Test unpause transaction when token_id is not provided."""
     unpause_tx = TokenUnpauseTransaction()
-    with pytest.raises(ValueError, match="Missing token ID"):
-        unpause_tx.freeze_with(env.client)
+    unpause_receipt = unpause_tx.execute(env.client)
+    assert unpause_receipt.status == ResponseCode.INVALID_TOKEN_ID
 
 
 def test_unpause_token_with_invalid_token_id(env):
