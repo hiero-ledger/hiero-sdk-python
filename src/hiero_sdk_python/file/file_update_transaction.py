@@ -57,12 +57,20 @@ class FileUpdateTransaction(Transaction):
             file_memo (str, optional): The new memo for the file.
         """
         super().__init__()
-        self.file_id: FileId | None = file_id
-        self.keys: list[Key] | None = keys
-        self.contents: bytes | None = self._encode_contents(contents)
-        self.expiration_time: Timestamp | None = expiration_time
-        self.file_memo: str | None = file_memo
+        self.file_id: FileId | None = None
+        self.keys: list[Key] | None = None
+        self.contents: bytes | None = None
+        self.expiration_time: Timestamp | None = None
+        self.file_memo: str | None = None
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
+
+        if file_id is not None:
+            self.set_file_id(file_id)
+
+        self.set_keys(keys)
+        self.set_contents(contents)
+        self.set_expiration_time(expiration_time)
+        self.set_file_memo(file_memo)
 
     def _encode_contents(self, contents: str | bytes | None) -> bytes | None:
         """
@@ -91,6 +99,9 @@ class FileUpdateTransaction(Transaction):
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if not isinstance(file_id, FileId):
+            raise TypeError("file_id must be of type FileId")
+
         self.file_id = file_id
         return self
 
@@ -126,6 +137,9 @@ class FileUpdateTransaction(Transaction):
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if expiration_time is not None and not isinstance(expiration_time, Timestamp):
+            raise TypeError("expiration_time must be of type Timestamp")
+
         self.expiration_time = expiration_time
         return self
 
@@ -141,6 +155,8 @@ class FileUpdateTransaction(Transaction):
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if contents is not None and not isinstance(contents, (bytes, str)):
+            raise TypeError("contents must be of type bytes or str")
         self.contents = self._encode_contents(contents)
         return self
 
@@ -155,6 +171,9 @@ class FileUpdateTransaction(Transaction):
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if file_memo is not None and not isinstance(file_memo, str):
+            raise TypeError("file_memo must be of type str")
+
         self.file_memo = file_memo
         return self
 

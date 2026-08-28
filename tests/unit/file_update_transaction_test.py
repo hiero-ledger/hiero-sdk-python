@@ -384,3 +384,49 @@ def test_encode_contents_string():
     # Test None handling
     encoded = file_tx._encode_contents(None)
     assert encoded is None
+
+
+@pytest.mark.parametrize(
+    "file_id",
+    ["0.0.1", True, b"", 0, 0.1, None, {}, []],
+)
+def test_set_file_id_with_invalid_params(file_id):
+    """Test that set_file_id raises TypeError for invalid file ID types."""
+    tx = FileUpdateTransaction()
+
+    with pytest.raises(TypeError, match="file_id must be of type FileId"):
+        tx.set_file_id(file_id)
+
+
+@pytest.mark.parametrize(
+    "expiration_time",
+    ["1", True, b"", 0, 0.1, {}, []],
+)
+def test_set_expiration_time_with_invalid_params(expiration_time):
+    """Test that set_expiration_time raises TypeError for invalid types."""
+    tx = FileUpdateTransaction()
+    with pytest.raises(TypeError, match="expiration_time must be of type Timestamp"):
+        tx.set_expiration_time(expiration_time)
+
+
+@pytest.mark.parametrize(
+    "contents",
+    [True, 0, 0.1, {}, []],
+)
+def test_set_contents_with_invalid_params(contents):
+    """Test that set_contents raises TypeError for invalid content types."""
+    tx = FileUpdateTransaction()
+
+    with pytest.raises(TypeError, match="contents must be of type bytes or str"):
+        tx.set_contents(contents)
+
+
+@pytest.mark.parametrize(
+    "file_memo",
+    [True, b"", 0, 0.1, {}, []],
+)
+def test_set_file_memo_with_invalid_params(file_memo):
+    """Test that set_file_memo raises TypeError for invalid memo types."""
+    tx = FileUpdateTransaction()
+    with pytest.raises(TypeError, match="file_memo must be of type str"):
+        tx.set_file_memo(file_memo)
