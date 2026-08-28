@@ -12,6 +12,7 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
@@ -251,3 +252,190 @@ def test_transaction_response_get_receipt_is_pinned_to_submitting_node(
         receipt = resp.get_receipt(client)
 
         assert receipt.status == ResponseCode.SUCCESS
+
+
+@pytest.mark.parametrize("status", [1, 1.2, None, Client(), "True", [], {}])
+def test_get_receipt_query_invalid_status_type(status):
+    """Test that get_receipt_query raises TypeError for an invalid status type."""
+    response = TransactionResponse()
+    with pytest.raises(TypeError, match="validate_status must be a boolean"):
+        response.get_receipt_query(validate_status=status)
+
+
+@pytest.mark.parametrize(
+    "client",
+    [1, 1.2, True, "True", [], {}],  # None is allow for client
+)
+def test_get_receipt_query_invalid_client_type(client):
+    """Test that get_receipt_query raises TypeError for an invalid client type."""
+    response = TransactionResponse()
+    with pytest.raises(TypeError, match="client must be an instance of Client"):
+        response.get_receipt_query(client=client)
+
+
+@pytest.mark.parametrize(
+    "client",
+    [1, 1.2, True, "True", [], {}],  # None is allow for client
+)
+def test_get_record_query_invalid_client_type(client):
+    """Test that get_record_query raises TypeError for an invalid client type."""
+    response = TransactionResponse()
+    with pytest.raises(TypeError, match="client must be an instance of Client"):
+        response.get_record_query(client=client)
+
+
+def test_resolve_node_account_ids_with_failover_diabled(mock_client):
+    """Test that only the transaction node is returned when no client or failover is disabled."""
+    response = TransactionResponse()
+    response.node_id = AccountId.from_string("0.0.3")
+
+    # When client is None
+    node_ids = response._resolve_node_account_ids(None)
+    assert node_ids == [AccountId.from_string("0.0.3")]
+
+    # With failover disabled
+    node_ids = response._resolve_node_account_ids(mock_client)
+    assert node_ids == [AccountId.from_string("0.0.3")]
+
+
+def test_resolve_node_account_ids_with_transaction_nodes(mock_client):
+    """Test that transaction nodes are used when receipt failover is enabled."""
+    response = TransactionResponse()
+    response.node_id = AccountId.from_string("0.0.3")
+    response._transaction_node_ids = [AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")]
+
+    mock_client.set_allow_receipt_node_failover(True)
+    node_ids = response._resolve_node_account_ids(mock_client)
+    assert node_ids == [AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")]
+
+
+def test_resolve_node_account_ids_uses_client_nodes_when_transaction_nodes_unavailable(mock_client):
+    """Test that client nodes are used when transaction nodes are unavailable."""
+    response = TransactionResponse()
+    response.node_id = AccountId.from_string("0.0.3")
+    response._transaction_node_ids = []
+
+    mock_client.set_allow_receipt_node_failover(True)
+    node_ids = response._resolve_node_account_ids(mock_client)
+
+    assert node_ids == mock_client.get_node_account_ids()
+
+
+def test_default_receipt_query_is_pinned_to_submitting_node(mock_client):
+    """Test that receipt queries use only the submitting node by default."""
+    node_id = AccountId.from_string("0.0.4")
+    transaction_node_ids = [
+        node_id,
+        AccountId.from_string("0.0.5"),
+    ]
+
+    response = TransactionResponse()
+    response.node_id = node_id
+    response._transaction_node_ids = transaction_node_ids
+
+    # Without a client, always pinned to the submitting node.
+    query = response.get_receipt_query()
+    assert isinstance(query, TransactionGetReceiptQuery)
+    assert query.node_account_ids == [node_id]
+
+    # With failover disabled
+    query = response.get_receipt_query(client=mock_client)
+    assert isinstance(query, TransactionGetReceiptQuery)
+    assert query.node_account_ids == [node_id]
+
+
+def test_default_record_query_is_pinned_to_submitting_node(mock_client):
+    """Test that record queries use only the submitting node by default."""
+    node_id = AccountId.from_string("0.0.4")
+    transaction_node_ids = [
+        node_id,
+        AccountId.from_string("0.0.5"),
+    ]
+
+    response = TransactionResponse()
+    response.node_id = node_id
+    response._transaction_node_ids = transaction_node_ids
+
+    # Without a client, always pinned to the submitting node.
+    query = response.get_record_query()
+    assert isinstance(query, TransactionRecordQuery)
+    assert query.node_account_ids == [node_id]
+
+    # With failover disabled
+    query = response.get_record_query(mock_client)
+    assert isinstance(query, TransactionRecordQuery)
+    assert query.node_account_ids == [node_id]
+
+
+def test_receipt_query_uses_transaction_nodes_when_failover_enabled(mock_client):
+    """Test that receipt queries use transaction nodes when failover is enabled."""
+    node_id = AccountId.from_string("0.0.4")
+    transaction_node_ids = [
+        node_id,
+        AccountId.from_string("0.0.5"),
+    ]
+
+    response = TransactionResponse()
+    response.node_id = node_id
+    response._transaction_node_ids = transaction_node_ids
+
+    mock_client.set_allow_receipt_node_failover(True)
+
+    query = response.get_receipt_query(client=mock_client)
+
+    assert isinstance(query, TransactionGetReceiptQuery)
+    assert query.node_account_ids == transaction_node_ids
+
+
+def test_record_query_uses_transaction_nodes_when_failover_enabled(mock_client):
+    """Test that record queries use transaction nodes when failover is enabled."""
+    node_id = AccountId.from_string("0.0.4")
+    transaction_node_ids = [
+        node_id,
+        AccountId.from_string("0.0.5"),
+    ]
+
+    response = TransactionResponse()
+    response.node_id = node_id
+    response._transaction_node_ids = transaction_node_ids
+
+    mock_client.set_allow_receipt_node_failover(True)
+
+    query = response.get_record_query(client=mock_client)
+
+    assert isinstance(query, TransactionRecordQuery)
+    assert query.node_account_ids == transaction_node_ids
+
+
+def test_receipt_query_uses_client_nodes_when_transaction_nodes_not_set(mock_client):
+    """Test that receipt queries use client nodes when transaction nodes are not set."""
+    node_id = AccountId.from_string("0.0.4")
+
+    response = TransactionResponse()
+    response.node_id = node_id
+
+    mock_client.set_allow_receipt_node_failover(True)
+    query = response.get_receipt_query(client=mock_client)
+
+    except_node_ids = [node_id]
+    except_node_ids.extend(id for id in mock_client.get_node_account_ids() if id != node_id)
+
+    assert isinstance(query, TransactionGetReceiptQuery)
+    assert query.node_account_ids == except_node_ids
+
+
+def test_record_query_uses_client_nodes_when_transaction_nodes_not_set(mock_client):
+    """Test that record queries use client nodes when transaction nodes are not set."""
+    node_id = AccountId.from_string("0.0.4")
+
+    response = TransactionResponse()
+    response.node_id = node_id
+
+    mock_client.set_allow_receipt_node_failover(True)
+    query = response.get_record_query(client=mock_client)
+
+    except_node_ids = [node_id]
+    except_node_ids.extend(id for id in mock_client.get_node_account_ids() if id != node_id)
+
+    assert isinstance(query, TransactionRecordQuery)
+    assert query.node_account_ids == except_node_ids
