@@ -170,6 +170,14 @@ def test_from_proto(mock_account_ids):
     assert unpause_tx.token_id.num == token_id.num
 
 
+def test_from_proto_without_token():
+    """Test creating a TokenUnpauseTransaction from protobuf representation without token."""
+    proto = TokenUnpauseTransactionBody()
+    unpause_tx = TokenUnpauseTransaction._from_proto(proto)
+
+    assert unpause_tx.token_id is None
+
+
 def test_upause_transaction_can_execute(mock_account_ids):
     """Test that a token upause transaction can be executed successfully."""
     _, _, _, token_id, _ = mock_account_ids

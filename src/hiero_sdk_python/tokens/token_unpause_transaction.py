@@ -82,7 +82,7 @@ class TokenUnpauseTransaction(Transaction):
         Returns:
             TokenUnpauseTransaction: A new instance of TokenUnpauseTransaction
         """
-        token_id = TokenId._from_proto(proto.token) if proto.token else None
+        token_id = TokenId._from_proto(proto.token) if proto.HasField("token") else None
         return cls(token_id=token_id)
 
     def _build_proto_body(self) -> TokenUnpauseTransactionBody:
