@@ -66,6 +66,8 @@ class Client:
         self._grpc_deadline: float = DEFAULT_GRPC_DEADLINE
         self._request_timeout: float = DEFAULT_REQUEST_TIMEOUT
 
+        self._allow_receipt_node_failover: bool = False
+
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
     @property
@@ -422,6 +424,33 @@ class Client:
     def update_network(self) -> Client:
         """Refresh the network node list from the mirror node."""
         self.network._set_network_nodes()
+        return self
+
+    @property
+    def allow_receipt_node_failover(self) -> bool:
+        """
+        Return whether receipt and record queries can fail over to other nodes.
+        """
+        return self._allow_receipt_node_failover
+
+    def set_allow_receipt_node_failover(self, allow: bool) -> Client:
+        """
+        Enable or disable receipt and record query node failover.
+
+        Args:
+            allow (bool): Whether to allow receipt/record queries to fail over to
+                other nodes when the submitting node is unavailable.
+
+        Returns:
+            Client: This client instance for fluent chaining.
+
+        Raises:
+            TypeError: If allow is not a bool.
+        """
+        if not isinstance(allow, bool):
+            raise TypeError("allow must be an instance of bool")
+
+        self._allow_receipt_node_failover = allow
         return self
 
     def __enter__(self) -> Client:

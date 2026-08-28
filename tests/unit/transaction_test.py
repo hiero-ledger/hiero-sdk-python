@@ -587,3 +587,47 @@ def test_transaction_body_bytes_for_each_node_id_on_freeze_manual(mock_client):
         body = transaction_pb2.TransactionBody()
         body.ParseFromString(body_bytes_value)
         assert body.nodeAccountID == AccountId._to_proto(node_id)
+
+
+@pytest.mark.parametrize("client", ["Client", True, 1, 0.1, {}, []])
+def test_transaction_execute_with_invalid_client_param(client):
+    """Test execute() raises TypeError when client is invalid."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="client must be an instance of Client"):
+        tx.execute(client)
+
+
+def test_transaction_execute_with_none_client_param(mock_client):
+    """Test execute() raises TypeError when client is None."""
+    tx = AccountCreateTransaction().freeze_with(mock_client)
+
+    with pytest.raises(TypeError, match="client must be an instance of Client"):
+        tx.execute(None)
+
+
+@pytest.mark.parametrize("validate_status", ["True", 1, None, 0.1, {}, []])
+def test_transaction_execute_with_invalid_validate_status_param(mock_client, validate_status):
+    """Test execute() raises TypeError when validate_status is invalid."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="validate_status must be a boolean"):
+        tx.execute(mock_client, validate_status=validate_status)
+
+
+@pytest.mark.parametrize("wait_for_receipt", ["True", 1, None, 0.1, {}, []])
+def test_transaction_execute_with_invalid_wait_for_receipt_param(mock_client, wait_for_receipt):
+    """Test execute() raises TypeError when wait_for_receipt is invalid."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="wait_for_receipt must be a boolean"):
+        tx.execute(mock_client, wait_for_receipt=wait_for_receipt)
+
+
+@pytest.mark.parametrize("timeout", ["1.0", True, {}, []])
+def test_transaction_execute_with_invalid_timeout_param(mock_client, timeout):
+    """Test execute() raises TypeError when timeout is invalid."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="timeout must be a int or float"):
+        tx.execute(mock_client, timeout=timeout)
