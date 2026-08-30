@@ -68,12 +68,18 @@ def test_build_transaction_body_with_valid_parameters(mock_account_ids, delete_p
     assert transaction_body.scheduleDelete.scheduleID == delete_params["schedule_id"]._to_proto()
 
 
-def test_build_transaction_body_missing_schedule_id():
-    """Test that build_transaction_body raises ValueError when schedule_id is missing."""
+def test_build_transaction_body_missing_schedule_id(mock_account_ids):
+    """Test building a schedule delete transaction body when schedule_id is missing."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
     delete_tx = ScheduleDeleteTransaction()
 
-    with pytest.raises(ValueError, match="Missing required ScheduleID"):
-        delete_tx.build_transaction_body()
+    delete_tx.operator_account_id = operator_id
+    delete_tx.set_node_account_ids([node_account_id])
+
+    transaction_body = delete_tx.build_transaction_body()
+
+    assert not transaction_body.scheduleDelete.HasField("scheduleID")
 
 
 def test_set_schedule_id(delete_params):
@@ -204,11 +210,12 @@ def test_build_proto_body_with_valid_schedule_id(delete_params):
 
 
 def test_build_proto_body_missing_schedule_id():
-    """Test that _build_proto_body raises ValueError when schedule_id is missing."""
+    """Test that _build_proto_body returns an empty body when schedule_id is missing."""
     delete_tx = ScheduleDeleteTransaction()
 
-    with pytest.raises(ValueError, match="Missing required ScheduleID"):
-        delete_tx._build_proto_body()
+    proto_body = delete_tx._build_proto_body()
+
+    assert not proto_body.HasField("scheduleID")
 
 
 def test_default_transaction_fee():

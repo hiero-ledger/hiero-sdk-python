@@ -62,3 +62,18 @@ class CreateScheduleParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class DeleteScheduleParams(BaseTransactionParams):
+    """Parse JSON-RPC params into a DeleteScheduleParams instance."""
+
+    scheduleId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteScheduleParams:
+        return cls(
+            scheduleId=params.get("scheduleId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
