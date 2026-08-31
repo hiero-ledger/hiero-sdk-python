@@ -35,9 +35,10 @@ def _setup_client():
 
 def _create_consensus_node(client, admin_key, associated_ids=None):
     """Helper: create a consensus node with optional associated_registered_nodes."""
+    node_account_key = PrivateKey.generate_ecdsa()
     account_id = (
         AccountCreateTransaction()
-        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_key_without_alias(node_account_key)
         .freeze_with(client)
         .execute(client)
         .account_id
@@ -61,7 +62,7 @@ def _create_consensus_node(client, admin_key, associated_ids=None):
     if associated_ids is not None:
         tx.set_associated_registered_nodes(associated_ids)
 
-    receipt = tx.freeze_with(client).sign(admin_key).execute(client)
+    receipt = tx.freeze_with(client).sign(admin_key).sign(node_account_key).execute(client)
     assert receipt.status == ResponseCode.SUCCESS, f"Node create failed: {ResponseCode(receipt.status).name}"
     return receipt.node_id
 
