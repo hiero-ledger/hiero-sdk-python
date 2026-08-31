@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from tck.param.base import BaseParams, BaseTransactionParams
-from tck.util.param_utils import parse_common_transaction_params, parse_session_id
+from tck.util.param_utils import parse_common_transaction_params, parse_session_id, to_int
 
 
 @dataclass
@@ -30,6 +30,27 @@ class CreateFileParams(BaseTransactionParams):
             contents=params.get("contents"),
             expirationTime=params.get("expirationTime"),
             memo=params.get("memo"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class AppendFileParams(BaseTransactionParams):
+    """Parameters for appending contents to a file. Extends BaseTransactionParams to include common transaction parameters."""
+
+    fileId: str | None = None
+    contents: str | None = None
+    maxChunks: int | None = None
+    chunkSize: int | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> AppendFileParams:
+        return cls(
+            fileId=params.get("fileId"),
+            contents=params.get("contents"),
+            maxChunks=to_int(params.get("maxChunks")),
+            chunkSize=to_int(params.get("chunkSize")),
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
