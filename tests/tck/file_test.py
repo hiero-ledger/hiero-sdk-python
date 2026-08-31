@@ -59,6 +59,15 @@ def test_parse_json_params():
     assert minimal.chunkSize is None
 
 
+def test_parse_json_params_requires_contents():
+    """contents is spec-required; missing or non-string values must fail fast, not build an empty append."""
+    with pytest.raises(ValueError):
+        AppendFileParams.parse_json_params({"sessionId": "session-1"})
+
+    with pytest.raises(ValueError):
+        AppendFileParams.parse_json_params({"sessionId": "session-1", "contents": 123})
+
+
 def test_append_file_wires_setters_and_returns_status():
     """contents/chunkSize must land before maxChunks, since chunk count derives from them."""
     params = AppendFileParams(

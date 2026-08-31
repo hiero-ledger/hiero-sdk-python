@@ -46,9 +46,13 @@ class AppendFileParams(BaseTransactionParams):
 
     @classmethod
     def parse_json_params(cls, params: dict) -> AppendFileParams:
+        contents = params.get("contents")
+        if not isinstance(contents, str):
+            raise ValueError("contents is required and must be a string")
+
         return cls(
             fileId=params.get("fileId"),
-            contents=params.get("contents"),
+            contents=contents,
             maxChunks=to_int(params.get("maxChunks")),
             chunkSize=to_int(params.get("chunkSize")),
             sessionId=parse_session_id(params),
