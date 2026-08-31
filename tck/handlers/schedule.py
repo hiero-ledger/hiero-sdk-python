@@ -6,6 +6,8 @@ from typing import Any, cast
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_create_transaction import ScheduleCreateTransaction
+from hiero_sdk_python.schedule.schedule_id import ScheduleId
+from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTransaction
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
@@ -20,11 +22,11 @@ from tck.param.account import CreateAccountParams
 from tck.param.allowance import ApproveAllowanceParams
 from tck.param.base import BaseTransactionParams
 from tck.param.common import CommonTransactionParams
-from tck.param.schedule import CreateScheduleParams, ScheduledTransactionParams
+from tck.param.schedule import CreateScheduleParams, ScheduledTransactionParams, SignScheduleParams
 from tck.param.token import BurnTokenParams, MintTokenParams
 from tck.param.topic import CreateTopicParams, TopicMessageSubmitParams
 from tck.param.transfer import TransferCryptoParams
-from tck.response.schedule import CreateScheduleResponse
+from tck.response.schedule import CreateScheduleResponse, SignScheduleResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
@@ -138,3 +140,41 @@ def create_schedule(params: CreateScheduleParams) -> CreateScheduleResponse:
             scheduled_transaction_id = str(receipt.scheduled_transaction_id)
 
     return CreateScheduleResponse(schedule_id, scheduled_transaction_id, ResponseCode(receipt.status).name)
+
+
+def _build_sign_schedule_transaction(params: SignScheduleParams) -> ScheduleSignTransaction:
+    """Build a ScheduleSignTransaction from TCK params."""
+    transaction = ScheduleSignTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    # The SDK requires an ID to serialize the transaction, while the TCK expects an
+    # omitted ID to reach the network and return INVALID_SCHEDULE_ID.
+    schedule_id = ScheduleId.from_string(params.scheduleId) if params.scheduleId is not None else ScheduleId()
+    transaction.set_schedule_id(schedule_id)
+
+    return transaction
+
+
+@rpc_method("signSchedule")
+def sign_schedule(params: SignScheduleParams) -> SignScheduleResponse:
+    """Sign a schedule."""
+    common_params = params.commonTransactionParams
+    if (
+        common_params is not None
+        and common_params.maxTransactionFee is not None
+        and common_params.maxTransactionFee < 0
+    ):
+        # Protobuf transactionFee is unsigned, so a negative TCK boundary value
+        # cannot reach network precheck in this SDK.
+        raise JsonRpcError.hiero_error({"status": ResponseCode.INSUFFICIENT_TX_FEE.name})
+
+    client = get_client(params.sessionId)
+
+    transaction = _build_sign_schedule_transaction(params)
+
+    if common_params is not None:
+        common_params.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return SignScheduleResponse(status=ResponseCode(receipt.status).name)
