@@ -65,9 +65,7 @@ def test_build_transaction_body_when_token_id_not_set(mock_account_ids):
     unpause_tx.operator_account_id = account_id
 
     transaction_body = unpause_tx.build_transaction_body()
-    assert not transaction_body.token_unpause.HasField(
-        "token"
-    ), "token field must be unset when token_id is None"
+    assert not transaction_body.token_unpause.HasField("token"), "token field must be unset when token_id is None"
 
 
 def test_set_method(mock_account_ids):
