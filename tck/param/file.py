@@ -51,3 +51,15 @@ class GetFileContentsParams(BaseParams):
             queryPayment=params.get("queryPayment"),
             maxQueryPayment=params.get("maxQueryPayment"),
         )
+
+
+@dataclass
+class GetFileInfoParams(BaseParams):
+    """Parameters for getting file information."""
+
+    fileId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GetFileInfoParams:
+        """Parse JSON-RPC params into a GetFileInfoParams instance."""
+        return cls(fileId=params.get("fileId"), sessionId=parse_session_id(params))

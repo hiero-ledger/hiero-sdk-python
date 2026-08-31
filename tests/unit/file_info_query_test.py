@@ -33,12 +33,11 @@ def test_constructor():
     assert query.file_id == file_id
 
 
-def test_execute_fails_with_missing_file_id(mock_client):
-    """Test request creation with missing File ID."""
+def test_make_request_with_missing_file_id():
+    """Test File ID is omitted from proto when not set."""
     query = FileInfoQuery()
-
-    with pytest.raises(ValueError, match="File ID must be set before making the request."):
-        query.execute(mock_client)
+    proto = query._make_request()
+    assert not proto.fileGetInfo.HasField("fileID")
 
 
 def test_get_method():
