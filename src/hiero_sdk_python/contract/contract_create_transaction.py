@@ -117,6 +117,9 @@ class ContractCreateTransaction(Transaction):
         """
         Sets the FileID of the file containing the contract bytecode.
 
+        The two bytecode sources share the protobuf initcodeSource oneof, so a
+        non-None value clears any inline bytecode.
+
         Args:
             bytecode_file_id (FileId | None): The FileID of the
                 bytecode file.
@@ -126,7 +129,8 @@ class ContractCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.bytecode_file_id = bytecode_file_id
-        self.bytecode = None
+        if bytecode_file_id is not None:
+            self.bytecode = None
         return self
 
     def set_bytecode(self, code: bytes | None) -> ContractCreateTransaction:
@@ -136,6 +140,9 @@ class ContractCreateTransaction(Transaction):
         If the bytecode is small enough, it may be stored directly in the
         transaction, otherwise it should be stored in a file.
 
+        The two bytecode sources share the protobuf initcodeSource oneof, so a
+        non-None value clears any bytecode file ID.
+
         Args:
             code (bytes | None): The contract bytecode.
 
@@ -144,7 +151,8 @@ class ContractCreateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.bytecode = code
-        self.bytecode_file_id = None
+        if code is not None:
+            self.bytecode_file_id = None
         return self
 
     def set_proxy_account_id(self, proxy_account_id: AccountId | None) -> ContractCreateTransaction:
@@ -352,11 +360,14 @@ class ContractCreateTransaction(Transaction):
             ContractCreateTransactionBody: The protobuf body for this transaction.
 
         Raises:
-            ValueError: If both staked_account_id and staked_node_id are set;
-                the protobuf staked_id oneof would silently drop one of them.
+            ValueError: If both staked_account_id and staked_node_id are set,
+                or both bytecode and bytecode_file_id are set; each pair shares
+                a protobuf oneof that would silently drop one of them.
         """
         if self.staked_account_id is not None and self.staked_node_id is not None:
             raise ValueError("Specify either staked_node_id or staked_account_id, not both.")
+        if self.bytecode is not None and self.bytecode_file_id is not None:
+            raise ValueError("Specify either bytecode or bytecode_file_id, not both.")
         return ContractCreateTransactionBody(
             gas=self.gas,
             initialBalance=self.initial_balance,

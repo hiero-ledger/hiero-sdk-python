@@ -292,6 +292,36 @@ def test_bytecode_setters_clear_each_other():
     assert contract_tx.bytecode_file_id is None
 
 
+def test_bytecode_setters_unset_with_none_without_clearing_the_other():
+    """Test that unsetting one bytecode source does not wipe the other."""
+    contract_tx = ContractCreateTransaction().set_bytecode_file_id(FileId(0, 0, 123))
+
+    contract_tx.set_bytecode(None)
+
+    assert contract_tx.bytecode_file_id == FileId(0, 0, 123)
+    assert contract_tx.bytecode is None
+
+    contract_tx = ContractCreateTransaction().set_bytecode(b"test bytecode")
+
+    contract_tx.set_bytecode_file_id(None)
+
+    assert contract_tx.bytecode == b"test bytecode"
+    assert contract_tx.bytecode_file_id is None
+
+
+def test_build_proto_body_rejects_conflicting_bytecode_sources():
+    """Test the constructor path, where both initcodeSource fields can remain set."""
+    contract_tx = ContractCreateTransaction(
+        contract_params=ContractCreateParams(
+            bytecode=b"test bytecode",
+            bytecode_file_id=FileId(0, 0, 123),
+        )
+    )
+
+    with pytest.raises(ValueError, match="Specify either bytecode or bytecode_file_id"):
+        contract_tx._build_proto_body()
+
+
 @pytest.mark.parametrize(
     "admin_key",
     [
