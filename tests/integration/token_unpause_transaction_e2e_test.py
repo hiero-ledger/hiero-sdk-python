@@ -83,14 +83,15 @@ def test_unpause_token_with_invalid_pause_key(env, pausable_token):
 def test_unpause_token_when_token_id_not_set(env):
     """Test unpause transaction when token_id is not provided."""
     unpause_tx = TokenUnpauseTransaction()
-    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_TOKEN_ID"):
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_TOKEN_ID") as exc_info:
         unpause_tx.execute(env.client)
+    assert exc_info.value.status == ResponseCode.INVALID_TOKEN_ID
 
 
 @pytest.mark.integration
 def test_unpause_token_with_invalid_token_id(env):
     """Test unpause transaction using an invalid token ID."""
-    token_id = TokenId(0, 0, 99999999)
+    token_id = TokenId(0, 0, 0)
 
     unpause_tx = TokenUnpauseTransaction().set_token_id(token_id).freeze_with(env.client).sign(pause_key)
 
