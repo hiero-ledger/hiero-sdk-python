@@ -53,24 +53,18 @@ class FileUpdateTransaction(Transaction):
             file_id (FileId, optional): The ID of the file to update.
             keys (Optional[list[Key]], optional): The new keys that are allowed to
             update/delete the file.
-            contents (str | bytes, optional): The new contents of the file.
+            contents (str | bytes, bytearray, optional): The new contents of the file.
             Strings will be automatically encoded as UTF-8 bytes.
             expiration_time (Timestamp, optional): The new expiration time for the file.
             file_memo (str, optional): The new memo for the file.
         """
         super().__init__()
-        self.file_id: FileId | None = None
-        self.keys: list[Key] | None = None
-        self.contents: bytes | None = None
-        self.expiration_time: Timestamp | None = None
-        self.file_memo: str | None = None
+        self.file_id: FileId | None = file_id
+        self.keys: list[Key] | None = keys
+        self.contents: bytes | None = encode_file_contents(contents)
+        self.expiration_time: Timestamp | None = expiration_time
+        self.file_memo: str | None = file_memo
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
-
-        self.set_file_id(file_id)
-        self.set_keys(keys)
-        self.set_contents(contents)
-        self.set_expiration_time(expiration_time)
-        self.set_file_memo(file_memo)
 
     def set_file_id(self, file_id: FileId | None) -> FileUpdateTransaction:
         """
@@ -83,9 +77,6 @@ class FileUpdateTransaction(Transaction):
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        if file_id is not None and not isinstance(file_id, FileId):
-            raise TypeError("file_id must be of type FileId")
-
         self.file_id = file_id
         return self
 
@@ -117,9 +108,6 @@ class FileUpdateTransaction(Transaction):
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        if expiration_time is not None and not isinstance(expiration_time, Timestamp):
-            raise TypeError("expiration_time must be of type Timestamp")
-
         self.expiration_time = expiration_time
         return self
 
@@ -149,9 +137,6 @@ class FileUpdateTransaction(Transaction):
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        if file_memo is not None and not isinstance(file_memo, str):
-            raise TypeError("file_memo must be of type str")
-
         self.file_memo = file_memo
         return self
 
