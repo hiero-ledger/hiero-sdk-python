@@ -6,9 +6,9 @@ from typing import Any, cast
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_create_transaction import ScheduleCreateTransaction
+from hiero_sdk_python.schedule.schedule_delete_transaction import ScheduleDeleteTransaction
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTransaction
-from hiero_sdk_python.schedule.schedule_delete_transaction import ScheduleDeleteTransaction
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
@@ -23,11 +23,16 @@ from tck.param.account import CreateAccountParams
 from tck.param.allowance import ApproveAllowanceParams
 from tck.param.base import BaseTransactionParams
 from tck.param.common import CommonTransactionParams
-from tck.param.schedule import CreateScheduleParams, ScheduledTransactionParams, SignScheduleParams
+from tck.param.schedule import (
+    CreateScheduleParams,
+    DeleteScheduleParams,
+    ScheduledTransactionParams,
+    SignScheduleParams,
+)
 from tck.param.token import BurnTokenParams, MintTokenParams
 from tck.param.topic import CreateTopicParams, TopicMessageSubmitParams
 from tck.param.transfer import TransferCryptoParams
-from tck.response.schedule import CreateScheduleResponse, SignScheduleResponse, DeleteScheduleResponse
+from tck.response.schedule import CreateScheduleResponse, DeleteScheduleResponse, SignScheduleResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
@@ -117,8 +122,9 @@ def _build_create_schedule_transaction(params: CreateScheduleParams) -> Schedule
         transaction.set_wait_for_expiry(params.waitForExpiry)
 
     return transaction
-  
-  def _build_sign_schedule_transaction(params: SignScheduleParams) -> ScheduleSignTransaction:
+
+
+def _build_sign_schedule_transaction(params: SignScheduleParams) -> ScheduleSignTransaction:
     """Build a ScheduleSignTransaction from TCK params."""
     transaction = ScheduleSignTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
@@ -161,6 +167,7 @@ def create_schedule(params: CreateScheduleParams) -> CreateScheduleResponse:
 
     return CreateScheduleResponse(schedule_id, scheduled_transaction_id, ResponseCode(receipt.status).name)
 
+
 @rpc_method("signSchedule")
 def sign_schedule(params: SignScheduleParams) -> SignScheduleResponse:
     """Sign a schedule."""
@@ -185,7 +192,8 @@ def sign_schedule(params: SignScheduleParams) -> SignScheduleResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return SignScheduleResponse(status=ResponseCode(receipt.status).name)
-  
+
+
 @rpc_method("deleteSchedule")
 def delete_schedule(params: DeleteScheduleParams) -> DeleteScheduleResponse:
     """Handles the deleteSchedule JSON-RPC request."""

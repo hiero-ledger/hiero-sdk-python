@@ -67,9 +67,9 @@ class CreateScheduleParams(BaseTransactionParams):
 @dataclass
 class SignScheduleParams(BaseTransactionParams):
     """Request parameters for the signSchedule endpoint."""
-    
+
     scheduleId: str | None = None
-      
+
     @classmethod
     def parse_json_params(cls, params: dict) -> SignScheduleParams:
         """Parse JSON-RPC params into a SignScheduleParams instance."""
@@ -78,14 +78,15 @@ class SignScheduleParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
-      
-@dataclass    
+
+
+@dataclass
 class DeleteScheduleParams(BaseTransactionParams):
     """Parse JSON-RPC params into a DeleteScheduleParams instance."""
 
     scheduleId: str | None = None
 
-    @classmethod  
+    @classmethod
     def parse_json_params(cls, params: dict) -> DeleteScheduleParams:
         return cls(
             scheduleId=params.get("scheduleId"),
