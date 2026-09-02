@@ -39,6 +39,7 @@ from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransact
 from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
+from hiero_sdk_python.tokens.token_unpause_transaction import TokenUnpauseTransaction
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
@@ -62,6 +63,7 @@ from tck.param.token import (
     RejectTokenParams,
     RevokeTokenKycParams,
     UnfreezeTokenParams,
+    UnpauseTokenParams,
     UpdateTokenParams,
     WipeTokenParams,
 )
@@ -84,6 +86,7 @@ from tck.response.token import (
     RejectTokenResponse,
     RevokeTokenKycResponse,
     UnfreezeTokenResponse,
+    UnpauseTokenResponse,
     UpdateTokenResponse,
     WipeTokenResponse,
 )
@@ -407,6 +410,16 @@ def _build_pause_token_transaction(params: PauseTokenParams) -> TokenPauseTransa
     return transaction
 
 
+def _build_unpause_token_transaction(params: UnpauseTokenParams) -> TokenUnpauseTransaction:
+    """Build a TokenUnpauseTransaction from TCK params."""
+    transaction = TokenUnpauseTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.tokenId is not None:
+        transaction.set_token_id(TokenId.from_string(params.tokenId))
+
+    return transaction
+
+
 def _build_grant_token_kyc_transaction(params: GrantTokenKycParams) -> TokenGrantKycTransaction:
     """Build a TokenGrantKycTransaction from TCK params."""
     transaction = TokenGrantKycTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
@@ -538,6 +551,22 @@ def pause_token(params: PauseTokenParams) -> PauseTokenResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return PauseTokenResponse(status=ResponseCode(receipt.status).name)
+
+
+@rpc_method("unpauseToken")
+def unpause_token(params: UnpauseTokenParams) -> UnpauseTokenResponse:
+    """Unpause a token using TCK unpauseToken parameters."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_unpause_token_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UnpauseTokenResponse(status=ResponseCode(receipt.status).name)
 
 
 @rpc_method("grantTokenKyc")
