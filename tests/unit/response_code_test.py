@@ -74,3 +74,19 @@ def test_unknown_code_still_falls_back() -> None:
     assert unknown.name == "UNKNOWN_CODE_9999"
     assert unknown.is_unknown
     assert not ResponseCode.SUCCESS.is_unknown
+
+
+@pytest.mark.parametrize(
+    ("code", "expected_name"),
+    [
+        (344, "INVALID_GOSSIP_CA_CERTIFICATE"),
+        (356, "SERVICE_ENDPOINTS_EXCEEDED_LIMIT"),
+        (113, "RECEIVER_SIG_REQUIRED"),
+        (9999, "UNKNOWN_CODE_9999"),
+    ],
+)
+def test_deprecated_get_name_still_returns_the_canonical_name(code: int, expected_name: str) -> None:
+    """The deprecated get_name helper keeps working, and still warns, for corrected and unknown codes."""
+    with pytest.warns(FutureWarning):
+        name = ResponseCode.get_name(code)
+    assert name == expected_name, f"get_name({code}) must return {expected_name!r}, got {name!r}"
