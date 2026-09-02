@@ -76,12 +76,17 @@ def test_build_proto_body_with_schedule_id(schedule_id):
     assert proto_body.scheduleID == schedule_id._to_proto()
 
 
-def test_build_proto_body_without_schedule_id_raises_error():
-    """Test building protobuf body without a schedule ID."""
+def test_build_proto_body_without_schedule_id_omits_field():
+    """Test that building a protobuf body without a schedule ID leaves the field unset.
+
+    The network rejects a body with no scheduleID with INVALID_SCHEDULE_ID, so the
+    omission is left for it to answer instead of failing locally.
+    """
     schedule_sign_tx = ScheduleSignTransaction()
 
-    with pytest.raises(ValueError, match="Missing required ScheduleID"):
-        schedule_sign_tx._build_proto_body()
+    proto_body = schedule_sign_tx._build_proto_body()
+
+    assert not proto_body.HasField("scheduleID")
 
 
 def test_build_transaction_body_with_valid_schedule_id(mock_account_ids, schedule_id):

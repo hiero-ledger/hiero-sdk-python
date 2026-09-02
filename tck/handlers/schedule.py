@@ -146,10 +146,8 @@ def _build_sign_schedule_transaction(params: SignScheduleParams) -> ScheduleSign
     """Build a ScheduleSignTransaction from TCK params."""
     transaction = ScheduleSignTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
-    # The SDK requires an ID to serialize the transaction, while the TCK expects an
-    # omitted ID to reach the network and return INVALID_SCHEDULE_ID.
-    schedule_id = ScheduleId.from_string(params.scheduleId) if params.scheduleId is not None else ScheduleId()
-    transaction.set_schedule_id(schedule_id)
+    if params.scheduleId is not None:
+        transaction.set_schedule_id(ScheduleId.from_string(params.scheduleId))
 
     return transaction
 
