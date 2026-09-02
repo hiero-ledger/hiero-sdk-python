@@ -317,3 +317,40 @@ def test_file_create_transaction_from_proto_keys():
     assert from_proto.contents == b""
     assert from_proto.file_memo == ""
     assert from_proto.keys == []
+
+
+@pytest.mark.parametrize("keys", ["Key", True, {}, 1, 0.1, ["Key"]])
+def test_set_keys_with_invalid_types(keys):
+    """Test that set_keys raises TypeError for invalid key types."""
+    file_tx = FileCreateTransaction()
+    with pytest.raises(TypeError, match="keys must be a Key, list of Key objects, or None"):
+        file_tx.set_keys(keys)
+
+
+def test_set_keys_normalizes_tuple_and_none():
+    """Test that set_keys accepts a tuple of keys and treats None as an empty list."""
+    public_key = PrivateKey.generate().public_key()
+    file_tx = FileCreateTransaction()
+
+    file_tx.set_keys((public_key,))
+    assert file_tx.keys == [public_key]
+
+    file_tx.set_keys(None)
+    assert file_tx.keys == []
+
+
+@pytest.mark.parametrize("contents", [True, 0, 0.1, {}, []])
+def test_set_contents_with_invalid_types(contents):
+    """Test that set_contents raises TypeError for invalid content types."""
+    file_tx = FileCreateTransaction()
+    with pytest.raises(TypeError, match="contents must be of type bytes or str"):
+        file_tx.set_contents(contents)
+
+
+def test_set_contents_accepts_bytearray():
+    """Test that set_contents accepts bytearray and stores it as bytes."""
+    file_tx = FileCreateTransaction()
+    file_tx.set_contents(bytearray(b"buffered content"))
+
+    assert file_tx.contents == b"buffered content"
+    assert isinstance(file_tx.contents, bytes)

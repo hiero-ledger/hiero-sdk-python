@@ -21,6 +21,7 @@ from hiero_sdk_python.hapi.services import file_append_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.chunked_transaction import ChunkedTransaction
+from hiero_sdk_python.utils.file_utils import encode_file_contents
 
 
 if TYPE_CHECKING:
@@ -51,7 +52,7 @@ class FileAppendTransaction(ChunkedTransaction):
     ):
         super().__init__()
         self.file_id: FileId | None = file_id
-        self.contents: bytes | None = self._encode_contents(contents)
+        self.contents: bytes | None = encode_file_contents(contents)
         self.max_chunks: int = 20
         self.chunk_size: int = 4096
         self._default_transaction_fee = Hbar(5).to_tinybars()
@@ -62,22 +63,6 @@ class FileAppendTransaction(ChunkedTransaction):
             self.set_chunk_size(chunk_size)
 
         self._total_chunks = self._calculate_total_chunks()
-
-    def _encode_contents(self, contents: str | bytes | None) -> bytes | None:
-        """
-        Helper method to encode string contents to UTF-8 bytes.
-
-        Args:
-            contents (Optional[str | bytes]): The contents to encode.
-
-        Returns:
-            Optional[bytes]: The encoded contents or None if input is None.
-        """
-        if contents is None:
-            return None
-        if isinstance(contents, str):
-            return contents.encode("utf-8")
-        return contents
 
     def _calculate_total_chunks(self) -> int:
         """
@@ -113,19 +98,19 @@ class FileAppendTransaction(ChunkedTransaction):
         self.file_id = file_id
         return self
 
-    def set_contents(self, contents: str | bytes | None) -> FileAppendTransaction:
+    def set_contents(self, contents: str | bytes | bytearray | None) -> FileAppendTransaction:
         """
         Sets the contents for this file append transaction.
 
         Args:
-            contents (Optional[str | bytes]): The contents to append to the file.
+            contents (str | bytes | bytearray | None): The contents to append to the file.
                 Strings will be automatically encoded as UTF-8 bytes.
 
         Returns:
             FileAppendTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        self.contents = self._encode_contents(contents)
+        self.contents = encode_file_contents(contents)
         self._total_chunks = self._calculate_total_chunks()
         return self
 
