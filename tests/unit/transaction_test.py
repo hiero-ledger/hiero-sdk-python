@@ -9,7 +9,6 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import ReceiptStatusError
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
-from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
@@ -31,24 +30,6 @@ from tests.unit.mock_server import mock_hedera_servers
 
 
 pytestmark = pytest.mark.unit
-
-
-@pytest.fixture
-def file_id():
-    """Returns a file_id for test."""
-    return FileId.from_string("0.0.1")
-
-
-@pytest.fixture
-def account_id():
-    """Returns an account_id for test."""
-    return AccountId.from_string("0.0.9")
-
-
-@pytest.fixture
-def transaction_id():
-    """Returns a transaction_id for test."""
-    return TransactionId.from_string("0.0.9@1770911831.331000137")
 
 
 def test_execute_waits_for_receipt_receipt():
@@ -187,8 +168,9 @@ def test_multiple_keys_still_work():
     assert pubkey_prefixes == expected_prefixes, "Signatures should match key1 and key2 exactly"
 
 
-def test_same_size_for_identical_transactions(transaction_id, account_id):
+def test_same_size_for_identical_transactions(transaction_id, mock_account_ids):
     """Test two identical transactions should have the same size."""
+    _, _, node_account_id, _, _ = mock_account_ids
     key = PrivateKey.generate()
 
     tx1 = (
@@ -196,7 +178,7 @@ def test_same_size_for_identical_transactions(transaction_id, account_id):
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -205,15 +187,16 @@ def test_same_size_for_identical_transactions(transaction_id, account_id):
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
     assert tx1.size == tx2.size
 
 
-def test_signed_tx_have_larger_size(transaction_id, account_id):
+def test_signed_tx_have_larger_size(transaction_id, mock_account_ids):
     """Test signed Transaction should have larger size."""
+    _, _, node_account_id, _, _ = mock_account_ids
     key = PrivateKey.generate()
 
     tx1 = (
@@ -221,7 +204,7 @@ def test_signed_tx_have_larger_size(transaction_id, account_id):
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
         .sign(PrivateKey.generate())
     )
@@ -231,20 +214,22 @@ def test_signed_tx_have_larger_size(transaction_id, account_id):
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
     assert tx1.size > tx2.size
 
 
-def test_tx_with_larger_content_should_have_larger_tx_body(transaction_id, account_id):
+def test_tx_with_larger_content_should_have_larger_tx_body(transaction_id, mock_account_ids):
     """Test transaction with larger content should have larger transaction body."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
     tx1 = (
         FileCreateTransaction()
         .set_contents("smallBody")
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -252,22 +237,24 @@ def test_tx_with_larger_content_should_have_larger_tx_body(transaction_id, accou
         FileCreateTransaction()
         .set_contents("veryLargeBody")
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
     assert tx1.body_size < tx2.body_size
 
 
-def test_tx_without_optional_fields_should_have_smaller_tx_body(transaction_id, account_id):
+def test_tx_without_optional_fields_should_have_smaller_tx_body(transaction_id, mock_account_ids):
     """Test transaction with without optional fields should have smaller transaction body."""
+    _, _, node_account_id, _, _ = mock_account_ids
     key = PrivateKey.generate()
+
     tx1 = (
         AccountCreateTransaction()
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -276,7 +263,7 @@ def test_tx_without_optional_fields_should_have_smaller_tx_body(transaction_id, 
         .set_key_without_alias(key)
         .set_initial_balance(Hbar(2))
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .set_alias(PrivateKey.generate_ecdsa().public_key().to_evm_address())
         .set_transaction_valid_duration(10)
         .freeze()
@@ -285,8 +272,9 @@ def test_tx_without_optional_fields_should_have_smaller_tx_body(transaction_id, 
     assert tx1.body_size < tx2.body_size
 
 
-def test_file_append_chunk_tx_should_return_list_of_body_sizes(file_id, account_id, transaction_id):
+def test_file_append_chunk_tx_should_return_list_of_body_sizes(file_id, transaction_id, mock_account_ids):
     """Test file append tx should return array of body sizes for multi-chunk transaction."""
+    _, _, node_account_id, _, _ = mock_account_ids
     chunk_size = 1024
     content = "a" * (chunk_size * 3)
 
@@ -296,7 +284,7 @@ def test_file_append_chunk_tx_should_return_list_of_body_sizes(file_id, account_
         .set_chunk_size(chunk_size)
         .set_contents(content)
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -305,15 +293,17 @@ def test_file_append_chunk_tx_should_return_list_of_body_sizes(file_id, account_
     assert len(sizes) == 3
 
 
-def test_file_append_single_chunk_tx_return_list_of_len_one(file_id, account_id, transaction_id):
+def test_file_append_single_chunk_tx_return_list_of_len_one(file_id, transaction_id, mock_account_ids):
     """Test file append tx should return array of one size for single-chunk transaction."""
+    _, _, node_account_id, _, _ = mock_account_ids
     content = "small_content"
+
     tx = (
         FileAppendTransaction()
         .set_file_id(file_id)
         .set_contents(content)
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -322,8 +312,9 @@ def test_file_append_single_chunk_tx_return_list_of_len_one(file_id, account_id,
     assert len(sizes) == 1
 
 
-def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, account_id, transaction_id):
+def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, transaction_id, mock_account_ids):
     """Test topic message submit tx should return array of body sizes for multi-chunk transaction."""
+    _, _, node_account_id, _, _ = mock_account_ids
     chunk_size = 1024
     message = "a" * (chunk_size * 3)
 
@@ -333,7 +324,7 @@ def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, acco
         .set_chunk_size(chunk_size)
         .set_message(message)
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -343,15 +334,17 @@ def test_message_submit_chunk_tx_should_return_list_of_body_sizes(topic_id, acco
     assert tx._current_chunk_index == 0
 
 
-def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, account_id, transaction_id):
+def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, transaction_id, mock_account_ids):
     """Test topic message submit tx should return array of one size for single-chunk transaction."""
+    _, _, node_account_id, _, _ = mock_account_ids
     message = "small_content"
+
     tx = (
         TopicMessageSubmitTransaction()
         .set_topic_id(topic_id)
         .set_message(message)
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -360,14 +353,16 @@ def test_message_submit_single_chunk_tx_return_list_of_len_one(topic_id, account
     assert len(sizes) == 1
 
 
-def test_tx_with_no_content_should_return_single_body_chunk(file_id, account_id, transaction_id):
+def test_tx_with_no_content_should_return_single_body_chunk(file_id, transaction_id, mock_account_ids):
     """Test should return single body chunk for transaction with no content."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
     tx = (
         FileAppendTransaction()
         .set_file_id(file_id)
         .set_contents(" ")
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -376,8 +371,9 @@ def test_tx_with_no_content_should_return_single_body_chunk(file_id, account_id,
     assert len(sizes) == 1
 
 
-def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
+def test_chunked_tx_return_proper_sizes(file_id, transaction_id, mock_account_ids):
     """Test should return proper sizes for FileAppend transactions when chunking occurs."""
+    _, _, node_account_id, _, _ = mock_account_ids
     large_content = "a" * 2048
 
     large_tx = (
@@ -385,7 +381,7 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
         .set_file_id(file_id)
         .set_contents(large_content)
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -398,7 +394,7 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
         .set_file_id(file_id)
         .set_contents(small_content)
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -411,8 +407,9 @@ def test_chunked_tx_return_proper_sizes(file_id, account_id, transaction_id):
     assert large_tx._current_chunk_index == 0
 
 
-def test_chunked_tx_differ_size_if_chunk_are_not_equal(topic_id, account_id, transaction_id):
+def test_chunked_tx_differ_size_if_chunk_are_not_equal(topic_id, transaction_id, mock_account_ids):
     """Test that the last chunk's size is different from the full chunks if the chunk size is not even."""
+    _, _, node_account_id, _, _ = mock_account_ids
     chunk_size = 1024
     message = "a" * (chunk_size + 512)
 
@@ -422,7 +419,7 @@ def test_chunked_tx_differ_size_if_chunk_are_not_equal(topic_id, account_id, tra
         .set_chunk_size(chunk_size)
         .set_message(message)
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -453,13 +450,15 @@ def test_high_volume_can_be_serialized(mock_client):
     assert transaction_from_bytes.high_volume is True
 
 
-def test_high_volume_cannot_change_after_freeze(transaction_id, account_id):
+def test_high_volume_cannot_change_after_freeze(transaction_id, mock_account_ids):
     """Test that high_volume cannot be modified after freezing."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
     transaction = (
         AccountCreateTransaction()
         .set_key_without_alias(PrivateKey.generate_ed25519())
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .freeze()
     )
 
@@ -469,16 +468,17 @@ def test_high_volume_cannot_change_after_freeze(transaction_id, account_id):
 
 def test_high_volume_is_included_in_protobuf_output(
     transaction_id,
-    account_id,
+    mock_account_ids,
 ):
     """Test that high_volume is correctly serialized into protobuf output."""
+    _, _, node_account_id, _, _ = mock_account_ids
 
     # Test with high_volume=True
     transaction = (
         AccountCreateTransaction()
         .set_key_without_alias(PrivateKey.generate_ed25519())
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .set_high_volume(True)
         .freeze()
     )
@@ -497,7 +497,7 @@ def test_high_volume_is_included_in_protobuf_output(
         AccountCreateTransaction()
         .set_key_without_alias(PrivateKey.generate_ed25519())
         .set_transaction_id(transaction_id)
-        .set_node_account_ids([account_id])
+        .set_node_account_ids([node_account_id])
         .set_high_volume(False)
         .freeze()
     )
@@ -543,8 +543,10 @@ def test_transaction_fee_rejects_negative_int():
         tx.transaction_fee = -1
 
 
-def test_transaction_default_max_fee(account_id):
+def test_transaction_default_max_fee(mock_account_ids):
     """Test default transaction fee is set if no transaction fee is set."""
+    account_id = mock_account_ids[0]
+
     tx = TopicMessageSubmitTransaction()
     tx.set_node_account_ids([AccountId(0, 0, 3)])
     tx.operator_account_id = account_id
