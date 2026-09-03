@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
@@ -185,6 +186,17 @@ def test_integration_schedule_sign_transaction_fails_invalid_schedule_id(env):
         f"Schedule sign transaction should have failed with INVALID_SCHEDULE_ID status but got: "
         f"{ResponseCode(receipt.status).name}"
     )
+
+
+@pytest.mark.integration
+def test_integration_schedule_sign_transaction_fails_without_schedule_id(env):
+    """Test that ScheduleSignTransaction fails precheck when no schedule ID is set.
+
+    The body omits scheduleID entirely, which the network rejects in pureChecks, so the
+    failure arrives as a precheck error rather than a receipt status.
+    """
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_SCHEDULE_ID"):
+        ScheduleSignTransaction().freeze_with(env.client).sign(env.operator_key).execute(env.client)
 
 
 def test_integration_schedule_sign_transaction_fails_with_already_executed(env):
