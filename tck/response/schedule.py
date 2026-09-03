@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from tck.response.base import StatusOnlyResponse
+
 
 @dataclass
 class CreateScheduleResponse:
@@ -10,3 +12,13 @@ class CreateScheduleResponse:
     scheduleId: str | None = None
     transactionId: str | None = None
     status: str | None = None
+
+
+@dataclass
+class SignScheduleResponse(StatusOnlyResponse):
+    """Response payload for signSchedule."""
+
+
+@dataclass
+class DeleteScheduleResponse(StatusOnlyResponse):
+    """Response payload for deleteSchedule."""
