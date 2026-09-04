@@ -17,6 +17,7 @@ pytestmark = pytest.mark.unit
 
 class TestCreateEthereumTransactionParams:
     def test_parses_all_params(self):
+        """Parse all createEthereumTransaction parameters."""
         params = CreateEthereumTransactionParams.parse_json_params(
             {
                 "sessionId": "session-1",
@@ -35,12 +36,14 @@ class TestCreateEthereumTransactionParams:
         assert params.commonTransactionParams.memo == "tx memo"
 
     def test_requires_session_id(self):
+        """Reject parameters without a session ID."""
         with pytest.raises(ValueError):
             CreateEthereumTransactionParams.parse_json_params(
                 {"ethereumData": "0x1234"}
             )
 
     def test_absent_params_stay_none(self):
+        """Leave optional parameters unset when they are absent."""
         params = CreateEthereumTransactionParams.parse_json_params(
             {"sessionId": "session-1"}
         )
@@ -53,6 +56,7 @@ class TestCreateEthereumTransactionParams:
 
 class TestBuildCreateEthereumTransaction:
     def test_maps_all_params(self):
+        """Map all Ethereum transaction parameters to the SDK transaction."""
         params = CreateEthereumTransactionParams(
             sessionId="session-1",
             ethereumData="0x1234abcd",
@@ -67,6 +71,7 @@ class TestBuildCreateEthereumTransaction:
         assert transaction.max_gas_allowed == 100000000
 
     def test_absent_params_left_unset_for_sdk_defaults(self):
+        """Leave absent parameters unset for SDK defaults."""
         params = CreateEthereumTransactionParams(sessionId="session-1")
 
         transaction = ethereum_handlers._build_create_ethereum_transaction(params)
@@ -76,6 +81,7 @@ class TestBuildCreateEthereumTransaction:
         assert transaction.max_gas_allowed is None
 
     def test_ethereum_data_accepts_0x_prefix(self):
+        """Decode Ethereum data without requiring a 0x prefix."""
         params = CreateEthereumTransactionParams(
             sessionId="session-1",
             ethereumData="1234abcd",
@@ -86,7 +92,7 @@ class TestBuildCreateEthereumTransaction:
         assert transaction.ethereum_data == b"\x12\x34\xab\xcd"
 
     def test_invalid_ethereum_data_hex_raises_sdk_error(self):
-        """Malformed hex should raise an SDK error."""
+        """Reject Ethereum data containing invalid hexadecimal characters."""
         params = CreateEthereumTransactionParams(
             sessionId="session-1",
             ethereumData="0xZZ",
@@ -96,6 +102,7 @@ class TestBuildCreateEthereumTransaction:
             ethereum_handlers._build_create_ethereum_transaction(params)
 
     def test_invalid_call_data_file_id_raises_sdk_error(self):
+        """Reject an invalid call data file ID."""
         params = CreateEthereumTransactionParams(
             sessionId="session-1",
             callDataFileId="invalid",
@@ -105,6 +112,7 @@ class TestBuildCreateEthereumTransaction:
             ethereum_handlers._build_create_ethereum_transaction(params)
 
     def test_zero_allowance_passes_through_to_the_sdk(self):
+        """Pass a zero gas allowance through to the SDK."""
         params = CreateEthereumTransactionParams(
             sessionId="session-1",
             maxGasAllowance="0",
@@ -122,7 +130,7 @@ class TestBuildCreateEthereumTransaction:
         ],
     )
     def test_int64_max_values_pass_through_to_the_sdk(self, allowance):
-        """Valid int64 maximum values pass through to the SDK."""
+        """Pass valid maximum int64 allowance values to the SDK."""
         params = CreateEthereumTransactionParams(
             sessionId="session-1",
             maxGasAllowance=allowance,
@@ -141,7 +149,7 @@ class TestBuildCreateEthereumTransaction:
         ],
     )
     def test_negative_allowance_passes_through_to_the_network(self, allowance):
-        """Negative allowances pass through to the SDK."""
+        """Pass negative allowances through for network validation."""
         params = CreateEthereumTransactionParams(
             sessionId="session-1",
             maxGasAllowance=allowance,
@@ -159,6 +167,7 @@ class TestBuildCreateEthereumTransaction:
         ],
     )
     def test_allowance_out_of_int64_range_raises_invalid_params(self, allowance):
+        """Reject gas allowances outside the int64 range."""
         params = CreateEthereumTransactionParams(
             sessionId="session-1",
             maxGasAllowance=allowance,
@@ -168,6 +177,7 @@ class TestBuildCreateEthereumTransaction:
             ethereum_handlers._build_create_ethereum_transaction(params)
 
     def test_invalid_allowance_raises_invalid_params(self):
+        """Reject a non-numeric gas allowance."""
         params = CreateEthereumTransactionParams(
             sessionId="session-1",
             maxGasAllowance="not-a-number",
@@ -178,7 +188,7 @@ class TestBuildCreateEthereumTransaction:
 
 
 def test_create_ethereum_transaction_registered_via_package_import():
-    """Importing tck.handlers registers createEthereumTransaction."""
+    """Register createEthereumTransaction when importing the handler package."""
     saved = {
         name: mod
         for name, mod in sys.modules.items()
