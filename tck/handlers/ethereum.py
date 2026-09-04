@@ -58,8 +58,7 @@ def create_ethereum_transaction(
         params.commonTransactionParams.apply_common_params(transaction, client)
 
     response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client)
-
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
     contract_id = ""
     if receipt.status == ResponseCode.SUCCESS and receipt.contract_id is not None:
         contract_id = str(receipt.contract_id)
