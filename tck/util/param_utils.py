@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import re
+
+
+_HEX_DIGITS_RE = re.compile(r"[0-9a-fA-F]*")
+
 
 def parse_session_id(params: dict) -> str:
     """Parse sessionId from the json rpc params."""
@@ -57,3 +62,13 @@ def to_bool(value) -> bool | None:
     if isinstance(value, str):
         return value.lower() == "true"
     return bool(value) if value is not None else None
+
+
+def decode_hex(value: str) -> bytes:
+    """Decode an optionally 0x-prefixed hex string into bytes.
+    Raises ValueError for whitespace, odd-length, or non-hex input.
+    """
+    text = value[2:] if value.startswith("0x") else value
+    if not _HEX_DIGITS_RE.fullmatch(text):
+        raise ValueError(f"non-hexadecimal characters in hex string: {value!r}")
+    return bytes.fromhex(text)

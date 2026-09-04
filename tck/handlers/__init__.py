@@ -5,6 +5,7 @@
 from . import (
     account,
     allowance,
+    ethereum,
     file,
     key,
     schedule,
