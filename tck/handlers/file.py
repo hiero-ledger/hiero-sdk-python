@@ -69,7 +69,6 @@ def _build_append_file_transaction(params: AppendFileParams) -> FileAppendTransa
     # INVALID_FILE_ID rather than raising a client-side ValueError (TCK FileId #5).
     transaction.set_file_id(FileId.from_string(params.fileId) if params.fileId is not None else FileId())
 
-    # chunk count is derived from contents/chunk_size, so set those before max_chunks
     if params.contents is not None:
         transaction.set_contents(params.contents)
 
