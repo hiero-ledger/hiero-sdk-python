@@ -297,8 +297,9 @@ def test_file_append_chunk_tx_should_return_list_of_body_sizes(file_id, transact
     assert tx._transaction_ids.index == 0
 
 
-def test_chunk_tx_should_call_body_size_for_each_chunk(file_id, account_id, transaction_id):
+def test_chunk_tx_should_call_body_size_for_each_chunk(file_id, mock_account_ids, transaction_id):
     """Test file chunk tx should call body size for each chunks."""
+    _, _, account_id, _, _ = mock_account_ids
     chunk_size = 1024
     content = "a" * (chunk_size * 3)
 
