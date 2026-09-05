@@ -20,6 +20,7 @@ from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import file_append_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.schedule.schedule_create_transaction import ScheduleCreateTransaction
 from hiero_sdk_python.transaction.chunked_transaction import ChunkedTransaction
 
 
@@ -129,32 +130,6 @@ class FileAppendTransaction(ChunkedTransaction):
         self._total_chunks = self._calculate_total_chunks()
         return self
 
-    def set_max_chunks(self, max_chunks: int) -> FileAppendTransaction:
-        """
-        Sets the maximum number of chunks allowed for this transaction.
-
-        Args:
-            max_chunks (int): The maximum number of chunks allowed.
-
-        Returns:
-            FileAppendTransaction: This transaction instance.
-        """
-        super().set_max_chunks(max_chunks)
-        return self
-
-    def set_chunk_size(self, chunk_size: int) -> FileAppendTransaction:
-        """
-        Sets the chunk size for this transaction.
-
-        Args:
-            chunk_size (int): The size of each chunk in bytes.
-
-        Returns:
-            FileAppendTransaction: This transaction instance.
-        """
-        super().set_chunk_size(chunk_size)
-        return self
-
     def _build_proto_body(self) -> file_append_pb2.FileAppendTransactionBody:
         """
         Returns the protobuf body for the file append transaction.
@@ -169,15 +144,16 @@ class FileAppendTransaction(ChunkedTransaction):
         if self.file_id is None:
             raise ValueError("Missing required FileID")
 
-        if self.contents is None:
-            chunk_contents = b""
-        else:
-            start_index = self._current_chunk_index * self.chunk_size
-            end_index = min(start_index + self.chunk_size, len(self.contents))
-            chunk_contents = self.contents[start_index:end_index]
+        contents = self.contents if self.contents is not None else b""
+
+        if self._current_chunk_index is not None:
+            chunk_contents = self._current_chunk_slice(contents)
+            return file_append_pb2.FileAppendTransactionBody(
+                fileID=self.file_id._to_proto() if self.file_id else None, contents=chunk_contents
+            )
 
         return file_append_pb2.FileAppendTransactionBody(
-            fileID=self.file_id._to_proto() if self.file_id else None, contents=chunk_contents
+            fileID=self.file_id._to_proto() if self.file_id else None, contents=contents
         )
 
     def build_transaction_body(self) -> Any:
@@ -191,6 +167,18 @@ class FileAppendTransaction(ChunkedTransaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.fileAppend.CopyFrom(file_append_body)
         return transaction_body
+
+    def schedule(self) -> ScheduleCreateTransaction:
+        """
+        Converts this transaction into a scheduled transaction.
+        """
+        if self.contents is not None and len(self.contents) > self.chunk_size:
+            raise RuntimeError(
+                f"Cannot schedule FileAppendTransaction because the contents exceeds "
+                f"the maximum chunk size of {self.chunk_size} bytes"
+            )
+
+        return super().schedule()
 
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
