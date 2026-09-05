@@ -6,10 +6,10 @@ from __future__ import annotations
 from google.protobuf.wrappers_pb2 import StringValue
 
 from hiero_sdk_python.channels import _Channel
-from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.hapi.services.basic_types_pb2 import KeyList as KeyListProto
 from hiero_sdk_python.hapi.services.file_update_pb2 import FileUpdateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
@@ -17,6 +17,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.utils.file_utils import encode_file_contents
+from hiero_sdk_python.utils.key_utils import normalize_keys
 
 
 DEFAULT_TRANSACTION_FEE = Hbar(2).to_tinybars()
@@ -39,8 +41,8 @@ class FileUpdateTransaction(Transaction):
     def __init__(
         self,
         file_id: FileId | None = None,
-        keys: list[PublicKey] | None = None,
-        contents: str | bytes | None = None,
+        keys: list[Key] | None = None,
+        contents: str | bytes | bytearray | None = None,
         expiration_time: Timestamp | None = None,
         file_memo: str | None = None,
     ):  # pylint: [disable=too-many-arguments, disable=too-many-positional-arguments]
@@ -49,36 +51,20 @@ class FileUpdateTransaction(Transaction):
 
         Args:
             file_id (FileId, optional): The ID of the file to update.
-            keys (Optional[list[PublicKey]], optional): The new keys that are allowed to
+            keys (Optional[list[Key]], optional): The new keys that are allowed to
             update/delete the file.
-            contents (str | bytes, optional): The new contents of the file.
+            contents (str | bytes, bytearray, optional): The new contents of the file.
             Strings will be automatically encoded as UTF-8 bytes.
             expiration_time (Timestamp, optional): The new expiration time for the file.
             file_memo (str, optional): The new memo for the file.
         """
         super().__init__()
         self.file_id: FileId | None = file_id
-        self.keys: list[PublicKey] | None = keys
-        self.contents: bytes | None = self._encode_contents(contents)
+        self.keys: list[Key] | None = keys
+        self.contents: bytes | None = encode_file_contents(contents)
         self.expiration_time: Timestamp | None = expiration_time
         self.file_memo: str | None = file_memo
         self._default_transaction_fee = DEFAULT_TRANSACTION_FEE
-
-    def _encode_contents(self, contents: str | bytes | None) -> bytes | None:
-        """
-        Helper method to encode string contents to UTF-8 bytes.
-
-        Args:
-            contents (str | bytes | None): The contents to encode.
-
-        Returns:
-            Optional[bytes]: The encoded contents or None if input is None.
-        """
-        if contents is None:
-            return None
-        if isinstance(contents, str):
-            return contents.encode("utf-8")
-        return contents
 
     def set_file_id(self, file_id: FileId | None) -> FileUpdateTransaction:
         """
@@ -94,22 +80,21 @@ class FileUpdateTransaction(Transaction):
         self.file_id = file_id
         return self
 
-    def set_keys(self, keys: list[PublicKey] | None | PublicKey) -> FileUpdateTransaction:
+    def set_keys(self, keys: list[Key] | None | Key) -> FileUpdateTransaction:
         """
         Sets the new list of keys that can modify or delete the file.
 
         Args:
-            keys (list[PublicKey] | PublicKey | None): The new keys to set for the file.
-                Can be a list of PublicKey objects, a single PublicKey, or None.
+            keys (list[Key] | Key | None): The new keys to set for the file. Can be a
+                list of Key objects (e.g. PublicKey, PrivateKey, KeyList), a single
+                Key, or None. None leaves the file's keys unchanged; an empty list
+                removes all keys, making the file immutable.
 
         Returns:
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        if isinstance(keys, PublicKey):
-            self.keys = [keys]
-        else:
-            self.keys = keys
+        self.keys = normalize_keys(keys)
         return self
 
     def set_expiration_time(self, expiration_time: Timestamp | None) -> FileUpdateTransaction:
@@ -126,19 +111,19 @@ class FileUpdateTransaction(Transaction):
         self.expiration_time = expiration_time
         return self
 
-    def set_contents(self, contents: bytes | str | None) -> FileUpdateTransaction:
+    def set_contents(self, contents: bytes | bytearray | str | None) -> FileUpdateTransaction:
         """
         Sets the new contents that should overwrite the file's current contents.
 
         Args:
-            contents (bytes | str | None): The new contents for the file.
+            contents (bytes | bytearray | str | None): The new contents for the file.
             Strings will be automatically encoded as UTF-8 bytes.
 
         Returns:
             FileUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        self.contents = self._encode_contents(contents)
+        self.contents = encode_file_contents(contents)
         return self
 
     def set_file_memo(self, file_memo: str | None) -> FileUpdateTransaction:
@@ -170,7 +155,7 @@ class FileUpdateTransaction(Transaction):
 
         return FileUpdateTransactionBody(
             fileID=self.file_id._to_proto(),
-            keys=(KeyListProto(keys=[key._to_proto() for key in self.keys]) if self.keys else None),
+            keys=KeyList(self.keys).to_proto() if self.keys is not None else None,
             contents=self.contents if self.contents is not None else b"",
             expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
             memo=(StringValue(value=self.file_memo) if self.file_memo is not None else None),

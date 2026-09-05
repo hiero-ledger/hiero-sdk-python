@@ -11,6 +11,7 @@ import pytest
 # pylint: disable=no-name-in-module
 from google.protobuf.wrappers_pb2 import StringValue
 
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
@@ -105,26 +106,60 @@ def test_set_methods():
 def test_set_keys_variations():
     """Test setting keys with different input types."""
     file_tx = FileUpdateTransaction()
-    private_key1 = PrivateKey.generate()
-    private_key2 = PrivateKey.generate()
-    public_key1 = private_key1.public_key()
-    public_key2 = private_key2.public_key()
 
-    # Test with single PublicKey
-    file_tx.set_keys(public_key1)
+    private_key = PrivateKey.generate()
+    public_key = PrivateKey.generate().public_key()
+
+    key_list = KeyList([PrivateKey.generate()])
+    threshold_key = KeyList([PrivateKey.generate()], 1)
+
+    # Single PublicKey
+    file_tx.set_keys(public_key)
     assert isinstance(file_tx.keys, list)
     assert len(file_tx.keys) == 1
-    assert file_tx.keys[0] == public_key1
+    assert file_tx.keys == [public_key]
 
-    # Test with list of PublicKeys
-    file_tx.set_keys([public_key1, public_key2])
+    # Single PrivateKey
+    file_tx.set_keys(private_key)
     assert isinstance(file_tx.keys, list)
-    assert len(file_tx.keys) == 2
+    assert len(file_tx.keys) == 1
+    assert file_tx.keys == [private_key]
 
-    # Test with KeyList
-    key_list = [public_key1]
+    # Single KeyList
     file_tx.set_keys(key_list)
-    assert file_tx.keys is key_list
+    assert isinstance(file_tx.keys, list)
+    assert len(file_tx.keys) == 1
+    assert file_tx.keys == [key_list]
+
+    # Single ThresholdKey
+    file_tx.set_keys(threshold_key)
+    assert isinstance(file_tx.keys, list)
+    assert len(file_tx.keys) == 1
+    assert file_tx.keys == [threshold_key]
+
+    # Sequence of keys
+    keys = [private_key, public_key, key_list, threshold_key]
+    file_tx.set_keys(keys)
+    assert isinstance(file_tx.keys, list)
+    assert len(file_tx.keys) == 4
+    assert file_tx.keys == keys
+
+    # Tuple of keys is normalized to a list
+    file_tx.set_keys((private_key, public_key))
+    assert isinstance(file_tx.keys, list)
+    assert file_tx.keys == [private_key, public_key]
+
+    # None clears the keys (leaves the file's keys unchanged on execution)
+    file_tx.set_keys(None)
+    assert file_tx.keys is None
+
+
+@pytest.mark.parametrize("key", ["Key", True, {}, 1, 0.1])
+def test_set_key_with_invalid_types(key):
+    """Test set_keys() raise error for invalid param type."""
+    file_tx = FileUpdateTransaction()
+    with pytest.raises(TypeError, match="keys must be a Key, list of Key objects, or None"):
+        file_tx.set_keys(key)
 
 
 def test_set_methods_require_not_frozen(mock_client, file_id):
@@ -200,6 +235,46 @@ def test_build_transaction_body_with_optional_fields(mock_account_ids, file_id):
     assert not transaction_body.fileUpdate.HasField("expirationTime")
     # When file_memo is None, the memo field should not be set in the protobuf
     assert not transaction_body.fileUpdate.HasField("memo")
+
+
+def test_build_transaction_body_with_empty_keys(mock_account_ids, file_id):
+    """Test that an empty key list is serialized as a present, empty KeyList.
+
+    Unlike keys=None (field unset, keys left unchanged on the network), an
+    explicit empty list replaces the file's keys with an empty KeyList, which
+    makes the file immutable.
+    """
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    file_tx = FileUpdateTransaction(file_id=file_id, keys=[])
+    file_tx.operator_account_id = operator_id
+    file_tx.set_node_account_ids([node_account_id])
+
+    transaction_body = file_tx.build_transaction_body()
+
+    assert transaction_body.fileUpdate.HasField("keys")
+    assert len(transaction_body.fileUpdate.keys.keys) == 0
+
+
+def test_build_transaction_body_key_list_is_nested(mock_account_ids, file_id):
+    """Test that a KeyList passed to set_keys becomes one nested entry, not flattened."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    key_1 = PrivateKey.generate().public_key()
+    key_2 = PrivateKey.generate().public_key()
+    key_list = KeyList([key_1, key_2])
+
+    file_tx = FileUpdateTransaction(file_id=file_id, keys=[key_list])
+    file_tx.operator_account_id = operator_id
+    file_tx.set_node_account_ids([node_account_id])
+
+    transaction_body = file_tx.build_transaction_body()
+
+    # One top-level entry containing the nested KeyList of two keys
+    assert len(transaction_body.fileUpdate.keys.keys) == 1
+    nested = transaction_body.fileUpdate.keys.keys[0]
+    assert nested.WhichOneof("key") == "keyList"
+    assert len(nested.keyList.keys) == 2
 
 
 def test_build_scheduled_body(mock_account_ids, file_id):
@@ -342,19 +417,31 @@ def test_get_method():
 
 
 def test_encode_contents_string():
-    """Test encoding string contents to bytes."""
+    """Test encoding contents through set_contents."""
     file_tx = FileUpdateTransaction()
 
     # Test string encoding
-    string_content = "Hello, World!"
-    encoded = file_tx._encode_contents(string_content)
-    assert encoded == b"Hello, World!"
+    file_tx.set_contents("Hello, World!")
+    assert file_tx.contents == b"Hello, World!"
 
     # Test bytes pass-through
-    bytes_content = b"Hello, bytes!"
-    encoded = file_tx._encode_contents(bytes_content)
-    assert encoded == bytes_content
+    file_tx.set_contents(b"Hello, bytes!")
+    assert file_tx.contents == b"Hello, bytes!"
+
+    # Test bytearray conversion to bytes
+    file_tx.set_contents(bytearray(b"Hello, bytearray!"))
+    assert file_tx.contents == b"Hello, bytearray!"
+    assert isinstance(file_tx.contents, bytes)
 
     # Test None handling
-    encoded = file_tx._encode_contents(None)
-    assert encoded is None
+    file_tx.set_contents(None)
+    assert file_tx.contents is None
+
+
+def test_set_contents_accepts_bytearray():
+    """Test that set_contents accepts bytearray and stores it as bytes."""
+    file_tx = FileUpdateTransaction()
+    file_tx.set_contents(bytearray(b"buffered content"))
+
+    assert file_tx.contents == b"buffered content"
+    assert isinstance(file_tx.contents, bytes)
