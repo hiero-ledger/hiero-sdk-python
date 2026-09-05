@@ -5,14 +5,25 @@ from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info import FileInfo
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
+from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.file import CreateFileParams, GetFileContentsParams, GetFileInfoParams
-from tck.response.file import CreateFileResponse, GetFileContentsResponse, GetFileInfoResponse
+from tck.param.file import (
+    CreateFileParams,
+    GetFileContentsParams,
+    GetFileInfoParams,
+    UpdateFileParams,
+)
+from tck.response.file import (
+    CreateFileResponse,
+    GetFileContentsResponse,
+    GetFileInfoResponse,
+    UpdateFileResponse,
+)
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string, key_to_string
@@ -78,6 +89,47 @@ def get_file_contents(params: GetFileContentsParams) -> GetFileContentsResponse:
     decoded_contents = contents.decode("utf-8", errors="replace") if isinstance(contents, bytes) else str(contents)
 
     return GetFileContentsResponse(contents=decoded_contents)
+
+
+def _build_update_file_transaction(params: UpdateFileParams) -> FileUpdateTransaction:
+    """Build a FileUpdateTransaction from parsed params."""
+    transaction = FileUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.fileId is not None:
+        transaction.set_file_id(FileId.from_string(params.fileId))
+
+    if params.keys is not None:
+        transaction.set_keys([get_key_from_string(k) for k in params.keys])
+
+    if params.contents is not None:
+        transaction.set_contents(params.contents)
+
+    if params.expirationTime is not None:
+        expiration_time = to_int(params.expirationTime)
+        if expiration_time is None:
+            raise JsonRpcError.invalid_params_error("expirationTime must be an integer")
+        transaction.set_expiration_time(Timestamp(seconds=expiration_time, nanos=0))
+
+    if params.memo is not None:
+        transaction.set_file_memo(params.memo)
+
+    return transaction
+
+
+@rpc_method("updateFile")
+def update_file(params: UpdateFileParams) -> UpdateFileResponse:
+    """Update an existing file."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_update_file_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UpdateFileResponse(status=ResponseCode(receipt.status).name)
 
 
 def _build_file_info_response(info: FileInfo) -> GetFileInfoResponse:

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from tck.response.base import StatusOnlyResponse
+
 
 @dataclass
 class CreateFileResponse:
@@ -9,6 +11,11 @@ class CreateFileResponse:
 
     fileId: str | None = None
     status: str | None = None
+
+
+@dataclass
+class UpdateFileResponse(StatusOnlyResponse):
+    """Response payload for updateFile."""
 
 
 @dataclass
