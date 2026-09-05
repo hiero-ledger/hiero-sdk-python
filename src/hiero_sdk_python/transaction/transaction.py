@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from decimal import Decimal
 from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -259,6 +260,17 @@ class Transaction(_Executable):
         if self._node_account_ids.is_empty:
             self._node_account_ids.set_list([node._account_id for node in client.network.nodes])
 
+    def _resolve_transaction_fee(self, client: Client | None) -> None:
+        """Resolve the max transaction fee: explicit fee, else client default, else per-type default."""
+        if self._transaction_fee is not None:
+            return
+
+        default = client.default_max_transaction_fee if client is not None else None
+        if not isinstance(default, Hbar):
+            default = None
+
+        self.transaction_fee = default if default is not None else self._default_transaction_fee
+
     def freeze(self):
         """
         Freezes the transaction by building the transaction body and setting necessary IDs.
@@ -298,6 +310,7 @@ class Transaction(_Executable):
         # Resolve transaction_id and node_accountids to be set when using freeze()
         self._resolve_transaction_id(client)
         self._resolve_node_ids(client)
+        self._resolve_transaction_fee(client)
 
         # We iterate through every node in the node_account_id list and
         # For each node_account_id build the transaction body
@@ -473,8 +486,8 @@ class Transaction(_Executable):
         transaction_body.transactionID.CopyFrom(transaction_id_proto)
         transaction_body.nodeAccountID.CopyFrom(selected_node._to_proto())
 
-        fee = self._transaction_fee or self._default_transaction_fee
-        if hasattr(fee, "to_tinybars"):
+        fee = self._transaction_fee if self._transaction_fee is not None else self._default_transaction_fee
+        if isinstance(fee, Hbar):
             transaction_body.transactionFee = int(fee.to_tinybars())
         else:
             transaction_body.transactionFee = int(fee)
@@ -501,8 +514,8 @@ class Transaction(_Executable):
         """
         schedulable_body = SchedulableTransactionBody()
 
-        fee = self._transaction_fee or self._default_transaction_fee
-        if hasattr(fee, "to_tinybars"):
+        fee = self._transaction_fee if self._transaction_fee is not None else self._default_transaction_fee
+        if isinstance(fee, Hbar):
             schedulable_body.transactionFee = int(fee.to_tinybars())
         else:
             schedulable_body.transactionFee = int(fee)
@@ -780,6 +793,26 @@ class Transaction(_Executable):
         return transaction_class._from_protobuf(
             transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
         )
+
+    def set_max_transaction_fee(self, max_transaction_fee: int | float | Decimal | Hbar) -> Transaction:
+        """
+        Set the maximum transaction fee the payer is willing to pay for this transaction.
+
+        Args:
+            max_transaction_fee (int | float | Decimal | Hbar): The maximum fee.
+                Numeric values are interpreted as Hbar.
+
+        Returns:
+            Transaction: This transaction instance for method chaining.
+
+        Raises:
+            TypeError: If the value is not int, float, Decimal, or Hbar.
+            ValueError: If the value is negative.
+            Exception: If the transaction has already been frozen.
+        """
+        self._require_not_frozen()
+        self.transaction_fee = Hbar._coerce_non_negative(max_transaction_fee, "max_transaction_fee")
+        return self
 
     @staticmethod
     def _get_transaction_class(transaction_type: str):

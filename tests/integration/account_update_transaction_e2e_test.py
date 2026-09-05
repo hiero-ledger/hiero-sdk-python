@@ -12,6 +12,7 @@ from hiero_sdk_python.account.account_update_transaction import AccountUpdateTra
 from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -248,7 +249,6 @@ def _apply_tiny_max_fee_if_supported(tx, client) -> bool:
     # Try client-level default
     for attr in (
         "set_default_max_transaction_fee",
-        "set_max_transaction_fee",
         "set_default_max_fee",
         "setMaxTransactionFee",
     ):
@@ -283,14 +283,38 @@ def test_account_update_insufficient_fee_with_valid_expiration_bump(env):
     if not _apply_tiny_max_fee_if_supported(tx, env.client):
         pytest.skip("SDK lacks a max-fee API; cannot deterministically trigger INSUFFICIENT_TX_FEE.")
 
-    receipt = tx.execute(env.client)
-    assert receipt.status == ResponseCode.INSUFFICIENT_TX_FEE, (
-        f"Expected INSUFFICIENT_TX_FEE but got {ResponseCode(receipt.status).name}"
-    )
+    # If it succeeds or raises a different error, the test will fail.
+    with pytest.raises(PrecheckError) as exc_info:
+        tx.execute(env.client)
+
+    assert exc_info.value.status == ResponseCode.INSUFFICIENT_TX_FEE
 
     # Confirm expiration time did not change
     info_after = AccountInfoQuery(account_id).execute(env.client)
     assert int(info_after.expiration_time.seconds) == base_expiry_secs
+
+
+@pytest.mark.integration
+def test_account_update_insufficient_fee_via_client_default(env):
+    """A client-level default max fee must apply to transactions that set no explicit fee."""
+    receipt = (
+        AccountCreateTransaction()
+        .set_key(env.operator_key.public_key())
+        .set_initial_balance(Hbar(1))
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS
+    account_id = receipt.account_id
+
+    env.client.set_default_max_transaction_fee(Hbar.from_tinybars(1))
+
+    # No tx-level fee: the 1-tinybar client default must be resolved at freeze and rejected at precheck.
+    tx = AccountUpdateTransaction().set_account_id(account_id).set_account_memo("client default fee test")
+
+    with pytest.raises(PrecheckError) as exc_info:
+        tx.execute(env.client)
+
+    assert exc_info.value.status == ResponseCode.INSUFFICIENT_TX_FEE
 
 
 @pytest.mark.integration

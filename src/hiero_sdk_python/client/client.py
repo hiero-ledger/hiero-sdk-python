@@ -59,6 +59,7 @@ class Client:
 
         self.max_attempts: int = 10
         self.default_max_query_payment: Hbar = DEFAULT_MAX_QUERY_PAYMENT
+        self.default_max_transaction_fee: Hbar | None = None
 
         self._min_backoff: float = DEFAULT_MIN_BACKOFF
         self._max_backoff: float = DEFAULT_MAX_BACKOFF
@@ -277,17 +278,19 @@ class Client:
         Returns:
             Client: The current client instance for method chaining.
         """
-        if isinstance(max_query_payment, bool) or not isinstance(max_query_payment, (int, float, Decimal, Hbar)):
-            raise TypeError(
-                f"max_query_payment must be int, float, Decimal, or Hbar, got {type(max_query_payment).__name__}"
-            )
-
-        value = max_query_payment if isinstance(max_query_payment, Hbar) else Hbar(max_query_payment)
-
-        if value < Hbar(0):
-            raise ValueError("max_query_payment must be non-negative")
-
+        value = Hbar._coerce_non_negative(max_query_payment, "max_query_payment")
         self.default_max_query_payment = value
+        return self
+
+    def set_default_max_transaction_fee(
+        self,
+        max_transaction_fee: int | float | Decimal | Hbar,
+    ) -> Client:
+        """
+        Sets the default maximum Hbar fee allowed for any transaction executed by this client.
+        """
+        value = Hbar._coerce_non_negative(max_transaction_fee, "max_transaction_fee")
+        self.default_max_transaction_fee = value
         return self
 
     def set_max_attempts(self, max_attempts: int) -> Client:
