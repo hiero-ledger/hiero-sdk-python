@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from tck.errors import JsonRpcError
+from tck.errors import INVALID_PARAMS, JsonRpcError
 from tck.handlers import contract as contract_handlers
 from tck.param.contract import CreateContractParams
 
@@ -29,12 +29,16 @@ class TestBuildCreateContractTransaction:
     def test_invalid_gas_raises_invalid_params(self):
         params = CreateContractParams(sessionId="session-1", gas="not-a-number")
 
-        with pytest.raises(JsonRpcError):
+        with pytest.raises(JsonRpcError) as excinfo:
             contract_handlers._build_create_contract_transaction(params)
+
+        assert excinfo.value.code == INVALID_PARAMS
 
     @pytest.mark.parametrize("gas", ["9223372036854775808", "-9223372036854775809"])
     def test_gas_out_of_int64_range_raises_invalid_params(self, gas):
         params = CreateContractParams(sessionId="session-1", gas=gas)
 
-        with pytest.raises(JsonRpcError):
+        with pytest.raises(JsonRpcError) as excinfo:
             contract_handlers._build_create_contract_transaction(params)
+
+        assert excinfo.value.code == INVALID_PARAMS
