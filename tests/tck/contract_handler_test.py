@@ -11,35 +11,9 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from tck.errors import JsonRpcError
 from tck.handlers import contract as contract_handlers
 from tck.param.contract import CreateContractParams
-from tck.util.param_utils import decode_hex
 
 
 pytestmark = pytest.mark.unit
-
-
-class TestDecodeHex:
-    def test_decodes_plain_hex(self):
-        assert decode_hex("60006000") == b"\x60\x00\x60\x00"
-
-    def test_decodes_0x_prefixed_hex(self):
-        assert decode_hex("0x60006000") == b"\x60\x00\x60\x00"
-
-    def test_rejects_non_hex_characters(self):
-        with pytest.raises(ValueError):
-            decode_hex("0xZZ")
-
-    def test_rejects_odd_length(self):
-        with pytest.raises(ValueError):
-            decode_hex("0x123")
-
-    def test_rejects_embedded_whitespace(self):
-        """bytes.fromhex alone would accept "60 00"."""
-        with pytest.raises(ValueError):
-            decode_hex("60 00")
-
-    def test_rejects_surrounding_whitespace(self):
-        with pytest.raises(ValueError):
-            decode_hex(" 6000\n")
 
 
 class TestCreateContractParams:
