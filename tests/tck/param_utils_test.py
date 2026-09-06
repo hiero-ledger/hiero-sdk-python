@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from tck.util.param_utils import decode_hex
+from tck.util.param_utils import decode_hex, parse_session_id
 
 
 pytestmark = pytest.mark.unit
@@ -33,3 +33,13 @@ class TestDecodeHex:
     def test_rejects_surrounding_whitespace(self):
         with pytest.raises(ValueError):
             decode_hex(" 6000\n")
+
+
+class TestParseSessionId:
+    def test_returns_session_id(self):
+        assert parse_session_id({"sessionId": "session-1"}) == "session-1"
+
+    @pytest.mark.parametrize("params", [{}, {"sessionId": ""}, {"sessionId": 123}])
+    def test_rejects_missing_or_invalid_session_id(self, params):
+        with pytest.raises(ValueError):
+            parse_session_id(params)
