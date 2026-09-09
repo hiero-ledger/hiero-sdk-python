@@ -34,7 +34,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 
-VERSION = "v0.73.0"
+VERSION = "v0.76.1"
 SOURCES = [
     {
         "name": "hedera-protobufs",
@@ -54,6 +54,13 @@ SOURCES = [
 
 OUTPUT_DIR = "src/hiero_sdk_python/hapi"
 CACHE_DIR = ".protos"
+
+# Protos that must be skipped during compilation as they are
+# not used by the SDK and have broken imports that cannot be resolved
+
+EXCLUDED_PROTOS = {
+    "blocks/publish_stream_request_bytes.proto",
+}
 
 # Map common broken imports in mirror/platform proto
 REPLACEMENTS = {
@@ -169,7 +176,9 @@ def run_protoc(proto_root: Path, output_root: Path) -> None:
     from grpc_tools import protoc
 
     google_include = str(Path(grpc_tools.__file__).parent / "_proto")
-    all_protos = [p.as_posix() for p in proto_root.rglob("*.proto")]
+    all_protos = [
+        p.as_posix() for p in proto_root.rglob("*.proto") if p.relative_to(proto_root).as_posix() not in EXCLUDED_PROTOS
+    ]
 
     args = [
         "protoc",

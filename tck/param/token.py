@@ -260,6 +260,22 @@ class PauseTokenParams(BaseTransactionParams):
 
 
 @dataclass
+class UnpauseTokenParams(BaseTransactionParams):
+    """Request parameters for the unpauseToken endpoint."""
+
+    tokenId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UnpauseTokenParams:
+        """Parse JSON-RPC params into an UnpauseTokenParams instance."""
+        return cls(
+            tokenId=params.get("tokenId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class AirdropTokenParams(BaseTransactionParams):
     """Request parameters for the airdropToken endpoint."""
 

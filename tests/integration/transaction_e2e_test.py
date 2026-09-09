@@ -258,3 +258,41 @@ def test_get_receipt_raises_exception_on_failure_with_validation(env):
         response.get_receipt(env.client, validate_status=True)
 
     assert e.value.status == ResponseCode.INVALID_ACCOUNT_ID
+
+
+@pytest.mark.integration
+def test_get_receipt_with_allow_failover(env):
+    """Test that a transaction receipt can be retrieved with node failover enabled."""
+    env.client.set_allow_receipt_node_failover(True)
+
+    tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
+    response = tx.execute(env.client, wait_for_receipt=False)
+
+    assert response is not None
+
+    receipt = response.get_receipt(env.client)
+    assert receipt is not None
+    assert receipt.account_id is not None
+
+    AccountDeleteTransaction().set_transfer_account_id(env.operator_id).set_account_id(receipt.account_id).execute(
+        env.client
+    )
+
+
+@pytest.mark.integration
+def test_get_record_with_allow_failover(env):
+    """Test that a transaction record can be retrieved with node failover enabled."""
+    env.client.set_allow_receipt_node_failover(True)
+
+    tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())
+    response = tx.execute(env.client, wait_for_receipt=False)
+
+    assert response is not None
+
+    record = response.get_record(env.client)
+    assert record is not None
+    assert record.receipt.account_id is not None
+
+    AccountDeleteTransaction().set_transfer_account_id(env.operator_id).set_account_id(
+        record.receipt.account_id
+    ).execute(env.client)

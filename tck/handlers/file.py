@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
+from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info import FileInfo
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
@@ -11,8 +12,8 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.file import CreateFileParams, GetFileContentsParams, GetFileInfoParams
-from tck.response.file import CreateFileResponse, GetFileContentsResponse, GetFileInfoResponse
+from tck.param.file import CreateFileParams, DeleteFileParams, GetFileContentsParams, GetFileInfoParams
+from tck.response.file import CreateFileResponse, DeleteFileResponse, GetFileContentsResponse, GetFileInfoResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string, key_to_string
@@ -106,3 +107,22 @@ def get_file_info(params: GetFileInfoParams) -> GetFileInfoResponse:
 
     info = query.execute(client)
     return _build_file_info_response(info)
+
+
+@rpc_method("deleteFile")
+def delete_file(params: DeleteFileParams) -> DeleteFileResponse:
+    """Delete a file."""
+    client = get_client(params.sessionId)
+
+    transaction = FileDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.fileId is not None:
+        transaction.set_file_id(FileId.from_string(params.fileId))
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return DeleteFileResponse(ResponseCode(receipt.status).name)

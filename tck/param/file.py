@@ -45,6 +45,7 @@ class GetFileContentsParams(BaseParams):
 
     @classmethod
     def parse_json_params(cls, params: dict) -> GetFileContentsParams:
+        """Parse JSON-RPC params into a GetFileContentsParams instance."""
         return cls(
             sessionId=parse_session_id(params),
             fileId=params.get("fileId"),
@@ -63,3 +64,19 @@ class GetFileInfoParams(BaseParams):
     def parse_json_params(cls, params: dict) -> GetFileInfoParams:
         """Parse JSON-RPC params into a GetFileInfoParams instance."""
         return cls(fileId=params.get("fileId"), sessionId=parse_session_id(params))
+
+
+@dataclass
+class DeleteFileParams(BaseTransactionParams):
+    """Parameters for deleting a file. Extends BaseTransactionParams to include common transaction parameters."""
+
+    fileId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteFileParams:
+
+        return cls(
+            fileId=params.get("fileId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )

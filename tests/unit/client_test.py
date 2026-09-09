@@ -604,3 +604,22 @@ def test_for_network_invalid_shard_realm_raises_error(invalid_map, error_msg):
     """Test that for_network catches mismatched shards or realms."""
     with pytest.raises(ValueError, match=error_msg):
         Client.for_network(invalid_map)
+
+
+def test_set_receipt_failover_set_values():
+    """Test that receipt failover is set to the provided value."""
+    client = Client.for_testnet()
+    # default
+    assert client.allow_receipt_node_failover is False
+
+    return_value = client.set_allow_receipt_node_failover(True)
+    assert client.allow_receipt_node_failover is True
+    assert return_value is client
+
+
+@pytest.mark.parametrize("allow", ["true", 1, 0.1, [], {}, None])
+def test_set_receipt_failover_rejects_non_bool(allow):
+    """Test that non-boolean values are rejected."""
+    client = Client.for_testnet()
+    with pytest.raises(TypeError, match="allow must be an instance of bool"):
+        client.set_allow_receipt_node_failover(allow)

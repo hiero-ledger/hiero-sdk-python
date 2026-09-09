@@ -20,6 +20,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.exceptions import PrecheckError
@@ -403,7 +404,8 @@ def test_transaction_execution_failure(mock_account_ids):
     token_tx._transaction_body_bytes = b"mock_body_bytes"
 
     # Mock the client and its operator_private_key
-    token_tx.client = MagicMock()
+    token_tx.client = MagicMock(spec=Client)
+    token_tx.client.operator_account_id = MagicMock()
     mock_public_key = MagicMock()
     mock_public_key.to_bytes_raw.return_value = b"mock_public_key"
 

@@ -62,9 +62,10 @@ def test_build_transaction_body_when_token_id_not_set(mock_account_ids):
 
     unpause_tx = TokenUnpauseTransaction()
     unpause_tx.set_node_account_ids([node_account_id])
+    unpause_tx.operator_account_id = account_id
 
-    with pytest.raises(ValueError, match="Missing token ID"):
-        unpause_tx.build_transaction_body()
+    transaction_body = unpause_tx.build_transaction_body()
+    assert not transaction_body.token_unpause.HasField("token"), "token field must be unset when token_id is None"
 
 
 def test_set_method(mock_account_ids):
@@ -167,6 +168,14 @@ def test_from_proto(mock_account_ids):
     assert unpause_tx.token_id.shard == token_id.shard
     assert unpause_tx.token_id.realm == token_id.realm
     assert unpause_tx.token_id.num == token_id.num
+
+
+def test_from_proto_without_token():
+    """Test creating a TokenUnpauseTransaction from protobuf representation without token."""
+    proto = TokenUnpauseTransactionBody()
+    unpause_tx = TokenUnpauseTransaction._from_proto(proto)
+
+    assert unpause_tx.token_id is None, "token_id must remain None when token is absent"
 
 
 def test_upause_transaction_can_execute(mock_account_ids):

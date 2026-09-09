@@ -61,7 +61,7 @@ def setup_client():
     return client
 
 
-def create_node(client, account_id):
+def create_node(client, account_id, node_account_private_key):
     """Create a node on the network and return its ID and admin key."""
     # Node description
     description = "Example node"
@@ -92,6 +92,7 @@ def create_node(client, account_id):
         .set_decline_reward(True)
         .freeze_with(client)
         .sign(admin_key)  # Sign with the admin key
+        .sign(node_account_private_key)  # Sign with the node account key
         .execute(client)
     )
 
@@ -168,7 +169,7 @@ def node_update():
     )
 
     # Create a new node and get its ID and admin key
-    node_id, admin_key = create_node(client, node_account_id)
+    node_id, admin_key = create_node(client, node_account_id, node_account_private_key)
 
     # Update the newly created node with modified parameters
     update_node(client, node_account_id, node_account_private_key, node_id, admin_key)

@@ -109,6 +109,7 @@ class Transaction(_Executable):
         transaction_response.transaction_id = self.transaction_id
         transaction_response.node_id = node_id
         transaction_response.hash = tx_hash
+        transaction_response._transaction_node_ids = self._node_account_ids.get_list()
 
         return transaction_response
 
@@ -364,6 +365,18 @@ class Transaction(_Executable):
         if self.batch_key and not isinstance(self, (BatchTransaction)):
             raise ValueError("Cannot execute batchified transaction outside of BatchTransaction.")
 
+        if timeout is not None and (isinstance(timeout, bool) or not isinstance(timeout, (int, float))):
+            raise TypeError("timeout must be a int or float")
+
+        if not isinstance(validate_status, bool):
+            raise TypeError("validate_status must be a boolean")
+
+        if not isinstance(wait_for_receipt, bool):
+            raise TypeError("wait_for_receipt must be a boolean")
+
+        if not isinstance(client, Client):
+            raise TypeError("client must be an instance of Client")
+
         if not self._transaction_body_bytes:
             self.freeze_with(client)
 
@@ -374,7 +387,7 @@ class Transaction(_Executable):
             self.sign(client.operator_private_key)
 
         # Call the _execute function from executable.py to handle the actual execution
-        response = self._execute(client, timeout)
+        response: TransactionResponse = self._execute(client, timeout)
 
         response.validate_status = True
         response.transaction = self
