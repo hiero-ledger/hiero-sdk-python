@@ -13,9 +13,10 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tck.handlers import registry, schedule as schedule_handlers
+from tck.handlers.registry import parse_result
 from tck.handlers.schedule import get_schedule_info
 from tck.param.schedule import GetScheduleInfoParams
-from tck.response.schedule import ScheduleInfoResponse
+from tck.response.schedule import ScheduleInfoCostResponse, ScheduleInfoResponse
 
 
 pytestmark = pytest.mark.unit
@@ -102,7 +103,6 @@ def test_get_schedule_info_maps_fields():
     assert result.expirationTime == "1700000500"
     assert result.scheduleMemo == "a memo"
     assert result.waitForExpiry is True
-    assert result.cost is None
 
 
 def test_get_schedule_info_keeps_nullable_fields_as_none():
@@ -153,7 +153,11 @@ def test_get_schedule_info_get_cost_returns_cost_only():
 
     query.get_cost.assert_called_once()
     query.execute.assert_not_called()
-    assert result == ScheduleInfoResponse(cost="250")
+    assert result == ScheduleInfoCostResponse(cost="250")
+
+    # Dispatch-level: the JSON-RPC result must contain only "cost", not the
+    # ScheduleInfoResponse fields (e.g. adminKey/executedAt/deletedAt nulls).
+    assert parse_result(result) == {"cost": "250"}
 
 
 def test_get_schedule_info_propagates_query_failure():

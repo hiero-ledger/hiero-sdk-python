@@ -39,4 +39,15 @@ class ScheduleInfoResponse:
     deletedAt: str | None = field(metadata={"nullable": True}, default=None)
     scheduleMemo: str | None = None
     waitForExpiry: bool | None = None
+
+
+@dataclass
+class ScheduleInfoCostResponse:
+    """Response payload for getScheduleInfo when getCost=true.
+
+    Spec (getCost) and the JS TCK reference return only the cost field, so this
+    is kept separate from ScheduleInfoResponse to avoid leaking its nullable
+    fields (adminKey/executedAt/deletedAt) as spurious nulls.
+    """
+
     cost: str | None = None
