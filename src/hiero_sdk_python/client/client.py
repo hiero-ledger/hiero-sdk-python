@@ -214,6 +214,23 @@ class Client:
             return [node._account_id for node in self.network.nodes]  # pylint: disable=W0212
         raise ValueError("No nodes available in the network configuration.")
 
+    def ping(self, node_account_id: AccountId) -> None:
+        """Probe one node with an unpaid COST_ANSWER account-info query."""
+        from hiero_sdk_python.query.account_info_query import AccountInfoQuery
+
+        node = self.network._get_node(node_account_id)
+        if node is None:
+            raise ValueError(f"Node account ID {node_account_id} is not in the client's network map")
+
+        query = AccountInfoQuery(AccountId(0, 0, 2)).set_node_account_ids([node_account_id])
+        query._execute_cost_probe(self)
+        self.network._reset_node_health(node)
+
+    def ping_all(self) -> None:
+        """Probe every node in the current network map sequentially."""
+        for node_account_id in self.get_node_account_ids():
+            self.ping(node_account_id)
+
     def close(self) -> None:
         """
         Closes any open gRPC channels and frees resources.
