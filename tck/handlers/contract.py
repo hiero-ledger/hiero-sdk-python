@@ -2,13 +2,17 @@ from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
+from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.contract.contract_update_transaction import ContractUpdateTransaction
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.contract import CreateContractParams
-from tck.response.contract import CreateContractResponse
+from tck.param.contract import CreateContractParams, UpdateContractParams
+from tck.response.contract import CreateContractResponse, UpdateContractResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
@@ -89,6 +93,48 @@ def _build_create_contract_transaction(params: CreateContractParams) -> Contract
     return transaction
 
 
+def _build_update_contract_transaction(params: UpdateContractParams) -> ContractUpdateTransaction:
+    """
+    Maps updateContract JSON-RPC params onto a ContractUpdateTransaction.
+
+    Only supplied params are applied, SDK defaults remain intact.
+    """
+
+    transaction = ContractUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.contractId is not None:
+        transaction.set_contract_id(ContractId.from_string(params.contractId))
+
+    if params.adminKey is not None:
+        transaction.set_admin_key(get_key_from_string(params.adminKey))
+
+    if params.autoRenewPeriod is not None:
+        transaction.set_auto_renew_period(Duration(_require_int64(params.autoRenewPeriod, "autoRenewPeriod")))
+
+    if params.expirationTime is not None:
+        transaction.set_expiration_time(Timestamp(seconds=to_int(params.expirationTime), nanos=0))
+
+    if params.memo is not None:
+        transaction.set_contract_memo(params.memo)
+
+    if params.autoRenewAccountId is not None:
+        transaction.set_auto_renew_account_id(AccountId.from_string(params.autoRenewAccountId))
+
+    if params.maxAutomaticTokenAssociations is not None:
+        transaction.set_max_automatic_token_associations(params.maxAutomaticTokenAssociations)
+
+    if params.stakedAccountId is not None:
+        transaction.set_staked_account_id(AccountId.from_string(params.stakedAccountId))
+
+    if params.stakedNodeId is not None:
+        transaction.set_staked_node_id(_require_int64(params.stakedNodeId, "stakedNodeId"))
+
+    if params.declineStakingReward is not None:
+        transaction.set_decline_reward(params.declineStakingReward)
+
+    return transaction
+
+
 @rpc_method("createContract")
 def create_contract(params: CreateContractParams) -> CreateContractResponse:
     """Create a smart contract."""
@@ -106,3 +152,19 @@ def create_contract(params: CreateContractParams) -> CreateContractResponse:
         contract_id = str(receipt.contract_id)
 
     return CreateContractResponse(contract_id, ResponseCode(receipt.status).name)
+
+
+@rpc_method("updateContract")
+def update_contract(params: UpdateContractParams) -> UpdateContractResponse:
+    """Update a smart contract."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_update_contract_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UpdateContractResponse(status=ResponseCode(receipt.status).name)

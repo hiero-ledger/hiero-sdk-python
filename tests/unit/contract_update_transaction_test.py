@@ -162,6 +162,34 @@ def test_set_decline_reward():
     assert result is tx  # Method chaining
 
 
+def test_set_auto_renew_account_id_to_zero():
+    """Test setting auto renew account ID to 0.0.0 triggers clear flag."""
+    tx = ContractUpdateTransaction()
+    tx.set_auto_renew_account_id(AccountId(0, 0, 0))
+
+    assert tx.auto_renew_account_id == AccountId(0, 0, 0)
+
+
+def test_set_staked_account_id():
+    """Test setting a valid staked account ID."""
+    tx = ContractUpdateTransaction()
+    staked_account_id = AccountId(0, 0, 999)
+    result = tx.set_staked_account_id(staked_account_id)
+
+    assert tx.staked_account_id == staked_account_id
+    assert tx.staked_node_id is None
+    assert result is tx  # Method chaining
+
+
+def test_set_staked_account_id_to_zero():
+    """Test setting staked account ID to 0.0.0 clears staking."""
+    tx = ContractUpdateTransaction()
+    tx.set_staked_account_id(AccountId(0, 0, 0))
+
+    assert tx.staked_account_id == AccountId(0, 0, 0)
+    assert tx.staked_node_id is None
+
+
 ########### Method Chaining Tests ###########
 
 
@@ -227,13 +255,18 @@ def test_build_proto_body_with_generic_admin_key(contract_id, admin_key):
     assert proto_body.adminKey == admin_key.to_proto_key()
 
 
-def test_build_transaction_body_missing_contract_id():
-    """Test building transaction body without contract ID raises ValueError."""
+def test_build_transaction_body_missing_contract_id(mock_account_ids, transaction_id):
+    """Test building transaction body without contract ID omits the field."""
+    _, _, node_account_id, _, _ = mock_account_ids
+
     tx = ContractUpdateTransaction()
     tx.set_contract_memo("Test memo")
+    tx.transaction_id = transaction_id
+    tx.set_node_account_ids([node_account_id])
 
-    with pytest.raises(ValueError, match="Missing required ContractID"):
-        tx.build_transaction_body()
+    transaction_body = tx.build_transaction_body()
+
+    assert not transaction_body.contractUpdateInstance.HasField("contractID")
 
 
 def test_build_transaction_body_with_all_parameters(update_params, mock_account_ids, transaction_id):
@@ -297,6 +330,24 @@ def test_build_scheduled_body_with_all_parameters(update_params, mock_account_id
     assert schedulable_body.contractUpdateInstance.contractID.contractNum == update_params["contract_id"].contract
     assert schedulable_body.contractUpdateInstance.contractID.shardNum == update_params["contract_id"].shard
     assert schedulable_body.contractUpdateInstance.contractID.realmNum == update_params["contract_id"].realm
+
+
+def test_build_proto_body_with_cleared_fields(contract_id):
+    """Test building a contract update body with cleared auto-renew and staked accounts."""
+    tx = ContractUpdateTransaction()
+    tx.set_contract_id(contract_id)
+    tx.set_auto_renew_account_id(AccountId(0, 0, 0))
+    tx.set_staked_account_id(AccountId(0, 0, 0))
+
+    proto_body = tx._build_proto_body()
+
+    # Check auto-renew account handles the explicit empty message
+    assert proto_body.HasField("auto_renew_account_id")
+    assert proto_body.auto_renew_account_id.accountNum == 0
+
+    # Check staked account ID natively serializes the 0.0.0 sentinel
+    assert proto_body.HasField("staked_account_id")
+    assert proto_body.staked_account_id.accountNum == 0
 
 
 ########### Transaction Execution Tests ###########
