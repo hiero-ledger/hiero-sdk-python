@@ -61,17 +61,14 @@ class ScheduleSignTransaction(Transaction):
         """
         Returns the protobuf body for the schedule sign transaction.
 
+        An unset schedule ID is omitted from the body rather than rejected locally, so the
+        network answers with INVALID_SCHEDULE_ID as it does for the other SDKs.
+
         Returns:
             ScheduleSignTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If schedule_id is not set.
         """
-        if self.schedule_id is None:
-            raise ValueError("Missing required ScheduleID")
-
         return ScheduleSignTransactionBody(
-            scheduleID=self.schedule_id._to_proto(),
+            scheduleID=self.schedule_id._to_proto() if self.schedule_id is not None else None,
         )
 
     def build_transaction_body(self):

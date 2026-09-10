@@ -56,14 +56,11 @@ class ScheduleDeleteTransaction(Transaction):
 
         Returns:
             ScheduleDeleteTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If schedule_id is not set.
         """
-        if self.schedule_id is None:
-            raise ValueError("Missing required ScheduleID")
+        if self.schedule_id is not None:
+            return ScheduleDeleteTransactionBody(scheduleID=self.schedule_id._to_proto())
 
-        return ScheduleDeleteTransactionBody(scheduleID=self.schedule_id._to_proto())
+        return ScheduleDeleteTransactionBody()
 
     def build_transaction_body(self):
         """
