@@ -4,12 +4,12 @@ import math
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.consensus.topic_id import TopicId
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.schedule.schedule_create_transaction import ScheduleCreateTransaction
 from hiero_sdk_python.transaction.chunked_transaction import ChunkedTransaction
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 
@@ -107,33 +107,6 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         self._total_chunks = self.get_required_chunks()
         return self
 
-    def set_chunk_size(self, chunk_size: int) -> TopicMessageSubmitTransaction:
-        """
-        Set maximum chunk size in bytes.
-
-        Args:
-            chunk_size (int): The size of each chunk in bytes.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().set_chunk_size(chunk_size)
-        self._total_chunks = self.get_required_chunks()
-        return self
-
-    def set_max_chunks(self, max_chunks: int) -> TopicMessageSubmitTransaction:
-        """
-        Set maximum allowed chunks.
-
-        Args:
-            max_chunks (int): The maximum number of chunks allowed.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().set_max_chunks(max_chunks)
-        return self
-
     def set_custom_fee_limits(self, custom_fee_limits: list[CustomFeeLimit]) -> TopicMessageSubmitTransaction:
         """
         Sets the maximum custom fees that the user is willing to pay for the message.
@@ -186,27 +159,26 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         if not self.message:
             raise ValueError("Missing required fields: message.")
 
-        content = self._message_as_bytes()
+        contents = self._message_as_bytes()
 
-        start_index = self._current_chunk_index * self.chunk_size
-        end_index = min(start_index + self.chunk_size, len(content))
-        chunk_content = content[start_index:end_index]
-
-        body = consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
-            topicID=self.topic_id._to_proto() if self.topic_id else None, message=chunk_content
-        )
-
-        # Multi-chunk metadata
-        if self._total_chunks > 1:
-            body.chunkInfo.CopyFrom(
-                consensus_submit_message_pb2.ConsensusMessageChunkInfo(
-                    initialTransactionID=self._initial_transaction_id._to_proto(),
-                    total=self._total_chunks,
-                    number=self._current_chunk_index + 1,
-                )
+        if self._total_chunks > 1 and self._current_chunk_index is not None:
+            chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+                initialTransactionID=self._initial_transaction_id._to_proto(),
+                total=self._total_chunks,
+                number=self._current_chunk_index + 1,
             )
 
-        return body
+            chunk_content = self._current_chunk_slice(contents)
+
+            return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+                topicID=self.topic_id._to_proto() if self.topic_id else None,
+                message=chunk_content,
+                chunkInfo=chunk_info,
+            )
+
+        return consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+            topicID=self.topic_id._to_proto() if self.topic_id else None, message=contents
+        )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
@@ -219,6 +191,18 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         transaction_body = self.build_base_transaction_body()
         transaction_body.consensusSubmitMessage.CopyFrom(consensus_submit_message_body)
         return transaction_body
+
+    def schedule(self) -> ScheduleCreateTransaction:
+        """
+        Converts this transaction into a scheduled transaction.
+        """
+        if self.message is not None and len(self._message_as_bytes()) > self.chunk_size:
+            raise RuntimeError(
+                f"Cannot schedule TopicMessageSubmitTransaction because the message exceeds "
+                f"the maximum chunk size of {self.chunk_size} bytes"
+            )
+
+        return super().schedule()
 
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
@@ -243,16 +227,3 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             _Method: The method object with bound transaction execution.
         """
         return _Method(transaction_func=channel.topic.submitMessage, query_func=None)
-
-    def sign(self, private_key: PrivateKey) -> TopicMessageSubmitTransaction:
-        """
-        Signs the transaction using the provided private key.
-
-        Args:
-            private_key (PrivateKey): The private key to sign the transaction with.
-
-        Returns:
-            TopicMessageSubmitTransaction: This transaction instance (for chaining).
-        """
-        super().sign(private_key)
-        return self

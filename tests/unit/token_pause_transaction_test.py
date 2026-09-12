@@ -33,15 +33,17 @@ def test_build_transaction_body(mock_account_ids, token_id):
     pause_tx.operator_account_id = account_id
     pause_tx.set_node_account_ids([node_account_id])
 
-    transaction_body = pause_tx.build_transaction_body()  # Will generate a transaction_id
+    transaction_body = pause_tx.build_transaction_body()
 
     assert transaction_body.token_pause.token == token_id._to_proto()
-    assert transaction_body.transactionID == pause_tx.transaction_id._to_proto()
-    assert transaction_body.nodeAccountID == pause_tx._node_account_ids.current._to_proto()
+
+    # Set once node_ids and tx_ids locked on freeze
+    assert not transaction_body.HasField("transactionID")
+    assert not transaction_body.HasField("nodeAccountID")
 
 
 def test_build_transaction_body_nft(mock_account_ids, nft_id):
-    """Test building an NFT‐pause transaction body with valid values."""
+    """Test building an NFT-pause transaction body with valid values."""
     account_id, _, node_account_id, _, _ = mock_account_ids
 
     # nft_id is NftId(tokenId=TokenId(...), serialNumber=...)
@@ -54,8 +56,10 @@ def test_build_transaction_body_nft(mock_account_ids, nft_id):
     transaction_body = pause_tx.build_transaction_body()
 
     assert transaction_body.token_pause.token == base_token_id._to_proto()
-    assert transaction_body.transactionID == pause_tx.transaction_id._to_proto()
-    assert transaction_body.nodeAccountID == pause_tx._node_account_ids.current._to_proto()
+
+    # Set once node_ids and tx_ids locked on freeze
+    assert not transaction_body.HasField("transactionID")
+    assert not transaction_body.HasField("nodeAccountID")
 
 
 # This test uses fixture (token_id, mock_client) as parameter

@@ -5,7 +5,6 @@ from hiero_sdk_python.contract.contract_create_transaction import ContractCreate
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.response_code import ResponseCode
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
 from tck.param.contract import CreateContractParams
@@ -14,6 +13,7 @@ from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
 from tck.util.param_utils import decode_hex, to_int
+from tck.util.transaction_utils import execute_validated
 
 
 INT64_MIN = -(2**63)
@@ -99,11 +99,10 @@ def create_contract(params: CreateContractParams) -> CreateContractResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     contract_id = ""
-    if receipt.status == ResponseCode.SUCCESS and receipt.contract_id is not None:
+    if receipt.contract_id is not None:
         contract_id = str(receipt.contract_id)
 
     return CreateContractResponse(contract_id, ResponseCode(receipt.status).name)

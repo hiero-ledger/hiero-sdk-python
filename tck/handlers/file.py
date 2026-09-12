@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
@@ -12,12 +13,20 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.file import CreateFileParams, DeleteFileParams, GetFileContentsParams, GetFileInfoParams
+from tck.param.file import (
+    AppendFileParams,
+    CreateFileParams,
+    DeleteFileParams,
+    GetFileContentsParams,
+    GetFileInfoParams,
+)
+from tck.response.base import StatusOnlyResponse
 from tck.response.file import CreateFileResponse, DeleteFileResponse, GetFileContentsResponse, GetFileInfoResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string, key_to_string
 from tck.util.param_utils import to_int
+from tck.util.transaction_utils import execute_validated
 
 
 def _build_create_file_transaction(params: CreateFileParams) -> FileCreateTransaction:
@@ -51,14 +60,47 @@ def create_file(params: CreateFileParams) -> CreateFileResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     file_id = ""
-    if receipt.status == ResponseCode.SUCCESS and receipt.file_id is not None:
+    if receipt.file_id is not None:
         file_id = str(receipt.file_id)
 
     return CreateFileResponse(file_id, ResponseCode(receipt.status).name)
+
+
+def _build_append_file_transaction(params: AppendFileParams) -> FileAppendTransaction:
+    transaction = FileAppendTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    # Default to 0.0.0 so a missing fileId is rejected by the network with
+    # INVALID_FILE_ID rather than raising a client-side ValueError (TCK FileId #5).
+    transaction.set_file_id(FileId.from_string(params.fileId) if params.fileId is not None else FileId())
+
+    if params.contents is not None:
+        transaction.set_contents(params.contents)
+
+    if params.chunkSize is not None:
+        transaction.set_chunk_size(params.chunkSize)
+
+    if params.maxChunks is not None:
+        transaction.set_max_chunks(params.maxChunks)
+
+    return transaction
+
+
+@rpc_method("appendFile")
+def append_file(params: AppendFileParams) -> StatusOnlyResponse:
+    """Append contents to a file."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_append_file_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    receipts: list[TransactionReceipt] = transaction.execute_all(client, wait_for_receipt=True, validate_status=True)
+
+    return StatusOnlyResponse(ResponseCode(receipts[-1].status).name)
 
 
 @rpc_method("getFileContents")
@@ -122,7 +164,6 @@ def delete_file(params: DeleteFileParams) -> DeleteFileResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return DeleteFileResponse(ResponseCode(receipt.status).name)
