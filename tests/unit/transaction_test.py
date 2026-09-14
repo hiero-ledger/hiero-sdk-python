@@ -650,6 +650,68 @@ def test_set_transaction_id_invalid_value(transaction_id):
         tx.set_transaction_id(transaction_id)
 
 
+def test_regenerate_transaction_id_defaults_to_none():
+    """Test that regenerate_transaction_id is None until explicitly set or frozen with a client."""
+    tx = AccountCreateTransaction()
+    assert tx.regenerate_transaction_id is None
+
+
+def test_set_regenerate_transaction_id():
+    """Test setting regenerate_transaction_id using the setter."""
+    tx = AccountCreateTransaction()
+
+    return_value = tx.set_regenerate_transaction_id(False)
+    assert tx.regenerate_transaction_id is False
+    assert return_value is tx
+
+    tx = AccountCreateTransaction()
+    tx.set_regenerate_transaction_id(True)
+    assert tx.regenerate_transaction_id is True
+
+
+@pytest.mark.parametrize("value", [None, "true", 1, 0, 1.0, {}, []])
+def test_set_regenerate_transaction_id_invalid_type(value):
+    """Test that setting a non-bool regenerate_transaction_id raises a TypeError."""
+    tx = AccountCreateTransaction()
+
+    with pytest.raises(TypeError, match="regenerate_transaction_id must be of type bool"):
+        tx.set_regenerate_transaction_id(value)
+
+
+def test_set_regenerate_transaction_id_after_freeze_raises_error(mock_client):
+    """Test that setting regenerate_transaction_id after freezing raises an error."""
+    tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key())
+    tx.freeze_with(mock_client)
+
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
+        tx.set_regenerate_transaction_id(False)
+
+
+def test_freeze_with_resolves_regenerate_transaction_id_from_client_default(mock_client):
+    """Test that freeze_with() resolves an unset regenerate_transaction_id from the client default."""
+    mock_client.set_default_regenerate_transaction_id(False)
+
+    tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key())
+    assert tx.regenerate_transaction_id is None
+
+    tx.freeze_with(mock_client)
+    assert tx.regenerate_transaction_id is False
+
+
+def test_freeze_with_preserves_explicit_regenerate_transaction_id(mock_client):
+    """Test that an explicitly set regenerate_transaction_id takes precedence over the client default."""
+    mock_client.set_default_regenerate_transaction_id(True)
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate().public_key())
+        .set_regenerate_transaction_id(False)
+    )
+
+    tx.freeze_with(mock_client)
+    assert tx.regenerate_transaction_id is False
+
+
 def test_body_bytes_for_each_node_on_freeze(mock_client):
     """Test transaction body bytes are created for each network node when frozen."""
     tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate_ecdsa())

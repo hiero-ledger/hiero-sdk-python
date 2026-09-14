@@ -65,6 +65,12 @@ class Transaction(_Executable):
         self._default_transaction_fee = Hbar(2)
         self.operator_account_id = None
         self.batch_key: Key | None = None
+        # None means "not explicitly set"; resolved against Client.default_regenerate_transaction_id
+        # in freeze_with().
+        self._regenerate_transaction_id: bool | None = None
+        # Set in execute() so a TRANSACTION_EXPIRED retry can regenerate and re-sign the
+        # transaction ID using the client actually driving execution.
+        self._client: Client | None = None
 
     def _make_request(self):
         """
@@ -140,6 +146,12 @@ class Transaction(_Executable):
             return _ExecutionState.RETRY
 
         if status == ResponseCode.TRANSACTION_EXPIRED:
+            # Regenerate the transaction ID and retry if enabled.
+            if self._regenerate_transaction_id:
+                self._handle_transaction_id_regeneration()
+                return _ExecutionState.RETRY
+
+            # Transaction ID regeneration is disabled.
             return _ExecutionState.EXPIRED
 
         if status == ResponseCode.OK:
@@ -162,6 +174,39 @@ class Transaction(_Executable):
 
         return PrecheckError(error_code, tx_id)
 
+    def _handle_transaction_id_regeneration(self) -> Transaction:
+        """Regenerate transaction IDs, rebuild transaction bodies, and re-sign the transaction."""
+        if self._client is None or self._client.operator_account_id is None:
+            raise ValueError("Client must have an operator account ID to regenerate transaction ID.")
+
+        chunk_index = self._transaction_ids.index
+        new_transaction_id = TransactionId.generate(self._client.operator_account_id)
+        required_chunks = self.get_required_chunks()
+
+        # Transaction IDs are locked after freeze; unlock them while replacing the full sequence.
+        self._transaction_ids.set_lock(False)
+        try:
+            self._generate_transaction_ids(new_transaction_id, required_chunks)
+            self._transaction_ids.set_index(chunk_index)
+        finally:
+            self._transaction_ids.set_lock(True)
+
+        # Chunked transaction bodies refer to the initial transaction ID as well.
+        if hasattr(self, "_initial_transaction_id"):
+            self._initial_transaction_id = new_transaction_id
+
+        # All bodies and signatures contain the old transaction IDs, so none can be reused.
+        self._transaction_body_bytes.clear()
+        self._signature_map.clear()
+
+        for index, transaction_id in enumerate(self._transaction_ids):
+            self._set_current_chunk_index(index)
+            self._transaction_body_bytes[transaction_id] = self._build_node_transaction_bodies(transaction_id)
+
+        self._set_current_chunk_index(None)
+        self.sign(self._client.operator_private_key)
+
+        return self
     def sign(self, private_key: PrivateKey) -> Transaction:
         """
         Signs the transaction using the provided private key.
@@ -298,6 +343,10 @@ class Transaction(_Executable):
         Raises:
             Exception: If required IDs are not set.
         """
+        # Resolve regenerate_transaction_id against the client default when not explicitly set.
+        if self._regenerate_transaction_id is None and client is not None:
+            self._regenerate_transaction_id = client.default_regenerate_transaction_id
+
         if self._transaction_body_bytes:
             return self
 
@@ -315,21 +364,36 @@ class Transaction(_Executable):
         self._transaction_ids.set_lock(True)
 
         for index, transaction_id in enumerate(self._transaction_ids):
-            node_transaction_bodies = {}
-
             self._set_current_chunk_index(index)
-            transaction_body = self.build_transaction_body()
-
-            for node_account_id in self._node_account_ids.get_list():
-                transaction_body.transactionID.CopyFrom(transaction_id._to_proto())
-                transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
-                node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
-
-            self._transaction_body_bytes[transaction_id] = node_transaction_bodies
+            self._transaction_body_bytes[transaction_id] = self._build_node_transaction_bodies(transaction_id)
 
         self._set_current_chunk_index(None)
 
         return self
+
+    def _build_node_transaction_bodies(self, transaction_id: TransactionId) -> dict[AccountId, bytes]:
+        """
+        Builds and serializes the transaction body for `transaction_id`, once per node in
+        `_node_account_ids`.
+
+        Callers are responsible for setting the current chunk index (for chunked transactions)
+        before calling this, since `build_transaction_body()` depends on it.
+
+        Args:
+            transaction_id (TransactionId): The transaction ID to embed in each built body.
+
+        Returns:
+            dict[AccountId, bytes]: Serialized transaction body bytes keyed by node account ID.
+        """
+        transaction_body = self.build_transaction_body()
+
+        node_transaction_bodies = {}
+        for node_account_id in self._node_account_ids.get_list():
+            transaction_body.transactionID.CopyFrom(transaction_id._to_proto())
+            transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
+            node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
+
+        return node_transaction_bodies
 
     def _generate_transaction_ids(self, initial_id: TransactionId, count: int) -> None:
         """Generate all transaction_id for require chunks."""
@@ -419,6 +483,10 @@ class Transaction(_Executable):
 
         if not isinstance(client, Client):
             raise TypeError("client must be an instance of Client")
+
+        # Store the client driving this execution so a TRANSACTION_EXPIRED retry can regenerate
+        # and re-sign the transaction ID using the client actually driving execution.
+        self._client = client
 
         if not self._transaction_body_bytes:
             self.freeze_with(client)
@@ -666,6 +734,46 @@ class Transaction(_Executable):
             raise ValueError("transaction_id must have account_id and a valid_start period")
 
         self._transaction_ids.set_list([transaction_id])
+        return self
+
+    @property
+    def regenerate_transaction_id(self) -> bool | None:
+        """
+        Whether this transaction should regenerate its transaction ID and retry when the
+        network returns TRANSACTION_EXPIRED.
+
+        Returns None when not explicitly set on the transaction, in which case
+        `Client.default_regenerate_transaction_id` is used once the transaction is frozen.
+        """
+        return self._regenerate_transaction_id
+
+    def set_regenerate_transaction_id(self, regenerate_transaction_id: bool) -> Transaction:
+        """
+        Sets whether this transaction should regenerate its transaction ID and retry when the
+        network returns TRANSACTION_EXPIRED.
+
+        This transaction-level setting takes precedence over
+        `Client.default_regenerate_transaction_id`.
+
+        Args:
+            regenerate_transaction_id (bool): Whether to regenerate the transaction ID on
+                TRANSACTION_EXPIRED.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If regenerate_transaction_id is not a bool.
+            Exception: If the transaction has already been frozen.
+        """
+        self._require_not_frozen()
+
+        if not isinstance(regenerate_transaction_id, bool):
+            raise TypeError(
+                f"regenerate_transaction_id must be of type bool, got {type(regenerate_transaction_id).__name__}"
+            )
+
+        self._regenerate_transaction_id = regenerate_transaction_id
         return self
 
     # this will preserves original behavior

@@ -5,10 +5,12 @@ from unittest.mock import patch
 
 import grpc
 import pytest
-
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
+from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
 from hiero_sdk_python.executable import (
@@ -188,8 +190,8 @@ def test_node_switching_after_multiple_grpc_errors():
         assert receipt.status == ResponseCode.SUCCESS
 
 
-def test_transaction_with_expired_error_not_retried():
-    """Test that an expired error is not retried."""
+def test_transaction_with_expired_error_not_retried_when_regeneration_disabled():
+    """Test that an expired error is not retried when regenerate_transaction_id is disabled."""
     error_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
 
     response_sequences = [[error_response]]
@@ -202,6 +204,7 @@ def test_transaction_with_expired_error_not_retried():
             AccountCreateTransaction()
             .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
+            .set_regenerate_transaction_id(False)
         )
 
         with pytest.raises(PrecheckError) as exc_info:
@@ -209,6 +212,131 @@ def test_transaction_with_expired_error_not_retried():
 
         assert str(error_response.nodeTransactionPrecheckCode) in str(exc_info.value)
 
+
+def test_transaction_with_expired_error_regenerates_id_and_retries():
+    """Test that TRANSACTION_EXPIRED regenerates the transaction ID and retries by default."""
+    expired_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
+    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS,
+                accountID=basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=1234),
+            ),
+        )
+    )
+
+    response_sequences = [[expired_response, ok_response, receipt_response]]
+
+    with (
+        mock_hedera_servers(response_sequences) as client,
+        patch("hiero_sdk_python.executable.time.sleep"),
+    ):
+        transaction = (
+            AccountCreateTransaction()
+            .set_key_without_alias(PrivateKey.generate().public_key())
+            .set_initial_balance(100_000_000)
+        )
+
+        original_transaction_id = transaction.freeze_with(client).transaction_id
+
+        try:
+            receipt = transaction.execute(client)
+        except (Exception, grpc.RpcError) as e:
+            pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
+
+        assert receipt.status == ResponseCode.SUCCESS
+        assert transaction.regenerate_transaction_id is True
+        assert transaction.transaction_id != original_transaction_id
+
+
+def test_transaction_regenerate_transaction_id_defaults_to_client_setting():
+    """Test that freeze_with() resolves regenerate_transaction_id from the client default."""
+    error_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
+
+    response_sequences = [[error_response]]
+
+    with (
+        mock_hedera_servers(response_sequences) as client,
+        patch("hiero_sdk_python.executable.time.sleep"),
+    ):
+        client.set_default_regenerate_transaction_id(False)
+
+        transaction = (
+            AccountCreateTransaction()
+            .set_key_without_alias(PrivateKey.generate().public_key())
+            .set_initial_balance(100_000_000)
+        )
+
+        assert transaction.regenerate_transaction_id is None
+
+        with pytest.raises(PrecheckError):
+            transaction.execute(client)
+
+        assert transaction.regenerate_transaction_id is False
+
+def test_transaction_id_regeneration_resigns_with_the_client_used_to_execute():
+    """Test that regeneration re-signs using execute()'s client, not freeze_with()'s.
+
+    Regression test: if freeze_with() were used to capture the client for later
+    regeneration, a transaction frozen with one client and executed with another would be
+    re-signed with the wrong operator key after a TRANSACTION_EXPIRED retry.
+    """
+    expired_response = TransactionResponseProto(
+        nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED
+    )
+    ok_response = TransactionResponseProto(
+        nodeTransactionPrecheckCode=ResponseCode.OK
+    )
+
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK
+            ),
+            receipt=transaction_receipt_pb2.TransactionReceipt(
+                status=ResponseCode.SUCCESS,
+                accountID=basic_types_pb2.AccountID(
+                    shardNum=0, realmNum=0, accountNum=1234
+                ),
+            ),
+        )
+    )
+
+    response_sequences = [[expired_response, ok_response, receipt_response]]
+
+    with (
+        mock_hedera_servers(response_sequences) as executing_client,
+        patch("hiero_sdk_python.executable.time.sleep"),
+    ):
+        # Use the same network but a different operator for freeze_with().
+        freezing_client = Client(executing_client.network)
+        freezing_client.set_operator(
+            AccountId(0, 0, 999),
+            PrivateKey.generate(),
+        )
+
+        transaction = TransferTransaction().add_hbar_transfer(
+            AccountId(0, 0, 1001),
+            Hbar(1),
+        )
+
+        transaction.freeze_with(freezing_client)
+
+        try:
+            receipt = transaction.execute(executing_client)
+
+            assert receipt.status == ResponseCode.SUCCESS
+            assert transaction.is_signed_by(
+                executing_client.operator_private_key.public_key()
+            )
+            assert not transaction.is_signed_by(
+                freezing_client.operator_private_key.public_key()
+            )
+        finally:
+            freezing_client.close()
 
 def test_transaction_with_fatal_error_not_retried():
     """Test that a fatal error is not retried."""
