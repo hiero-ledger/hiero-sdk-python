@@ -215,7 +215,8 @@ class ContractUpdateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.staked_node_id = staked_node_id
-        self.staked_account_id = None
+        if staked_node_id is not None:
+            self.staked_account_id = None
         return self
 
     def set_decline_reward(self, decline_reward: bool | None) -> ContractUpdateTransaction:
@@ -236,9 +237,9 @@ class ContractUpdateTransaction(Transaction):
         """
         Sets the new account ID to which the contract stakes.
 
-        This field is mutually exclusive with staked_node_id. Setting this will
-        clear any previously set staked_node_id. Passing an AccountId of
-        `0.0.0` removes staking and sends the sentinel AccountId (0.0.0) to the network.
+        This field is mutually exclusive with staked_node_id. Setting this to a non-None value
+        will clear any previously set staked_node_id.Passing an AccountId of `0.0.0` removes staking
+        and sends the sentinel AccountId (0.0.0) to the network.
 
         Args:
             staked_account_id (AccountId | None): The new account ID to which the contract
@@ -249,7 +250,8 @@ class ContractUpdateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.staked_account_id = staked_account_id
-        self.staked_node_id = None
+        if staked_account_id is not None:
+            self.staked_node_id = None
         return self
 
     def _convert_to_proto(self, obj: Any | None) -> Any:
@@ -260,6 +262,8 @@ class ContractUpdateTransaction(Transaction):
         """
         Returns the protobuf body for the contract update transaction.
         """
+        if self.staked_account_id is not None and self.staked_node_id is not None:
+            raise ValueError("Specify either staked_node_id or staked_account_id, not both.")
         body = contract_update_pb2.ContractUpdateTransactionBody(
             expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
             adminKey=self.admin_key.to_proto_key() if self.admin_key else None,

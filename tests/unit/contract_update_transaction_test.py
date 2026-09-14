@@ -143,12 +143,29 @@ def test_set_auto_renew_account_id():
 
 
 def test_set_staked_node_id():
-    """Test setting staked node ID."""
+    """Test setting staked node ID clears an existing staked account ID."""
     tx = ContractUpdateTransaction()
+    staked_account_id = AccountId(0, 0, 999)
+    tx.set_staked_account_id(staked_account_id)
+
     staked_node_id = 5
     result = tx.set_staked_node_id(staked_node_id)
 
     assert tx.staked_node_id == staked_node_id
+    assert tx.staked_account_id is None
+    assert result is tx  # Method chaining
+
+
+def test_set_staked_node_id_to_none_preserves_staked_account_id():
+    """Test that setting staked node ID to None preserves the staked account ID."""
+    tx = ContractUpdateTransaction()
+    staked_account_id = AccountId(0, 0, 999)
+    tx.set_staked_account_id(staked_account_id)
+
+    result = tx.set_staked_node_id(None)
+
+    assert tx.staked_node_id is None
+    assert tx.staked_account_id == staked_account_id
     assert result is tx  # Method chaining
 
 
@@ -163,16 +180,19 @@ def test_set_decline_reward():
 
 
 def test_set_auto_renew_account_id_to_zero():
-    """Test setting auto renew account ID to 0.0.0 triggers clear flag."""
+    """Test setting auto renew account ID to the 0.0.0 clearing sentinel."""
     tx = ContractUpdateTransaction()
-    tx.set_auto_renew_account_id(AccountId(0, 0, 0))
+    result = tx.set_auto_renew_account_id(AccountId(0, 0, 0))
 
     assert tx.auto_renew_account_id == AccountId(0, 0, 0)
+    assert result is tx  # Method chaining
 
 
 def test_set_staked_account_id():
-    """Test setting a valid staked account ID."""
+    """Test setting a valid staked account ID clears an existing staked node ID."""
     tx = ContractUpdateTransaction()
+    tx.set_staked_node_id(5)
+
     staked_account_id = AccountId(0, 0, 999)
     result = tx.set_staked_account_id(staked_account_id)
 
@@ -181,13 +201,28 @@ def test_set_staked_account_id():
     assert result is tx  # Method chaining
 
 
+def test_set_staked_account_id_to_none_preserves_staked_node_id():
+    """Test that setting staked account ID to None preserves the staked node ID."""
+    tx = ContractUpdateTransaction()
+    staked_node_id = 5
+    tx.set_staked_node_id(staked_node_id)
+
+    result = tx.set_staked_account_id(None)
+
+    assert tx.staked_account_id is None
+    assert tx.staked_node_id == staked_node_id
+    assert result is tx  # Method chaining
+
+
 def test_set_staked_account_id_to_zero():
     """Test setting staked account ID to 0.0.0 clears staking."""
     tx = ContractUpdateTransaction()
-    tx.set_staked_account_id(AccountId(0, 0, 0))
+
+    result = tx.set_staked_account_id(AccountId(0, 0, 0))
 
     assert tx.staked_account_id == AccountId(0, 0, 0)
     assert tx.staked_node_id is None
+    assert result is tx  # Method chaining
 
 
 ########### Method Chaining Tests ###########
@@ -348,6 +383,22 @@ def test_build_proto_body_with_cleared_fields(contract_id):
     # Check staked account ID natively serializes the 0.0.0 sentinel
     assert proto_body.HasField("staked_account_id")
     assert proto_body.staked_account_id.accountNum == 0
+
+
+def test_build_proto_body_rejects_conflicting_staking_targets(contract_id):
+    """Test that constructor parameters cannot specify both staking targets."""
+    params = ContractUpdateParams(
+        contract_id=contract_id,
+        staked_account_id=AccountId(0, 0, 999),
+        staked_node_id=5,
+    )
+    tx = ContractUpdateTransaction(contract_params=params)
+
+    with pytest.raises(
+        ValueError,
+        match="Specify either staked_node_id or staked_account_id, not both",
+    ):
+        tx._build_proto_body()
 
 
 ########### Transaction Execution Tests ###########

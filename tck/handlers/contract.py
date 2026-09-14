@@ -20,6 +20,8 @@ from tck.util.param_utils import decode_hex, to_int
 from tck.util.transaction_utils import execute_validated
 
 
+INT32_MIN = -(2**31)
+INT32_MAX = 2**31 - 1
 INT64_MIN = -(2**63)
 INT64_MAX = 2**63 - 1
 
@@ -28,7 +30,7 @@ def _require_int64(value: str, name: str) -> int:
     """Parse an int64 JSON-RPC param transported as a string.
 
     Python ints are unbounded, so enforce the wire type's int64 range here
-    (gas, initialBalance, autoRenewPeriod, stakedNodeId); boundary values
+    (gas, initialBalance, autoRenewPeriod, stakedNodeId, expirationTime); boundary values
     themselves are valid and left for the network to judge.
     """
     parsed = to_int(value)
@@ -37,6 +39,15 @@ def _require_int64(value: str, name: str) -> int:
     if not INT64_MIN <= parsed <= INT64_MAX:
         raise JsonRpcError.invalid_params_error(f"{name} must fit in an int64")
     return parsed
+
+
+def _require_int32(value: int, name: str) -> int:
+    """Validate an int32 JSON-RPC parameter."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise JsonRpcError.invalid_params_error(f"{name} must be an integer")
+    if not INT32_MIN <= value <= INT32_MAX:
+        raise JsonRpcError.invalid_params_error(f"{name} must fit in an int32")
+    return value
 
 
 def _build_create_contract_transaction(params: CreateContractParams) -> ContractCreateTransaction:
@@ -112,8 +123,12 @@ def _build_update_contract_transaction(params: UpdateContractParams) -> Contract
         transaction.set_auto_renew_period(Duration(_require_int64(params.autoRenewPeriod, "autoRenewPeriod")))
 
     if params.expirationTime is not None:
-        transaction.set_expiration_time(Timestamp(seconds=to_int(params.expirationTime), nanos=0))
-
+        transaction.set_expiration_time(
+            Timestamp(
+                seconds=_require_int64(params.expirationTime, "expirationTime"),
+                nanos=0,
+            )
+        )
     if params.memo is not None:
         transaction.set_contract_memo(params.memo)
 
@@ -121,7 +136,12 @@ def _build_update_contract_transaction(params: UpdateContractParams) -> Contract
         transaction.set_auto_renew_account_id(AccountId.from_string(params.autoRenewAccountId))
 
     if params.maxAutomaticTokenAssociations is not None:
-        transaction.set_max_automatic_token_associations(params.maxAutomaticTokenAssociations)
+        transaction.set_max_automatic_token_associations(
+            _require_int32(
+                params.maxAutomaticTokenAssociations,
+                "maxAutomaticTokenAssociations",
+            )
+        )
 
     if params.stakedAccountId is not None:
         transaction.set_staked_account_id(AccountId.from_string(params.stakedAccountId))
