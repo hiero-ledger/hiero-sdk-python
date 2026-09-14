@@ -14,7 +14,7 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import contract_update_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services import basic_types_pb2, contract_update_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -190,6 +190,8 @@ class ContractUpdateTransaction(Transaction):
         """
         Sets the new account ID that will be charged for the contract's auto-renewal.
 
+        Passing an AccountId of `0.0.0` clears the auto-renew account configuration.
+
         Args:
             auto_renew_account_id (AccountId | None): The new account ID that will be
                 charged for the contract's auto-renewal.
@@ -213,6 +215,8 @@ class ContractUpdateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.staked_node_id = staked_node_id
+        if staked_node_id is not None:
+            self.staked_account_id = None
         return self
 
     def set_decline_reward(self, decline_reward: bool | None) -> ContractUpdateTransaction:
@@ -233,6 +237,10 @@ class ContractUpdateTransaction(Transaction):
         """
         Sets the new account ID to which the contract stakes.
 
+        This field is mutually exclusive with staked_node_id. Setting this to a non-None value
+        will clear any previously set staked_node_id.Passing an AccountId of `0.0.0` removes staking
+        and sends the sentinel AccountId (0.0.0) to the network.
+
         Args:
             staked_account_id (AccountId | None): The new account ID to which the contract
                 stakes.
@@ -242,27 +250,21 @@ class ContractUpdateTransaction(Transaction):
         """
         self._require_not_frozen()
         self.staked_account_id = staked_account_id
+        if staked_account_id is not None:
+            self.staked_node_id = None
         return self
 
     def _convert_to_proto(self, obj: Any | None) -> Any:
-        """Convert object to proto if it exists, otherwise return None."""
-        return obj._to_proto() if obj else None
+        """Convert object to proto if it is not None, otherwise return None."""
+        return obj._to_proto() if obj is not None else None
 
     def _build_proto_body(self):
         """
         Returns the protobuf body for the contract update transaction.
-
-        Returns:
-            ContractUpdateTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If contract_id is not set.
         """
-        if self.contract_id is None:
-            raise ValueError("Missing required ContractID")
-
-        return contract_update_pb2.ContractUpdateTransactionBody(
-            contractID=self.contract_id._to_proto(),
+        if self.staked_account_id is not None and self.staked_node_id is not None:
+            raise ValueError("Specify either staked_node_id or staked_account_id, not both.")
+        body = contract_update_pb2.ContractUpdateTransactionBody(
             expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
             adminKey=self.admin_key.to_proto_key() if self.admin_key else None,
             autoRenewPeriod=self._convert_to_proto(self.auto_renew_period),
@@ -273,10 +275,22 @@ class ContractUpdateTransaction(Transaction):
                 if self.max_automatic_token_associations is not None
                 else None
             ),
-            staked_account_id=self._convert_to_proto(self.staked_account_id),
-            auto_renew_account_id=self._convert_to_proto(self.auto_renew_account_id),
             decline_reward=(BoolValue(value=self.decline_reward) if self.decline_reward is not None else None),
         )
+
+        if self.contract_id is not None:
+            body.contractID.CopyFrom(self.contract_id._to_proto())
+
+        if self.auto_renew_account_id is not None:
+            if self.auto_renew_account_id == AccountId.from_string("0.0.0"):
+                body.auto_renew_account_id.CopyFrom(basic_types_pb2.AccountID())
+            else:
+                body.auto_renew_account_id.CopyFrom(self.auto_renew_account_id._to_proto())
+
+        if self.staked_account_id is not None:
+            body.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
+
+        return body
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """

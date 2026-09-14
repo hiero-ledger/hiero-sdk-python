@@ -2,13 +2,17 @@ from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
+from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.contract.contract_update_transaction import ContractUpdateTransaction
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.contract import CreateContractParams
-from tck.response.contract import CreateContractResponse
+from tck.param.contract import CreateContractParams, UpdateContractParams
+from tck.response.contract import CreateContractResponse, UpdateContractResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
@@ -16,6 +20,8 @@ from tck.util.param_utils import decode_hex, to_int
 from tck.util.transaction_utils import execute_validated
 
 
+INT32_MIN = -(2**31)
+INT32_MAX = 2**31 - 1
 INT64_MIN = -(2**63)
 INT64_MAX = 2**63 - 1
 
@@ -24,7 +30,7 @@ def _require_int64(value: str, name: str) -> int:
     """Parse an int64 JSON-RPC param transported as a string.
 
     Python ints are unbounded, so enforce the wire type's int64 range here
-    (gas, initialBalance, autoRenewPeriod, stakedNodeId); boundary values
+    (gas, initialBalance, autoRenewPeriod, stakedNodeId, expirationTime); boundary values
     themselves are valid and left for the network to judge.
     """
     parsed = to_int(value)
@@ -33,6 +39,15 @@ def _require_int64(value: str, name: str) -> int:
     if not INT64_MIN <= parsed <= INT64_MAX:
         raise JsonRpcError.invalid_params_error(f"{name} must fit in an int64")
     return parsed
+
+
+def _require_int32(value: int, name: str) -> int:
+    """Validate an int32 JSON-RPC parameter."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise JsonRpcError.invalid_params_error(f"{name} must be an integer")
+    if not INT32_MIN <= value <= INT32_MAX:
+        raise JsonRpcError.invalid_params_error(f"{name} must fit in an int32")
+    return value
 
 
 def _build_create_contract_transaction(params: CreateContractParams) -> ContractCreateTransaction:
@@ -89,6 +104,57 @@ def _build_create_contract_transaction(params: CreateContractParams) -> Contract
     return transaction
 
 
+def _build_update_contract_transaction(params: UpdateContractParams) -> ContractUpdateTransaction:
+    """
+    Maps updateContract JSON-RPC params onto a ContractUpdateTransaction.
+
+    Only supplied params are applied, SDK defaults remain intact.
+    """
+
+    transaction = ContractUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.contractId is not None:
+        transaction.set_contract_id(ContractId.from_string(params.contractId))
+
+    if params.adminKey is not None:
+        transaction.set_admin_key(get_key_from_string(params.adminKey))
+
+    if params.autoRenewPeriod is not None:
+        transaction.set_auto_renew_period(Duration(_require_int64(params.autoRenewPeriod, "autoRenewPeriod")))
+
+    if params.expirationTime is not None:
+        transaction.set_expiration_time(
+            Timestamp(
+                seconds=_require_int64(params.expirationTime, "expirationTime"),
+                nanos=0,
+            )
+        )
+    if params.memo is not None:
+        transaction.set_contract_memo(params.memo)
+
+    if params.autoRenewAccountId is not None:
+        transaction.set_auto_renew_account_id(AccountId.from_string(params.autoRenewAccountId))
+
+    if params.maxAutomaticTokenAssociations is not None:
+        transaction.set_max_automatic_token_associations(
+            _require_int32(
+                params.maxAutomaticTokenAssociations,
+                "maxAutomaticTokenAssociations",
+            )
+        )
+
+    if params.stakedAccountId is not None:
+        transaction.set_staked_account_id(AccountId.from_string(params.stakedAccountId))
+
+    if params.stakedNodeId is not None:
+        transaction.set_staked_node_id(_require_int64(params.stakedNodeId, "stakedNodeId"))
+
+    if params.declineStakingReward is not None:
+        transaction.set_decline_reward(params.declineStakingReward)
+
+    return transaction
+
+
 @rpc_method("createContract")
 def create_contract(params: CreateContractParams) -> CreateContractResponse:
     """Create a smart contract."""
@@ -106,3 +172,19 @@ def create_contract(params: CreateContractParams) -> CreateContractResponse:
         contract_id = str(receipt.contract_id)
 
     return CreateContractResponse(contract_id, ResponseCode(receipt.status).name)
+
+
+@rpc_method("updateContract")
+def update_contract(params: UpdateContractParams) -> UpdateContractResponse:
+    """Update a smart contract."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_update_contract_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return UpdateContractResponse(status=ResponseCode(receipt.status).name)
