@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from hiero_sdk_python import AccountId
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
 from tck.errors import HIERO_ERROR, INTERNAL_ERROR
 from tck.handlers import sdk
@@ -38,7 +39,7 @@ def test_ping_dispatches_and_returns_exact_response():
     with patch.object(sdk, "get_client", return_value=client):
         result = dispatch("ping", {"sessionId": "s", "nodeAccountId": "0.0.3"})
 
-    client.ping.assert_called_once()
+    client.ping.assert_called_once_with(AccountId.from_string("0.0.3"))
     assert result == {
         "message": "Successfully pinged node 0.0.3.",
         "status": "SUCCESS",
