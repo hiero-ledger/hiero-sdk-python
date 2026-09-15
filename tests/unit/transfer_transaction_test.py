@@ -670,9 +670,7 @@ def test_nft_transfer_reconstruction_from_protobuf(mock_account_ids):
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
-    body_bytes = body.SerializeToString()
-
-    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+    reconstructed = TransferTransaction._from_protobuf(body)
 
     assert len(reconstructed.nft_transfers[token_id_1]) == 1
     nft = reconstructed.nft_transfers[token_id_1][0]
@@ -693,9 +691,7 @@ def test_nft_transfers_unapproved_reconstruction(mock_account_ids):
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
-    body_bytes = body.SerializeToString()
-
-    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+    reconstructed = TransferTransaction._from_protobuf(body)
 
     assert len(reconstructed.nft_transfers[token_id_1]) == 1
     nft = reconstructed.nft_transfers[token_id_1][0]
@@ -713,9 +709,8 @@ def test_token_transfer_with_expected_decimals_reconstruction(mock_account_ids):
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
-    body_bytes = body.SerializeToString()
 
-    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+    reconstructed = TransferTransaction._from_protobuf(body)
 
     assert len(reconstructed.token_transfers[token_id_1]) == 2
     for token_transfer in reconstructed.token_transfers[token_id_1]:
@@ -740,9 +735,8 @@ def test_combined_transfers_reconstruction(mock_account_ids):
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
-    body_bytes = body.SerializeToString()
 
-    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+    reconstructed = TransferTransaction._from_protobuf(body)
 
     assert len(reconstructed.hbar_transfers) == 2
     assert len(reconstructed.token_transfers[token_id_1]) == 2
@@ -766,9 +760,8 @@ def test_expected_decimals_field_preservation(mock_account_ids):
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
-    body_bytes = body.SerializeToString()
 
-    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+    reconstructed = TransferTransaction._from_protobuf(body)
 
     for token_transfer in reconstructed.token_transfers[token_id_1]:
         assert token_transfer.expected_decimals is not None
@@ -786,9 +779,8 @@ def test_nft_transfer_fields_preservation(mock_account_ids):
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
-    body_bytes = body.SerializeToString()
 
-    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+    reconstructed = TransferTransaction._from_protobuf(body)
 
     nft_transfers = reconstructed.nft_transfers[token_id_1]
     assert len(nft_transfers) == 1
@@ -813,9 +805,8 @@ def test_multiple_nft_transfers_all_fields(mock_account_ids):
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
-    body_bytes = body.SerializeToString()
 
-    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+    reconstructed = TransferTransaction._from_protobuf(body)
 
     nft_transfers = reconstructed.nft_transfers[token_id_1]
     assert len(nft_transfers) == 3
@@ -842,9 +833,8 @@ def test_token_transfer_without_expected_decimals(mock_account_ids):
     transfer_tx.operator_account_id = account_id_sender
 
     body = transfer_tx.build_transaction_body()
-    body_bytes = body.SerializeToString()
 
-    reconstructed = TransferTransaction._from_protobuf(body, body_bytes, None)
+    reconstructed = TransferTransaction._from_protobuf(body)
 
     token_transfers = reconstructed.token_transfers[token_id_1]
     assert len(token_transfers) == 2

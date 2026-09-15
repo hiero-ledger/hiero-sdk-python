@@ -356,11 +356,7 @@ def test_node_create_transaction_from_protobuf_with_admin_key():
     transaction_body = TransactionBody()
     transaction_body.nodeCreate.CopyFrom(body)
 
-    parsed_transaction = NodeCreateTransaction._from_protobuf(
-        transaction_body,
-        b"",
-        None,
-    )
+    parsed_transaction = NodeCreateTransaction._from_protobuf(transaction_body)
 
     assert parsed_transaction.admin_key is not None
     assert parsed_transaction.admin_key.to_proto_key() == body.admin_key
