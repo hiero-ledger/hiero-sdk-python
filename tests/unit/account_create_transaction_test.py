@@ -541,7 +541,8 @@ def test_set_stake_account_id_reset_stake_node_id():
     assert tx.staked_node_id is None
 
 
-def test_serialization_round_trip():
+def test_serialization_round_trip_staked_node_id():
+    """Test serialization roundtrip with staked_node_id."""
     key = PrivateKey.generate_ecdsa()
     transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
 
@@ -549,7 +550,8 @@ def test_serialization_round_trip():
         AccountCreateTransaction()
         .set_key_without_alias(key)
         .set_account_memo("Test Account")
-        .set_high_volume(True)
+        .set_staked_node_id(1)
+        .set_high_volume(False)
         .set_node_account_ids([AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")])
         .set_transaction_id(transaction_id)
     )
@@ -562,3 +564,32 @@ def test_serialization_round_trip():
     assert tx2.high_volume == tx1.high_volume
     assert tx2.node_account_ids == tx1.node_account_ids
     assert tx2.transaction_id == tx1.transaction_id
+    assert tx2.staked_node_id == tx1.staked_node_id
+    assert tx2.staked_account_id == tx1.staked_account_id
+
+
+def test_serialization_round_trip_staked_account_id():
+    """Test serialization roundtrip with staked_account_id."""
+    key = PrivateKey.generate_ecdsa()
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+
+    tx1 = (
+        AccountCreateTransaction()
+        .set_key_without_alias(key)
+        .set_account_memo("Test Account")
+        .set_staked_account_id(AccountId.from_string("0.0.8"))
+        .set_high_volume(False)
+        .set_node_account_ids([AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")])
+        .set_transaction_id(transaction_id)
+    )
+
+    tx2 = Transaction.from_bytes(tx1.to_bytes())
+
+    assert isinstance(tx2, AccountCreateTransaction)
+    assert tx2.key == key.public_key()
+    assert tx2.memo == tx1.memo
+    assert tx2.high_volume == tx1.high_volume
+    assert tx2.node_account_ids == tx1.node_account_ids
+    assert tx2.transaction_id == tx1.transaction_id
+    assert tx2.staked_node_id == tx1.staked_node_id
+    assert tx2.staked_account_id == tx1.staked_account_id
