@@ -154,11 +154,29 @@ def test_ping_all_is_sequential_and_stops_at_first_failure():
     ]
     client, _ = _client(servers)
     try:
-        with pytest.raises(MaxAttemptsError):
+        with pytest.raises(MaxAttemptsError) as error:
             client.ping_all()
+        assert error.value.last_error.code() == grpc.StatusCode.UNAVAILABLE
+        assert error.value.last_error.details() == "unavailable"
         assert len(servers[0].calls) == 1
         assert len(servers[1].calls) == 1
         assert not servers[2].calls
+    finally:
+        client.close()
+        for server in servers:
+            server.close()
+
+
+def test_ping_all_probes_node_in_backoff_before_continuing():
+    servers = [MockServer([_response()]) for _ in range(3)]
+    client, nodes = _client(servers)
+    try:
+        client.network._increase_backoff(nodes[0])
+        assert not nodes[0].is_healthy()
+
+        client.ping_all()
+
+        assert [len(server.calls) for server in servers] == [1, 1, 1]
     finally:
         client.close()
         for server in servers:
