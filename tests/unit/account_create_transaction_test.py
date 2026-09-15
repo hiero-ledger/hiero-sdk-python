@@ -25,6 +25,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -538,3 +539,26 @@ def test_set_stake_account_id_reset_stake_node_id():
     tx.set_staked_account_id(AccountId(0, 0, 1))
     assert tx.staked_account_id == AccountId(0, 0, 1)
     assert tx.staked_node_id is None
+
+
+def test_serialization_round_trip():
+    key = PrivateKey.generate_ecdsa()
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+
+    tx1 = (
+        AccountCreateTransaction()
+        .set_key_without_alias(key)
+        .set_account_memo("Test Account")
+        .set_high_volume(True)
+        .set_node_account_ids([AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")])
+        .set_transaction_id(transaction_id)
+    )
+
+    tx2 = Transaction.from_bytes(tx1.to_bytes())
+
+    assert isinstance(tx2, AccountCreateTransaction)
+    assert tx2.key == key.public_key()
+    assert tx2.memo == tx1.memo
+    assert tx2.high_volume == tx1.high_volume
+    assert tx2.node_account_ids == tx1.node_account_ids
+    assert tx2.transaction_id == tx1.transaction_id
