@@ -732,16 +732,7 @@ class Transaction(_Executable):
         if self._transaction_body_bytes:
             for node_body_bytes in self._transaction_body_bytes.values():
                 for body_bytes in node_body_bytes.values():
-                    signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes)
-                    signature_map = self._signature_map.get(body_bytes)
-                    if signature_map is not None:
-                        signed_transaction.sigMap.CopyFrom(signature_map)
-                    else:
-                        signed_transaction.sigMap.CopyFrom(basic_types_pb2.SignatureMap(sigPair=[]))
-
-                    transaction_list.transaction_list.append(
-                        transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
-                    )
+                    transaction_list.transaction_list.append(self._build_transaction_from_body_bytes(body_bytes))
 
             return transaction_list.SerializeToString()
 
@@ -751,19 +742,39 @@ class Transaction(_Executable):
             transaction_body.transactionID.CopyFrom(self._transaction_ids.get(0)._to_proto())
 
         node_account_ids = self._node_account_ids.get_list() if not self._node_account_ids.is_empty else [None]
+
         for node_account_id in node_account_ids:
             if node_account_id is not None:
                 transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
 
-            signed_transaction = transaction_contents_pb2.SignedTransaction(
-                bodyBytes=transaction_body.SerializeToString()
-            )
-
             transaction_list.transaction_list.append(
-                transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
+                self._build_transaction_from_body_bytes(transaction_body.SerializeToString())
             )
 
         return transaction_list.SerializeToString()
+
+    def _build_transaction_from_body_bytes(self, body_bytes: bytes) -> transaction_pb2.Transaction:
+        """
+        Builds a protobuf Transaction from the serialized transaction body.
+        For frozen transactions, the transaction always includes a SignatureMap.
+        If no signatures have been added, an empty SignatureMap is used.
+
+        Args:
+            transaction_body_bytes: The serialized TransactionBody bytes.
+
+        Returns:
+            transaction_pb2.Transaction: The transaction containing the serialized SignedTransaction.
+        """
+        signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes)
+        signature_map = self._signature_map.get(body_bytes)
+
+        if self._transaction_body_bytes:
+            if signature_map is not None:
+                signed_transaction.sigMap.CopyFrom(signature_map)
+            else:
+                signed_transaction.sigMap.CopyFrom(basic_types_pb2.SignatureMap(sigPair=[]))
+
+        return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
 
     @staticmethod
     def from_bytes(transaction_bytes: bytes):
