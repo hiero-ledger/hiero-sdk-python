@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
 
 
@@ -19,7 +18,7 @@ class ContractCallResponse:
     """Response payload for contractCallQuery."""
 
     contractId: str | None = None
-    evmAddress: ContractId | None = None
+    evmAddress: str | None = None
     errorMessage: str | None = None
     gasUsed: int | None = None
     logs: list[ContractLogInfo] = field(default_factory=list)

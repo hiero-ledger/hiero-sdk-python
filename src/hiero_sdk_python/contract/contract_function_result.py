@@ -489,7 +489,7 @@ class ContractFunctionResult:
             function_parameters=proto.functionParameters,
             contract_nonces=contract_nonces,
             signer_nonce=proto.signer_nonce.value if proto.signer_nonce else None,
-            sender_id=AccountId._from_proto(proto.sender_id) if proto.sender_id else None,
+            sender_id=AccountId._from_proto(proto.sender_id) if proto.HasField("sender_id") else None,
         )
 
     def _to_proto(self) -> contract_types_pb2.ContractFunctionResult:

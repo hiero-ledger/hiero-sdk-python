@@ -143,13 +143,13 @@ def contract_call_query(params: ContractCallQueryParams) -> ContractCallResponse
     result: ContractFunctionResult = query.execute(client)
     return ContractCallResponse(
         contractId=str(result.contract_id),
-        evmAddress=result.evm_address,
+        evmAddress=str(result.evm_address),
         errorMessage=result.error_message,
         gasUsed=result.gas_used,
         logs=result.log_info,
         gas=result.gas_available,
         hbarAmount=result.amount,
-        senderAccountId=None,
+        senderAccountId=str(result.sender_id),
         signerNonce=result.signer_nonce,
         rawResult=result.contract_call_result.hex(),
     )
