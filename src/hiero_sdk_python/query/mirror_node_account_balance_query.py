@@ -23,6 +23,7 @@ from hiero_sdk_python.account.account_mirror_node_balance import (
     MirrorNodeAccountBalance,
 )
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.exceptions import PrecheckError
 
 
 LOGGER = logging.getLogger(__name__)
@@ -40,17 +41,21 @@ class MirrorNodeAccountBalanceQuery:
     Only the HBAR balance is returned.
     """
 
-    def __init__(self) -> None:
-        self._account_id: AccountId | None = None
+    def __init__(self, account_id: AccountId) -> None:
+        if account_id is None:
+            raise ValueError("account_id must not be None")
+
+        self._account_id = account_id
         self._max_attempts = 10
         self._max_backoff = 8.0
 
-    def get_account_id(self) -> AccountId | None:
+    @property
+    def get_account_id(self) -> AccountId:
         """
         Return the account ID.
 
         Returns:
-            The account ID, or None if it has not been set.
+            The account ID.
         """
         return self._account_id
 
@@ -67,10 +72,14 @@ class MirrorNodeAccountBalanceQuery:
         if account_id is None:
             raise ValueError("account_id must not be None")
 
+        if not isinstance(account_id, AccountId):
+            raise TypeError("account_id must be an AccountId instance")
+
         self._account_id = account_id
         return self
 
-    def get_max_attempts(self) -> int:
+    @property
+    def max_attempts(self) -> int:
         """
         Return the maximum number of HTTP attempts.
 
@@ -79,7 +88,10 @@ class MirrorNodeAccountBalanceQuery:
         """
         return self._max_attempts
 
-    def set_max_attempts(self, max_attempts: int) -> MirrorNodeAccountBalanceQuery:
+    def set_max_attempts(
+        self,
+        max_attempts: int,
+    ) -> MirrorNodeAccountBalanceQuery:
         """
         Set the maximum number of HTTP attempts.
 
@@ -95,10 +107,14 @@ class MirrorNodeAccountBalanceQuery:
         if max_attempts <= 0:
             raise ValueError("max_attempts must be greater than zero")
 
+        if not isinstance(max_attempts, int):
+            raise TypeError("max_attempts must be an integer")
+
         self._max_attempts = max_attempts
         return self
 
-    def get_max_backoff(self) -> float:
+    @property
+    def max_backoff(self) -> float:
         """
         Return the maximum retry backoff in seconds.
 
@@ -107,7 +123,10 @@ class MirrorNodeAccountBalanceQuery:
         """
         return self._max_backoff
 
-    def set_max_backoff(self, max_backoff: float) -> MirrorNodeAccountBalanceQuery:
+    def set_max_backoff(
+        self,
+        max_backoff: float,
+    ) -> MirrorNodeAccountBalanceQuery:
         """
         Set the maximum retry backoff in seconds.
 
@@ -122,6 +141,9 @@ class MirrorNodeAccountBalanceQuery:
         """
         if max_backoff < 0.5:
             raise ValueError("max_backoff must be at least 0.5 seconds")
+
+        if not isinstance(max_backoff, (int, float)):
+            raise TypeError("max_backoff must be a number")
 
         self._max_backoff = max_backoff
         return self
@@ -150,6 +172,7 @@ class MirrorNodeAccountBalanceQuery:
 
         Raises:
             ValueError: If the query is not properly configured.
+            PrecheckError: If the account ID is invalid.
             RuntimeError: If the mirror node request fails.
         """
         if client is None:
@@ -171,7 +194,7 @@ class MirrorNodeAccountBalanceQuery:
         if balance is None:
             # The mirror node returns HTTP 200 with an empty balances array
             # when it does not know the requested account.
-            raise ValueError("INVALID_ACCOUNT_ID")
+            raise PrecheckError("INVALID_ACCOUNT_ID")
 
         return balance
 
@@ -218,9 +241,6 @@ class MirrorNodeAccountBalanceQuery:
         """
         Build the mirror node balance endpoint URL.
         """
-        if self._account_id is None:
-            raise ValueError("account_id must be set before executing MirrorNodeAccountBalanceQuery")
-
         mirror_rest_url = client.network.get_mirror_rest_url()
 
         account_param = self._to_account_id_param(self._account_id)
@@ -240,7 +260,7 @@ class MirrorNodeAccountBalanceQuery:
         key bytes.
         """
         # EVM address
-        evm_address = getattr(account_id, "evm_address", None)
+        evm_address = account_id.evm_address
 
         if evm_address is not None:
             if isinstance(evm_address, bytes):
@@ -249,7 +269,7 @@ class MirrorNodeAccountBalanceQuery:
             return "0x" + str(evm_address)
 
         # Public key alias
-        alias_key = getattr(account_id, "alias_key", None)
+        alias_key = account_id.alias_key
 
         if alias_key is not None:
             # The exact conversion here depends on the Python SDK's
