@@ -749,6 +749,8 @@ def test_to_bytes_without_freeze_multiple_node_account_ids():
     assert restored_tx.transaction_id == tx.transaction_id
     assert restored_tx.node_account_ids == tx.node_account_ids
     assert not restored_tx._transaction_body_bytes
+    assert restored_tx._transaction_ids._locked is False
+    assert restored_tx._node_account_ids._locked is False
 
 
 # Deprecated
@@ -771,6 +773,8 @@ def test_to_bytes_without_freeze_single_node_account_id():
     assert restored_tx.transaction_id == tx.transaction_id
     assert restored_tx.node_account_ids == tx.node_account_ids
     assert not restored_tx._transaction_body_bytes
+    assert restored_tx._transaction_ids._locked is False
+    assert restored_tx._node_account_ids._locked is False
 
 
 def test_to_bytes_after_freeze_multiple_node_account_ids():
@@ -795,6 +799,8 @@ def test_to_bytes_after_freeze_multiple_node_account_ids():
 
     assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
     assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
 
 
 # Deprecated
@@ -820,6 +826,8 @@ def test_to_bytes_after_freeze_single_node_account_id():
 
     assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
     assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
 
 
 def test_to_bytes_after_freeze_and_sign_multiple_node_account_ids():
@@ -848,6 +856,8 @@ def test_to_bytes_after_freeze_and_sign_multiple_node_account_ids():
 
     assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
     assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
 
 
 # Deprecated
@@ -877,6 +887,8 @@ def test_to_bytes_after_freeze_and_sign_single_node_account_id():
 
     assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
     assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
 
 
 def test_to_bytes_after_freeze_with_client(mock_client):
@@ -900,6 +912,8 @@ def test_to_bytes_after_freeze_with_client(mock_client):
 
     assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
     assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
 
 
 def test_to_bytes_after_freeze_with_client_and_sign_multiple_node_account_ids(mock_client):
@@ -926,3 +940,5 @@ def test_to_bytes_after_freeze_with_client_and_sign_multiple_node_account_ids(mo
 
     assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
     assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True

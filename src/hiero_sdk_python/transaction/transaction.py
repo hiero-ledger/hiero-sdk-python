@@ -901,6 +901,10 @@ class Transaction(_Executable):
             signed_transaction,
         )
 
+        if transaction._transaction_body_bytes:
+            transaction._transaction_ids.set_lock(True)
+            transaction._node_account_ids.set_lock(True)
+
         return transaction
 
     @staticmethod
@@ -953,6 +957,10 @@ class Transaction(_Executable):
                 transaction,
                 signed_transaction,
             )
+
+        if restored_transaction._transaction_body_bytes:
+            restored_transaction._transaction_ids.set_lock(True)
+            restored_transaction._node_account_ids.set_lock(True)
 
         return restored_transaction
 
