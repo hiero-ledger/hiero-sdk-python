@@ -14,7 +14,6 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.custom_fee import CustomFeeLimitParams, CustomFeeParams
 from tck.param.topic import (
@@ -37,6 +36,7 @@ from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string, key_to_string
 from tck.util.param_utils import to_int
+from tck.util.transaction_utils import execute_validated
 
 
 def _build_custom_fee(custom_fee_params: CustomFeeParams) -> CustomFixedFee:
@@ -133,11 +133,10 @@ def create_topic(params: CreateTopicParams) -> CreateTopicResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     topic_id = ""
-    if receipt.status == ResponseCode.SUCCESS and receipt.topic_id is not None:
+    if receipt.topic_id is not None:
         topic_id = str(receipt.topic_id)
 
     return CreateTopicResponse(topic_id, ResponseCode(receipt.status).name)
@@ -152,8 +151,7 @@ def update_topic(params: UpdateTopicParams) -> UpdateTopicResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return UpdateTopicResponse(ResponseCode(receipt.status).name)
 
@@ -171,8 +169,7 @@ def delete_topic(params: DeleteTopicParams) -> DeleteTopicResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return DeleteTopicResponse(ResponseCode(receipt.status).name)
 
@@ -233,8 +230,7 @@ def submit_topic_message(params: TopicMessageSubmitParams) -> TopicMessageSubmit
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return TopicMessageSubmitResponse(ResponseCode(receipt.status).name)
 

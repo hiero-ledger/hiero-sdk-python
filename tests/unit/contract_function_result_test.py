@@ -7,6 +7,7 @@ from __future__ import annotations
 import pytest
 from google.protobuf.wrappers_pb2 import BytesValue, Int64Value
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
@@ -86,6 +87,7 @@ def contract_function_result(contract_id, log_info, contract_call_result_bytes):
         function_parameters=bytes.fromhex("aabb"),
         contract_nonces=[ContractNonceInfo(ContractId(0, 0, 789), 5)],
         signer_nonce=10,
+        sender_id=AccountId.from_string("0.0.2"),
     )
 
 
@@ -111,6 +113,7 @@ def proto_contract_function_result(contract_id, log_info):
         functionParameters=bytes.fromhex("aabb"),
         contract_nonces=[contract_nonce_proto],
         signer_nonce=Int64Value(value=10),
+        sender_id=AccountId.from_string("0.0.2")._to_proto(),
     )
 
 
@@ -382,6 +385,7 @@ def test_from_proto(proto_contract_function_result):
     assert result.function_parameters == bytes.fromhex("aabb")
     assert ContractNonceInfo(ContractId(0, 0, 789), 5) in result.contract_nonces
     assert result.signer_nonce == 10
+    assert result.sender_id == AccountId(0, 0, 2)
 
 
 def test_from_proto_none():
@@ -405,6 +409,7 @@ def test_to_proto(contract_function_result):
     assert proto.amount == contract_function_result.amount
     assert proto.functionParameters == contract_function_result.function_parameters
     assert proto.signer_nonce.value == contract_function_result.signer_nonce
+    assert proto.sender_id == contract_function_result.sender_id._to_proto()
 
 
 def test_to_proto_signer_nonce():
@@ -419,3 +424,18 @@ def test_to_proto_signer_nonce():
     proto_zero = result_zero._to_proto()
     assert proto_zero.HasField("signer_nonce")
     assert proto_zero.signer_nonce.value == 0
+
+
+def test_to_proto_sender_account_id():
+    """Test _to_proto method with None and NonNone sender_account_id."""
+    # Test with None
+    result1 = ContractFunctionResult(sender_id=None)
+    proto = result1._to_proto()
+    assert not proto.HasField("sender_id")
+
+    # Test with Non None AccountId
+    account_id = AccountId.from_string("0.0.2")
+    result2 = ContractFunctionResult(sender_id=account_id)
+    proto = result2._to_proto()
+    assert proto.HasField("sender_id")
+    assert proto.sender_id == account_id._to_proto()
