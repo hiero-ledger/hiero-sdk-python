@@ -2,25 +2,28 @@
 Get Account Balance Example.
 
 This script demonstrates how to:
-1. Set up a client connection to the Hiero network
-2. Query an account's HBAR balance using the mirror node
+
+1. Set up a client connection to the Hiero network.
+2. Query an account's HBAR balance using the mirror node.
 
 The mirror node balance query is free and does not require an operator
 to be configured on the client.
 
 Note:
-    The mirror node is eventually consistent, so a balance read immediately
-    after a transaction may lag the network by a few seconds.
+The mirror node is eventually consistent, so a balance read immediately
+after a transaction may lag the network by a few seconds.
 
 Run with:
-  uv run examples/query/account_balance_query.py
-  python examples/query/account_balance_query.py
+uv run examples/query/mirror_node_account_balance_query.py
+python examples/query/mirror_node_account_balance_query.py
 """
 
 import sys
 
 from hiero_sdk_python import Client
-from hiero_sdk_python.query.mirror_node_account_balance_query import MirrorNodeAccountBalanceQuery
+from hiero_sdk_python.query.mirror_node_account_balance_query import (
+    MirrorNodeAccountBalanceQuery,
+)
 
 
 def setup_client():
@@ -40,8 +43,8 @@ def setup_client():
 
         return client
 
-    except ValueError as e:
-        print(f"Error setting up client: {e}")
+    except ValueError as exc:
+        print(f"Error setting up client: {exc}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -53,7 +56,7 @@ def main():
         print("Get Account Balance Example Start!")
 
         # Step 0:
-        # Create and configure the SDK Client.
+        # Create and configure the SDK client.
         #
         # Because MirrorNodeAccountBalanceQuery is a free query,
         # an operator is not required to execute the query.
@@ -68,14 +71,14 @@ def main():
         # a few seconds.
         operator_id = client.operator_account_id
 
-        operators_balance = MirrorNodeAccountBalanceQuery().set_account_id(operator_id).execute(client)
+        operators_balance = MirrorNodeAccountBalanceQuery(operator_id).execute(client)
 
         print(f"Operator's Hbar account balance: {operators_balance.hbars}")
 
         print("Get Account Balance Example Complete!")
 
-    except Exception as e:
-        print(f"✗ Error: {e}", file=sys.stderr)
+    except Exception as exc:
+        print(f"✗ Error: {exc}", file=sys.stderr)
         sys.exit(1)
 
     finally:

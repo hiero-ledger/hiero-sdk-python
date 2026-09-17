@@ -16,7 +16,9 @@ import base64
 import logging
 import time
 from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.parse import quote
+from urllib.request import Request, urlopen
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_mirror_node_balance import (
@@ -137,13 +139,14 @@ class MirrorNodeAccountBalanceQuery:
             This query instance.
 
         Raises:
+            TypeError: If max_backoff is not a number.
             ValueError: If max_backoff is less than 0.5 seconds.
         """
-        if max_backoff < 0.5:
-            raise ValueError("max_backoff must be at least 0.5 seconds")
-
         if not isinstance(max_backoff, (int, float)):
             raise TypeError("max_backoff must be a number")
+
+        if max_backoff < 0.5:
+            raise ValueError("max_backoff must be at least 0.5 seconds")
 
         self._max_backoff = max_backoff
         return self
@@ -198,6 +201,54 @@ class MirrorNodeAccountBalanceQuery:
 
         return balance
 
+    def _request(
+        self,
+        url: str,
+        timeout: float,
+    ) -> tuple[Any | None, Exception | None]:
+        """
+        Make an HTTP GET request to the mirror node.
+        Args:
+            url: Mirror node REST endpoint.
+            timeout: HTTP request timeout in seconds.
+
+        Returns:
+            A tuple containing the response and an optional exception.
+        """
+        try:
+            request = Request(
+                url,
+                method="GET",
+                headers={
+                    "Accept": "application/json",
+                },
+            )
+
+            response = urlopen(request, timeout=timeout)  # nosec B310
+
+            class Response:
+                def __init__(self, response):
+                    self.status_code = response.status
+                    self._response = response
+
+                def json(self):
+                    import json
+
+                    return json.loads(self._response.read().decode("utf-8"))
+
+            return Response(response), None
+
+        except HTTPError as exc:
+
+            class ErrorResponse:
+                def __init__(self, status_code):
+                    self.status_code = status_code
+
+            return ErrorResponse(exc.code), None
+
+        except (URLError, TimeoutError, OSError) as exc:
+            return None, exc
+
     def _fetch_body(
         self,
         url: str,
@@ -241,11 +292,11 @@ class MirrorNodeAccountBalanceQuery:
         """
         Build the mirror node balance endpoint URL.
         """
-        mirror_rest_url = client.network.get_mirror_rest_url()
+        mirror_rest_url = client.network.get_mirror_rest_url().rstrip("/")
 
         account_param = self._to_account_id_param(self._account_id)
 
-        return f"{mirror_rest_url}/api/v1/balances?account.id={quote(account_param, safe='')}"
+        return f"{mirror_rest_url}/balances?account.id={quote(account_param, safe='')}"
 
     @staticmethod
     def _to_account_id_param(account_id: AccountId) -> str:

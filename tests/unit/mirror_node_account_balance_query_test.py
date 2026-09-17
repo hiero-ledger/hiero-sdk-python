@@ -123,7 +123,7 @@ def test_set_max_backoff_rejects_non_numeric():
 
     with pytest.raises(
         TypeError,
-        match="not supported between instances of 'str' and 'float'",
+        match="max_backoff must be a number",
     ):
         query.set_max_backoff("1.0")
 
