@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from tck.param.base import BaseTransactionParams
+from tck.param.base import BaseParams, BaseTransactionParams
 from tck.util.param_utils import parse_common_transaction_params, parse_session_id
 
 
@@ -77,4 +77,26 @@ class UpdateContractParams(BaseTransactionParams):
             declineStakingReward=params.get("declineStakingReward"),
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class ContractCallQueryParams(BaseParams):
+    """Parameters for contractCallQuery."""
+
+    contractId: str | None = None
+    gas: str | None = None
+    functionParameters: str | None = None
+    maxResultSize: str | None = None
+    senderAccountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> ContractCallQueryParams:
+        return cls(
+            contractId=params.get("contractId"),
+            gas=params.get("gas"),
+            functionParameters=params.get("functionParameters"),
+            maxResultSize=params.get("maxResultSize"),
+            senderAccountId=params.get("senderAccountId"),
+            sessionId=parse_session_id(params),
         )

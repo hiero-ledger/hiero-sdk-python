@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
+from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
 from tck.response.base import StatusOnlyResponse
 
 
@@ -16,3 +17,19 @@ class CreateContractResponse:
 @dataclass
 class UpdateContractResponse(StatusOnlyResponse):
     """Response payload for updateContract."""
+
+
+@dataclass
+class ContractCallResponse:
+    """Response payload for contractCallQuery."""
+
+    contractId: str | None = None
+    evmAddress: str | None = None
+    errorMessage: str | None = None
+    gasUsed: int | None = None
+    logs: list[ContractLogInfo] = field(default_factory=list)
+    gas: int | None = None
+    hbarAmount: int | None = None
+    senderAccountId: str | None = None
+    signerNonce: int | None = None
+    rawResult: str | None = None
