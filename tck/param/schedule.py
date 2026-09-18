@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from tck.param.base import BaseTransactionParams
+from tck.param.base import BaseParams, BaseTransactionParams
 from tck.util.param_utils import parse_common_transaction_params, parse_session_id, to_bool
 
 
@@ -92,4 +92,25 @@ class DeleteScheduleParams(BaseTransactionParams):
             scheduleId=params.get("scheduleId"),
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
+class GetScheduleInfoParams(BaseParams):
+    """Request parameters for the getScheduleInfo endpoint."""
+
+    scheduleId: str | None = None
+    queryPayment: str | None = None
+    maxQueryPayment: str | None = None
+    getCost: bool | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GetScheduleInfoParams:
+        """Parse JSON-RPC params into a GetScheduleInfoParams instance."""
+        return cls(
+            scheduleId=params.get("scheduleId"),
+            queryPayment=params.get("queryPayment"),
+            maxQueryPayment=params.get("maxQueryPayment"),
+            getCost=to_bool(params.get("getCost")),
+            sessionId=parse_session_id(params),
         )
