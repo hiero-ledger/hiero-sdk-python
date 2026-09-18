@@ -854,11 +854,23 @@ class Transaction(_Executable):
     @staticmethod
     def _process_base_transaction(transaction_proto: transaction_pb2.Transaction):
         """Parses a serialized Transaction protobuf."""
-        try:
-            signed_transaction = transaction_contents_pb2.SignedTransaction()
-            signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
-        except Exception as e:
-            raise ValueError(f"Failed to parse signed transaction: {e}") from e
+        if not isinstance(transaction_proto, transaction_pb2.Transaction):
+            raise TypeError("transaction_proto must be a transaction_pb2.Transaction")
+
+        if transaction_proto.bodyBytes:
+            signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=transaction_proto.bodyBytes)
+            if transaction_proto.HasField("sigMap"):
+                signed_transaction.sigMap.CopyFrom(transaction_proto.sigMap)
+
+        elif transaction_proto.signedTransactionBytes:
+            try:
+                signed_transaction = transaction_contents_pb2.SignedTransaction()
+                signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
+            except Exception as e:
+                raise ValueError(f"Failed to parse signed transaction: {e}") from e
+
+        else:
+            raise ValueError("Transaction does not contain bodyBytes or signedTransactionBytes")
 
         try:
             transaction_body = transaction_pb2.TransactionBody()
