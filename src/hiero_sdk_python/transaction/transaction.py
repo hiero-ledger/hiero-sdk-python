@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import threading
 from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -64,7 +65,14 @@ class Transaction(_Executable):
         # changed from int: 2_000_000 to Hbar: 2
         self._default_transaction_fee = Hbar(2)
         self.operator_account_id = None
+        # Set (and kept in sync) in execute() so a TRANSACTION_EXPIRED retry can re-sign the
+        # regenerated transaction ID with the operator's key.
+        self.operator_private_key: PrivateKey | None = None
         self.batch_key: Key | None = None
+        self._regenerate_transaction_id: bool | None = None
+        # Guards execute() against concurrent calls on the same instance; see execute()
+        # for why this matters for TRANSACTION_EXPIRED regeneration.
+        self._execution_lock = threading.Lock()
 
     def _make_request(self):
         """
@@ -140,6 +148,24 @@ class Transaction(_Executable):
             return _ExecutionState.RETRY
 
         if status == ResponseCode.TRANSACTION_EXPIRED:
+            # Regeneration re-signs only with the operator's key. If any other key has
+            # already signed, that signature can't be reproduced (the SDK retains
+            # neither other signers' private keys nor a signer callback), so retrying
+            # would submit an incompletely-signed transaction. Treat it as non-retryable.
+            # A missing operator account ID also blocks retry, since there is no account
+            # to generate a new transaction ID from - without this, the retry loop would
+            # keep resubmitting the same expired transaction until max_attempts, raising
+            # a confusing MaxAttemptsError instead of a direct PrecheckError.
+            if (
+                self._regenerate_transaction_id
+                and self.operator_account_id is not None
+                and not self._has_foreign_signatures()
+            ):
+                self._handle_transaction_id_regeneration()
+                return _ExecutionState.RETRY
+
+            # Transaction ID regeneration is disabled, no operator to regenerate from, or
+            # cannot be done safely.
             return _ExecutionState.EXPIRED
 
         if status == ResponseCode.OK:
@@ -161,6 +187,89 @@ class Transaction(_Executable):
         tx_id = self._transaction_ids.current
 
         return PrecheckError(error_code, tx_id)
+
+    def _has_foreign_signatures(self) -> bool:
+        """
+        Checks whether any recorded signature belongs to a public key other than the
+        operator's.
+
+        Regeneration re-signs only with the operator's key, so a signature from any other
+        key cannot be safely reproduced after the transaction ID changes.
+
+        Returns:
+            bool: True if a non-operator signature is present, or if signatures exist but
+                the operator's key is unknown; False if there are no signatures, or every
+                signature belongs to the operator.
+        """
+        if not self._signature_map:
+            return False
+
+        if self.operator_private_key is None:
+            return True
+
+        operator_public_key_bytes = self.operator_private_key.public_key().to_bytes_raw()
+
+        for sig_map in self._signature_map.values():
+            for sig_pair in sig_map.sigPair:
+                # pubKeyPrefix may be a shortened prefix of the full key rather than the
+                # full key itself, so check containment, not equality.
+                if not operator_public_key_bytes.startswith(sig_pair.pubKeyPrefix):
+                    return True
+
+        return False
+
+    def _handle_transaction_id_regeneration(self) -> None:
+        """
+        Regenerate the transaction ID for the chunk currently being retried, rebuild the
+        affected transaction body/bodies, and re-sign with the operator's key.
+
+        Only the ID at the current chunk index is regenerated (matching the other Hiero
+        SDKs), so already-submitted earlier chunks keep their original IDs and bodies.
+
+        For chunked transactions, every chunk's body also references the first chunk's ID
+        as its `initialTransactionID`. If a *later* chunk is the one that expired, that
+        reference is left untouched, since it identifies a chunk that has already been
+        submitted. If the *first* chunk itself expires, nothing has been submitted yet, so
+        the initial transaction ID is updated to match, and every other (still-pending)
+        chunk's body is rebuilt too, since each one was already built referencing the old
+        initial transaction ID.
+
+        A missing operator account ID means there is no account to generate a new
+        transaction ID from; in that case this is a no-op (matching the other Hiero SDKs),
+        and the caller will retry with the same, still-expired transaction ID until the
+        client's max attempts are exhausted.
+        """
+        if self.operator_account_id is None:
+            return
+
+        old_transaction_id = self._transaction_ids.current
+        new_transaction_id = TransactionId.generate(self.operator_account_id)
+        chunk_index = self._transaction_ids.index
+
+        # Transaction IDs are locked after freeze; unlock just long enough to replace the
+        # current entry, then re-lock.
+        self._transaction_ids.set_lock(False)
+        self._transaction_ids.set(chunk_index, new_transaction_id)
+        self._transaction_ids.set_lock(True)
+
+        is_first_chunk = chunk_index == 0 and hasattr(self, "_initial_transaction_id")
+        if is_first_chunk:
+            self._initial_transaction_id = new_transaction_id
+            # No chunk has been submitted yet, so every chunk's body - each already built
+            # referencing the old initial transaction ID - must be rebuilt to reference the
+            # new one, not just the expired chunk's own body.
+            chunks_to_rebuild = list(enumerate(self._transaction_ids))
+        else:
+            chunks_to_rebuild = [(chunk_index, new_transaction_id)]
+
+        for index, transaction_id in chunks_to_rebuild:
+            self._set_current_chunk_index(index)
+            self._transaction_body_bytes[transaction_id] = self._build_node_transaction_bodies(transaction_id)
+        self._set_current_chunk_index(None)
+
+        self._transaction_body_bytes.pop(old_transaction_id, None)
+
+        self.sign(self.operator_private_key)
 
     def sign(self, private_key: PrivateKey) -> Transaction:
         """
@@ -298,6 +407,10 @@ class Transaction(_Executable):
         Raises:
             Exception: If required IDs are not set.
         """
+        # Resolve regenerate_transaction_id against the client default when not explicitly set.
+        if self._regenerate_transaction_id is None and client is not None:
+            self._regenerate_transaction_id = client.default_regenerate_transaction_id
+
         if self._transaction_body_bytes:
             return self
 
@@ -315,21 +428,36 @@ class Transaction(_Executable):
         self._transaction_ids.set_lock(True)
 
         for index, transaction_id in enumerate(self._transaction_ids):
-            node_transaction_bodies = {}
-
             self._set_current_chunk_index(index)
-            transaction_body = self.build_transaction_body()
-
-            for node_account_id in self._node_account_ids.get_list():
-                transaction_body.transactionID.CopyFrom(transaction_id._to_proto())
-                transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
-                node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
-
-            self._transaction_body_bytes[transaction_id] = node_transaction_bodies
+            self._transaction_body_bytes[transaction_id] = self._build_node_transaction_bodies(transaction_id)
 
         self._set_current_chunk_index(None)
 
         return self
+
+    def _build_node_transaction_bodies(self, transaction_id: TransactionId) -> dict[AccountId, bytes]:
+        """
+        Builds and serializes the transaction body for `transaction_id`, once per node in
+        `_node_account_ids`.
+
+        Callers are responsible for setting the current chunk index (for chunked transactions)
+        before calling this, since `build_transaction_body()` depends on it.
+
+        Args:
+            transaction_id (TransactionId): The transaction ID to embed in each built body.
+
+        Returns:
+            dict[AccountId, bytes]: Serialized transaction body bytes keyed by node account ID.
+        """
+        transaction_body = self.build_transaction_body()
+
+        node_transaction_bodies = {}
+        for node_account_id in self._node_account_ids.get_list():
+            transaction_body.transactionID.CopyFrom(transaction_id._to_proto())
+            transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
+            node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
+
+        return node_transaction_bodies
 
     def _generate_transaction_ids(self, initial_id: TransactionId, count: int) -> None:
         """Generate all transaction_id for require chunks."""
@@ -423,14 +551,39 @@ class Transaction(_Executable):
         if not self._transaction_body_bytes:
             self.freeze_with(client)
 
-        if self.operator_account_id is None:
-            self.operator_account_id = client.operator_account_id
+        # Guards against two concurrent execute() calls on the same instance racing on
+        # operator_private_key / regenerate_transaction_id: without this, one call could
+        # overwrite the other's operator credentials between the check above and a later
+        # TRANSACTION_EXPIRED retry, regenerating an ID for one client's account but
+        # signing it with a different client's key.
+        if not self._execution_lock.acquire(blocking=False):
+            raise RuntimeError(
+                "This Transaction instance is already executing; execute() cannot be "
+                "called concurrently on the same Transaction object. Use a separate "
+                "Transaction instance for each concurrent execution."
+            )
 
-        if not self.is_signed_by(client.operator_private_key.public_key()):
-            self.sign(client.operator_private_key)
+        try:
+            if self.operator_account_id is None:
+                self.operator_account_id = client.operator_account_id
 
-        # Call the _execute function from executable.py to handle the actual execution
-        response: TransactionResponse = self._execute(client, timeout)
+            # Kept in sync with the executing client so a TRANSACTION_EXPIRED retry can
+            # re-sign the regenerated transaction ID with the operator's key.
+            self.operator_private_key = client.operator_private_key
+
+            # Resolve regenerate_transaction_id here too: freeze() (no client) and an
+            # already-frozen transaction (freeze_with() skipped above) can otherwise leave it
+            # unresolved even though the executing client has a default.
+            if self._regenerate_transaction_id is None:
+                self._regenerate_transaction_id = client.default_regenerate_transaction_id
+
+            if not self.is_signed_by(client.operator_private_key.public_key()):
+                self.sign(client.operator_private_key)
+
+            # Call the _execute function from executable.py to handle the actual execution
+            response: TransactionResponse = self._execute(client, timeout)
+        finally:
+            self._execution_lock.release()
 
         response.validate_status = True
         response.transaction = self
@@ -666,6 +819,46 @@ class Transaction(_Executable):
             raise ValueError("transaction_id must have account_id and a valid_start period")
 
         self._transaction_ids.set_list([transaction_id])
+        return self
+
+    @property
+    def regenerate_transaction_id(self) -> bool | None:
+        """
+        Whether this transaction should regenerate its transaction ID and retry when the
+        network returns TRANSACTION_EXPIRED.
+
+        Returns None when not explicitly set on the transaction, in which case
+        `Client.default_regenerate_transaction_id` is used once the transaction is frozen.
+        """
+        return self._regenerate_transaction_id
+
+    def set_regenerate_transaction_id(self, regenerate_transaction_id: bool) -> Transaction:
+        """
+        Sets whether this transaction should regenerate its transaction ID and retry when the
+        network returns TRANSACTION_EXPIRED.
+
+        This transaction-level setting takes precedence over
+        `Client.default_regenerate_transaction_id`.
+
+        Args:
+            regenerate_transaction_id (bool): Whether to regenerate the transaction ID on
+                TRANSACTION_EXPIRED.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If regenerate_transaction_id is not a bool.
+            Exception: If the transaction has already been frozen.
+        """
+        self._require_not_frozen()
+
+        if not isinstance(regenerate_transaction_id, bool):
+            raise TypeError(
+                f"regenerate_transaction_id must be of type bool, got {type(regenerate_transaction_id).__name__}"
+            )
+
+        self._regenerate_transaction_id = regenerate_transaction_id
         return self
 
     # this will preserves original behavior
