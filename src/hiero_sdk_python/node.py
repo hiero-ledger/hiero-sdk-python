@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import socket
 import ssl  # Python's ssl module implements TLS (despite the name)
 import time
@@ -15,6 +16,8 @@ from hiero_sdk_python.managed_node_address import _ManagedNodeAddress
 
 # Timeout for fetching server certificates during TLS validation
 CERT_FETCH_TIMEOUT_SECONDS = 10
+
+logger = logging.getLogger(__name__)
 
 
 class _HederaTrustManager:
@@ -128,7 +131,8 @@ class _Node:
                 self._node_pem_cert = self._root_certificates
 
             else:
-                # Fetch pem_cert for the node
+                # Fetch pem_cert for the node (works even without an
+                # address book). Returns None if the handshake fails(unreachable host, no TLS listener)
                 self._node_pem_cert = self._fetch_server_certificate_pem()
 
             if not self._node_pem_cert:
@@ -255,11 +259,10 @@ class _Node:
         Perform a TLS handshake and retrieve the server certificate in PEM format.
 
         Returns:
-            bytes: PEM-encoded certificate bytes
+            bytes: PEM-encoded certificate bytes, or None if the handshake could
+            not be completed (e.g. the node is unreachable, there is no TLS
+            listener on the port, or no certificate is presented).
         """
-        if not self._address_book:
-            return None
-
         host = self._address._get_host()
         port = self._address._get_port()
         server_hostname = host
@@ -276,11 +279,15 @@ class _Node:
         context.check_hostname = False
         context.verify_mode = ssl.CERT_NONE
 
-        with (
-            socket.create_connection((host, port), timeout=CERT_FETCH_TIMEOUT_SECONDS) as sock,
-            context.wrap_socket(sock, server_hostname=server_hostname) as tls_socket,
-        ):
-            der_cert = tls_socket.getpeercert(True)
+        try:
+            with (
+                socket.create_connection((host, port), timeout=CERT_FETCH_TIMEOUT_SECONDS) as sock,
+                context.wrap_socket(sock, server_hostname=server_hostname) as tls_socket,
+            ):
+                der_cert = tls_socket.getpeercert(True)
+        except OSError as e:
+            logger.warning("Failed to fetch server certificate from %s:%s: %s", host, port, e)
+            return None
 
         # Convert DER to PEM format (matching Java's PEM encoding)
         return ssl.DER_cert_to_PEM_cert(der_cert).encode("utf-8")
