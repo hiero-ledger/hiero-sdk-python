@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import threading
 from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -69,6 +70,9 @@ class Transaction(_Executable):
         self.operator_private_key: PrivateKey | None = None
         self.batch_key: Key | None = None
         self._regenerate_transaction_id: bool | None = None
+        # Guards execute() against concurrent calls on the same instance; see execute()
+        # for why this matters for TRANSACTION_EXPIRED regeneration.
+        self._execution_lock = threading.Lock()
 
     def _make_request(self):
         """
@@ -148,11 +152,20 @@ class Transaction(_Executable):
             # already signed, that signature can't be reproduced (the SDK retains
             # neither other signers' private keys nor a signer callback), so retrying
             # would submit an incompletely-signed transaction. Treat it as non-retryable.
-            if self._regenerate_transaction_id and not self._has_foreign_signatures():
+            # A missing operator account ID also blocks retry, since there is no account
+            # to generate a new transaction ID from - without this, the retry loop would
+            # keep resubmitting the same expired transaction until max_attempts, raising
+            # a confusing MaxAttemptsError instead of a direct PrecheckError.
+            if (
+                self._regenerate_transaction_id
+                and self.operator_account_id is not None
+                and not self._has_foreign_signatures()
+            ):
                 self._handle_transaction_id_regeneration()
                 return _ExecutionState.RETRY
 
-            # Transaction ID regeneration is disabled, or cannot be done safely.
+            # Transaction ID regeneration is disabled, no operator to regenerate from, or
+            # cannot be done safely.
             return _ExecutionState.EXPIRED
 
         if status == ResponseCode.OK:
@@ -198,7 +211,9 @@ class Transaction(_Executable):
 
         for sig_map in self._signature_map.values():
             for sig_pair in sig_map.sigPair:
-                if sig_pair.pubKeyPrefix != operator_public_key_bytes:
+                # pubKeyPrefix may be a shortened prefix of the full key rather than the
+                # full key itself, so check containment, not equality.
+                if not operator_public_key_bytes.startswith(sig_pair.pubKeyPrefix):
                     return True
 
         return False
@@ -536,24 +551,39 @@ class Transaction(_Executable):
         if not self._transaction_body_bytes:
             self.freeze_with(client)
 
-        if self.operator_account_id is None:
-            self.operator_account_id = client.operator_account_id
+        # Guards against two concurrent execute() calls on the same instance racing on
+        # operator_private_key / regenerate_transaction_id: without this, one call could
+        # overwrite the other's operator credentials between the check above and a later
+        # TRANSACTION_EXPIRED retry, regenerating an ID for one client's account but
+        # signing it with a different client's key.
+        if not self._execution_lock.acquire(blocking=False):
+            raise RuntimeError(
+                "This Transaction instance is already executing; execute() cannot be "
+                "called concurrently on the same Transaction object. Use a separate "
+                "Transaction instance for each concurrent execution."
+            )
 
-        # Kept in sync with the executing client so a TRANSACTION_EXPIRED retry can
-        # re-sign the regenerated transaction ID with the operator's key.
-        self.operator_private_key = client.operator_private_key
+        try:
+            if self.operator_account_id is None:
+                self.operator_account_id = client.operator_account_id
 
-        # Resolve regenerate_transaction_id here too: freeze() (no client) and an
-        # already-frozen transaction (freeze_with() skipped above) can otherwise leave it
-        # unresolved even though the executing client has a default.
-        if self._regenerate_transaction_id is None:
-            self._regenerate_transaction_id = client.default_regenerate_transaction_id
+            # Kept in sync with the executing client so a TRANSACTION_EXPIRED retry can
+            # re-sign the regenerated transaction ID with the operator's key.
+            self.operator_private_key = client.operator_private_key
 
-        if not self.is_signed_by(client.operator_private_key.public_key()):
-            self.sign(client.operator_private_key)
+            # Resolve regenerate_transaction_id here too: freeze() (no client) and an
+            # already-frozen transaction (freeze_with() skipped above) can otherwise leave it
+            # unresolved even though the executing client has a default.
+            if self._regenerate_transaction_id is None:
+                self._regenerate_transaction_id = client.default_regenerate_transaction_id
 
-        # Call the _execute function from executable.py to handle the actual execution
-        response: TransactionResponse = self._execute(client, timeout)
+            if not self.is_signed_by(client.operator_private_key.public_key()):
+                self.sign(client.operator_private_key)
+
+            # Call the _execute function from executable.py to handle the actual execution
+            response: TransactionResponse = self._execute(client, timeout)
+        finally:
+            self._execution_lock.release()
 
         response.validate_status = True
         response.transaction = self

@@ -13,6 +13,7 @@ from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTrans
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
 from hiero_sdk_python.executable import (
+    _ExecutionState,
     _is_transaction_receipt_or_record_request,
 )
 from hiero_sdk_python.hapi.services import (
@@ -340,6 +341,28 @@ def test_transaction_id_regeneration_resigns_with_the_client_used_to_execute():
             freezing_client.close()
 
 
+def test_execute_raises_when_called_concurrently_on_same_instance(mock_client):
+    """Test that a second concurrent execute() call on the same Transaction instance is
+    rejected rather than allowed to race with the first.
+
+    Regression test: without this guard, two concurrent execute() calls sharing one
+    Transaction instance could interleave on operator_private_key, letting a
+    TRANSACTION_EXPIRED retry regenerate an ID for one client's account but sign it with
+    a different client's key.
+    """
+    transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
+    transaction.freeze_with(mock_client)
+
+    acquired = transaction._execution_lock.acquire(blocking=False)
+    assert acquired
+
+    try:
+        with pytest.raises(RuntimeError, match="already executing"):
+            transaction.execute(mock_client)
+    finally:
+        transaction._execution_lock.release()
+
+
 def test_transaction_id_regeneration_declines_when_multi_signed():
     """Test that a TRANSACTION_EXPIRED retry is refused when the transaction has a
     signature from a key other than the operator's.
@@ -374,8 +397,7 @@ def test_transaction_id_regeneration_is_noop_without_operator_account_id(mock_cl
     """Test that regeneration does nothing when there is no operator account ID.
 
     Matches the other Hiero SDKs: with nothing to generate a new transaction ID from,
-    regeneration is a silent no-op rather than an error, leaving the transaction to keep
-    retrying with the same (still-expired) transaction ID.
+    regeneration is a silent no-op rather than an error.
     """
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
@@ -388,6 +410,47 @@ def test_transaction_id_regeneration_is_noop_without_operator_account_id(mock_cl
 
     assert transaction._transaction_ids.current == original_transaction_id
     assert transaction._transaction_body_bytes == original_bodies
+
+
+def test_should_retry_returns_expired_without_operator_account_id(mock_client):
+    """Test that _should_retry() returns EXPIRED, not RETRY, when there's no operator
+    account ID to regenerate from.
+
+    Regression test: without this guard, _should_retry() would return RETRY even though
+    _handle_transaction_id_regeneration() no-ops in this case, so the retry loop would
+    keep resubmitting the same expired transaction until max_attempts, raising a
+    confusing MaxAttemptsError instead of surfacing the underlying expiry directly.
+    """
+    transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
+    transaction.freeze_with(mock_client)
+    transaction.operator_private_key = mock_client.operator_private_key
+    transaction.sign(mock_client.operator_private_key)
+    transaction.operator_account_id = None
+
+    response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
+
+    assert transaction._should_retry(response) == _ExecutionState.EXPIRED
+
+
+def test_has_foreign_signatures_recognizes_shortened_operator_prefix(mock_client):
+    """Test that a shortened (but valid) operator key prefix isn't treated as foreign.
+
+    SignaturePair.pubKeyPrefix may be a shortened prefix rather than the full public
+    key, and Transaction.from_bytes() preserves whatever prefix length was on the wire.
+    A valid operator signature with a shortened prefix must still be recognized as the
+    operator's own, not mistaken for a foreign signer that blocks regeneration.
+    """
+    transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
+    transaction.freeze_with(mock_client)
+    transaction.operator_private_key = mock_client.operator_private_key
+    transaction.sign(mock_client.operator_private_key)
+
+    # Simulate a shortened prefix, as if loaded from bytes with only a partial prefix.
+    for sig_map in transaction._signature_map.values():
+        for sig_pair in sig_map.sigPair:
+            sig_pair.pubKeyPrefix = sig_pair.pubKeyPrefix[:4]
+
+    assert not transaction._has_foreign_signatures()
 
 
 def test_transaction_with_fatal_error_not_retried():
