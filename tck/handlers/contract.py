@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
+from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
+from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.response_code import ResponseCode
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.contract import CreateContractParams
-from tck.response.contract import CreateContractResponse
+from tck.param.contract import ContractCallQueryParams, CreateContractParams
+from tck.response.contract import ContractCallResponse, CreateContractResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
@@ -106,3 +109,47 @@ def create_contract(params: CreateContractParams) -> CreateContractResponse:
         contract_id = str(receipt.contract_id)
 
     return CreateContractResponse(contract_id, ResponseCode(receipt.status).name)
+
+
+def _build_contract_call_query(params: ContractCallQueryParams) -> ContractCallQuery:
+    """Build ContractCallQuery from ContractCallQueryParams."""
+    query = ContractCallQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.contractId is not None:
+        query.set_contract_id(ContractId.from_string(params.contractId))
+
+    if params.gas is not None:
+        query.set_gas(to_int(params.gas))
+
+    if params.functionParameters is not None:
+        query.set_function_parameters(bytes.fromhex(params.functionParameters))
+
+    if params.maxResultSize is not None:
+        query.set_max_result_size(to_int(params.maxResultSize))
+
+    if params.senderAccountId is not None:
+        query.set_sender(AccountId.from_string(params.senderAccountId))
+
+    return query
+
+
+@rpc_method("contractCallQuery")
+def contract_call_query(params: ContractCallQueryParams) -> ContractCallResponse:
+    """Contract call query."""
+    client = get_client(params.sessionId)
+
+    query = _build_contract_call_query(params)
+
+    result: ContractFunctionResult = query.execute(client)
+    return ContractCallResponse(
+        contractId=str(result.contract_id),
+        evmAddress=str(result.evm_address),
+        errorMessage=result.error_message,
+        gasUsed=result.gas_used,
+        logs=result.log_info,
+        gas=result.gas_available,
+        hbarAmount=result.amount,
+        senderAccountId=str(result.sender_id),
+        signerNonce=result.signer_nonce,
+        rawResult=result.contract_call_result.hex(),
+    )
