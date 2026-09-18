@@ -30,7 +30,6 @@ DEFAULT_GRPC_DEADLINE = 10  # seconds
 DEFAULT_REQUEST_TIMEOUT = 120  # seconds
 DEFAULT_MAX_BACKOFF = 8  # seconds
 DEFAULT_MIN_BACKOFF = 0.25  # seconds
-DEFAULT_REGENERATE_TRANSACTION_ID = True
 
 NetworkName = Literal["mainnet", "testnet", "previewnet"]
 
@@ -69,7 +68,7 @@ class Client:
 
         self._allow_receipt_node_failover: bool = False
 
-        self._default_regenerate_transaction_id: bool = DEFAULT_REGENERATE_TRANSACTION_ID
+        self._default_regenerate_transaction_id: bool = True
 
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
