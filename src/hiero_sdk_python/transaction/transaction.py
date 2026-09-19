@@ -548,14 +548,12 @@ class Transaction(_Executable):
         if not isinstance(client, Client):
             raise TypeError("client must be an instance of Client")
 
-        if not self._transaction_body_bytes:
-            self.freeze_with(client)
-
         # Guards against two concurrent execute() calls on the same instance racing on
-        # operator_private_key / regenerate_transaction_id: without this, one call could
-        # overwrite the other's operator credentials between the check above and a later
-        # TRANSACTION_EXPIRED retry, regenerating an ID for one client's account but
-        # signing it with a different client's key.
+        # freeze_with()'s mutation of shared transaction IDs/bodies, or on
+        # operator_private_key / regenerate_transaction_id later: without this, one call
+        # could freeze or overwrite the other's operator credentials mid-flight, so a
+        # TRANSACTION_EXPIRED retry could regenerate an ID for one client's account but
+        # sign it with a different client's key.
         if not self._execution_lock.acquire(blocking=False):
             raise RuntimeError(
                 "This Transaction instance is already executing; execute() cannot be "
@@ -564,6 +562,9 @@ class Transaction(_Executable):
             )
 
         try:
+            if not self._transaction_body_bytes:
+                self.freeze_with(client)
+
             if self.operator_account_id is None:
                 self.operator_account_id = client.operator_account_id
 
