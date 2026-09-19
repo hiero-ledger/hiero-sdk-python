@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.contract.contract_bytecode_query import ContractBytecodeQuery
 from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.contract import ContractCallQueryParams, CreateContractParams
-from tck.response.contract import ContractCallResponse, CreateContractResponse
+from tck.param.contract import ContractCallQueryParams, ContractGetBytecodeParams, CreateContractParams
+from tck.response.contract import ContractCallResponse, ContractGetBytecodeResponse, CreateContractResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
@@ -152,4 +154,38 @@ def contract_call_query(params: ContractCallQueryParams) -> ContractCallResponse
         senderAccountId=str(result.sender_id),
         signerNonce=result.signer_nonce,
         rawResult=result.contract_call_result.hex(),
+    )
+
+
+# The spec page names this method contractGetBytecode, but the TCK driver's
+# ContractByteCodeQuery suite calls contractByteCodeQuery (the JS TCK server
+# registers its handlers by exported function name). Both names are registered
+# so the suite runs and the spec name stays dispatchable.
+@rpc_method("contractGetBytecode")
+@rpc_method("contractByteCodeQuery")
+def contract_get_bytecode(params: ContractGetBytecodeParams) -> ContractGetBytecodeResponse:
+    """Get a smart contract's runtime bytecode as a hexadecimal string."""
+    client = get_client(params.sessionId)
+
+    if params.contractId is None:
+        # Other SDKs send the query with an unset contract ID and let the network
+        # answer INVALID_CONTRACT_ID. This SDK rejects it locally with a ValueError,
+        # which would surface as INTERNAL_ERROR, so raise the status the spec expects.
+        raise JsonRpcError.hiero_error({"status": ResponseCode.INVALID_CONTRACT_ID.name})
+
+    query = ContractBytecodeQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+    query.set_contract_id(ContractId.from_string(params.contractId))
+
+    if params.queryPayment is not None:
+        query.set_query_payment(Hbar.from_tinybars(int(params.queryPayment)))
+
+    if params.maxQueryPayment is not None:
+        query.set_max_query_payment(Hbar.from_tinybars(int(params.maxQueryPayment)))
+
+    bytecode = query.execute(client)
+
+    return ContractGetBytecodeResponse(
+        contractId=str(query.contract_id),
+        # A contract with no bytecode omits the field, matching the JS TCK server.
+        bytecode=("0x" + bytecode.hex()) if bytecode else None,
     )
