@@ -27,3 +27,11 @@ class ContractCallResponse:
     senderAccountId: str | None = None
     signerNonce: int | None = None
     rawResult: str | None = None
+
+
+@dataclass
+class ContractGetBytecodeResponse:
+    """Response payload for contractGetBytecode."""
+
+    contractId: str | None = None
+    bytecode: str | None = None
