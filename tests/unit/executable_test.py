@@ -281,12 +281,7 @@ def test_transaction_regenerate_transaction_id_defaults_to_client_setting():
 
 
 def test_transaction_id_regeneration_resigns_with_the_client_used_to_execute():
-    """Test that regeneration re-signs using execute()'s client, not freeze_with()'s.
-
-    Regression test: if freeze_with() were used to capture the client for later
-    regeneration, a transaction frozen with one client and executed with another would be
-    re-signed with the wrong operator key after a TRANSACTION_EXPIRED retry.
-    """
+    """Test regeneration uses the client passed to execute()."""
     expired_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
     ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
 
@@ -331,14 +326,7 @@ def test_transaction_id_regeneration_resigns_with_the_client_used_to_execute():
 
 
 def test_execute_raises_when_called_concurrently_on_same_instance(mock_client):
-    """Test that a second concurrent execute() call on the same Transaction instance is
-    rejected rather than allowed to race with the first.
-
-    Regression test: without this guard, two concurrent execute() calls sharing one
-    Transaction instance could interleave on operator_private_key, letting a
-    TRANSACTION_EXPIRED retry regenerate an ID for one client's account but sign it with
-    a different client's key.
-    """
+    """Test concurrent execution on the same transaction is rejected."""
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
 
@@ -353,13 +341,7 @@ def test_execute_raises_when_called_concurrently_on_same_instance(mock_client):
 
 
 def test_transaction_id_regeneration_declines_when_multi_signed():
-    """Test that a TRANSACTION_EXPIRED retry is refused when the transaction has a
-    signature from a key other than the operator's.
-
-    Regeneration re-signs only with the operator's key; a non-operator signature can't be
-    reproduced, so the transaction must be treated as non-retryable rather than being
-    resubmitted with an incomplete signature set.
-    """
+    """Test concurrent execution on the same transaction is rejected."""
     expired_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
 
     response_sequences = [[expired_response]]
@@ -383,11 +365,7 @@ def test_transaction_id_regeneration_declines_when_multi_signed():
 
 
 def test_transaction_id_regeneration_is_noop_without_operator_account_id(mock_client):
-    """Test that regeneration does nothing when there is no operator account ID.
-
-    Matches the other Hiero SDKs: with nothing to generate a new transaction ID from,
-    regeneration is a silent no-op rather than an error.
-    """
+    """Test concurrent execution on the same transaction is rejected."""
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
     transaction.operator_account_id = None
@@ -402,14 +380,7 @@ def test_transaction_id_regeneration_is_noop_without_operator_account_id(mock_cl
 
 
 def test_should_retry_returns_expired_without_operator_account_id(mock_client):
-    """Test that _should_retry() returns EXPIRED, not RETRY, when there's no operator
-    account ID to regenerate from.
-
-    Regression test: without this guard, _should_retry() would return RETRY even though
-    _handle_transaction_id_regeneration() no-ops in this case, so the retry loop would
-    keep resubmitting the same expired transaction until max_attempts, raising a
-    confusing MaxAttemptsError instead of surfacing the underlying expiry directly.
-    """
+    """Test missing operator account ID returns EXPIRED."""
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
     transaction.operator_private_key = mock_client.operator_private_key
@@ -422,13 +393,7 @@ def test_should_retry_returns_expired_without_operator_account_id(mock_client):
 
 
 def test_has_foreign_signatures_recognizes_shortened_operator_prefix(mock_client):
-    """Test that a shortened (but valid) operator key prefix isn't treated as foreign.
-
-    SignaturePair.pubKeyPrefix may be a shortened prefix rather than the full public
-    key, and Transaction.from_bytes() preserves whatever prefix length was on the wire.
-    A valid operator signature with a shortened prefix must still be recognized as the
-    operator's own, not mistaken for a foreign signer that blocks regeneration.
-    """
+    """Test missing operator account ID returns EXPIRED."""
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
     transaction.operator_private_key = mock_client.operator_private_key
@@ -443,14 +408,7 @@ def test_has_foreign_signatures_recognizes_shortened_operator_prefix(mock_client
 
 
 def test_has_foreign_signatures_treats_empty_prefix_as_foreign(mock_client):
-    """Test that an empty pubKeyPrefix is treated as foreign, not as a match.
-
-    Regression test: bytes.startswith(b"") is always True in Python, so a naive
-    containment check would treat an empty prefix - valid on the wire when only one
-    cryptographic key type is required, but which doesn't identify any specific key -
-    as belonging to the operator. That would let a genuinely foreign signature with an
-    empty prefix slip through and be silently dropped during regeneration.
-    """
+    """Test missing operator account ID returns EXPIRED."""
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
     transaction.operator_private_key = mock_client.operator_private_key
