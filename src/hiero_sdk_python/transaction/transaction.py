@@ -211,11 +211,8 @@ class Transaction(_Executable):
 
         for sig_map in self._signature_map.values():
             for sig_pair in sig_map.sigPair:
-                # pubKeyPrefix may be a shortened prefix of the full key rather than the
-                # full key itself, so check containment, not equality.
-                if not operator_public_key_bytes.startswith(sig_pair.pubKeyPrefix):
+                if not sig_pair.pubKeyPrefix or not operator_public_key_bytes.startswith(sig_pair.pubKeyPrefix):
                     return True
-
         return False
 
     def _handle_transaction_id_regeneration(self) -> None:

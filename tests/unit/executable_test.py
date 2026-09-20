@@ -279,6 +279,7 @@ def test_transaction_regenerate_transaction_id_defaults_to_client_setting():
 
         assert transaction.regenerate_transaction_id is False
 
+
 def test_transaction_id_regeneration_resigns_with_the_client_used_to_execute():
     """Test that regeneration re-signs using execute()'s client, not freeze_with()'s.
 
@@ -286,23 +287,15 @@ def test_transaction_id_regeneration_resigns_with_the_client_used_to_execute():
     regeneration, a transaction frozen with one client and executed with another would be
     re-signed with the wrong operator key after a TRANSACTION_EXPIRED retry.
     """
-    expired_response = TransactionResponseProto(
-        nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED
-    )
-    ok_response = TransactionResponseProto(
-        nodeTransactionPrecheckCode=ResponseCode.OK
-    )
+    expired_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
+    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
 
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(
-                nodeTransactionPrecheckCode=ResponseCode.OK
-            ),
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
             receipt=transaction_receipt_pb2.TransactionReceipt(
                 status=ResponseCode.SUCCESS,
-                accountID=basic_types_pb2.AccountID(
-                    shardNum=0, realmNum=0, accountNum=1234
-                ),
+                accountID=basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=1234),
             ),
         )
     )
@@ -331,12 +324,8 @@ def test_transaction_id_regeneration_resigns_with_the_client_used_to_execute():
             receipt = transaction.execute(executing_client)
 
             assert receipt.status == ResponseCode.SUCCESS
-            assert transaction.is_signed_by(
-                executing_client.operator_private_key.public_key()
-            )
-            assert not transaction.is_signed_by(
-                freezing_client.operator_private_key.public_key()
-            )
+            assert transaction.is_signed_by(executing_client.operator_private_key.public_key())
+            assert not transaction.is_signed_by(freezing_client.operator_private_key.public_key())
         finally:
             freezing_client.close()
 
@@ -451,6 +440,27 @@ def test_has_foreign_signatures_recognizes_shortened_operator_prefix(mock_client
             sig_pair.pubKeyPrefix = sig_pair.pubKeyPrefix[:4]
 
     assert not transaction._has_foreign_signatures()
+
+
+def test_has_foreign_signatures_treats_empty_prefix_as_foreign(mock_client):
+    """Test that an empty pubKeyPrefix is treated as foreign, not as a match.
+
+    Regression test: bytes.startswith(b"") is always True in Python, so a naive
+    containment check would treat an empty prefix - valid on the wire when only one
+    cryptographic key type is required, but which doesn't identify any specific key -
+    as belonging to the operator. That would let a genuinely foreign signature with an
+    empty prefix slip through and be silently dropped during regeneration.
+    """
+    transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
+    transaction.freeze_with(mock_client)
+    transaction.operator_private_key = mock_client.operator_private_key
+    transaction.sign(mock_client.operator_private_key)
+
+    for sig_map in transaction._signature_map.values():
+        for sig_pair in sig_map.sigPair:
+            sig_pair.pubKeyPrefix = b""
+
+    assert transaction._has_foreign_signatures()
 
 
 def test_transaction_with_fatal_error_not_retried():
