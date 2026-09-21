@@ -223,7 +223,7 @@ def _map_to_contract_info_response(info: ContractInfo) -> ContractInfoResponse:
         maxAutomaticTokenAssociations=str(info.max_automatic_token_associations)
         if info.max_automatic_token_associations is not None
         else None,
-        ledgerId=str(info.ledger_id) if info.ledger_id is not None else None,
+        ledgerId=info.ledger_id.hex() if info.ledger_id is not None else None,
         stakingInfo=staking_info,
     )
 
