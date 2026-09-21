@@ -3,7 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from tck.param.base import BaseParams, BaseTransactionParams
-from tck.util.param_utils import parse_common_transaction_params, parse_session_id, to_int
+from tck.util.param_utils import (
+    non_empty_string_or_none,
+    parse_common_transaction_params,
+    parse_session_id,
+    to_int,
+)
 
 
 @dataclass
@@ -89,6 +94,34 @@ class GetFileInfoParams(BaseParams):
     def parse_json_params(cls, params: dict) -> GetFileInfoParams:
         """Parse JSON-RPC params into a GetFileInfoParams instance."""
         return cls(fileId=params.get("fileId"), sessionId=parse_session_id(params))
+
+
+@dataclass
+class UpdateFileParams(BaseTransactionParams):
+    """Parameters for updating a file. Extends BaseTransactionParams to include common transaction parameters."""
+
+    fileId: str | None = None
+    keys: list[str] | None = None
+    contents: str | None = None
+    expirationTime: str | None = None
+    memo: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UpdateFileParams:
+        keys = params.get("keys")
+        if keys is not None and not isinstance(keys, list):
+            raise ValueError("keys must be a list")
+
+        return cls(
+            fileId=params.get("fileId"),
+            keys=keys,
+            # Per the spec, contents="" means "leave unchanged", not "clear file".
+            contents=non_empty_string_or_none(params.get("contents")),
+            expirationTime=params.get("expirationTime"),
+            memo=params.get("memo"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
 
 
 @dataclass
