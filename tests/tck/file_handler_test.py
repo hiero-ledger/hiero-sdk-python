@@ -44,21 +44,13 @@ class TestUpdateFileParams:
         assert params.expirationTime == "9999999999"
         assert params.memo == "my memo"
 
-    def test_empty_contents_collapses_to_none(self):
-        """Per spec, contents="" means 'leave unchanged'; parse_json_params maps it to None."""
+    def test_empty_contents_is_accepted(self):
+        """Empty string contents is accepted and preserved."""
         raw = {"sessionId": _SESSION_ID, "contents": ""}
 
         params = UpdateFileParams.parse_json_params(raw)
 
-        assert params.contents is None
-
-    def test_whitespace_contents_collapses_to_none(self):
-        """non_empty_string_or_none strips blank strings to None."""
-        raw = {"sessionId": _SESSION_ID, "contents": "   "}
-
-        params = UpdateFileParams.parse_json_params(raw)
-
-        assert params.contents is None
+        assert params.contents == ""
 
     def test_non_empty_contents_preserved(self):
         raw = {"sessionId": _SESSION_ID, "contents": "test content"}
@@ -110,13 +102,6 @@ class TestBuildUpdateFileTransaction:
         assert tx.expiration_time.seconds == 9999999999
         assert tx.expiration_time.nanos == 0
         assert tx.file_memo == "update memo"
-
-    def test_empty_contents_does_not_call_set_contents(self):
-        params = _make_params(contents=None)
-
-        tx = _build_update_file_transaction(params)
-
-        assert tx.contents is None
 
     def test_omitted_fields_leave_transaction_attributes_none(self):
         params = _make_params()

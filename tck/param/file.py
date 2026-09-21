@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 from tck.param.base import BaseParams, BaseTransactionParams
 from tck.util.param_utils import (
-    non_empty_string_or_none,
     parse_common_transaction_params,
     parse_session_id,
     to_int,
@@ -115,8 +114,7 @@ class UpdateFileParams(BaseTransactionParams):
         return cls(
             fileId=params.get("fileId"),
             keys=keys,
-            # Per the spec, contents="" means "leave unchanged", not "clear file".
-            contents=non_empty_string_or_none(params.get("contents")),
+            contents=params.get("contents"),
             expirationTime=params.get("expirationTime"),
             memo=params.get("memo"),
             sessionId=parse_session_id(params),
