@@ -261,9 +261,13 @@ class ContractUpdateTransaction(Transaction):
     def _build_proto_body(self):
         """
         Returns the protobuf body for the contract update transaction.
+
+        Raises:
+            ValueError: If both staked_account_id and staked_node_id are set.
         """
         if self.staked_account_id is not None and self.staked_node_id is not None:
             raise ValueError("Specify either staked_node_id or staked_account_id, not both.")
+
         body = contract_update_pb2.ContractUpdateTransactionBody(
             expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
             adminKey=self.admin_key.to_proto_key() if self.admin_key else None,
