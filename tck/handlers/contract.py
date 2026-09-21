@@ -157,9 +157,6 @@ def contract_call_query(params: ContractCallQueryParams) -> ContractCallResponse
     )
 
 
-# The spec page documents this method as contractGetBytecode, but the TCK driver
-# calls contractByteCodeQuery, so that is the name registered here. Aligning the
-# two is tracked in hiero-ledger/hiero-sdk-tck#714.
 @rpc_method("contractByteCodeQuery")
 def contract_byte_code_query(params: ContractByteCodeQueryParams) -> ContractByteCodeResponse:
     """Get a smart contract's runtime bytecode as a hexadecimal string."""
