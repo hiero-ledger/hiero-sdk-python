@@ -30,8 +30,8 @@ class ContractCallResponse:
 
 
 @dataclass
-class ContractGetBytecodeResponse:
-    """Response payload for contractGetBytecode."""
+class ContractByteCodeResponse:
+    """Response payload for contractByteCodeQuery."""
 
     contractId: str | None = None
     bytecode: str | None = None

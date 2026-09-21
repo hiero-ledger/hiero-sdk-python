@@ -70,7 +70,7 @@ class ContractCallQueryParams(BaseParams):
 
 
 @dataclass
-class ContractGetBytecodeParams(BaseParams):
+class ContractByteCodeQueryParams(BaseParams):
     """Parameters for querying a contract's bytecode."""
 
     contractId: str | None = None
@@ -78,7 +78,7 @@ class ContractGetBytecodeParams(BaseParams):
     maxQueryPayment: str | None = None
 
     @classmethod
-    def parse_json_params(cls, params: dict) -> ContractGetBytecodeParams:
+    def parse_json_params(cls, params: dict) -> ContractByteCodeQueryParams:
         return cls(
             sessionId=parse_session_id(params),
             contractId=params.get("contractId"),
