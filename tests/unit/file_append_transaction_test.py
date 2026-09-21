@@ -536,3 +536,20 @@ def test_schedule_transaction_rejects_message_exceeding_chunk_size(file_id):
         f"exceeds the maximum chunk size of {tx.chunk_size} bytes",
     ):
         tx.schedule()
+
+
+@pytest.mark.parametrize("contents", [True, 0, 0.1, {}, []])
+def test_set_contents_with_invalid_types(contents):
+    """Test that set_contents raises TypeError for invalid content types."""
+    file_tx = FileAppendTransaction()
+    with pytest.raises(TypeError, match="contents must be of type bytes or str"):
+        file_tx.set_contents(contents)
+
+
+def test_set_contents_accepts_bytearray():
+    """Test that set_contents accepts bytearray and stores it as bytes."""
+    file_tx = FileAppendTransaction()
+    file_tx.set_contents(bytearray(b"buffered content"))
+
+    assert file_tx.contents == b"buffered content"
+    assert isinstance(file_tx.contents, bytes)
