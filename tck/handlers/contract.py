@@ -11,14 +11,17 @@ from hiero_sdk_python.contract.contract_info_query import ContractInfoQuery
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.contract import ContractByteCodeQueryParams, ContractCallQueryParams, CreateContractParams
-from tck.response.contract import ContractByteCodeResponse, ContractCallResponse, CreateContractResponse
-from tck.param.contract import ContractCallQueryParams, ContractInfoQueryParams, CreateContractParams
+from tck.param.contract import (
+    ContractByteCodeQueryParams,
+    ContractCallQueryParams,
+    ContractInfoQueryParams,
+    CreateContractParams,
+)
 from tck.response.contract import (
+    ContractByteCodeResponse,
     ContractCallResponse,
     ContractInfoResponse,
     CreateContractResponse,
