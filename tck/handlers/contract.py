@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.contract.contract_bytecode_query import ContractBytecodeQuery
 from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
@@ -8,13 +9,24 @@ from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_update_transaction import ContractUpdateTransaction
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
-from tck.param.contract import ContractCallQueryParams, CreateContractParams, UpdateContractParams
-from tck.response.contract import ContractCallResponse, CreateContractResponse, UpdateContractResponse
+from tck.param.contract import (
+    ContractByteCodeQueryParams,
+    ContractCallQueryParams,
+    CreateContractParams,
+    UpdateContractParams,
+)
+from tck.response.contract import (
+    ContractByteCodeResponse,
+    ContractCallResponse,
+    CreateContractResponse,
+    UpdateContractResponse,
+)
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
@@ -234,3 +246,28 @@ def update_contract(params: UpdateContractParams) -> UpdateContractResponse:
     receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
 
     return UpdateContractResponse(status=ResponseCode(receipt.status).name)
+
+
+@rpc_method("contractByteCodeQuery")
+def contract_byte_code_query(params: ContractByteCodeQueryParams) -> ContractByteCodeResponse:
+    """Get a smart contract's runtime bytecode as a hexadecimal string."""
+    client = get_client(params.sessionId)
+
+    query = ContractBytecodeQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.contractId is not None:
+        query.set_contract_id(ContractId.from_string(params.contractId))
+
+    if params.queryPayment is not None:
+        query.set_query_payment(Hbar.from_tinybars(int(params.queryPayment)))
+
+    if params.maxQueryPayment is not None:
+        query.set_max_query_payment(Hbar.from_tinybars(int(params.maxQueryPayment)))
+
+    bytecode = query.execute(client)
+
+    return ContractByteCodeResponse(
+        contractId=str(query.contract_id),
+        # A contract with no bytecode omits the field, matching the JS TCK server.
+        bytecode=("0x" + bytecode.hex()) if bytecode else None,
+    )

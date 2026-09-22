@@ -59,14 +59,6 @@ def test_set_contract_id_with_none():
     assert query.contract_id is None
 
 
-def test_execute_fails_with_missing_contract_id(mock_client):
-    """Test request creation with missing Contract ID."""
-    query = ContractBytecodeQuery()
-
-    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
-        query.execute(mock_client)
-
-
 def test_get_method():
     """Test retrieving the gRPC method for the query."""
     query = ContractBytecodeQuery()
@@ -81,12 +73,15 @@ def test_get_method():
     assert method.query == mock_smart_contract_stub.ContractGetBytecode
 
 
-def test_make_request_with_missing_contract_id():
-    """Test _make_request raises ValueError when contract ID is missing."""
+def test_contract_id_missing_when_none(mock_client):
+    """Test request creation with missing Contract ID."""
     query = ContractBytecodeQuery()
 
-    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
-        query._make_request()
+    request = query._make_request()
+
+    assert request is not None
+    assert request.contractGetBytecode is not None
+    assert not request.contractGetBytecode.HasField("contractID")
 
 
 def test_get_query_response():
