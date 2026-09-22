@@ -26,6 +26,7 @@ from hiero_sdk_python.account.account_mirror_node_balance import (
 )
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.response_code import ResponseCode
 
 
 LOGGER = logging.getLogger(__name__)
@@ -197,7 +198,7 @@ class MirrorNodeAccountBalanceQuery:
         if balance is None:
             # The mirror node returns HTTP 200 with an empty balances array
             # when it does not know the requested account.
-            raise PrecheckError("INVALID_ACCOUNT_ID")
+            raise PrecheckError(ResponseCode.INVALID_ACCOUNT_ID)
 
         return balance
 
