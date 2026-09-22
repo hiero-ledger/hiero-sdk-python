@@ -560,7 +560,7 @@ def test_serialization_round_trip_staked_node_id():
 
     assert isinstance(tx2, AccountCreateTransaction)
     assert tx2.key == key.public_key()
-    assert tx2.memo == tx1.memo
+    assert tx2.account_memo == tx1.account_memo
     assert tx2.high_volume == tx1.high_volume
     assert tx2.node_account_ids == tx1.node_account_ids
     assert tx2.transaction_id == tx1.transaction_id
@@ -587,7 +587,7 @@ def test_serialization_round_trip_staked_account_id():
 
     assert isinstance(tx2, AccountCreateTransaction)
     assert tx2.key == key.public_key()
-    assert tx2.memo == tx1.memo
+    assert tx2.account_memo == tx1.account_memo
     assert tx2.high_volume == tx1.high_volume
     assert tx2.node_account_ids == tx1.node_account_ids
     assert tx2.transaction_id == tx1.transaction_id
