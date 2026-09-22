@@ -7,6 +7,7 @@ from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info import FileInfo
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
+from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
@@ -19,6 +20,7 @@ from tck.param.file import (
     DeleteFileParams,
     GetFileContentsParams,
     GetFileInfoParams,
+    UpdateFileParams,
 )
 from tck.response.base import StatusOnlyResponse
 from tck.response.file import CreateFileResponse, DeleteFileResponse, GetFileContentsResponse, GetFileInfoResponse
@@ -149,6 +151,44 @@ def get_file_info(params: GetFileInfoParams) -> GetFileInfoResponse:
 
     info = query.execute(client)
     return _build_file_info_response(info)
+
+
+def _build_update_file_transaction(params: UpdateFileParams) -> FileUpdateTransaction:
+    """Build a FileUpdateTransaction from parsed params."""
+    transaction = FileUpdateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.fileId is not None:
+        transaction.set_file_id(FileId.from_string(params.fileId))
+
+    if params.keys is not None:
+        transaction.set_keys([get_key_from_string(k) for k in params.keys])
+
+    if params.contents is not None:
+        transaction.set_contents(params.contents)
+
+    if params.expirationTime is not None:
+        transaction.set_expiration_time(Timestamp(seconds=to_int(params.expirationTime), nanos=0))
+
+    if params.memo is not None:
+        transaction.set_file_memo(params.memo)
+
+    return transaction
+
+
+@rpc_method("updateFile")
+def update_file(params: UpdateFileParams) -> StatusOnlyResponse:
+    """Update a file."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_update_file_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    response = transaction.execute(client, wait_for_receipt=False)
+    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+
+    return StatusOnlyResponse(ResponseCode(receipt.status).name)
 
 
 @rpc_method("deleteFile")
