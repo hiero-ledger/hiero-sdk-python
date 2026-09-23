@@ -52,7 +52,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Submitting a Topic Message](#submitting-a-topic-message)
   - [Updating a Topic](#updating-a-topic)
   - [Deleting a Topic](#deleting-a-topic)
-  - [Querying Topic](#querying-topic)
+  - [Querying Topic Info](#querying-topic-info)
   - [Querying Topic Message](#querying-topic-message)
 - [File Transactions](#file-transactions)
   - [Creating a File](#creating-a-file)
