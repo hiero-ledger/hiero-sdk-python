@@ -392,7 +392,10 @@ class AccountCreateTransaction(Transaction):
 
             transaction.account_memo = body.memo if body.memo else None
             transaction.max_automatic_token_associations = body.max_automatic_token_associations
-            transaction.alias = EvmAddress.from_bytes(body.alias) if body.alias else None
+
+            if body.alias and len(body.alias) == 20:
+                transaction.alias = EvmAddress.from_bytes(body.alias)
+
             transaction.decline_staking_reward = body.decline_reward
             staked_id = body.WhichOneof("staked_id")
 

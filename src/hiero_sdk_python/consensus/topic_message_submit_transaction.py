@@ -237,7 +237,8 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
             if body.HasField("topicID"):
                 transaction.topic_id = TopicId._from_proto(body.topicID)
-            transaction.message = body.message.decode() if body.message else None
+
+            transaction.message = body.message
             transaction._total_chunks = transaction.get_required_chunks()
 
         return transaction
