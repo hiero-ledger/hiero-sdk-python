@@ -15,5 +15,10 @@ class CreateScheduleResponse:
 
 
 @dataclass
+class SignScheduleResponse(StatusOnlyResponse):
+    """Response payload for signSchedule."""
+
+
+@dataclass
 class DeleteScheduleResponse(StatusOnlyResponse):
     """Response payload for deleteSchedule."""

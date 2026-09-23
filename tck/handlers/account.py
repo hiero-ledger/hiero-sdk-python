@@ -41,6 +41,7 @@ from tck.response.account import (
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string, key_to_string
+from tck.util.transaction_utils import execute_validated
 
 
 def _build_create_account_transaction(params: CreateAccountParams) -> AccountCreateTransaction:
@@ -89,17 +90,15 @@ def create_account(params: CreateAccountParams) -> CreateAccountResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     account_id = ""
-    if receipt.status == ResponseCode.SUCCESS:
-        account_id = str(receipt.account_id)
+    account_id = str(receipt.account_id)
 
     return CreateAccountResponse(
         account_id,
         ResponseCode(receipt.status).name,
-        str(response.transaction_id) if response.transaction_id is not None else None,
+        str(receipt.transaction_id) if receipt.transaction_id is not None else None,
     )
 
 
@@ -150,8 +149,7 @@ def update_account(params: UpdateAccountParams) -> UpdateAccountResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return UpdateAccountResponse(ResponseCode(receipt.status).name)
 
@@ -258,8 +256,7 @@ def delete_account(params: DeleteAccountParams) -> DeleteAccountResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return DeleteAccountResponse(status=ResponseCode(receipt.status).name)
 

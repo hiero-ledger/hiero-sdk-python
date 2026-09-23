@@ -29,12 +29,17 @@ def test_build_transaction_body(mock_account_ids, file_id):
     assert transaction_body.fileDelete.fileID == file_id._to_proto()
 
 
-def test_missing_file_id():
-    """Test that building a transaction without setting FileID raises a ValueError."""
+def test_missing_file_id(mock_account_ids):
+    """Test that building without FileID leaves fileID unset instead of raising."""
+    account_id, _, node_account_id, _, _ = mock_account_ids
     delete_tx = FileDeleteTransaction()
+    delete_tx.set_node_account_ids([node_account_id])
+    delete_tx.operator_account_id = account_id
 
-    with pytest.raises(ValueError, match="Missing required FileID"):
-        delete_tx.build_transaction_body()
+    transaction_body = delete_tx.build_transaction_body()
+
+    assert transaction_body.HasField("fileDelete")
+    assert not transaction_body.fileDelete.HasField("fileID")
 
 
 def test_set_file_id(file_id):
@@ -74,7 +79,7 @@ def test_sign_transaction(mock_client, file_id):
     delete_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = delete_tx._transaction_body_bytes[node_id]
+    body_bytes = delete_tx._transaction_body_bytes[delete_tx.transaction_id][node_id]
 
     assert len(delete_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = delete_tx._signature_map[body_bytes].sigPair[0]

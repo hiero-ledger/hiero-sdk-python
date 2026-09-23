@@ -45,12 +45,13 @@ def test_freeze_with_valid_parameters():
     operator_id = AccountId.from_string("0.0.1234")
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
+    transaction_id = TransactionId.generate(operator_id)
 
     transaction = (
         TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
-    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.set_transaction_id(transaction_id)
     transaction.set_node_account_ids([node_id])
 
     # Should not raise any errors
@@ -61,7 +62,9 @@ def test_freeze_with_valid_parameters():
 
     # Should have transaction body bytes set
     assert len(transaction._transaction_body_bytes) > 0
-    assert node_id in transaction._transaction_body_bytes
+    assert set(transaction._transaction_body_bytes.keys()) == {transaction_id}
+
+    assert node_id in transaction._transaction_body_bytes[transaction_id]
 
 
 def test_freeze_is_idempotent():
@@ -464,13 +467,16 @@ def test_freeze_only_builds_for_single_node():
         TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
-    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.set_transaction_id(TransactionId.generate(operator_id))
     transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     # Should only have one node in the transaction body bytes map
     assert len(transaction._transaction_body_bytes) == 1
-    assert node_id in transaction._transaction_body_bytes
+
+    trasaction_id = transaction._transaction_ids.current
+    assert trasaction_id in transaction._transaction_body_bytes
+    assert node_id in transaction._transaction_body_bytes[trasaction_id]
 
 
 def test_signed_and_unsigned_bytes_are_different():
@@ -538,8 +544,8 @@ def test_multiple_signatures_increase_size():
     assert len(bytes_3_sig) > len(bytes_2_sig)
 
 
-def test_changing_node_after_freeze_fails_for_to_bytes():
-    """Test that changing node_account_id after freeze causes to_bytes() to fail."""
+def test_changing_node_after_freeze_fails():
+    """Test that changing node_account_id after freeze causes error."""
     operator_id = AccountId.from_string("0.0.1234")
     node_id_1 = AccountId.from_string("0.0.3")
     node_id_2 = AccountId.from_string("0.0.4")
@@ -553,16 +559,9 @@ def test_changing_node_after_freeze_fails_for_to_bytes():
     transaction.set_node_account_ids([node_id_1])
     transaction.freeze()
 
-    # This should work
-    bytes_node_1 = transaction.to_bytes()
-    assert isinstance(bytes_node_1, bytes)
-
-    # Change to a different node that wasn't frozen
-    transaction.set_node_account_ids([node_id_2])
-
-    # This should fail - no transaction body for node_id_2
-    with pytest.raises(ValueError, match="No transaction body found for node"):
-        transaction.to_bytes()
+    # This should fail as node_account_ids list is locked
+    with pytest.raises(Exception, match="list is immutable"):
+        transaction.set_node_account_ids([node_id_2])
 
 
 def test_unsigned_transaction_can_be_signed_after_to_bytes():
@@ -596,7 +595,7 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
 
 def test_transaction_freeze_with_node_ids(mock_client):
     """
-    Test freeze_with() correctly initializes transaction bytes using provided node_account_id(s).
+    Test freeze_with() correctly initializes transaction bytes using provided node_account_ids().
     """
     # Case 1 Single node_account_id
     single_node_id = AccountId(0, 0, 3)
@@ -606,9 +605,17 @@ def test_transaction_freeze_with_node_ids(mock_client):
     tx.freeze_with(mock_client)
 
     assert tx.node_account_ids == [single_node_id]
-    # Verify creates transaction_bytes for single node_id
     assert len(tx._transaction_body_bytes) == 1
-    assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
+
+    transaction_id = tx._transaction_ids.current
+    assert set(tx._transaction_body_bytes.keys()) == {transaction_id}
+
+    # Verify creates transaction_bytes for single node_id
+
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes
+    assert len(node_body_bytes) == 1
+    assert set(node_body_bytes.keys()) == {single_node_id}
 
     # Case 2 node_account_id list
     node_account_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
@@ -618,42 +625,60 @@ def test_transaction_freeze_with_node_ids(mock_client):
     tx.freeze_with(mock_client)
 
     assert tx.node_account_ids == node_account_ids
+    assert len(tx._transaction_body_bytes) == 1
+
+    transaction_id = tx._transaction_ids.current
+    assert set(tx._transaction_body_bytes.keys()) == {transaction_id}
     # Verify creates transaction_bytes for two node_ids
-    assert len(tx._transaction_body_bytes) == 2
-    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes
+    assert len(node_body_bytes) == 2
+    assert set(node_body_bytes.keys()) == set(node_account_ids)
 
 
 def test_transaction_freeze_with_node_ids_without_client():
     """
-    Test freeze() correctly initializes transaction bytes using provided node_account_id(s).
+    Test freeze() correctly initializes transaction bytes using provided node_account_ids().
     """
     operator_id = AccountId.from_string("0.0.1234")
+    transaction_id = TransactionId.generate(operator_id)
 
     # Case 1 Single node_account_id
     single_node_id = AccountId(0, 0, 3)
     tx = TransferTransaction()
-    tx.set_transaction_id(TransactionId.generate(operator_id))
+    tx.set_transaction_id(transaction_id)
     tx.set_node_account_ids([single_node_id])
 
     tx.freeze()
 
     assert tx.node_account_ids == [single_node_id]
+
     # Verify creates transaction_bytes for single node_id
     assert len(tx._transaction_body_bytes) == 1
-    assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
+    assert set(tx._transaction_body_bytes.keys()) == {transaction_id}
+
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes
+    assert len(node_body_bytes) == 1
+    assert set(node_body_bytes.keys()) == {single_node_id}
 
     # Case 2 node_account_id list
     node_account_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+    transaction_id = TransactionId.generate(operator_id)
+
     tx = TransferTransaction()
-    tx.set_transaction_id(TransactionId.generate(operator_id))
-    tx.node_account_ids = node_account_ids
+    tx.set_transaction_id(transaction_id)
+    tx.set_node_account_ids(node_account_ids)
 
     tx.freeze()
 
     assert tx.node_account_ids == node_account_ids
     # Verify creates transaction_bytes for two node_ids
-    assert len(tx._transaction_body_bytes) == 2
-    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes
+    assert len(node_body_bytes) == 2
+    assert set(node_body_bytes.keys()) == set(node_account_ids)
 
 
 def test_transaction_freeze_without_node_ids(mock_client):
@@ -667,8 +692,11 @@ def test_transaction_freeze_without_node_ids(mock_client):
     assert tx.node_account_ids == [node._account_id for node in mock_client.network.nodes]
 
     # Verify creates transaction_bytes for client network nodes
-    assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
-    assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
+    assert len(tx._transaction_body_bytes) == 1
+    node_body_bytes = tx._transaction_body_bytes[tx._transaction_ids.current]
+
+    assert len(node_body_bytes) == len(mock_client.network.nodes)
+    assert set(node_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
 
 
 def test_map_response_raises_if_proto_request_is_not_transaction():

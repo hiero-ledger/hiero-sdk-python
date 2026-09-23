@@ -13,6 +13,8 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.utils.file_utils import encode_file_contents
+from hiero_sdk_python.utils.key_utils import normalize_keys
 
 
 class FileCreateTransaction(Transaction):
@@ -46,59 +48,44 @@ class FileCreateTransaction(Transaction):
             file_memo (Optional[str], optional): A memo to include with the file.
         """
         super().__init__()
-        self.keys: list[Key] | None = keys or []
-        self.contents: bytes | None = self._encode_contents(contents)
+        self.keys: list[Key] = normalize_keys(keys) or []
+        self.contents: bytes | None = encode_file_contents(contents)
         self.expiration_time: Timestamp | None = (
             expiration_time if expiration_time else Timestamp(int(time.time()) + self.DEFAULT_EXPIRY_SECONDS, 0)
         )
         self.file_memo: str | None = file_memo
         self._default_transaction_fee = Hbar(5).to_tinybars()
 
-    def _encode_contents(self, contents: str | bytes | None) -> bytes | None:
-        """
-        Helper method to encode string contents to UTF-8 bytes.
-
-        Args:
-            contents (Optional[str | bytes]): The contents to encode.
-
-        Returns:
-            Optional[bytes]: The encoded contents or None if input is None.
-        """
-        if contents is None:
-            return None
-        if isinstance(contents, str):
-            return contents.encode("utf-8")
-        return contents
-
     def set_keys(self, keys: list[Key] | None | Key) -> FileCreateTransaction:
         """
         Sets the keys for this file create transaction.
 
         Args:
-            keys (Optional[list[Key]] | Key): The keys to set for the file. Can be a list of PublicKey objects or None.
+            keys (list[Key] | Key | None): The keys to set for the file. Can be a
+                list of Key objects (e.g. PublicKey, PrivateKey, KeyList), a single
+                Key, or None. None and an empty list are equivalent for file
+                creation: the file is created without keys and is immutable.
 
         Returns:
             FileCreateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        if isinstance(keys, Key):
-            self.keys = [keys]
-        else:
-            self.keys = keys or []
+        self.keys = normalize_keys(keys) or []
         return self
 
-    def set_contents(self, contents: str | bytes | None) -> FileCreateTransaction:
+    def set_contents(self, contents: str | bytes | bytearray | None) -> FileCreateTransaction:
         """
         Sets the contents for this file create transaction.
 
         Args:
-            contents (Optional[str | bytes]): The contents of the file to create. Strings will be automatically encoded as UTF-8 bytes.
+            contents (str | bytes | bytearray | None): The contents of the file to create.
+                Strings will be automatically encoded as UTF-8 bytes.
 
         Returns:
             FileCreateTransaction: This transaction instance.
         """
         self._require_not_frozen()
-        self.contents = self._encode_contents(contents)
+        self.contents = encode_file_contents(contents)
         return self
 
     def set_expiration_time(self, expiration_time: Timestamp | None) -> FileCreateTransaction:

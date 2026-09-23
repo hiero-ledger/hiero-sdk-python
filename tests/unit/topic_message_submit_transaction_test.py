@@ -14,6 +14,7 @@ from hiero_sdk_python.hapi.services import (
     response_pb2,
     timestamp_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
@@ -554,12 +555,12 @@ def test_chunk_transaction_id_nanosecond_overflow(topic_id):
     )
 
     # First chunk is exactly equal initial ID
-    assert tx._transaction_ids[0].valid_start.seconds == base_seconds
-    assert tx._transaction_ids[0].valid_start.nanos == base_nanos
+    assert tx._transaction_ids.get(0).valid_start.seconds == base_seconds
+    assert tx._transaction_ids.get(0).valid_start.nanos == base_nanos
 
     # Second chunk seconds=base_seconds + 1, nanos=0
-    assert tx._transaction_ids[1].valid_start.seconds == base_seconds + 1
-    assert tx._transaction_ids[1].valid_start.nanos == 0
+    assert tx._transaction_ids.get(1).valid_start.seconds == base_seconds + 1
+    assert tx._transaction_ids.get(1).valid_start.nanos == 0
 
 
 def test_build_proto_body_omits_topic_id_when_not_provided():
@@ -585,3 +586,164 @@ def test_execute_raises_when_message_is_empty(topic_id, mock_client):
 
     with pytest.raises(ValueError, match="Missing required fields: message"):
         transaction.freeze_with(mock_client)
+
+
+def test_chunk_info_for_multiple_chunks(topic_id, mock_client):
+    """Test chunkInfo is included when total chunks are greater than one."""
+    tx = (
+        TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))  # 2 chunks
+    )
+    tx.freeze_with(mock_client)
+
+    assert tx._transaction_body_bytes
+    for _, node_body_bytes in tx._transaction_body_bytes.items():
+        for _, body_bytes in node_body_bytes.items():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(body_bytes)
+
+            assert body.consensusSubmitMessage.HasField("chunkInfo")
+
+
+def test_no_chunk_info_for_single_chunk(topic_id, mock_client):
+    """Test chunkInfo is not included when there is only one chunk."""
+    tx = (
+        TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(10))  # 1 chunks
+    )
+    tx.freeze_with(mock_client)
+
+    assert tx._transaction_body_bytes
+    for _, node_body_bytes in tx._transaction_body_bytes.items():
+        for _, body_bytes in node_body_bytes.items():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(body_bytes)
+
+            assert not body.consensusSubmitMessage.HasField("chunkInfo")
+
+
+def test_body_bytes_for_each_chunk_and_node_on_freeze(mock_client, topic_id):
+    """Test transaction body bytes are created for each chunk and network node when freezing with a client."""
+    tx = (
+        TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))  # 2 chunks
+    )
+
+    tx.freeze_with(mock_client)
+
+    expected_node_ids = {node._account_id for node in mock_client.network.nodes}
+
+    assert tx._transaction_body_bytes
+    assert len(tx._transaction_body_bytes) == 2
+    assert set(tx._transaction_body_bytes.keys()) == set(tx._transaction_ids)
+
+    for transaction_id, node_body_bytes in tx._transaction_body_bytes.items():
+        assert set(node_body_bytes.keys()) == expected_node_ids
+
+        for node_id, body_bytes in node_body_bytes.items():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(body_bytes)
+
+            assert body.transactionID == transaction_id._to_proto()
+            assert body.nodeAccountID == node_id._to_proto()
+
+    assert tx._transaction_ids._locked is True
+    assert tx._transaction_ids.index == 0
+
+    assert tx._node_account_ids._locked is True
+    assert tx._node_account_ids.index == 0
+
+
+def test_body_bytes_for_each_chunk_and_node_on_manual_freeze(topic_id):
+    """Test transaction body bytes are created for each chunk and manually configured node ID."""
+    node_ids = [AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")]
+    tx = (
+        TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))  # 2 chunks
+    )
+    tx.set_node_account_ids(node_ids)
+    tx.set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.3")))
+    tx.freeze()
+
+    assert tx._transaction_body_bytes
+    assert len(tx._transaction_body_bytes) == 2
+    assert set(tx._transaction_body_bytes.keys()) == set(tx._transaction_ids)
+
+    for transaction_id, node_body_bytes in tx._transaction_body_bytes.items():
+        assert set(node_body_bytes.keys()) == set(node_ids)
+
+        for node_id, body_bytes in node_body_bytes.items():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(body_bytes)
+
+            assert body.transactionID == transaction_id._to_proto()
+            assert body.nodeAccountID == node_id._to_proto()
+
+    assert tx._transaction_ids._locked is True
+    assert tx._transaction_ids.index == 0
+
+    assert tx._node_account_ids._locked is True
+    assert tx._node_account_ids.index == 0
+
+
+def test_message_submit_transaction_creates_proper_chunk_content(topic_id, mock_client):
+    """Test message submit transaction content is correctly added to each chunk transaction."""
+    message = "ABCD"
+    tx = (
+        TopicMessageSubmitTransaction()
+        .set_topic_id(topic_id)
+        .set_message(message)
+        .set_chunk_size(1)  # intentionally one so we can check the content
+    )
+
+    tx.freeze_with(mock_client)
+
+    transaction_bytes = tx._transaction_body_bytes
+    assert len(transaction_bytes) == 4
+    assert len(set(tx._transaction_ids)) == 4
+
+    expected = ["A", "B", "C", "D"]
+
+    for index, transaction_id in enumerate(tx._transaction_ids):
+        for node_bytes in transaction_bytes[transaction_id].values():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(node_bytes)
+
+            proto = body.consensusSubmitMessage
+            assert proto.HasField("chunkInfo")
+            assert proto.chunkInfo.initialTransactionID == tx._initial_transaction_id._to_proto()
+            assert proto.chunkInfo.total == 4  # no of chunks
+            assert proto.chunkInfo.number == index + 1
+            assert body.consensusSubmitMessage.message.decode("utf-8") == expected[index]
+            assert body.transactionID == transaction_id._to_proto()
+
+
+def test_message_submit_transaction_create_proper_content(topic_id, mock_client):
+    """Test message submit transaction content is correctly added to transaction."""
+    message = "ABCD"
+    tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message(message).set_chunk_size(1024)
+
+    tx.freeze_with(mock_client)
+
+    transaction_bytes = tx._transaction_body_bytes
+    assert len(transaction_bytes) == 1
+    assert len(set(tx._transaction_ids)) == 1
+
+    transaction_id = tx._transaction_ids.current
+
+    for node_bytes in transaction_bytes[transaction_id].values():
+        body = transaction_pb2.TransactionBody()
+        body.ParseFromString(node_bytes)
+
+        proto = body.consensusSubmitMessage
+        assert not proto.HasField("chunkInfo")
+        assert body.consensusSubmitMessage.message.decode("utf-8") == message
+        assert body.transactionID == transaction_id._to_proto()
+
+
+def test_schedule_transaction_rejects_message_exceeding_chunk_size(topic_id):
+    """Test that scheduling fails when the message exceeds the chunk size."""
+    tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))
+
+    with pytest.raises(
+        RuntimeError,
+        match=f"Cannot schedule TopicMessageSubmitTransaction because the message "
+        f"exceeds the maximum chunk size of {tx.chunk_size} bytes",
+    ):
+        tx.schedule()

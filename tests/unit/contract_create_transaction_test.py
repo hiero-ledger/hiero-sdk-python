@@ -210,19 +210,116 @@ def test_build_scheduled_body(mock_account_ids, contract_params):
     assert schedulable_body.contractCreateInstance.initcode == b""
 
 
-def test_build_transaction_body_validation_errors():
-    """Test that build_transaction_body raises appropriate validation errors."""
-    # Test missing bytecode_file_id and bytecode
+def test_build_transaction_body_without_bytecode_or_gas(mock_account_ids):
+    """Test that missing bytecode source and gas build an empty body for the network to reject."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    contract_tx = ContractCreateTransaction()
+    contract_tx.operator_account_id = operator_id
+    contract_tx.set_node_account_ids([node_account_id])
+
+    transaction_body = contract_tx.build_transaction_body()
+
+    assert transaction_body.contractCreateInstance.WhichOneof("initcodeSource") is None
+    assert transaction_body.contractCreateInstance.gas == 0
+
+
+def test_set_gas_rejects_negative_values():
+    """Test that set_gas rejects negative gas, matching the JS SDK."""
     contract_tx = ContractCreateTransaction()
 
-    with pytest.raises(ValueError, match="Either bytecode_file_id or bytecode must be provided"):
-        contract_tx.build_transaction_body()
+    with pytest.raises(ValueError, match="Gas cannot be negative"):
+        contract_tx.set_gas(-1)
 
-    # Test missing gas
-    contract_tx = ContractCreateTransaction(contract_params=ContractCreateParams(bytecode=b"test bytecode"))
+    assert contract_tx.set_gas(0).gas == 0
 
-    with pytest.raises(ValueError, match="Gas limit must be provided"):
-        contract_tx.build_transaction_body()
+
+def test_constructor_rejects_negative_gas():
+    """Test that gas supplied via ContractCreateParams is validated like set_gas."""
+    with pytest.raises(ValueError, match="Gas cannot be negative"):
+        ContractCreateTransaction(contract_params=ContractCreateParams(gas=-1))
+
+
+def test_staked_setters_clear_each_other():
+    """Test that the two staking-target setters keep the staked_id oneof consistent."""
+    contract_tx = ContractCreateTransaction()
+    staked_account_id = AccountId(0, 0, 999)
+
+    contract_tx.set_staked_account_id(staked_account_id)
+    contract_tx.set_staked_node_id(1)
+    assert contract_tx.staked_account_id is None
+    assert contract_tx.staked_node_id == 1
+
+    contract_tx.set_staked_account_id(staked_account_id)
+    assert contract_tx.staked_account_id == staked_account_id
+    assert contract_tx.staked_node_id is None
+
+
+def test_staked_setters_unset_with_none_without_clearing_the_other():
+    """Test that unsetting one staking target does not wipe the other."""
+    contract_tx = ContractCreateTransaction().set_staked_node_id(1)
+
+    contract_tx.set_staked_account_id(None)
+
+    assert contract_tx.staked_node_id == 1
+    assert contract_tx.staked_account_id is None
+
+
+def test_build_proto_body_rejects_conflicting_staking_targets():
+    """Test the constructor path, where both staked_id fields can remain set."""
+    contract_tx = ContractCreateTransaction(
+        contract_params=ContractCreateParams(
+            staked_account_id=AccountId(0, 0, 999),
+            staked_node_id=1,
+        )
+    )
+
+    with pytest.raises(ValueError, match="Specify either staked_node_id or staked_account_id"):
+        contract_tx._build_proto_body()
+
+
+def test_bytecode_setters_clear_each_other():
+    """Test that the two bytecode-source setters keep the initcodeSource oneof consistent."""
+    contract_tx = ContractCreateTransaction()
+    file_id = FileId(0, 0, 123)
+
+    contract_tx.set_bytecode(b"test bytecode")
+    contract_tx.set_bytecode_file_id(file_id)
+    assert contract_tx.bytecode is None
+    assert contract_tx.bytecode_file_id == file_id
+
+    contract_tx.set_bytecode(b"test bytecode")
+    assert contract_tx.bytecode == b"test bytecode"
+    assert contract_tx.bytecode_file_id is None
+
+
+def test_bytecode_setters_unset_with_none_without_clearing_the_other():
+    """Test that unsetting one bytecode source does not wipe the other."""
+    contract_tx = ContractCreateTransaction().set_bytecode_file_id(FileId(0, 0, 123))
+
+    contract_tx.set_bytecode(None)
+
+    assert contract_tx.bytecode_file_id == FileId(0, 0, 123)
+    assert contract_tx.bytecode is None
+
+    contract_tx = ContractCreateTransaction().set_bytecode(b"test bytecode")
+
+    contract_tx.set_bytecode_file_id(None)
+
+    assert contract_tx.bytecode == b"test bytecode"
+    assert contract_tx.bytecode_file_id is None
+
+
+def test_build_proto_body_rejects_conflicting_bytecode_sources():
+    """Test the constructor path, where both initcodeSource fields can remain set."""
+    contract_tx = ContractCreateTransaction(
+        contract_params=ContractCreateParams(
+            bytecode=b"test bytecode",
+            bytecode_file_id=FileId(0, 0, 123),
+        )
+    )
+
+    with pytest.raises(ValueError, match="Specify either bytecode or bytecode_file_id"):
+        contract_tx._build_proto_body()
 
 
 @pytest.mark.parametrize(
