@@ -48,12 +48,14 @@ def test_set_contract_id():
     assert query.contract_id == contract_id
 
 
-def test_execute_fails_with_missing_contract_id(mock_client):
+def test_make_result_with_missing_contract_id():
     """Test request creation with missing Contract ID."""
     query = ContractInfoQuery()
+    request = query._make_request()
 
-    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
-        query.execute(mock_client)
+    assert request is not None
+    assert request.contractGetInfo is not None
+    assert not request.contractGetInfo.HasField("contractID")
 
 
 def test_get_method():

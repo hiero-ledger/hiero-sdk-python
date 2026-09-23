@@ -41,3 +41,35 @@ class ContractByteCodeResponse:
 
     contractId: str | None = None
     bytecode: str | None = None
+
+
+@dataclass
+class ContractInfoResponse:
+    """Response payload for contractInfoQuery."""
+
+    contractId: str | None = None
+    accountId: str | None = None
+    contractAccountId: str | None = None
+    adminKey: str | None = None
+    expirationTime: str | None = None
+    autoRenewPeriod: str | None = None
+    autoRenewAccountId: str | None = None
+    storage: str | None = None
+    contractMemo: str | None = None
+    balance: str | None = None
+    isDeleted: bool | None = None
+    maxAutomaticTokenAssociations: str | None = None
+    ledgerId: str | None = None
+    stakingInfo: StakingInfoResponse | None = None
+
+
+@dataclass
+class StakingInfoResponse:
+    """Represent stakingInfoResponse for contractInfoQuery."""
+
+    declineStakingReward: bool | None = None
+    stakePeriodStart: str | None = None
+    pendingReward: str | None = None
+    stakedToMe: str | None = None
+    stakedAccountId: str | None = None
+    stakedNodeId: str | None = None

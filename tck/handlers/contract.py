@@ -6,6 +6,8 @@ from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.contract.contract_info import ContractInfo
+from hiero_sdk_python.contract.contract_info_query import ContractInfoQuery
 from hiero_sdk_python.contract.contract_update_transaction import ContractUpdateTransaction
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.file.file_id import FileId
@@ -18,18 +20,21 @@ from tck.handlers.registry import rpc_method
 from tck.param.contract import (
     ContractByteCodeQueryParams,
     ContractCallQueryParams,
+    ContractInfoQueryParams,
     CreateContractParams,
     UpdateContractParams,
 )
 from tck.response.contract import (
     ContractByteCodeResponse,
     ContractCallResponse,
+    ContractInfoResponse,
     CreateContractResponse,
+    StakingInfoResponse,
     UpdateContractResponse,
 )
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
-from tck.util.key_utils import get_key_from_string
+from tck.util.key_utils import get_key_from_string, key_to_string
 from tck.util.param_utils import decode_hex, to_int
 from tck.util.transaction_utils import execute_validated
 
@@ -271,3 +276,60 @@ def contract_byte_code_query(params: ContractByteCodeQueryParams) -> ContractByt
         # A contract with no bytecode omits the field, matching the JS TCK server.
         bytecode=("0x" + bytecode.hex()) if bytecode else None,
     )
+
+
+def _map_to_contract_info_response(info: ContractInfo) -> ContractInfoResponse:
+    """Map ContractInfo to ContractInfoResponse."""
+    staking_info: StakingInfoResponse = None
+
+    if info.staking_info is not None:
+        staking = info.staking_info
+
+        staking_info = StakingInfoResponse(
+            declineStakingReward=staking.decline_reward,
+            stakePeriodStart=str(staking.stake_period_start) if staking.stake_period_start is not None else None,
+            pendingReward=str(staking.pending_reward.to_tinybars()) if staking.pending_reward is not None else None,
+            stakedToMe=str(staking.staked_to_me.to_tinybars()) if staking.staked_to_me is not None else None,
+            stakedAccountId=str(staking.staked_account_id) if staking.staked_account_id is not None else None,
+            stakedNodeId=str(staking.staked_node_id) if staking.staked_node_id is not None else None,
+        )
+
+    return ContractInfoResponse(
+        contractId=str(info.contract_id) if info.contract_id is not None else None,
+        accountId=str(info.account_id) if info.account_id is not None else None,
+        contractAccountId=info.contract_account_id,
+        adminKey=key_to_string(info.admin_key),
+        expirationTime=str(info.expiration_time) if info.expiration_time is not None else None,
+        autoRenewPeriod=str(info.auto_renew_period.seconds) if info.auto_renew_period is not None else None,
+        autoRenewAccountId=str(info.auto_renew_account_id) if info.auto_renew_account_id is not None else None,
+        storage=str(info.storage) if info.storage is not None else None,
+        contractMemo=info.contract_memo,
+        balance=str(info.balance) if info.balance is not None else None,
+        isDeleted=info.is_deleted,
+        maxAutomaticTokenAssociations=str(info.max_automatic_token_associations)
+        if info.max_automatic_token_associations is not None
+        else None,
+        ledgerId=info.ledger_id.hex() if info.ledger_id is not None else None,
+        stakingInfo=staking_info,
+    )
+
+
+@rpc_method("contractInfoQuery")
+def contract_info_query(params: ContractInfoQueryParams) -> ContractInfoResponse:
+    """Contract info query."""
+    client = get_client(params.sessionId)
+
+    query = ContractInfoQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.contractId is not None:
+        query.set_contract_id(ContractId.from_string(params.contractId))
+
+    if params.queryPayment is not None:
+        query.set_query_payment(Hbar.from_tinybars(to_int(params.queryPayment)))
+
+    if params.maxQueryPayment is not None:
+        query.set_max_query_payment(Hbar.from_tinybars(to_int(params.maxQueryPayment)))
+
+    result = query.execute(client)
+
+    return _map_to_contract_info_response(result)

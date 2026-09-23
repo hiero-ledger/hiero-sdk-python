@@ -118,3 +118,21 @@ class ContractByteCodeQueryParams(BaseParams):
             queryPayment=params.get("queryPayment"),
             maxQueryPayment=params.get("maxQueryPayment"),
         )
+
+
+@dataclass
+class ContractInfoQueryParams(BaseParams):
+    """Parameters for contractInfoQuery."""
+
+    contractId: str | None = None
+    queryPayment: str | None = None
+    maxQueryPayment: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> ContractInfoQueryParams:
+        return cls(
+            contractId=params.get("contractId"),
+            queryPayment=params.get("queryPayment"),
+            maxQueryPayment=params.get("maxQueryPayment"),
+            sessionId=parse_session_id(params),
+        )
