@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from tck.response.base import StatusOnlyResponse
 
@@ -32,22 +32,11 @@ class ScheduleInfoResponse:
     creatorAccountId: str | None = None
     payerAccountId: str | None = None
     scheduledTransactionId: str | None = None
-    signers: list[str] = field(default_factory=list)
-    adminKey: str | None = field(metadata={"nullable": True}, default=None)
+    signers: list[str] | None = None
+    adminKey: str | None = None
     expirationTime: str | None = None
-    executedAt: str | None = field(metadata={"nullable": True}, default=None)
-    deletedAt: str | None = field(metadata={"nullable": True}, default=None)
+    executedAt: str | None = None
+    deletedAt: str | None = None
     scheduleMemo: str | None = None
     waitForExpiry: bool | None = None
-
-
-@dataclass
-class ScheduleInfoCostResponse:
-    """Response payload for getScheduleInfo when getCost=true.
-
-    Spec (getCost) and the JS TCK reference return only the cost field, so this
-    is kept separate from ScheduleInfoResponse to avoid leaking its nullable
-    fields (adminKey/executedAt/deletedAt) as spurious nulls.
-    """
-
     cost: str | None = None

@@ -39,7 +39,6 @@ from tck.param.transfer import TransferCryptoParams
 from tck.response.schedule import (
     CreateScheduleResponse,
     DeleteScheduleResponse,
-    ScheduleInfoCostResponse,
     ScheduleInfoResponse,
     SignScheduleResponse,
 )
@@ -221,7 +220,7 @@ def delete_schedule(params: DeleteScheduleParams) -> DeleteScheduleResponse:
 
 
 @rpc_method("getScheduleInfo")
-def get_schedule_info(params: GetScheduleInfoParams) -> ScheduleInfoResponse | ScheduleInfoCostResponse:
+def get_schedule_info(params: GetScheduleInfoParams) -> ScheduleInfoResponse:
     """Get schedule info."""
     client = get_client(params.sessionId)
 
@@ -238,7 +237,7 @@ def get_schedule_info(params: GetScheduleInfoParams) -> ScheduleInfoResponse | S
 
     if params.getCost:
         cost = query.get_cost(client)
-        return ScheduleInfoCostResponse(cost=str(cost.to_tinybars()))
+        return ScheduleInfoResponse(cost=str(cost.to_tinybars()))
 
     schedule_info = query.execute(client)
     return _map_schedule_info_response(schedule_info)
