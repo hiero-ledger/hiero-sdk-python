@@ -42,7 +42,6 @@ from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTran
 from hiero_sdk_python.tokens.token_unpause_transaction import TokenUnpauseTransaction
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateTransaction
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.custom_fee import CustomFeeParams, FixedFeeParams
 from tck.param.token import (
@@ -94,6 +93,7 @@ from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
 from tck.util.param_utils import to_int
+from tck.util.transaction_utils import execute_validated
 
 
 def _parse_hex(value: str, field_name: str) -> bytes:
@@ -252,8 +252,7 @@ def create_token(params: CreateTokenParams) -> CreateTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     token_id = str(receipt.token_id) if receipt.token_id else ""
 
@@ -305,8 +304,7 @@ def cancel_airdrop(params: CancelAirdropParams) -> CancelAirdropResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return CancelAirdropResponse(status=ResponseCode(receipt.status).name)
 
@@ -339,8 +337,7 @@ def mint_token(params: MintTokenParams) -> MintTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     serial_numbers = [str(s) for s in receipt.serial_numbers] if receipt.serial_numbers else []
 
@@ -452,8 +449,7 @@ def associate_token(params: AssociateTokenParams) -> AssociateTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return AssociateTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -468,8 +464,7 @@ def delete_token(params: DeleteTokenParams) -> DeleteTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return DeleteTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -484,8 +479,7 @@ def dissociate_token(params: DissociateTokenParams) -> DissociateTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return DissociateTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -515,8 +509,7 @@ def unfreeze_token(params: UnfreezeTokenParams) -> UnfreezeTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return UnfreezeTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -531,8 +524,7 @@ def freeze_token(params: FreezeTokenParams) -> FreezeTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return FreezeTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -547,8 +539,7 @@ def pause_token(params: PauseTokenParams) -> PauseTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return PauseTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -563,8 +554,7 @@ def unpause_token(params: UnpauseTokenParams) -> UnpauseTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return UnpauseTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -579,8 +569,7 @@ def grant_token_kyc(params: GrantTokenKycParams) -> GrantTokenKycResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return GrantTokenKycResponse(status=ResponseCode(receipt.status).name)
 
@@ -595,8 +584,7 @@ def revoke_token_kyc(params: RevokeTokenKycParams) -> RevokeTokenKycResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return RevokeTokenKycResponse(status=ResponseCode(receipt.status).name)
 
@@ -657,10 +645,7 @@ def airdrop_token(params: AirdropTokenParams) -> AirdropTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(tx, client)
 
-    receipt = tx.execute(client, wait_for_receipt=False).get_receipt(
-        client,
-        validate_status=True,
-    )
+    receipt = execute_validated(tx, client)
 
     return AirdropTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -704,8 +689,7 @@ def claim_token(params: ClaimTokenParams) -> ClaimTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return ClaimTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -897,8 +881,7 @@ def reject_token(params: RejectTokenParams) -> RejectTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return RejectTokenResponse(
         status=ResponseCode(receipt.status).name,
@@ -973,8 +956,7 @@ def update_token(params: UpdateTokenParams) -> UpdateTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return UpdateTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -1011,8 +993,7 @@ def wipe_token(params: WipeTokenParams) -> WipeTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return WipeTokenResponse(status=ResponseCode(receipt.status).name)
 
@@ -1045,8 +1026,7 @@ def burn_token(params: BurnTokenParams) -> BurnTokenResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return BurnTokenResponse(
         newTotalSupply=str(receipt.new_total_supply),

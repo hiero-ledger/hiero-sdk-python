@@ -13,7 +13,6 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
 from tck.param.allowance import (
     AllowanceEntry,
@@ -24,6 +23,7 @@ from tck.param.allowance import (
 from tck.response.allowance import ApproveAllowanceResponse, DeleteAllowanceResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
+from tck.util.transaction_utils import execute_validated
 
 
 def _build_approve_allowance_transaction(
@@ -130,8 +130,7 @@ def approve_allowance(params: ApproveAllowanceParams) -> ApproveAllowanceRespons
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return ApproveAllowanceResponse(status=ResponseCode(receipt.status).name)
 
@@ -178,7 +177,6 @@ def delete_allowance(params: DeleteAllowanceParams) -> DeleteAllowanceResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return DeleteAllowanceResponse(status=ResponseCode(receipt.status).name)

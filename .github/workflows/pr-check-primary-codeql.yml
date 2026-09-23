@@ -42,7 +42,7 @@ jobs:
                   egress-policy: audit
 
             - name: Initialize CodeQL
-              uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+              uses: github/codeql-action/init@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
               with:
                   languages: ${{ matrix.language }}
                   build-mode: ${{ matrix.build-mode }}
@@ -57,7 +57,7 @@ jobs:
 
             - name: Install uv
               if: matrix.language == 'python'
-              uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+              uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
               with:
                   enable-cache: true
 
@@ -66,6 +66,6 @@ jobs:
               run: uv sync --frozen --all-groups --all-packages --all-extras
 
             - name: Perform CodeQL Analysis
-              uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+              uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
               with:
                   category: "/language:${{matrix.language}}"

@@ -52,6 +52,11 @@ const {
   getAssignmentLimit,
 } = require('../helpers/spam.js');
 
+const {
+  triggerCodeRabbitPlan,
+  hasExistingCodeRabbitPlan,
+} = require('../helpers/coderabbit-plan.js');
+
 /**
  * Returns true if a comment contains the `/assign` command.
  *
@@ -281,14 +286,46 @@ async function runAssignmentFlow({ github, context }) {
       username: commenter,
     });
   } catch (error) {
-    console.error("[assign-bot] Failed to assign issue:", {
+    console.error('[assign-bot] Failed to assign issue:', {
       message: error.message,
     });
+    return;
   }
+
+  // Trigger CodeRabbit after successful assignment
+  try {
+    const planExists = await hasExistingCodeRabbitPlan(
+      github,
+      owner,
+      repoName,
+      issueNumber
+    );
+
+    if (planExists === false) {
+      await triggerCodeRabbitPlan(
+      github,
+      owner,
+      repoName,
+      issue
+    );
+    } else if (planExists === true) {
+        console.log(
+        `[assign-bot] CodeRabbit plan already exists for #${issueNumber}`
+      );
+    } else {
+      console.log(
+      `[assign-bot] Unable to determine whether a CodeRabbit plan exists for #${issueNumber}. Skipping trigger.`
+      );
+    }
+  } catch (error) {
+    console.error('[assign-bot] CodeRabbit plan trigger failed:', {
+      message: error.message,
+      issueNumber,
+    });
+  }
+
   return;
-
 }
-
 module.exports = {
   runAssignmentFlow,
 };

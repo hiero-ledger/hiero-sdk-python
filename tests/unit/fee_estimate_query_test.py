@@ -380,15 +380,19 @@ def test_port_replacement_for_localhost_execute_multiple():
     with patch.object(query, "_execute_chunked", return_value=MagicMock()) as mock_execute_chunked:
         query.execute(client_1)
 
-        called_url = mock_execute_chunked.call_args[0][1]
+        called_url = mock_execute_chunked.call_args[0][0]
         assert ":8084" in called_url
         assert ":38081" not in called_url
+
+    assert tx._transaction_ids.index == 0
 
     client_2 = MagicMock()
     client_2.network.get_mirror_rest_url.return_value = "http://127.0.0.1:38081/api/v1"
 
     with patch.object(query, "_execute_chunked", return_value=MagicMock()) as mock_execute_chunked:
         query.execute(client_2)
-        called_url = mock_execute_chunked.call_args[0][1]
+        called_url = mock_execute_chunked.call_args[0][0]
         assert ":8084" in called_url
         assert ":38081" not in called_url
+
+    assert tx._transaction_ids.index == 0
