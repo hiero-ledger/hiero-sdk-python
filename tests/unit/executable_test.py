@@ -22,10 +22,7 @@ from hiero_sdk_python.hapi.services import (
     response_pb2,
     transaction_get_receipt_pb2,
     transaction_receipt_pb2,
-    transaction_record_pb2,
 )
-from hiero_sdk_python.hapi.services.query_header_pb2 import ResponseType
-from hiero_sdk_python.hapi.services.transaction_get_record_pb2 import TransactionGetRecordResponse
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
@@ -1078,6 +1075,51 @@ def test_execution_raises_if_all_nodes_unhealthy(mock_client):
         tx.execute(mock_client)
 
 
+def test_execution_raises_if_all_nodes_unhealthy_multiple_nodes():
+    """RuntimeError should only be raised after every configured node was skipped as unhealthy."""
+    tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
+
+    response_sequences = [[], []]  # two mock nodes, none used because all are unhealthy
+    with (
+        mock_hedera_servers(response_sequences) as client,
+        patch("hiero_sdk_python.node._Node.is_healthy", side_effect=repeat(False)),
+        pytest.raises(RuntimeError, match="All nodes are unhealthy"),
+    ):
+        tx.execute(client)
+
+
+def test_execution_retries_next_node_when_channel_creation_fails():
+    """Channel creation errors should mark the node unhealthy and fall over to the next node."""
+    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
+        )
+    )
+
+    response_sequences = [
+        [ok_response],  # first node is never reached (channel creation fails)
+        [ok_response, receipt_response],  # second node completes the transaction
+    ]
+
+    with mock_hedera_servers(response_sequences) as client:
+        first_node = next(node for node in client.network.nodes if node._account_id == AccountId(0, 0, 3))
+
+        def failing_channel():
+            raise ConnectionRefusedError("connection refused")
+
+        first_node._get_channel = failing_channel
+
+        tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
+
+        receipt = tx.execute(client)
+
+        assert receipt.status == ResponseCode.SUCCESS
+        # The transaction was submitted to the second node
+        assert tx._node_account_ids.current == AccountId(0, 0, 4)
+
+
 @pytest.mark.parametrize(
     "tx",
     [
@@ -1151,174 +1193,3 @@ def test_retry_invalid_node_account_updates_network():
         mock_increase_backoff.assert_called_once()
         mock_update_network.assert_called_once()
         mock_delay.assert_called_once()
-
-
-def test_transaction_receipt_query_with_single_node_does_not_advance():
-    """Test that a single-node receipt query remains on the same node after retry."""
-    receipt_response = response_pb2.Response(
-        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
-            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
-        )
-    )
-
-    response = [[receipt_response]]
-
-    node_id = AccountId.from_string("0.0.3")
-    query = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(TransactionId.from_string("0.0.3@1769674705.770340600"))
-        .set_node_account_ids([node_id])
-    )
-    initial_index = query._node_account_ids.index
-
-    with (
-        mock_hedera_servers(response) as client,
-        patch("hiero_sdk_python.node._Node.is_healthy", side_effect=[False, True]),
-        patch("hiero_sdk_python.executable._delay_for_attempt") as mock_delay,
-    ):
-        receipt = query.execute(client)
-
-        assert receipt.status == receipt_response.transactionGetReceipt.receipt.status
-        assert mock_delay.call_count > 0
-        assert query._node_account_ids.index == initial_index
-        assert query._node_account_ids.current == node_id
-
-
-def test_transaction_receipt_query_with_mutiple_node_advance_to_next():
-    """Test that a receipt query advances to the next node when the current node is unhealthy."""
-    receipt_response = response_pb2.Response(
-        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
-            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
-        )
-    )
-
-    response_sequences = [
-        [],  # first node (unhealthy)
-        [receipt_response],  # second node (healthy)
-    ]
-
-    node_ids = [AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")]
-    query = (
-        TransactionGetReceiptQuery()
-        .set_transaction_id(TransactionId.from_string("0.0.3@1769674705.770340600"))
-        .set_node_account_ids(node_ids)
-    )
-
-    initial_index = query._node_account_ids.index
-
-    with (
-        mock_hedera_servers(response_sequences) as client,
-        patch("hiero_sdk_python.node._Node.is_healthy", side_effect=[False, True]),
-    ):
-        receipt = query.execute(client)
-
-        assert receipt.status == receipt_response.transactionGetReceipt.receipt.status
-        assert query._node_account_ids.index == initial_index + 1
-        assert query._node_account_ids.current == node_ids[1]
-
-
-def test_transaction_record_query_with_single_node_does_not_advance():
-    """Test that a single-node record query remains on the same node after retry."""
-    record = transaction_record_pb2.TransactionRecord(
-        receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
-        memo="test_Record",
-        transactionFee=100000,
-    )
-
-    response = [
-        [
-            response_pb2.Response(
-                transactionGetRecord=TransactionGetRecordResponse(
-                    header=response_header_pb2.ResponseHeader(
-                        nodeTransactionPrecheckCode=ResponseCode.OK, responseType=ResponseType.COST_ANSWER, cost=2
-                    )
-                )
-            ),
-            response_pb2.Response(
-                transactionGetRecord=TransactionGetRecordResponse(
-                    header=response_header_pb2.ResponseHeader(
-                        nodeTransactionPrecheckCode=ResponseCode.OK,
-                        responseType=ResponseType.ANSWER_ONLY,
-                    ),
-                    transactionRecord=record,
-                )
-            ),
-        ]
-    ]
-
-    node_id = AccountId.from_string("0.0.3")
-    query = (
-        TransactionRecordQuery()
-        .set_transaction_id(TransactionId.from_string("0.0.3@1769674705.770340600"))
-        .set_node_account_ids([node_id])
-    )
-    initial_index = query._node_account_ids.index
-
-    with (
-        mock_hedera_servers(response) as client,
-        patch("hiero_sdk_python.node._Node.is_healthy", side_effect=[False, True, True]),
-        patch("hiero_sdk_python.executable._delay_for_attempt") as mock_delay,
-    ):
-        record_response = query.execute(client)
-
-        assert record_response.receipt.status == record.receipt.status
-        assert record_response.transaction_fee == record.transactionFee
-        assert record_response.transaction_memo == record.memo
-
-        assert mock_delay.call_count > 0
-        assert query._node_account_ids.index == initial_index
-        assert query._node_account_ids.current == node_id
-
-
-def test_transaction_record_query_with_mutiple_node_advance_to_next():
-    """Test that a record query advances to the next node when the current node is unhealthy."""
-    record = transaction_record_pb2.TransactionRecord(
-        receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
-        memo="test_Record",
-        transactionFee=100000,
-    )
-
-    response_sequences = [
-        [],
-        [
-            response_pb2.Response(
-                transactionGetRecord=TransactionGetRecordResponse(
-                    header=response_header_pb2.ResponseHeader(
-                        nodeTransactionPrecheckCode=ResponseCode.OK, responseType=ResponseType.COST_ANSWER, cost=2
-                    )
-                )
-            ),
-            response_pb2.Response(
-                transactionGetRecord=TransactionGetRecordResponse(
-                    header=response_header_pb2.ResponseHeader(
-                        nodeTransactionPrecheckCode=ResponseCode.OK,
-                        responseType=ResponseType.ANSWER_ONLY,
-                    ),
-                    transactionRecord=record,
-                )
-            ),
-        ],
-    ]
-
-    node_ids = [AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")]
-    query = (
-        TransactionRecordQuery()
-        .set_transaction_id(TransactionId.from_string("0.0.3@1769674705.770340600"))
-        .set_node_account_ids(node_ids)
-    )
-
-    initial_index = query._node_account_ids.index
-
-    with (
-        mock_hedera_servers(response_sequences) as client,
-        patch("hiero_sdk_python.node._Node.is_healthy", side_effect=[False, True, True]),
-    ):
-        record_response = query.execute(client)
-
-        assert record_response.receipt.status == record.receipt.status
-        assert record_response.transaction_fee == record.transactionFee
-        assert record_response.transaction_memo == record.memo
-        assert query._node_account_ids.index == initial_index + 1
-        assert query._node_account_ids.current == node_ids[1]

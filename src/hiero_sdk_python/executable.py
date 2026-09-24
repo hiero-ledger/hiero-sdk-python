@@ -89,6 +89,10 @@ class _Executable(ABC):
 
         self._node_account_ids: _LockableList[AccountId] = _LockableList[AccountId]()
 
+        # How many unhealthy nodes we've skipped in a row.
+        # Raise "All nodes are unhealthy" only once we've skipped them all.
+        self._unhealthy_skip_count: int = 0
+
     @property
     def node_account_id(self) -> AccountId | None:
         warnings.warn(
@@ -382,7 +386,7 @@ class _Executable(ABC):
     def _handle_unhealthy_node(self, proto_request, attempt, logger, err) -> bool:
         """Handle node switching and backoff for unhealthy node."""
         # Check if the request is a transaction receipt or record because they are single node requests
-        if _is_transaction_receipt_or_record_request(proto_request) and len(self._node_account_ids) <= 1:
+        if _is_transaction_receipt_or_record_request(proto_request):
             _delay_for_attempt(
                 self._get_request_id(),
                 self._min_backoff,
@@ -392,7 +396,10 @@ class _Executable(ABC):
             )
             return True
 
-        if self._node_account_ids.index == len(self._node_account_ids) - 1:
+        # Give up only after skipping every node in a row,
+        # a healthy node in between resets the count.
+        self._unhealthy_skip_count += 1
+        if self._unhealthy_skip_count >= len(self._node_account_ids):
             raise RuntimeError("All nodes are unhealthy")
 
         self._node_account_ids.advance()
@@ -439,9 +446,6 @@ class _Executable(ABC):
             if node is None:
                 raise RuntimeError(f"No node found for node_account_id: {self._node_account_ids.current}")
 
-            # Create a channel wrapper from the client's channel
-            channel = node._get_channel()
-
             logger.trace(
                 "Executing",
                 "requestId",
@@ -454,9 +458,6 @@ class _Executable(ABC):
                 self._max_attempts,
             )
 
-            # Get the appropriate gRPC method to call
-            method = self._get_method(channel)
-
             # Build the request using the executable's _make_request method
             proto_request = self._make_request()
 
@@ -464,11 +465,17 @@ class _Executable(ABC):
                 self._handle_unhealthy_node(proto_request, attempt, logger, err_persistant)
                 continue
 
+            self._unhealthy_skip_count = 0
+
             # Execute the GRPC call
             try:
+                # Channel setup (DNS, TLS, connection) can fail too — treat it
+                # like any other failure and fall over to the next node
+                # instead of aborting the whole execution
+                channel = node._get_channel()
+                method = self._get_method(channel)
                 logger.trace("Executing gRPC call", "requestId", self._get_request_id())
                 response = _execute_method(method, proto_request, self._grpc_deadline)
-
             except Exception as e:
                 if not self._should_retry_exponentially(e):
                     raise e
