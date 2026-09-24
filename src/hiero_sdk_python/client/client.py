@@ -68,6 +68,8 @@ class Client:
 
         self._allow_receipt_node_failover: bool = False
 
+        self._default_regenerate_transaction_id: bool = True
+
         self.logger: Logger = Logger(LogLevel.from_env(), "hiero_sdk_python")
 
     @property
@@ -309,6 +311,33 @@ class Client:
 
         self.max_attempts = max_attempts
         return self
+
+    def set_default_regenerate_transaction_id(self, regenerate_transaction_id: bool) -> Client:
+        """
+        Set whether transactions executed by this client should regenerate their transaction ID
+        and retry when the network returns TRANSACTION_EXPIRED.
+
+        A transaction may override this default via `Transaction.set_regenerate_transaction_id()`.
+
+        Args:
+            regenerate_transaction_id (bool): Whether to regenerate the transaction ID on
+                TRANSACTION_EXPIRED by default.
+
+        Returns:
+            Client: This client instance for fluent chaining.
+        """
+        if not isinstance(regenerate_transaction_id, bool):
+            raise TypeError(
+                f"regenerate_transaction_id must be of type bool, got {type(regenerate_transaction_id).__name__}"
+            )
+
+        self._default_regenerate_transaction_id = regenerate_transaction_id
+        return self
+
+    @property
+    def default_regenerate_transaction_id(self) -> bool:
+        """Return whether transactions regenerate their ID when they expire."""
+        return self._default_regenerate_transaction_id
 
     def set_grpc_deadline(self, grpc_deadline: int | float) -> Client:
         """
