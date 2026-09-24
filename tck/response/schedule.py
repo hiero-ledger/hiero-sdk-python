@@ -22,3 +22,21 @@ class SignScheduleResponse(StatusOnlyResponse):
 @dataclass
 class DeleteScheduleResponse(StatusOnlyResponse):
     """Response payload for deleteSchedule."""
+
+
+@dataclass
+class ScheduleInfoResponse:
+    """Response payload for getScheduleInfo."""
+
+    scheduleId: str | None = None
+    creatorAccountId: str | None = None
+    payerAccountId: str | None = None
+    scheduledTransactionId: str | None = None
+    signers: list[str] | None = None
+    adminKey: str | None = None
+    expirationTime: str | None = None
+    executedAt: str | None = None
+    deletedAt: str | None = None
+    scheduleMemo: str | None = None
+    waitForExpiry: bool | None = None
+    cost: str | None = None
