@@ -5,10 +5,10 @@ Thank you for your interest in contributing to the Hiero Python SDK!
 ## Table of Contents
 
 - [Ways to Contribute](#ways-to-contribute)
-  - [Code Contributions](#code-contributions)
-  - [Bug Reports](#bug-reports)
-  - [Feature Requests](#feature-requests)
-  - [Blog Posts](#blog-posts)
+  - [Code Contributions](#-code-contributions)
+  - [Bug Reports](#-bug-reports)
+  - [Feature Requests](#-feature-requests)
+  - [Blog Posts](#-blog-posts)
 - [Developer Resources](#developer-resources)
 - [Cheatsheet](#cheatsheet)
 

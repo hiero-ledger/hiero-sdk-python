@@ -1994,6 +1994,7 @@ transaction = NodeUpdateTransaction(
 ).freeze_with(client)
 
 transaction.sign(admin_key)  # Sign with admin key
+```
 
 ### Deleting a Node
 
