@@ -376,9 +376,8 @@ def test_integration_transfer_transaction_approved_token_transfer(env):
     transfer_receipt = (
         TransferTransaction()
         .set_transaction_id(TransactionId.generate(account.id))
-        .add_approved_token_transfer_with_decimals(token_id, account.id, 500, 2)
-        .add_approved_token_transfer_with_decimals(token_id, env.operator_id, -499, 2)
-        .add_token_transfer_with_decimals(token_id, account.id, -1, 2)
+        .add_approved_token_transfer_with_decimals(token_id, env.operator_id, -500, 2)
+        .add_token_transfer_with_decimals(token_id, account.id, 500, 2)
         .freeze_with(env.client)
         .sign(account.key)
         .execute(env.client)

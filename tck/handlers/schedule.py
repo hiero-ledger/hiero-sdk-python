@@ -11,7 +11,6 @@ from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTransaction
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
-from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.errors import JsonRpcError
 from tck.handlers.account import _build_create_account_transaction
 from tck.handlers.allowance import _build_approve_allowance_transaction
@@ -37,6 +36,7 @@ from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
 from tck.util.param_utils import to_int
+from tck.util.transaction_utils import execute_validated
 
 
 # Maps a scheduled transaction method name to its params class and builder.
@@ -154,16 +154,14 @@ def create_schedule(params: CreateScheduleParams) -> CreateScheduleResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     schedule_id = ""
     scheduled_transaction_id = None
-    if receipt.status == ResponseCode.SUCCESS:
-        if receipt.schedule_id is not None:
-            schedule_id = str(receipt.schedule_id)
-        if receipt.scheduled_transaction_id is not None:
-            scheduled_transaction_id = str(receipt.scheduled_transaction_id)
+    if receipt.schedule_id is not None:
+        schedule_id = str(receipt.schedule_id)
+    if receipt.scheduled_transaction_id is not None:
+        scheduled_transaction_id = str(receipt.scheduled_transaction_id)
 
     return CreateScheduleResponse(schedule_id, scheduled_transaction_id, ResponseCode(receipt.status).name)
 
@@ -188,8 +186,7 @@ def sign_schedule(params: SignScheduleParams) -> SignScheduleResponse:
     if common_params is not None:
         common_params.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return SignScheduleResponse(status=ResponseCode(receipt.status).name)
 
@@ -204,7 +201,6 @@ def delete_schedule(params: DeleteScheduleParams) -> DeleteScheduleResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return DeleteScheduleResponse(status=ResponseCode(receipt.status).name)

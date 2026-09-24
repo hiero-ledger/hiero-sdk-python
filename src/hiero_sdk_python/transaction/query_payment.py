@@ -24,8 +24,12 @@ def build_query_payment_transaction(
     tx.set_node_account_ids([node_account_id])
     tx.set_transaction_id(TransactionId.generate(payer_account_id))
 
-    body_bytes = tx.build_transaction_body().SerializeToString()
-    tx._transaction_body_bytes.setdefault(node_account_id, body_bytes)
+    transaction_body = tx.build_transaction_body()
+    transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
+    transaction_body.transactionID.CopyFrom(tx.transaction_id._to_proto())
+    body_bytes = transaction_body.SerializeToString()
+
+    tx._transaction_body_bytes.setdefault(tx.transaction_id, {node_account_id: body_bytes})
 
     tx.sign(payer_private_key)
     return tx._to_proto()

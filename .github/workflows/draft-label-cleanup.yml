@@ -31,7 +31,8 @@ on:
 
 permissions:
   issues: write
-  pull-requests: read
+  # The Issues API routes label removal for pull requests through this scope.
+  pull-requests: write
   contents: read
 
 concurrency:

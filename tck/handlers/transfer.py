@@ -12,6 +12,7 @@ from tck.param.transfer import TransferCryptoParams
 from tck.response.transfer import TransferCryptoResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
+from tck.util.transaction_utils import execute_validated
 
 
 def _build_transfer_transaction(params: TransferCryptoParams) -> TransferTransaction:
@@ -80,9 +81,6 @@ def transfer_crypto(params: TransferCryptoParams) -> TransferCryptoResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(tx, client)
 
-    receipt = tx.execute(client, wait_for_receipt=False).get_receipt(
-        client,
-        validate_status=True,
-    )
+    receipt = execute_validated(tx, client)
 
     return TransferCryptoResponse(status=ResponseCode(receipt.status).name)

@@ -17,6 +17,15 @@ class TestDecodeHex:
     def test_decodes_0x_prefixed_hex(self):
         assert decode_hex("0x60006000") == b"\x60\x00\x60\x00"
 
+    def test_decodes_uppercase_hex(self):
+        assert decode_hex("1234ABCD") == b"\x12\x34\xab\xcd"
+
+    def test_decodes_empty_string(self):
+        assert decode_hex("") == b""
+
+    def test_decodes_bare_0x_prefix(self):
+        assert decode_hex("0x") == b""
+
     def test_rejects_non_hex_characters(self):
         with pytest.raises(ValueError):
             decode_hex("0xZZ")

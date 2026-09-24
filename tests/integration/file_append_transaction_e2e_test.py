@@ -306,12 +306,12 @@ def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
     file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
     assert file_contents == b""
 
-    content = "A" * (4000)  # content with (4000/1024) bytes ie approx 4 chunks
+    content = "Hello, Hiero!"  # length 13
 
     tx = (
         FileAppendTransaction()
         .set_file_id(file_id)
-        .set_chunk_size(1024)
+        .set_chunk_size(4)  # content with (13/4) bytes ie approx 4 chunks
         .set_contents(content)
         .set_transaction_id(TransactionId.generate(env.client.operator_account_id))
         .set_node_account_ids([AccountId(0, 0, 3)])
