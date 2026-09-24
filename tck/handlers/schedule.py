@@ -225,15 +225,15 @@ def get_schedule_info(params: GetScheduleInfoParams) -> ScheduleInfoResponse:
     if params.scheduleId is not None:
         query.set_schedule_id(ScheduleId.from_string(params.scheduleId))
 
-    if params.queryPayment is not None:
-        query.set_query_payment(Hbar.from_tinybars(int(params.queryPayment)))
-
     if params.maxQueryPayment is not None:
         query.set_max_query_payment(Hbar.from_tinybars(int(params.maxQueryPayment)))
 
     if params.getCost:
         cost = query.get_cost(client)
         return ScheduleInfoResponse(cost=str(cost.to_tinybars()))
+
+    if params.queryPayment is not None:
+        query.set_query_payment(Hbar.from_tinybars(int(params.queryPayment)))
 
     schedule_info = query.execute(client)
     return _map_schedule_info_response(schedule_info)
@@ -255,8 +255,8 @@ def _map_schedule_info_response(schedule_info: ScheduleInfo) -> ScheduleInfoResp
         expirationTime=(
             str(schedule_info.expiration_time.seconds) if schedule_info.expiration_time is not None else None
         ),
-        executedAt=str(schedule_info.executed_at.seconds) if schedule_info.executed_at is not None else None,
-        deletedAt=str(schedule_info.deleted_at.seconds) if schedule_info.deleted_at is not None else None,
+        executedAt=str(schedule_info.executed_at) if schedule_info.executed_at is not None else None,
+        deletedAt=str(schedule_info.deleted_at) if schedule_info.deleted_at is not None else None,
         scheduleMemo=schedule_info.schedule_memo,
         waitForExpiry=schedule_info.wait_for_expiry,
     )
