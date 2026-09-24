@@ -116,6 +116,10 @@ class AccountInfoQuery(Query):
 
         return AccountInfo._from_proto(response.cryptoGetInfo.accountInfo)
 
+    def _execute_cost_probe(self, client, timeout: int | float | None = None):
+        """Execute only the unpaid COST_ANSWER probe used by Client.ping()."""
+        return self._execute(client, timeout, allow_unhealthy_node=True)
+
     def _get_query_response(self, response):
         """
         Extracts the account info response from the full response.

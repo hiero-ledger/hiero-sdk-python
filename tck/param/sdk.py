@@ -24,3 +24,19 @@ class SetupParams(BaseParams):
             mirrorNetworkIp=params.get("mirrorNetworkIp"),
             sessionId=parse_session_id(params),
         )
+
+
+@dataclass
+class PingParams(BaseParams):
+    nodeAccountId: str = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> PingParams:
+        if not isinstance(params, dict):
+            raise TypeError("params must be an object")
+
+        node_account_id = params.get("nodeAccountId")
+        if not isinstance(node_account_id, str) or not node_account_id.strip():
+            raise ValueError("nodeAccountId is required and must be a non-empty string")
+
+        return cls(nodeAccountId=node_account_id, sessionId=parse_session_id(params))
