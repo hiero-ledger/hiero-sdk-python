@@ -4,10 +4,13 @@ from collections.abc import Callable
 from typing import Any, cast
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_create_transaction import ScheduleCreateTransaction
 from hiero_sdk_python.schedule.schedule_delete_transaction import ScheduleDeleteTransaction
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
+from hiero_sdk_python.schedule.schedule_info import ScheduleInfo
+from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
 from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTransaction
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -25,16 +28,22 @@ from tck.param.common import CommonTransactionParams
 from tck.param.schedule import (
     CreateScheduleParams,
     DeleteScheduleParams,
+    GetScheduleInfoParams,
     ScheduledTransactionParams,
     SignScheduleParams,
 )
 from tck.param.token import BurnTokenParams, MintTokenParams
 from tck.param.topic import CreateTopicParams, TopicMessageSubmitParams
 from tck.param.transfer import TransferCryptoParams
-from tck.response.schedule import CreateScheduleResponse, DeleteScheduleResponse, SignScheduleResponse
+from tck.response.schedule import (
+    CreateScheduleResponse,
+    DeleteScheduleResponse,
+    ScheduleInfoResponse,
+    SignScheduleResponse,
+)
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
-from tck.util.key_utils import get_key_from_string
+from tck.util.key_utils import get_key_from_string, key_to_string
 from tck.util.param_utils import to_int
 from tck.util.transaction_utils import execute_validated
 
@@ -204,3 +213,50 @@ def delete_schedule(params: DeleteScheduleParams) -> DeleteScheduleResponse:
     receipt = execute_validated(transaction, client)
 
     return DeleteScheduleResponse(status=ResponseCode(receipt.status).name)
+
+
+@rpc_method("getScheduleInfo")
+def get_schedule_info(params: GetScheduleInfoParams) -> ScheduleInfoResponse:
+    """Get schedule info."""
+    client = get_client(params.sessionId)
+
+    query = ScheduleInfoQuery().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.scheduleId is not None:
+        query.set_schedule_id(ScheduleId.from_string(params.scheduleId))
+
+    if params.maxQueryPayment is not None:
+        query.set_max_query_payment(Hbar.from_tinybars(int(params.maxQueryPayment)))
+
+    if params.getCost:
+        cost = query.get_cost(client)
+        return ScheduleInfoResponse(cost=str(cost.to_tinybars()))
+
+    if params.queryPayment is not None:
+        query.set_query_payment(Hbar.from_tinybars(int(params.queryPayment)))
+
+    schedule_info = query.execute(client)
+    return _map_schedule_info_response(schedule_info)
+
+
+def _map_schedule_info_response(schedule_info: ScheduleInfo) -> ScheduleInfoResponse:
+    """Map ScheduleInfo to JSON-RPC ScheduleInfoResponse."""
+    return ScheduleInfoResponse(
+        scheduleId=str(schedule_info.schedule_id) if schedule_info.schedule_id is not None else None,
+        creatorAccountId=(
+            str(schedule_info.creator_account_id) if schedule_info.creator_account_id is not None else None
+        ),
+        payerAccountId=str(schedule_info.payer_account_id) if schedule_info.payer_account_id is not None else None,
+        scheduledTransactionId=(
+            str(schedule_info.scheduled_transaction_id) if schedule_info.scheduled_transaction_id is not None else None
+        ),
+        signers=[key_to_string(signer) for signer in schedule_info.signers],
+        adminKey=key_to_string(schedule_info.admin_key) if schedule_info.admin_key is not None else None,
+        expirationTime=(
+            str(schedule_info.expiration_time.seconds) if schedule_info.expiration_time is not None else None
+        ),
+        executedAt=str(schedule_info.executed_at) if schedule_info.executed_at is not None else None,
+        deletedAt=str(schedule_info.deleted_at) if schedule_info.deleted_at is not None else None,
+        scheduleMemo=schedule_info.schedule_memo,
+        waitForExpiry=schedule_info.wait_for_expiry,
+    )
