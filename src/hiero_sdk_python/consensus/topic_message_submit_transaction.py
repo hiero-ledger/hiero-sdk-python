@@ -227,3 +227,18 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             _Method: The method object with bound transaction execution.
         """
         return _Method(transaction_func=channel.topic.submitMessage, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body):
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("consensusSubmitMessage"):
+            body = transaction_body.consensusSubmitMessage
+
+            if body.HasField("topicID"):
+                transaction.topic_id = TopicId._from_proto(body.topicID)
+
+            transaction.message = body.message
+            transaction._total_chunks = transaction.get_required_chunks()
+
+        return transaction

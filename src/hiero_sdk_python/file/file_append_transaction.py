@@ -208,3 +208,10 @@ class FileAppendTransaction(ChunkedTransaction):
         self.contents = proto.contents
         self._total_chunks = self._calculate_total_chunks()
         return self
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body):
+        transaction = super()._from_protobuf(transaction_body)
+        if transaction_body.HasField("fileAppend"):
+            transaction._from_proto(transaction_body.fileAppend)
+        return transaction
