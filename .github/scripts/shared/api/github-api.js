@@ -252,6 +252,26 @@ async function fetchAllComments({ github, owner, repo, issueNumber }) {
 }
 
 /**
+ * Fetches the current issue from the GitHub API.
+ *
+ * @param {object} params
+ * @param {import('@actions/github').GitHub} params.github
+ * @param {string} params.owner       - Repo owner.
+ * @param {string} params.repo        - Repo name.
+ * @param {number} params.issueNumber - Issue number.
+ * @returns {Promise<object>} Current issue payload from the GitHub API.
+ * @throws {Error} Re-throws the Octokit error on API failure.
+ */
+async function getIssue({ github, owner, repo, issueNumber }) {
+  const { data } = await github.rest.issues.get({
+    owner,
+    repo,
+    issue_number: issueNumber,
+  });
+  return data;
+}
+
+/**
  * Assigns a contributor to an issue.
  *
  * @param {object} params
@@ -285,5 +305,6 @@ module.exports = {
   isRepoCollaborator,
   postIssueComment,
   fetchAllComments,
+  getIssue,
   assignIssue,
 };
