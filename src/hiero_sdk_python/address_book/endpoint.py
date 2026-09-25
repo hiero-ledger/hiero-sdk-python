@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 from typing import TypedDict
 
 from hiero_sdk_python.hapi.services.basic_types_pb2 import ServiceEndpoint
@@ -139,7 +140,12 @@ class Endpoint:
         Returns:
             str: The string representation in the format 'domain:port' or 'ip:port'.
         """
-        return f"{self._address.decode('utf-8')}:{self._port}"
+        try:
+            address = str(ipaddress.ip_address(self._address))
+        except ValueError:
+            address = self._address.decode("utf-8")
+
+        return f"{address}:{self._port}"
 
     @classmethod
     def from_dict(cls, json_data: EndpointDict) -> Endpoint:
