@@ -4,6 +4,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_bytecode_query import ContractBytecodeQuery
 from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
+from hiero_sdk_python.contract.contract_delete_transaction import ContractDeleteTransaction
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_info import ContractInfo
@@ -19,12 +20,14 @@ from tck.param.contract import (
     ContractCallQueryParams,
     ContractInfoQueryParams,
     CreateContractParams,
+    DeleteContractParams,
 )
 from tck.response.contract import (
     ContractByteCodeResponse,
     ContractCallResponse,
     ContractInfoResponse,
     CreateContractResponse,
+    DeleteContractResponse,
     StakingInfoResponse,
 )
 from tck.util.client_utils import get_client
@@ -124,6 +127,50 @@ def create_contract(params: CreateContractParams) -> CreateContractResponse:
         contract_id = str(receipt.contract_id)
 
     return CreateContractResponse(contract_id, ResponseCode(receipt.status).name)
+
+
+def _build_delete_contract_transaction(params: DeleteContractParams) -> ContractDeleteTransaction:
+    """Build a ContractDeleteTransaction from parsed params."""
+    transaction = ContractDeleteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.contractId is None:
+        raise JsonRpcError.invalid_params_error("contractId is required")
+
+    try:
+        transaction.set_contract_id(ContractId.from_string(params.contractId))
+    except (ValueError, TypeError) as e:
+        raise JsonRpcError.invalid_params_error(f"Invalid contractId: {e}") from e
+
+    if params.transferContractId is not None:
+        try:
+            transaction.set_transfer_contract_id(ContractId.from_string(params.transferContractId))
+        except (ValueError, TypeError) as e:
+            raise JsonRpcError.invalid_params_error(f"Invalid transferContractId: {e}") from e
+    elif params.transferAccountId is not None:
+        try:
+            transaction.set_transfer_account_id(AccountId.from_string(params.transferAccountId))
+        except (ValueError, TypeError) as e:
+            raise JsonRpcError.invalid_params_error(f"Invalid transferAccountId: {e}") from e
+
+    if params.permanentRemoval is not None:
+        transaction.set_permanent_removal(params.permanentRemoval)
+
+    return transaction
+
+
+@rpc_method("deleteContract")
+def delete_contract(params: DeleteContractParams) -> DeleteContractResponse:
+    """Delete a smart contract."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_delete_contract_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    receipt = execute_validated(transaction, client)
+
+    return DeleteContractResponse(ResponseCode(receipt.status).name)
 
 
 def _build_contract_call_query(params: ContractCallQueryParams) -> ContractCallQuery:

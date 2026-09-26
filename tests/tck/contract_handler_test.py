@@ -6,7 +6,7 @@ import pytest
 
 from tck.errors import INVALID_PARAMS, JsonRpcError
 from tck.handlers import contract as contract_handlers
-from tck.param.contract import CreateContractParams
+from tck.param.contract import CreateContractParams, DeleteContractParams
 
 
 pytestmark = pytest.mark.unit
@@ -40,5 +40,91 @@ class TestBuildCreateContractTransaction:
 
         with pytest.raises(JsonRpcError) as excinfo:
             contract_handlers._build_create_contract_transaction(params)
+
+        assert excinfo.value.code == INVALID_PARAMS
+
+
+class TestBuildDeleteContractTransaction:
+    def test_single_transfer_contract_id(self):
+        params = DeleteContractParams(
+            sessionId="session-1",
+            contractId="0.0.123",
+            transferContractId="0.0.456",
+            permanentRemoval=False,
+        )
+        transaction = contract_handlers._build_delete_contract_transaction(params)
+
+        assert str(transaction.contract_id) == "0.0.123"
+        assert str(transaction.transfer_contract_id) == "0.0.456"
+        assert transaction.transfer_account_id is None
+        assert transaction.permanent_removal is False
+
+    def test_single_transfer_account_id(self):
+        params = DeleteContractParams(
+            sessionId="session-1",
+            contractId="0.0.123",
+            transferAccountId="0.0.789",
+            permanentRemoval=True,
+        )
+        transaction = contract_handlers._build_delete_contract_transaction(params)
+
+        assert str(transaction.contract_id) == "0.0.123"
+        assert transaction.transfer_contract_id is None
+        assert str(transaction.transfer_account_id) == "0.0.789"
+        assert transaction.permanent_removal is True
+
+    def test_transfer_contract_id_wins_when_both_supplied(self):
+        params = DeleteContractParams(
+            sessionId="session-1",
+            contractId="0.0.123",
+            transferContractId="0.0.456",
+            transferAccountId="0.0.789",
+        )
+        transaction = contract_handlers._build_delete_contract_transaction(params)
+
+        assert str(transaction.contract_id) == "0.0.123"
+        assert str(transaction.transfer_contract_id) == "0.0.456"
+        assert transaction.transfer_account_id is None
+
+    def test_missing_contract_id_raises_invalid_params(self):
+        params = DeleteContractParams(sessionId="session-1", contractId=None)
+
+        with pytest.raises(JsonRpcError) as excinfo:
+            contract_handlers._build_delete_contract_transaction(params)
+
+        assert excinfo.value.code == INVALID_PARAMS
+
+    @pytest.mark.parametrize("contract_id", ["invalid-id", "", "0.0.abc"])
+    def test_malformed_contract_id_raises_invalid_params(self, contract_id):
+        params = DeleteContractParams(sessionId="session-1", contractId=contract_id)
+
+        with pytest.raises(JsonRpcError) as excinfo:
+            contract_handlers._build_delete_contract_transaction(params)
+
+        assert excinfo.value.code == INVALID_PARAMS
+
+    @pytest.mark.parametrize("bad_id", ["invalid-id", "0.0.abc"])
+    def test_malformed_transfer_contract_id_raises_invalid_params(self, bad_id):
+        params = DeleteContractParams(
+            sessionId="session-1",
+            contractId="0.0.123",
+            transferContractId=bad_id,
+        )
+
+        with pytest.raises(JsonRpcError) as excinfo:
+            contract_handlers._build_delete_contract_transaction(params)
+
+        assert excinfo.value.code == INVALID_PARAMS
+
+    @pytest.mark.parametrize("bad_id", ["invalid-id", "0.0.abc"])
+    def test_malformed_transfer_account_id_raises_invalid_params(self, bad_id):
+        params = DeleteContractParams(
+            sessionId="session-1",
+            contractId="0.0.123",
+            transferAccountId=bad_id,
+        )
+
+        with pytest.raises(JsonRpcError) as excinfo:
+            contract_handlers._build_delete_contract_transaction(params)
 
         assert excinfo.value.code == INVALID_PARAMS
