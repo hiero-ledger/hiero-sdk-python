@@ -376,12 +376,14 @@ def test_build_proto_body_with_cleared_fields(contract_id):
 
     proto_body = tx._build_proto_body()
 
-    # Check auto-renew account handles the explicit empty message
+    # Auto-renew clearing must use an empty AccountID with no account oneof.
     assert proto_body.HasField("auto_renew_account_id")
-    assert proto_body.auto_renew_account_id.accountNum == 0
+    assert proto_body.auto_renew_account_id.WhichOneof("account") is None
+    assert proto_body.auto_renew_account_id.SerializeToString() == b""
 
-    # Check staked account ID natively serializes the 0.0.0 sentinel
+    # Staking clearing must explicitly select accountNum with a value of zero.
     assert proto_body.HasField("staked_account_id")
+    assert proto_body.staked_account_id.WhichOneof("account") == "accountNum"
     assert proto_body.staked_account_id.accountNum == 0
 
 

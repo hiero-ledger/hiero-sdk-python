@@ -23,6 +23,9 @@ from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 
 
+_CLEAR_ACCOUNT_ID = AccountId(0, 0, 0)
+
+
 @dataclass
 class ContractUpdateParams:
     """
@@ -285,8 +288,11 @@ class ContractUpdateTransaction(Transaction):
         if self.contract_id is not None:
             body.contractID.CopyFrom(self.contract_id._to_proto())
 
+        # Consensus expects different clearing encodings: auto-renew uses an empty
+        # AccountID with no account oneof selected, while staking uses 0.0.0 with
+        # accountNum explicitly selected.
         if self.auto_renew_account_id is not None:
-            if self.auto_renew_account_id == AccountId.from_string("0.0.0"):
+            if self.auto_renew_account_id == _CLEAR_ACCOUNT_ID:
                 body.auto_renew_account_id.CopyFrom(basic_types_pb2.AccountID())
             else:
                 body.auto_renew_account_id.CopyFrom(self.auto_renew_account_id._to_proto())
