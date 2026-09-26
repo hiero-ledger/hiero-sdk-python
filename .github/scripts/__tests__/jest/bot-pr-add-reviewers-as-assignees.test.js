@@ -654,5 +654,3 @@ describe('Bot: Add Reviewers as Assignees', () => {
     expect(state.removeAssigneesCalls).toHaveLength(0);
   });
 });
-
-
