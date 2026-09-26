@@ -5,7 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from tck.param.base import BaseParams, BaseTransactionParams
-from tck.util.param_utils import parse_common_transaction_params, parse_session_id
+from tck.util.param_utils import (
+    parse_common_transaction_params,
+    parse_session_id,
+    to_bool,
+)
 
 
 @dataclass
@@ -102,4 +106,25 @@ class ContractInfoQueryParams(BaseParams):
             queryPayment=params.get("queryPayment"),
             maxQueryPayment=params.get("maxQueryPayment"),
             sessionId=parse_session_id(params),
+        )
+
+
+@dataclass
+class DeleteContractParams(BaseTransactionParams):
+    """Parameters for deleting a smart contract. Extends BaseTransactionParams to include common transaction parameters."""
+
+    contractId: str | None = None
+    transferAccountId: str | None = None
+    transferContractId: str | None = None
+    permanentRemoval: bool | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteContractParams:
+        return cls(
+            contractId=params.get("contractId"),
+            transferAccountId=params.get("transferAccountId"),
+            transferContractId=params.get("transferContractId"),
+            permanentRemoval=to_bool(params.get("permanentRemoval")),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
         )
