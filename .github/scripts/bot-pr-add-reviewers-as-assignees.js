@@ -210,6 +210,11 @@ async function clearReviewStateOnDraft({ github, context, prNumber: explicitPrNu
     // Fetch live PR data to avoid acting on a stale event payload snapshot.
     const livePr = (await github.rest.pulls.get({ owner, repo, pull_number: prNumber })).data;
 
+    if (livePr.draft !== true) {
+      logger.log(`PR #${prNumber} is not a draft. Skipping cleanup.`);
+      return;
+    }
+
     const reviewers = (livePr.requested_reviewers || [])
       .map(r => r.login)
       .filter(login => login && VALID_LOGIN_REGEX.test(login));
@@ -220,14 +225,19 @@ async function clearReviewStateOnDraft({ github, context, prNumber: explicitPrNu
 
     if (reviewers.length > 0 || team_reviewers.length > 0) {
       logger.log(`Withdrawing pending review requests on PR #${prNumber}`);
-      await github.rest.pulls.removeRequestedReviewers({
-        owner,
-        repo,
-        pull_number: prNumber,
-        reviewers,
-        team_reviewers
-      });
-      logger.log(`✅ Successfully removed requested reviewers on PR #${prNumber}`);
+      try {
+        await github.rest.pulls.removeRequestedReviewers({
+          owner,
+          repo,
+          pull_number: prNumber,
+          reviewers,
+          team_reviewers
+        });
+        logger.log(`✅ Successfully removed requested reviewers on PR #${prNumber}`);
+      } catch (error) {
+        if (error.status !== 403) throw error;
+        logger.warn(`403 returned: ${error.message}`);
+      }
     } else {
       logger.log(`No pending review requests on PR #${prNumber}. Nothing to withdraw.`);
     }
@@ -240,13 +250,18 @@ async function clearReviewStateOnDraft({ github, context, prNumber: explicitPrNu
 
     if (assigneesToRemove.length > 0) {
       logger.log(`Removing reviewer assignees from PR #${prNumber}: ${assigneesToRemove.join(', ')}`);
-      await github.rest.issues.removeAssignees({
-        owner,
-        repo,
-        issue_number: prNumber,
-        assignees: assigneesToRemove
-      });
-      logger.log(`✅ Successfully removed ${assigneesToRemove.length} reviewer assignee(s)`);
+      try {
+        await github.rest.issues.removeAssignees({
+          owner,
+          repo,
+          issue_number: prNumber,
+          assignees: assigneesToRemove
+        });
+        logger.log(`✅ Successfully removed ${assigneesToRemove.length} reviewer assignee(s)`);
+      } catch (error) {
+        if (error.status !== 403) throw error;
+        logger.warn(`403 returned: ${error.message}`);
+      }
     } else {
       logger.log(`No reviewer assignees to remove on PR #${prNumber}.`);
     }

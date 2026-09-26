@@ -65,7 +65,7 @@ jobs:
       github.event.action == 'converted_to_draft'
 
     concurrency:
-      group: reviewer-assignee-draft-${{ github.event.pull_request.number }}
+      group: reviewer-assignee-${{ github.event.pull_request.number }}
       cancel-in-progress: false
 
     steps:

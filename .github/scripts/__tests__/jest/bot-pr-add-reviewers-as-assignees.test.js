@@ -54,6 +54,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
           return {
             data: {
               number: pull_number,
+              draft: state.currentPrData?.draft !== undefined ? state.currentPrData.draft : true,
               user: state.currentPrData?.user || { login: 'author' },
               requested_reviewers: state.currentPrData?.requested_reviewers || [],
               requested_teams: state.currentPrData?.requested_teams || [],
@@ -416,6 +417,27 @@ describe('Bot: Add Reviewers as Assignees', () => {
     });
   });
 
+  test('skips cleanup when the live PR is not a draft', async () => {
+    const state = createTestState();
+    state.currentPrData = {
+      draft: false,
+      requested_reviewers: [{ login: 'alice' }],
+      requested_teams: [{ slug: 'team1' }],
+      assignees: [{ login: 'alice' }]
+    };
+
+    const ctx = createMockContext({ number: 123 });
+
+    await clearReviewStateOnDraft({
+      github: createMockGithub(state),
+      context: ctx,
+      prNumber: 123
+    });
+
+    expect(state.removeRequestedReviewersCalls).toHaveLength(0);
+    expect(state.removeAssigneesCalls).toHaveLength(0);
+  });
+
   test('withdraws review request when reviewer is not an assignee', async () => {
     const state = createTestState();
     state.currentPrData = {
@@ -479,22 +501,101 @@ describe('Bot: Add Reviewers as Assignees', () => {
     expect(state.removeAssigneesCalls).toHaveLength(0);
   });
 
-  test('gracefully handles 403 permission errors on clearReviewStateOnDraft', async () => {
-    const errorMock = {
+  test('continues assignee cleanup even if removeRequestedReviewers returns 403', async () => {
+    const state = createTestState();
+    const mockGithub = {
       rest: {
         pulls: {
           get: async () => ({
             data: {
+              number: 123,
+              draft: true,
+              user: { login: 'author' },
               requested_reviewers: [{ login: 'alice' }],
               requested_teams: [],
               assignees: [{ login: 'alice' }]
             }
           }),
-          removeRequestedReviewers: async () => {
+          removeRequestedReviewers: async (params) => {
+            state.removeRequestedReviewersCalls.push(params);
             const err = new Error('Forbidden');
             err.status = 403;
             throw err;
           }
+        },
+        issues: {
+          removeAssignees: async (params) => {
+            state.removeAssigneesCalls.push(params);
+            return { data: {} };
+          }
+        }
+      }
+    };
+
+    await clearReviewStateOnDraft({
+      github: mockGithub,
+      context: minimalContext,
+      prNumber: 123
+    });
+
+    expect(state.removeRequestedReviewersCalls).toHaveLength(1);
+    expect(state.removeAssigneesCalls).toHaveLength(1);
+    expect(state.removeAssigneesCalls[0].assignees).toEqual(['alice']);
+  });
+
+  test('tolerates 403 error on removeAssignees', async () => {
+    const state = createTestState();
+    const mockGithub = {
+      rest: {
+        pulls: {
+          get: async () => ({
+            data: {
+              number: 123,
+              draft: true,
+              user: { login: 'author' },
+              requested_reviewers: [{ login: 'alice' }],
+              requested_teams: [],
+              assignees: [{ login: 'alice' }]
+            }
+          }),
+          removeRequestedReviewers: async (params) => {
+            state.removeRequestedReviewersCalls.push(params);
+            return { data: {} };
+          }
+        },
+        issues: {
+          removeAssignees: async (params) => {
+            state.removeAssigneesCalls.push(params);
+            const err = new Error('Forbidden');
+            err.status = 403;
+            throw err;
+          }
+        }
+      }
+    };
+
+    await expect(
+      clearReviewStateOnDraft({
+        github: mockGithub,
+        context: minimalContext,
+        prNumber: 123
+      })
+    ).resolves.not.toThrow();
+
+    expect(state.removeRequestedReviewersCalls).toHaveLength(1);
+    expect(state.removeAssigneesCalls).toHaveLength(1);
+  });
+
+  test('gracefully handles 403 permission errors on pulls.get', async () => {
+    const errorMock = {
+      rest: {
+        pulls: {
+          get: async () => {
+            const err = new Error('Forbidden');
+            err.status = 403;
+            throw err;
+          },
+          removeRequestedReviewers: async () => {}
         },
         issues: {
           removeAssignees: async () => {}
@@ -513,6 +614,8 @@ describe('Bot: Add Reviewers as Assignees', () => {
         pulls: {
           get: async () => ({
             data: {
+              number: 123,
+              draft: true,
               requested_reviewers: [{ login: 'alice' }],
               requested_teams: [],
               assignees: [{ login: 'alice' }]
@@ -551,4 +654,5 @@ describe('Bot: Add Reviewers as Assignees', () => {
     expect(state.removeAssigneesCalls).toHaveLength(0);
   });
 });
+
 
