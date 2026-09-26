@@ -6,11 +6,13 @@
 describe('Bot: Add Reviewers as Assignees', () => {
   let handler;
   let removeReviewerFromAssignees;
+  let clearReviewStateOnDraft;
 
   beforeAll(() => {
     const mod = require('../../bot-pr-add-reviewers-as-assignees.js');
     handler = mod;
     removeReviewerFromAssignees = mod.removeReviewerFromAssignees;
+    clearReviewStateOnDraft = mod.clearReviewStateOnDraft;
   });
 
   beforeEach(() => {
@@ -20,6 +22,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
   const createTestState = () => ({
     addAssigneesCalls: [],
     removeAssigneesCalls: [],
+    removeRequestedReviewersCalls: [],
     pullsGetCalls: 0,
     currentPrData: null,
   });
@@ -31,6 +34,7 @@ describe('Bot: Add Reviewers as Assignees', () => {
       action: 'review_requested',
       pull_request: {
         number: 123,
+        user: { login: 'author' },
         requested_reviewers: [],
         requested_teams: [],
         assignees: [],
@@ -50,11 +54,16 @@ describe('Bot: Add Reviewers as Assignees', () => {
           return {
             data: {
               number: pull_number,
+              user: state.currentPrData?.user || { login: 'author' },
               requested_reviewers: state.currentPrData?.requested_reviewers || [],
               requested_teams: state.currentPrData?.requested_teams || [],
               assignees: state.currentPrData?.assignees || []
             }
           };
+        },
+        removeRequestedReviewers: async (params) => {
+          state.removeRequestedReviewersCalls.push(params);
+          return { data: {} };
         }
       },
       issues: {
@@ -370,6 +379,162 @@ describe('Bot: Add Reviewers as Assignees', () => {
     ).rejects.toHaveProperty('status', 500);
   });
 
+  // ─── Clear review state on draft ─────────────────────────────────────────────
+
+  test('withdraws individual and team review requests and removes reviewer assignees', async () => {
+    const state = createTestState();
+    state.currentPrData = {
+      user: { login: 'author' },
+      requested_reviewers: [{ login: 'alice' }, { login: 'bob' }],
+      requested_teams: [{ slug: 'team-backend' }],
+      assignees: [{ login: 'author' }, { login: 'alice' }, { login: 'bob' }]
+    };
+
+    const ctx = createMockContext({ number: 123 });
+
+    await clearReviewStateOnDraft({
+      github: createMockGithub(state),
+      context: ctx,
+      prNumber: 123
+    });
+
+    expect(state.removeRequestedReviewersCalls).toHaveLength(1);
+    expect(state.removeRequestedReviewersCalls[0]).toEqual({
+      owner: 'hiero-ledger',
+      repo: 'hiero-sdk-python',
+      pull_number: 123,
+      reviewers: ['alice', 'bob'],
+      team_reviewers: ['team-backend']
+    });
+
+    expect(state.removeAssigneesCalls).toHaveLength(1);
+    expect(state.removeAssigneesCalls[0]).toEqual({
+      owner: 'hiero-ledger',
+      repo: 'hiero-sdk-python',
+      issue_number: 123,
+      assignees: ['alice', 'bob']
+    });
+  });
+
+  test('withdraws review request when reviewer is not an assignee', async () => {
+    const state = createTestState();
+    state.currentPrData = {
+      requested_reviewers: [{ login: 'alice' }],
+      requested_teams: [],
+      assignees: []
+    };
+
+    const ctx = createMockContext({ number: 123 });
+
+    await clearReviewStateOnDraft({
+      github: createMockGithub(state),
+      context: ctx,
+      prNumber: 123
+    });
+
+    expect(state.removeRequestedReviewersCalls).toHaveLength(1);
+    expect(state.removeRequestedReviewersCalls[0].reviewers).toEqual(['alice']);
+    expect(state.removeAssigneesCalls).toHaveLength(0);
+  });
+
+  test('does not remove PR author from assignees', async () => {
+    const state = createTestState();
+    state.currentPrData = {
+      user: { login: 'author' },
+      requested_reviewers: [{ login: 'alice' }],
+      requested_teams: [],
+      assignees: [{ login: 'author' }, { login: 'alice' }]
+    };
+
+    const ctx = createMockContext({ number: 123 });
+
+    await clearReviewStateOnDraft({
+      github: createMockGithub(state),
+      context: ctx,
+      prNumber: 123
+    });
+
+    expect(state.removeAssigneesCalls).toHaveLength(1);
+    expect(state.removeAssigneesCalls[0].assignees).toEqual(['alice']);
+    expect(state.removeAssigneesCalls[0].assignees).not.toContain('author');
+  });
+
+  test('does nothing when there are no pending review requests', async () => {
+    const state = createTestState();
+    state.currentPrData = {
+      requested_reviewers: [],
+      requested_teams: [],
+      assignees: [{ login: 'author' }, { login: 'someone-else' }]
+    };
+
+    const ctx = createMockContext({ number: 123 });
+
+    await clearReviewStateOnDraft({
+      github: createMockGithub(state),
+      context: ctx,
+      prNumber: 123
+    });
+
+    expect(state.removeRequestedReviewersCalls).toHaveLength(0);
+    expect(state.removeAssigneesCalls).toHaveLength(0);
+  });
+
+  test('gracefully handles 403 permission errors on clearReviewStateOnDraft', async () => {
+    const errorMock = {
+      rest: {
+        pulls: {
+          get: async () => ({
+            data: {
+              requested_reviewers: [{ login: 'alice' }],
+              requested_teams: [],
+              assignees: [{ login: 'alice' }]
+            }
+          }),
+          removeRequestedReviewers: async () => {
+            const err = new Error('Forbidden');
+            err.status = 403;
+            throw err;
+          }
+        },
+        issues: {
+          removeAssignees: async () => {}
+        }
+      }
+    };
+
+    await expect(
+      clearReviewStateOnDraft({ github: errorMock, context: minimalContext, prNumber: 123 })
+    ).resolves.not.toThrow();
+  });
+
+  test('rethrows non-403 errors on clearReviewStateOnDraft', async () => {
+    const errorMock = {
+      rest: {
+        pulls: {
+          get: async () => ({
+            data: {
+              requested_reviewers: [{ login: 'alice' }],
+              requested_teams: [],
+              assignees: [{ login: 'alice' }]
+            }
+          }),
+          removeRequestedReviewers: async () => {
+            const err = new Error('Internal Server Error');
+            err.status = 500;
+            throw err;
+          }
+        },
+        issues: {
+          removeAssignees: async () => {}
+        }
+      }
+    };
+
+    await expect(
+      clearReviewStateOnDraft({ github: errorMock, context: minimalContext, prNumber: 123 })
+    ).rejects.toHaveProperty('status', 500);
+  });
+
   // ─── Routing ─────────────────────────────────────────────────────────────────
 
   test('unhandled event logs warning and does nothing', async () => {
@@ -386,3 +551,4 @@ describe('Bot: Add Reviewers as Assignees', () => {
     expect(state.removeAssigneesCalls).toHaveLength(0);
   });
 });
+

@@ -185,6 +185,83 @@ async function removeReviewerFromAssignees({ github, context, reviewer: explicit
 }
 
 /**
+ * Clears review state when a PR is converted to draft.
+ * Withdraws pending review requests and removes reviewer-added assignees.
+ *
+ * Explicit params take priority; falls back to context.payload for direct calls.
+ *
+ * @param {Object} params
+ * @param {Object} params.github - GitHub Octokit client instance
+ * @param {Object} params.context - GitHub Actions context object
+ * @param {number} [params.prNumber] - PR number (overrides context payload)
+ */
+async function clearReviewStateOnDraft({ github, context, prNumber: explicitPrNumber }) {
+  try {
+    const prNumber = explicitPrNumber ?? context.payload?.pull_request?.number;
+
+    if (!Number.isInteger(prNumber) || prNumber <= 0) {
+      logger.warn('Missing or invalid PR number. Skipping.');
+      return;
+    }
+
+    const owner = context.repo.owner;
+    const repo = context.repo.repo;
+
+    // Fetch live PR data to avoid acting on a stale event payload snapshot.
+    const livePr = (await github.rest.pulls.get({ owner, repo, pull_number: prNumber })).data;
+
+    const reviewers = (livePr.requested_reviewers || [])
+      .map(r => r.login)
+      .filter(login => login && VALID_LOGIN_REGEX.test(login));
+
+    const team_reviewers = (livePr.requested_teams || [])
+      .map(t => t.slug)
+      .filter(Boolean);
+
+    if (reviewers.length > 0 || team_reviewers.length > 0) {
+      logger.log(`Withdrawing pending review requests on PR #${prNumber}`);
+      await github.rest.pulls.removeRequestedReviewers({
+        owner,
+        repo,
+        pull_number: prNumber,
+        reviewers,
+        team_reviewers
+      });
+      logger.log(`✅ Successfully removed requested reviewers on PR #${prNumber}`);
+    } else {
+      logger.log(`No pending review requests on PR #${prNumber}. Nothing to withdraw.`);
+    }
+
+    const author = livePr.user?.login;
+    const reviewerSet = new Set(reviewers);
+    const assigneesToRemove = (livePr.assignees || [])
+      .map(a => a.login)
+      .filter(login => Boolean(login) && login !== author && reviewerSet.has(login));
+
+    if (assigneesToRemove.length > 0) {
+      logger.log(`Removing reviewer assignees from PR #${prNumber}: ${assigneesToRemove.join(', ')}`);
+      await github.rest.issues.removeAssignees({
+        owner,
+        repo,
+        issue_number: prNumber,
+        assignees: assigneesToRemove
+      });
+      logger.log(`✅ Successfully removed ${assigneesToRemove.length} reviewer assignee(s)`);
+    } else {
+      logger.log(`No reviewer assignees to remove on PR #${prNumber}.`);
+    }
+
+  } catch (error) {
+    logger.error('Failed to clear review state on draft:', error.message);
+    if (error.status === 403) {
+      logger.warn(`403 returned: ${error.message}`);
+      return;
+    }
+    throw error;
+  }
+}
+
+/**
  * Entry point for the add flow (pull_request_target + workflow_dispatch).
  * The remove flow is invoked directly via the named export from the workflow_run job.
  *
@@ -208,3 +285,4 @@ module.exports = async ({ github, context }) => {
 };
 
 module.exports.removeReviewerFromAssignees = removeReviewerFromAssignees;
+module.exports.clearReviewStateOnDraft = clearReviewStateOnDraft;
