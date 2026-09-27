@@ -33,6 +33,6 @@ def test_init_with_hbar_currently_raises_attribute_error():
 
     with pytest.raises(
         AttributeError,
-        match="property 'hbars'.*has no setter",
+        match=r"(property 'hbars'.*has no setter|can't set attribute 'hbars')",
     ):
         MirrorNodeAccountBalance(hbars)
