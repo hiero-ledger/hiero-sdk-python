@@ -14,13 +14,13 @@ The mirror node is eventually consistent, so a balance read immediately
 after a transaction may lag the network by a few seconds.
 
 Run with:
-uv run examples/query/mirror_node_account_balance_query.py
+uv run python examples/query/mirror_node_account_balance_query.py
 python examples/query/mirror_node_account_balance_query.py
 """
 
 import sys
 
-from hiero_sdk_python import Client
+from hiero_sdk_python import Client, Hbar
 from hiero_sdk_python.query.mirror_node_account_balance_query import (
     MirrorNodeAccountBalanceQuery,
 )
@@ -30,6 +30,7 @@ def setup_client():
     """
     Initialize and configure the Hiero SDK client.
 
+    ```
     Returns:
         Client: Configured client.
 
@@ -57,23 +58,40 @@ def main():
 
         # Step 0:
         # Create and configure the SDK client.
-        #
-        # Because MirrorNodeAccountBalanceQuery is a free query,
-        # an operator is not required to execute the query.
         client = setup_client()
 
         # Step 1:
-        # Execute MirrorNodeAccountBalanceQuery and output the
-        # operator's account balance.
-        #
-        # Note: The mirror node is eventually consistent, so a balance
-        # read immediately after a transaction may lag the network by
-        # a few seconds.
+        # Build the mirror-node account balance query.
         operator_id = client.operator_account_id
+        query = MirrorNodeAccountBalanceQuery(operator_id)
 
-        operators_balance = MirrorNodeAccountBalanceQuery(operator_id).execute(client)
+        # Step 2:
+        # Build the mirror-node URL and fetch the JSON response.
+        #
+        # The current MirrorNodeAccountBalance model has an incomplete
+        # public conversion API, so this example reads the balance from
+        # the mirror-node response directly.
+        url = query._build_url(client)
 
-        print(f"Operator's Hbar account balance: {operators_balance.hbars}")
+        timeout = getattr(client, "request_timeout", 30.0)
+
+        body = query._fetch_body(url, timeout)
+
+        # Step 3:
+        # Extract the account balance from the mirror-node response.
+        balances = body.get("balances")
+
+        if not balances:
+            raise ValueError(f"Mirror node returned no balance for account {operator_id}")
+
+        balance_tinybars = balances[0].get("balance")
+
+        if balance_tinybars is None:
+            raise ValueError(f"Mirror node response contained no balance for account {operator_id}")
+
+        operators_balance = Hbar.from_tinybars(int(balance_tinybars))
+
+        print(f"Operator's Hbar account balance: {operators_balance}")
 
         print("Get Account Balance Example Complete!")
 
