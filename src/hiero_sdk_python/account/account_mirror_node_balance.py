@@ -19,13 +19,13 @@ class MirrorNodeAccountBalance:
         Args:
             hbars: The HBAR balance of the account.
         """
-        if hbars is None:
-            raise ValueError("hbars cannot be None")
+        if not isinstance(hbars, Hbar):
+            raise ValueError("hbars must be an instance of Hbar")
 
         self.hbars = hbars
 
     @staticmethod
-    def from_json(root: dict[str, Any]) -> MirrorNodeAccountBalance | None:
+    def _from_json(root: dict[str, Any]) -> MirrorNodeAccountBalance | None:
         """
         Create a balance from a mirror node REST JSON payload.
 
@@ -45,7 +45,10 @@ class MirrorNodeAccountBalance:
         Raises:
             ValueError: If the payload is not a well-formed balances response.
         """
-        if "balances" not in root or root["balances"] is None:
+        if not isinstance(root, dict):
+            raise TypeError("Mirror Node returned a malformed response: root is not an object")
+
+        if root.get("balances") is None:
             raise ValueError("Mirror Node returned a malformed response: no `balances` array")
 
         balances = root["balances"]
@@ -61,15 +64,14 @@ class MirrorNodeAccountBalance:
         if not isinstance(balance, dict):
             raise ValueError("Mirror Node returned a malformed response: balances entry is not an object")
 
-        if "balance" not in balance or balance["balance"] is None:
+        if balance.get("balance") is None:
             raise ValueError("Mirror Node returned a malformed response: balances entry has no `balance` field")
 
         return MirrorNodeAccountBalance(Hbar.from_tinybars(int(balance["balance"])))
 
-    def get_hbars(self) -> Hbar:
+    @property
+    def hbars(self) -> Hbar:
         """
-        Get the HBAR balance.
-
         Returns:
             The HBAR balance of the account.
         """

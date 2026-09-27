@@ -4,7 +4,9 @@ Unit tests for MirrorNodeAccountBalanceQuery.
 
 from __future__ import annotations
 
+import json
 from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError, URLError
 
 import pytest
 
@@ -20,7 +22,7 @@ def test_constructor_sets_account_id_and_defaults():
 
     query = MirrorNodeAccountBalanceQuery(account_id)
 
-    assert query.get_account_id == account_id
+    assert query.account_id() == account_id
     assert query.max_attempts == 10
     assert query.max_backoff == 8.0
 
@@ -44,7 +46,7 @@ def test_setters_are_fluent_and_round_trip():
         .set_max_backoff(0.5)
     )
 
-    assert query.get_account_id == updated_account_id
+    assert query.account_id() == updated_account_id
     assert query.max_attempts == 3
     assert query.max_backoff == 0.5
 
@@ -196,13 +198,22 @@ def test_execute_uses_client_request_timeout_when_timeout_is_none():
     expected_balance = MagicMock()
 
     with (
-        patch.object(query, "_build_url", return_value="https://example.com/balances"),
-        patch.object(query, "_fetch_body", return_value={"balances": []}) as fetch_body,
-        patch(
-            "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance.from_json",
-            return_value=expected_balance,
+        patch.object(
+            query,
+            "_build_url",
+            return_value="https://example.com/balances",
         ),
+        patch.object(
+            query,
+            "_fetch_body",
+            return_value={"balances": []},
+        ) as fetch_body,
+        patch(
+            "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance",
+        ) as balance_class,
     ):
+        balance_class.from_json.return_value = expected_balance
+
         result = query.execute(client, timeout=None)
 
     assert result is expected_balance
@@ -210,23 +221,32 @@ def test_execute_uses_client_request_timeout_when_timeout_is_none():
         "https://example.com/balances",
         15.0,
     )
+    balance_class.from_json.assert_called_once_with({"balances": []})
 
 
 def test_execute_uses_default_timeout_when_client_has_no_request_timeout():
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     client = MagicMock(spec=["network"])
-
     expected_balance = MagicMock()
 
     with (
-        patch.object(query, "_build_url", return_value="https://example.com/balances"),
-        patch.object(query, "_fetch_body", return_value={"balances": []}) as fetch_body,
-        patch(
-            "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance.from_json",
-            return_value=expected_balance,
+        patch.object(
+            query,
+            "_build_url",
+            return_value="https://example.com/balances",
         ),
+        patch.object(
+            query,
+            "_fetch_body",
+            return_value={"balances": []},
+        ) as fetch_body,
+        patch(
+            "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance",
+        ) as balance_class,
     ):
+        balance_class.from_json.return_value = expected_balance
+
         result = query.execute(client, timeout=None)
 
     assert result is expected_balance
@@ -234,6 +254,7 @@ def test_execute_uses_default_timeout_when_client_has_no_request_timeout():
         "https://example.com/balances",
         30.0,
     )
+    balance_class.from_json.assert_called_once_with({"balances": []})
 
 
 def test_execute_raises_precheck_error_when_balance_is_none():
@@ -242,17 +263,26 @@ def test_execute_raises_precheck_error_when_balance_is_none():
     client = MagicMock()
 
     with (
-        patch.object(query, "_build_url", return_value="https://example.com/balances"),
+        patch.object(
+            query,
+            "_build_url",
+            return_value="https://example.com/balances",
+        ),
         patch.object(
             query,
             "_fetch_body",
             return_value={"balances": []},
         ),
+        patch(
+            "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance",
+        ) as balance_class,
         pytest.raises(
             PrecheckError,
             match="INVALID_ACCOUNT_ID",
         ),
     ):
+        balance_class.from_json.return_value = None
+
         query.execute(client)
 
 
@@ -279,21 +309,23 @@ def test_fetch_body_retries_retryable_http_statuses(status_code):
 
     second_response = MagicMock()
     second_response.status_code = 200
-    second_response.json.return_value = {
-        "balances": [
-            {
-                "balance": 100,
-            }
-        ]
-    }
+    second_response.read.return_value = json.dumps(
+        {
+            "balances": [
+                {
+                    "balance": 100,
+                }
+            ]
+        }
+    ).encode("utf-8")
 
     with (
         patch.object(
             query,
             "_request",
             side_effect=[
-                (first_response, None),
-                (second_response, None),
+                (status_code, first_response, None),
+                (200, second_response, None),
             ],
         ) as request,
         patch.object(query, "_warn_and_delay") as warn_and_delay,
@@ -324,7 +356,7 @@ def test_fetch_body_does_not_retry_non_retryable_http_status():
         patch.object(
             query,
             "_request",
-            return_value=(response, None),
+            return_value=(404, response, None),
         ) as request,
         patch.object(query, "_warn_and_delay") as warn_and_delay,
         pytest.raises(
@@ -351,7 +383,7 @@ def test_fetch_body_stops_retrying_after_max_attempts():
         patch.object(
             query,
             "_request",
-            return_value=(response, None),
+            return_value=(503, response, None),
         ) as request,
         patch.object(query, "_warn_and_delay") as warn_and_delay,
         pytest.raises(
@@ -378,21 +410,20 @@ def test_request_returns_response_for_success():
         "hiero_sdk_python.query.mirror_node_account_balance_query.urlopen",
         return_value=response,
     ) as urlopen:
-        result, error = query._request(
+        status_code, result, error = query._request(
             "https://example.com/balances",
             30.0,
         )
 
+    assert status_code == 200
     assert error is None
-    assert result.status_code == 200
+    assert result is response
 
     urlopen.assert_called_once()
 
 
 def test_request_returns_http_error_status_without_exception():
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
-
-    from urllib.error import HTTPError
 
     error = HTTPError(
         "https://example.com/balances",
@@ -406,19 +437,18 @@ def test_request_returns_http_error_status_without_exception():
         "hiero_sdk_python.query.mirror_node_account_balance_query.urlopen",
         side_effect=error,
     ):
-        result, request_error = query._request(
+        status_code, result, request_error = query._request(
             "https://example.com/balances",
             30.0,
         )
 
+    assert status_code == 429
+    assert result is None
     assert request_error is None
-    assert result.status_code == 429
 
 
 def test_request_returns_exception_for_url_error():
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
-
-    from urllib.error import URLError
 
     error = URLError("connection failed")
 
@@ -426,10 +456,11 @@ def test_request_returns_exception_for_url_error():
         "hiero_sdk_python.query.mirror_node_account_balance_query.urlopen",
         side_effect=error,
     ):
-        result, request_error = query._request(
+        status_code, result, request_error = query._request(
             "https://example.com/balances",
             30.0,
         )
 
+    assert status_code == 0
     assert result is None
     assert request_error is error

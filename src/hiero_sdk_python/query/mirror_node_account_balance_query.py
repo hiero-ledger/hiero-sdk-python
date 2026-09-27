@@ -20,6 +20,8 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+from flask import json
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_mirror_node_balance import (
     MirrorNodeAccountBalance,
@@ -52,8 +54,7 @@ class MirrorNodeAccountBalanceQuery:
         self._max_attempts = 10
         self._max_backoff = 8.0
 
-    @property
-    def get_account_id(self) -> AccountId:
+    def account_id(self) -> AccountId:
         """
         Return the account ID.
 
@@ -107,11 +108,12 @@ class MirrorNodeAccountBalanceQuery:
         Raises:
             ValueError: If max_attempts is not greater than zero.
         """
+
+        if isinstance(max_attempts, bool) or not isinstance(max_attempts, int):
+            raise TypeError("max_attempts must be an integer")
+
         if max_attempts <= 0:
             raise ValueError("max_attempts must be greater than zero")
-
-        if not isinstance(max_attempts, int):
-            raise TypeError("max_attempts must be an integer")
 
         self._max_attempts = max_attempts
         return self
@@ -143,7 +145,7 @@ class MirrorNodeAccountBalanceQuery:
             TypeError: If max_backoff is not a number.
             ValueError: If max_backoff is less than 0.5 seconds.
         """
-        if not isinstance(max_backoff, (int, float)):
+        if isinstance(max_backoff, bool) or not isinstance(max_backoff, (int, float)):
             raise TypeError("max_backoff must be a number")
 
         if max_backoff < 0.5:
@@ -206,49 +208,23 @@ class MirrorNodeAccountBalanceQuery:
         self,
         url: str,
         timeout: float,
-    ) -> tuple[Any | None, Exception | None]:
-        """
-        Make an HTTP GET request to the mirror node.
-        Args:
-            url: Mirror node REST endpoint.
-            timeout: HTTP request timeout in seconds.
-
-        Returns:
-            A tuple containing the response and an optional exception.
-        """
+    ) -> tuple[int, Any | None, Exception | None]:
         try:
             request = Request(
                 url,
+                headers={"Accept": "application/json"},
                 method="GET",
-                headers={
-                    "Accept": "application/json",
-                },
             )
 
             response = urlopen(request, timeout=timeout)  # nosec B310
 
-            class Response:
-                def __init__(self, response):
-                    self.status_code = response.status
-                    self._response = response
-
-                def json(self):
-                    import json
-
-                    return json.loads(self._response.read().decode("utf-8"))
-
-            return Response(response), None
+            return response.status, response, None
 
         except HTTPError as exc:
-
-            class ErrorResponse:
-                def __init__(self, status_code):
-                    self.status_code = status_code
-
-            return ErrorResponse(exc.code), None
+            return exc.code, None, None
 
         except (URLError, TimeoutError, OSError) as exc:
-            return None, exc
+            return 0, None, exc
 
     def _fetch_body(
         self,
@@ -261,7 +237,7 @@ class MirrorNodeAccountBalanceQuery:
         last_exception: Exception | None = None
 
         for attempt in range(1, self._max_attempts + 1):
-            response, request_exception = self._request(url, timeout)
+            status_code, response, request_exception = self._request(url, timeout)
 
             if request_exception is not None:
                 last_exception = request_exception
@@ -274,17 +250,16 @@ class MirrorNodeAccountBalanceQuery:
                 self._warn_and_delay(attempt, request_exception)
                 continue
 
-            if response.status_code == 200:
+            if status_code == 200:
                 try:
-                    return response.json()
+                    return json.loads(response.read().decode("utf-8"))
                 except ValueError as exc:
                     raise ValueError("Mirror Node returned a malformed JSON response") from exc
 
-            if not self._should_retry_status(response.status_code) or attempt >= self._max_attempts:
-                raise RuntimeError(f"Mirror Node error: HTTP {response.status_code}")
+            if not self._should_retry_status(status_code) or attempt >= self._max_attempts:
+                raise RuntimeError(f"Mirror Node error: HTTP {status_code}")
 
-            last_exception = RuntimeError(f"HTTP {response.status_code}")
-
+            last_exception = RuntimeError(f"HTTP {status_code}")
             self._warn_and_delay(attempt, last_exception)
 
         raise RuntimeError(f"Failed to fetch account balance after {self._max_attempts} attempts") from last_exception

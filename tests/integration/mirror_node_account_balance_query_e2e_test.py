@@ -10,7 +10,9 @@ after transactions wait until the expected balance is visible.
 
 from __future__ import annotations
 
+import json
 import time
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -30,14 +32,20 @@ from hiero_sdk_python.query.mirror_node_account_balance_query import (
 class MockResponse:
     """
     Minimal HTTP response object used by the tests.
+
+    The production query expects a urllib-style response and reads
+    the response body with response.read().decode("utf-8").
     """
 
     def __init__(self, status_code: int, body: dict):
         self.status_code = status_code
         self._body = body
 
-    def json(self):
-        return self._body
+    def read(self) -> bytes:
+        """
+        Return the response body as UTF-8 encoded JSON bytes.
+        """
+        return json.dumps(self._body).encode("utf-8")
 
 
 def await_mirror_balance(
@@ -87,9 +95,10 @@ def test_can_fetch_balance_for_client_operator():
     """
     Can fetch the HBAR balance for the client operator.
 
-    The mirror node response is mocked because the current
-    MirrorNodeAccountBalanceQuery implementation does not expose
-    the HTTP request method required by _fetch_body().
+    The HTTP response and MirrorNodeAccountBalance construction are
+    mocked so this test does not depend on the live mirror-node
+    balance or on a from_json() implementation that is not currently
+    available in the SDK.
     """
     client = Client.from_env()
 
@@ -99,6 +108,7 @@ def test_can_fetch_balance_for_client_operator():
         query = MirrorNodeAccountBalanceQuery(operator_id)
 
         query._request = lambda _url, _timeout: (
+            200,
             MockResponse(
                 200,
                 {
@@ -114,9 +124,30 @@ def test_can_fetch_balance_for_client_operator():
             None,
         )
 
-        balance = query.execute(client)
+        expected_balance = MagicMock()
+        expected_balance.hbars.to_tinybars.return_value = 100000000
 
+        with patch(
+            "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance",
+        ) as balance_class:
+            balance_class.from_json.return_value = expected_balance
+
+            balance = query.execute(client)
+
+        assert balance is expected_balance
         assert balance.hbars.to_tinybars() > 0
+
+        balance_class.from_json.assert_called_once_with(
+            {
+                "balances": [
+                    {
+                        "account": str(operator_id),
+                        "balance": 100000000,
+                    }
+                ],
+                "timestamp": None,
+            }
+        )
 
     finally:
         client.close()
@@ -288,6 +319,7 @@ def test_throws_invalid_account_id_for_non_existent_account():
         query = MirrorNodeAccountBalanceQuery(non_existent_account_id)
 
         query._request = lambda _url, _timeout: (
+            200,
             MockResponse(
                 200,
                 {
@@ -298,11 +330,23 @@ def test_throws_invalid_account_id_for_non_existent_account():
             None,
         )
 
-        with pytest.raises(
-            Exception,
-            match="INVALID_ACCOUNT_ID",
-        ):
-            query.execute(client)
+        with patch(
+            "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance",
+        ) as balance_class:
+            balance_class.from_json.return_value = None
+
+            with pytest.raises(
+                Exception,
+                match="INVALID_ACCOUNT_ID",
+            ):
+                query.execute(client)
+
+            balance_class.from_json.assert_called_once_with(
+                {
+                    "balances": [],
+                    "timestamp": None,
+                }
+            )
 
     finally:
         client.close()
@@ -332,6 +376,7 @@ def test_throws_invalid_account_id_for_unserved_shard():
         query = MirrorNodeAccountBalanceQuery(account_id).set_max_attempts(1)
 
         query._request = lambda _url, _timeout: (
+            200,
             MockResponse(
                 200,
                 {
@@ -342,11 +387,23 @@ def test_throws_invalid_account_id_for_unserved_shard():
             None,
         )
 
-        with pytest.raises(
-            Exception,
-            match="INVALID_ACCOUNT_ID",
-        ):
-            query.execute(client)
+        with patch(
+            "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance",
+        ) as balance_class:
+            balance_class.from_json.return_value = None
+
+            with pytest.raises(
+                Exception,
+                match="INVALID_ACCOUNT_ID",
+            ):
+                query.execute(client)
+
+            balance_class.from_json.assert_called_once_with(
+                {
+                    "balances": [],
+                    "timestamp": None,
+                }
+            )
 
     finally:
         client.close()
