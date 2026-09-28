@@ -48,6 +48,39 @@ class CreateContractParams(BaseTransactionParams):
 
 
 @dataclass
+class UpdateContractParams(BaseTransactionParams):
+    """Parameters for updating a smart contract. Extends BaseTransactionParams to include CommonTransactionParams."""
+
+    contractId: str | None = None
+    adminKey: str | None = None
+    autoRenewPeriod: str | None = None
+    expirationTime: str | None = None
+    memo: str | None = None
+    autoRenewAccountId: str | None = None
+    maxAutomaticTokenAssociations: int | None = None
+    stakedAccountId: str | None = None
+    stakedNodeId: str | None = None
+    declineStakingReward: bool | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UpdateContractParams:
+        return cls(
+            contractId=params.get("contractId"),
+            adminKey=params.get("adminKey"),
+            autoRenewPeriod=params.get("autoRenewPeriod"),
+            expirationTime=params.get("expirationTime"),
+            memo=params.get("memo"),
+            autoRenewAccountId=params.get("autoRenewAccountId"),
+            maxAutomaticTokenAssociations=params.get("maxAutomaticTokenAssociations"),
+            stakedAccountId=params.get("stakedAccountId"),
+            stakedNodeId=params.get("stakedNodeId"),
+            declineStakingReward=params.get("declineStakingReward"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class ContractCallQueryParams(BaseParams):
     """Parameters for contractCallQuery."""
 
