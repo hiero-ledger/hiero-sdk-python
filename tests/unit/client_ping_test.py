@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from unittest.mock import patch
+
 import grpc
 import pytest
 
@@ -113,6 +115,31 @@ def test_ping_transport_failure_marks_node_unhealthy_and_recovers():
             ResponseType.COST_ANSWER,
             ResponseType.ANSWER_ONLY,
         ]
+    finally:
+        client.close()
+        server.close()
+
+
+def test_ping_transport_failure_on_single_node_does_not_retry():
+    errors = [RealRpcError(grpc.StatusCode.UNAVAILABLE, "unavailable") for _ in range(3)]
+    server = MockServer(errors)
+    client, nodes = _client([server])
+    client.set_max_attempts(3)
+    node = nodes[0]
+
+    try:
+        with (
+            patch.object(
+                client.network, "_increase_backoff", wraps=client.network._increase_backoff
+            ) as increase_backoff,
+            pytest.raises(MaxAttemptsError),
+        ):
+            client.ping(node._account_id)
+
+        assert len(server.calls) == 1
+        increase_backoff.assert_called_once_with(node)
+        assert not node.is_healthy()
+        assert node not in client.network._healthy_nodes
     finally:
         client.close()
         server.close()

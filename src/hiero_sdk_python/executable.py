@@ -482,6 +482,10 @@ class _Executable(ABC):
 
                 client.network._increase_backoff(node)
                 err_persistant = e
+
+                if allow_unhealthy_node and len(self._node_account_ids) == 1:
+                    break
+
                 self._node_account_ids.advance()
                 continue
 
