@@ -399,12 +399,17 @@ describe('Bot: Add Reviewers as Assignees', () => {
       prNumber: 123
     });
 
-    expect(state.removeRequestedReviewersCalls).toHaveLength(1);
+    expect(state.removeRequestedReviewersCalls).toHaveLength(2);
     expect(state.removeRequestedReviewersCalls[0]).toEqual({
       owner: 'hiero-ledger',
       repo: 'hiero-sdk-python',
       pull_number: 123,
-      reviewers: ['alice', 'bob'],
+      reviewers: ['alice', 'bob']
+    });
+    expect(state.removeRequestedReviewersCalls[1]).toEqual({
+      owner: 'hiero-ledger',
+      repo: 'hiero-sdk-python',
+      pull_number: 123,
       team_reviewers: ['team-backend']
     });
 
@@ -608,7 +613,8 @@ describe('Bot: Add Reviewers as Assignees', () => {
     ).resolves.not.toThrow();
   });
 
-  test('rethrows non-403 errors on clearReviewStateOnDraft', async () => {
+  test('rethrows non-403 errors on clearReviewStateOnDraft after completing assignee cleanup', async () => {
+    const state = createTestState();
     const errorMock = {
       rest: {
         pulls: {
@@ -616,26 +622,80 @@ describe('Bot: Add Reviewers as Assignees', () => {
             data: {
               number: 123,
               draft: true,
+              user: { login: 'author' },
               requested_reviewers: [{ login: 'alice' }],
               requested_teams: [],
               assignees: [{ login: 'alice' }]
             }
           }),
-          removeRequestedReviewers: async () => {
-            const err = new Error('Internal Server Error');
-            err.status = 500;
+          removeRequestedReviewers: async (params) => {
+            state.removeRequestedReviewersCalls.push(params);
+            const err = new Error('Unprocessable Entity');
+            err.status = 422;
             throw err;
           }
         },
         issues: {
-          removeAssignees: async () => {}
+          removeAssignees: async (params) => {
+            state.removeAssigneesCalls.push(params);
+            return { data: {} };
+          }
         }
       }
     };
 
     await expect(
       clearReviewStateOnDraft({ github: errorMock, context: minimalContext, prNumber: 123 })
-    ).rejects.toHaveProperty('status', 500);
+    ).rejects.toHaveProperty('status', 422);
+
+    expect(state.removeRequestedReviewersCalls).toHaveLength(1);
+    expect(state.removeAssigneesCalls).toHaveLength(1);
+    expect(state.removeAssigneesCalls[0].assignees).toEqual(['alice']);
+  });
+
+  test('continues team withdrawal and assignee cleanup when individual reviewer removal fails with non-403 error', async () => {
+    const state = createTestState();
+    const errorMock = {
+      rest: {
+        pulls: {
+          get: async () => ({
+            data: {
+              number: 123,
+              draft: true,
+              user: { login: 'author' },
+              requested_reviewers: [{ login: 'alice' }],
+              requested_teams: [{ slug: 'team-backend' }],
+              assignees: [{ login: 'alice' }]
+            }
+          }),
+          removeRequestedReviewers: async (params) => {
+            state.removeRequestedReviewersCalls.push(params);
+            if (params.reviewers) {
+              const err = new Error('Unprocessable Entity');
+              err.status = 422;
+              throw err;
+            }
+            return { data: {} };
+          }
+        },
+        issues: {
+          removeAssignees: async (params) => {
+            state.removeAssigneesCalls.push(params);
+            return { data: {} };
+          }
+        }
+      }
+    };
+
+    await expect(
+      clearReviewStateOnDraft({ github: errorMock, context: minimalContext, prNumber: 123 })
+    ).rejects.toHaveProperty('status', 422);
+
+    expect(state.removeRequestedReviewersCalls).toHaveLength(2);
+    expect(state.removeRequestedReviewersCalls[0].reviewers).toEqual(['alice']);
+    expect(state.removeRequestedReviewersCalls[1].team_reviewers).toEqual(['team-backend']);
+    expect(state.removeAssigneesCalls).toHaveLength(1);
+    expect(state.removeAssigneesCalls[0].assignees).toEqual(['alice']);
   });
 
   // ─── Routing ─────────────────────────────────────────────────────────────────

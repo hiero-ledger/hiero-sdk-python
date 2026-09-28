@@ -223,22 +223,49 @@ async function clearReviewStateOnDraft({ github, context, prNumber: explicitPrNu
       .map(t => t.slug)
       .filter(Boolean);
 
-    if (reviewers.length > 0 || team_reviewers.length > 0) {
-      logger.log(`Withdrawing pending review requests on PR #${prNumber}`);
+    let firstError = null;
+
+    if (reviewers.length > 0) {
+      logger.log(`Withdrawing pending individual review requests on PR #${prNumber}: ${reviewers.join(', ')}`);
       try {
         await github.rest.pulls.removeRequestedReviewers({
           owner,
           repo,
           pull_number: prNumber,
-          reviewers,
+          reviewers
+        });
+        logger.log(`✅ Successfully removed requested individual reviewers on PR #${prNumber}`);
+      } catch (error) {
+        if (error.status === 403) {
+          logger.warn(`403 returned: ${error.message}`);
+        } else {
+          logger.error('Failed to remove requested individual reviewers:', error.message);
+          if (!firstError) firstError = error;
+        }
+      }
+    }
+
+    if (team_reviewers.length > 0) {
+      logger.log(`Withdrawing pending team review requests on PR #${prNumber}: ${team_reviewers.join(', ')}`);
+      try {
+        await github.rest.pulls.removeRequestedReviewers({
+          owner,
+          repo,
+          pull_number: prNumber,
           team_reviewers
         });
-        logger.log(`✅ Successfully removed requested reviewers on PR #${prNumber}`);
+        logger.log(`✅ Successfully removed requested team reviewers on PR #${prNumber}`);
       } catch (error) {
-        if (error.status !== 403) throw error;
-        logger.warn(`403 returned: ${error.message}`);
+        if (error.status === 403) {
+          logger.warn(`403 returned: ${error.message}`);
+        } else {
+          logger.error('Failed to remove requested team reviewers:', error.message);
+          if (!firstError) firstError = error;
+        }
       }
-    } else {
+    }
+
+    if (reviewers.length === 0 && team_reviewers.length === 0) {
       logger.log(`No pending review requests on PR #${prNumber}. Nothing to withdraw.`);
     }
 
@@ -259,11 +286,19 @@ async function clearReviewStateOnDraft({ github, context, prNumber: explicitPrNu
         });
         logger.log(`✅ Successfully removed ${assigneesToRemove.length} reviewer assignee(s)`);
       } catch (error) {
-        if (error.status !== 403) throw error;
-        logger.warn(`403 returned: ${error.message}`);
+        if (error.status === 403) {
+          logger.warn(`403 returned: ${error.message}`);
+        } else {
+          logger.error('Failed to remove reviewer assignees:', error.message);
+          if (!firstError) firstError = error;
+        }
       }
     } else {
       logger.log(`No reviewer assignees to remove on PR #${prNumber}.`);
+    }
+
+    if (firstError) {
+      throw firstError;
     }
 
   } catch (error) {
