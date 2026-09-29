@@ -353,7 +353,10 @@ class Transaction(_Executable):
         if not isinstance(default, Hbar):
             default = None
 
-        self.transaction_fee = default if default is not None else self._default_transaction_fee
+        if default is not None:
+            self.transaction_fee = default
+        else:
+            self._transaction_fee = self._default_transaction_fee
 
     def freeze(self):
         """
@@ -596,8 +599,6 @@ class Transaction(_Executable):
             ValueError: If required IDs are not set.
         """
         transaction_body = transaction_pb2.TransactionBody()
-        transaction_body.transactionID.CopyFrom(transaction_id_proto)
-        transaction_body.nodeAccountID.CopyFrom(selected_node._to_proto())
 
         fee = self._transaction_fee if self._transaction_fee is not None else self._default_transaction_fee
         if isinstance(fee, Hbar):
@@ -771,19 +772,7 @@ class Transaction(_Executable):
         """
         Set the maximum transaction fee for this transaction.
         """
-        self._require_not_frozen()
-
-        if isinstance(fee, Hbar):
-            tinybars = fee.to_tinybars()
-        elif isinstance(fee, bool) or not isinstance(fee, int):
-            raise TypeError("fee must be of type Hbar or int")
-        else:
-            tinybars = fee
-
-        if tinybars < 0:
-            raise ValueError("fee must be greater than or equal to 0")
-
-        self._transaction_fee = tinybars
+        self.set_max_transaction_fee(fee)
 
     def to_bytes(self) -> bytes:
         """
@@ -1286,15 +1275,14 @@ class Transaction(_Executable):
                 Numeric values are interpreted as Hbar.
 
         Returns:
-            Transaction: This transaction instance for method chaining.
-
+        Transaction: This transaction instance for method chaining.
         Raises:
-            TypeError: If the value is not int, float, Decimal, or Hbar.
-            ValueError: If the value is negative.
-            Exception: If the transaction has already been frozen.
+        TypeError: If the value is not int, float, Decimal, or Hbar.
+        ValueError: If the value is negative.
+        Exception: If the transaction has already been frozen.
         """
         self._require_not_frozen()
-        self.transaction_fee = Hbar._coerce_non_negative(max_transaction_fee, "max_transaction_fee")
+        self._transaction_fee = Hbar._coerce_non_negative(max_transaction_fee, "max_transaction_fee").to_tinybars()
         return self
 
     @staticmethod
@@ -1402,7 +1390,7 @@ class Transaction(_Executable):
         if transaction_body.HasField("nodeAccountID"):
             transaction.set_node_account_ids([AccountId._from_proto(transaction_body.nodeAccountID)])
 
-        transaction.transaction_fee = transaction_body.transactionFee
+        transaction._transaction_fee = transaction_body.transactionFee
         transaction.transaction_valid_duration = transaction_body.transactionValidDuration.seconds
         transaction.generate_record = transaction_body.generateRecord
         transaction._high_volume = transaction_body.high_volume
@@ -1415,6 +1403,18 @@ class Transaction(_Executable):
                 CustomFeeLimit._from_proto(fee) for fee in transaction_body.max_custom_fees
             ]
 
+        if not transaction._node_account_ids.is_empty:
+            # TODO: This will change, Instead of node_account_id use the signature map to decide if we need to freeze
+            # Currently the unit test for this is skip the implemtation will change in follow up PR
+            transaction._transaction_ids.set_lock(True)
+            transaction._node_account_ids.set_lock(True)
+
+            node_transaction_bodies = {}
+            node_transaction_bodies[transaction._node_account_ids.current] = body_bytes
+            transaction._transaction_body_bytes[transaction._transaction_ids.current] = node_transaction_bodies
+
+        if sig_map and sig_map.sigPair:
+            transaction._signature_map[body_bytes] = sig_map
         return transaction
 
     def set_batch_key(self, key: Key):
