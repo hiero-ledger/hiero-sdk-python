@@ -700,3 +700,5 @@ def test_serialization_chunk_transaction_freeze(file_id):
         assert tx2._transaction_ids.get(index) == transaction_id
 
     assert tx2.node_account_ids == tx1.node_account_ids
+    assert tx1._transaction_body_bytes == tx2._transaction_body_bytes
+    assert tx1._signature_map == tx2._signature_map

@@ -765,14 +765,16 @@ class Transaction(_Executable):
         Returns:
             transaction_pb2.Transaction: The transaction containing the serialized SignedTransaction.
         """
+        if not self._transaction_body_bytes:
+            return transaction_pb2.Transaction(bodyBytes=body_bytes)
+
         signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes)
         signature_map = self._signature_map.get(body_bytes)
 
-        if self._transaction_body_bytes:
-            if signature_map is not None:
-                signed_transaction.sigMap.CopyFrom(signature_map)
-            else:
-                signed_transaction.sigMap.CopyFrom(basic_types_pb2.SignatureMap(sigPair=[]))
+        if signature_map is not None:
+            signed_transaction.sigMap.CopyFrom(signature_map)
+        else:
+            signed_transaction.sigMap.CopyFrom(basic_types_pb2.SignatureMap(sigPair=[]))
 
         return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
 
