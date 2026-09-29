@@ -414,7 +414,7 @@ def test_from_bytes_preserves_all_common_fields():
 
     transaction.transaction_id = TransactionId.generate(operator_id)
     transaction.set_node_account_ids([node_id])
-    transaction.transaction_fee = 5_000_000  # Custom fee
+    transaction._transaction_fee = 5_000_000  # Custom fee
     assert transaction.set_transaction_valid_duration(180) is transaction  # 3 minutes - using setter
     transaction.generate_record = True
 
@@ -825,7 +825,7 @@ def test_max_transaction_fee_survives_to_bytes_round_trip(mock_client):
 
 
 def test_explicit_zero_fee_is_honored_on_direct_and_scheduled_paths(mock_client):
-    """An explicit zero fee must reach both the direct and the scheduled body unchanged."""
+    """An explicit zero fee must reach both the direct and scheduled body unchanged."""
     tx = TransferTransaction()
     tx.set_max_transaction_fee(Hbar(0))
 
@@ -833,8 +833,14 @@ def test_explicit_zero_fee_is_honored_on_direct_and_scheduled_paths(mock_client)
     assert scheduled_body.transactionFee == 0
 
     tx.freeze_with(mock_client)
+
+    transaction_id = tx._transaction_ids.current
+    node_account_id = tx._node_account_ids.current
+    body_bytes = tx._transaction_body_bytes[transaction_id][node_account_id]
+
     body = transaction_pb2.TransactionBody()
-    body.ParseFromString(next(iter(tx._transaction_body_bytes.values())))
+    body.ParseFromString(body_bytes)
+
     assert body.transactionFee == 0
 
 
