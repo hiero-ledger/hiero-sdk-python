@@ -841,6 +841,9 @@ def test_serialize_chunk_transaction_preserve_signature_map(topic_id):
             pubkey_prefixes = {sp.pubKeyPrefix for sp in sig_pairs}
             assert pubkey_prefixes == {key.public_key().to_bytes_raw()}
 
+    assert tx1._transaction_body_bytes == tx2._transaction_body_bytes
+    assert tx1._signature_map == tx2._signature_map
+
 
 def test_signing_serialize_chunk_transaction_sign_all_available_bytes(topic_id):
     """Test that signing the serialize chunk transaction sign all available bytes."""
@@ -874,6 +877,8 @@ def test_signing_serialize_chunk_transaction_sign_all_available_bytes(topic_id):
     tx2.sign(key)
 
     assert tx2._signature_map
+    assert tx1._transaction_body_bytes == tx2._transaction_body_bytes
+    assert tx1._signature_map != tx2._signature_map
 
     for transaction_id in tx2._transaction_ids:
         for node_id in node_account_ids:
