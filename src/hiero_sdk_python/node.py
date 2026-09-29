@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import logging
 import socket
 import ssl  # Python's ssl module implements TLS (despite the name)
@@ -71,7 +72,7 @@ class _HederaTrustManager:
         cert_hash_bytes = hashlib.sha384(pem_cert).digest()
         actual_hash = cert_hash_bytes.hex().lower()
 
-        if actual_hash != self.cert_hash:
+        if not hmac.compare_digest(actual_hash, self.cert_hash):
             raise ValueError(
                 f"Failed to confirm the server's certificate from a known address book. "
                 f"Expected hash: {self.cert_hash}, received hash: {actual_hash}"
