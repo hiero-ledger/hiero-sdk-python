@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
+from tck.response.base import StatusOnlyResponse
 
 
 @dataclass
@@ -11,6 +12,11 @@ class CreateContractResponse:
 
     contractId: str | None = None
     status: str | None = None
+
+
+@dataclass
+class UpdateContractResponse(StatusOnlyResponse):
+    """Response payload for updateContract."""
 
 
 @dataclass
