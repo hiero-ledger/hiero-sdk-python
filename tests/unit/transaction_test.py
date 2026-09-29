@@ -846,3 +846,230 @@ def test_is_signed_by_returns_true_when_signed_by_given_key():
 
     transaction.sign(key)
     assert transaction.is_signed_by(key.public_key()) is True
+
+
+# Test transaction vlidation
+
+
+def test_validate_transaction_bodies_single_transaction():
+    """Test validation of a single non-chunked transaction."""
+    create_account_tx = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    transaction_id = TransactionId.generate(AccountId(0, 0, 2))
+
+    body = transaction_pb2.TransactionBody()
+    body.transactionID.CopyFrom(transaction_id._to_proto())
+    body.transactionFee = 100
+    body.cryptoCreateAccount.CopyFrom(create_account_tx._build_proto_body())
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="cryptoCreateAccount",
+        transaction_ids=[transaction_id],
+        node_ids=[],
+        bodies=[body],
+    )
+
+
+def test_validate_transaction_bodies_multiple_nodes():
+    """Test validation of transaction bodies for multiple nodes."""
+    create_account_tx = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    transaction_id = TransactionId.generate(AccountId(0, 0, 2))
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.cryptoCreateAccount.CopyFrom(create_account_tx._build_proto_body())
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.cryptoCreateAccount.CopyFrom(create_account_tx._build_proto_body())
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="cryptoCreateAccount",
+        transaction_ids=[transaction_id],
+        node_ids=[
+            AccountId(0, 0, 3),
+            AccountId(0, 0, 4),
+        ],
+        bodies=[body1, body2],
+    )
+
+
+def test_validate_transaction_bodies_rejects_inconsistent_bodies():
+    """Test inconsistent transaction bodies are rejected."""
+    create_account_tx1 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    create_account_tx2 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    transaction_id = TransactionId.generate(AccountId(0, 0, 2))
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.cryptoCreateAccount.CopyFrom(create_account_tx1._build_proto_body())
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.cryptoCreateAccount.CopyFrom(create_account_tx2._build_proto_body())
+
+    with pytest.raises(
+        ValueError,
+        match="Failed to validate transaction bodies",
+    ):
+        Transaction._validate_transaction_bodies(
+            transaction_type="cryptoCreateAccount",
+            transaction_ids=[transaction_id],
+            node_ids=[
+                AccountId(0, 0, 3),
+                AccountId(0, 0, 4),
+            ],
+            bodies=[body1, body2],
+        )
+
+
+@pytest.mark.parametrize(
+    "ignored_fields",
+    [
+        set(),
+        {"transactionID"},
+        {"nodeAccountID"},
+        {"transactionID", "nodeAccountID"},
+    ],
+)
+def test_compare_transaction_bodies_equal(
+    ignored_fields: set[str],
+):
+    """Test transaction bodies are equal when all compared fields match."""
+    create_account_tx = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    first = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx._build_proto_body(),
+    )
+    second = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx._build_proto_body(),
+    )
+
+    assert Transaction._compare_transaction_bodies(first, second, ignored_fields) is True
+
+
+def test_compare_transaction_bodies_different_field():
+    """Test transaction bodies differ when a non-ignored field differs."""
+    create_account_tx1 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    create_account_tx2 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    first = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx1._build_proto_body(),
+    )
+    second = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx2._build_proto_body(),
+    )
+
+    assert Transaction._compare_transaction_bodies(first, second, set()) is False
+
+
+def test_compare_transaction_bodies_ignores_selected_fields_only():
+    """Test ignored fields do not hide differences in other fields."""
+    first = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        nodeAccountID=basic_types_pb2.AccountID(accountNum=3),
+        transactionFee=100,
+    )
+    second = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        nodeAccountID=basic_types_pb2.AccountID(accountNum=5),
+        transactionFee=200,
+    )
+
+    # ignore transactionFee and nodeAccountId
+    assert Transaction._compare_transaction_bodies(first, second, {"transactionFee", "nodeAccountID"}) is True
+    # ignore nodeAccountId
+    assert Transaction._compare_transaction_bodies(first, second, {"nodeAccountID"}) is False
+
+
+def test_compare_transaction_bodies_ignores_selected_nested_fields_only():
+    """Test ignored fields do not hide differences in other fields."""
+    create_account_tx1 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    create_account_tx2 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    first = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx1._build_proto_body(),
+    )
+    second = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx2._build_proto_body(),
+    )
+
+    # ignore key
+    assert Transaction._compare_transaction_bodies(first, second, {"key"}) is True
+    # ignore nodeAccountId
+    assert Transaction._compare_transaction_bodies(first, second, {"nodeAccountID"}) is False
+
+
+def test_lock_restored_transaction_does_not_lock_unfrozen_transaction():
+    """Test unfrozen transaction identifiers and node IDs remain unlocked."""
+    transaction = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    Transaction._lock_restored_transaction(transaction)
+
+    assert not transaction._transaction_ids._locked
+    assert not transaction._node_account_ids._locked
+
+
+def test_lock_restored_transaction_locks_frozen_transaction(mock_client):
+    """Test frozen transaction identifiers and node IDs are locked."""
+    transaction = (
+        AccountCreateTransaction()
+        .set_account_memo("Test account")
+        .set_key_without_alias(PrivateKey.generate_ed25519())
+        .freeze_with(mock_client)
+    )
+
+    Transaction._lock_restored_transaction(transaction)
+
+    assert transaction._transaction_ids._locked
+    assert transaction._node_account_ids._locked

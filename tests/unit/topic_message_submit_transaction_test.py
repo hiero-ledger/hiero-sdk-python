@@ -7,10 +7,12 @@ from unittest.mock import MagicMock
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
+    consensus_submit_message_pb2,
     response_header_pb2,
     response_pb2,
     timestamp_pb2,
@@ -889,3 +891,116 @@ def test_signing_serialize_chunk_transaction_sign_all_available_bytes(topic_id):
 
             pubkey_prefixes = {sp.pubKeyPrefix for sp in sig_pairs}
             assert pubkey_prefixes == {key.public_key().to_bytes_raw()}
+
+
+def test_validate_transaction_bodies_for_chunk_message_submit_tx():
+    """Test validation of chunked message submit transaction bodies."""
+    transaction_id_1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id_2 = TransactionId.generate(AccountId(0, 0, 2))
+
+    chunk_1 = consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+        topicID=TopicId.from_string("0.0.1")._to_proto(),
+        message=b"Hello",
+        chunkInfo=consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=TransactionId.generate(AccountId.from_string("0.0.2"))._to_proto(), total=2, number=1
+        ),
+    )
+
+    chunk_2 = consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+        topicID=TopicId.from_string("0.0.1")._to_proto(),
+        message=b"World",
+        chunkInfo=consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=TransactionId.generate(AccountId.from_string("0.0.2"))._to_proto(), total=2, number=1
+        ),
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.consensusSubmitMessage.CopyFrom(chunk_1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.consensusSubmitMessage.CopyFrom(chunk_1)
+
+    body3 = transaction_pb2.TransactionBody()
+    body3.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body3.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body3.transactionFee = 100
+    body3.consensusSubmitMessage.CopyFrom(chunk_2)
+
+    body4 = transaction_pb2.TransactionBody()
+    body4.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body4.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body4.transactionFee = 100
+    body4.consensusSubmitMessage.CopyFrom(chunk_2)
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="consensusSubmitMessage",
+        transaction_ids=[transaction_id_1, transaction_id_2],
+        node_ids=[
+            AccountId(0, 0, 3),
+            AccountId(0, 0, 4),
+        ],
+        bodies=[body1, body2, body3, body4],
+    )
+
+
+def test_invalid_transaction_bodies_for_chunk_message_submit_tx():
+    """Test validation of chunked message submit transaction invalid bodies."""
+    transaction_id_1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id_2 = TransactionId.generate(AccountId(0, 0, 2))
+
+    chunk_1 = consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+        topicID=TopicId.from_string("0.0.1")._to_proto(),
+        message=b"Hello",
+        chunkInfo=consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=TransactionId.generate(AccountId.from_string("0.0.2"))._to_proto(), total=2, number=1
+        ),
+    )
+
+    chunk_2 = consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+        topicID=TopicId.from_string("0.0.2")._to_proto(),
+        message=b"World",
+        chunkInfo=consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=TransactionId.generate(AccountId.from_string("0.0.2"))._to_proto(), total=2, number=1
+        ),
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.consensusSubmitMessage.CopyFrom(chunk_1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.consensusSubmitMessage.CopyFrom(chunk_1)
+
+    body3 = transaction_pb2.TransactionBody()
+    body3.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body3.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body3.transactionFee = 100
+    body3.consensusSubmitMessage.CopyFrom(chunk_2)
+
+    body4 = transaction_pb2.TransactionBody()
+    body4.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body4.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body4.transactionFee = 100
+    body4.consensusSubmitMessage.CopyFrom(chunk_2)
+
+    with pytest.raises(ValueError, match="Failed to validate transaction bodies"):
+        Transaction._validate_transaction_bodies(
+            transaction_type="consensusSubmitMessage",
+            transaction_ids=[transaction_id_1, transaction_id_2],
+            node_ids=[
+                AccountId(0, 0, 3),
+                AccountId(0, 0, 4),
+            ],
+            bodies=[body1, body2, body3, body4],
+        )

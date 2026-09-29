@@ -9,6 +9,7 @@ from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import (
+    file_append_pb2,
     response_header_pb2,
     response_pb2,
     timestamp_pb2,
@@ -702,3 +703,100 @@ def test_serialization_chunk_transaction_freeze(file_id):
     assert tx2.node_account_ids == tx1.node_account_ids
     assert tx1._transaction_body_bytes == tx2._transaction_body_bytes
     assert tx1._signature_map == tx2._signature_map
+
+
+def test_validate_transaction_bodies_for_chunk_file_append_tx():
+    """Test validation of chunked file append transaction bodies."""
+    transaction_id_1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id_2 = TransactionId.generate(AccountId(0, 0, 2))
+
+    chunk_1 = file_append_pb2.FileAppendTransactionBody(
+        fileID=FileId.from_string("0.0.101")._to_proto(), contents=b"Hello"
+    )
+
+    chunk_2 = file_append_pb2.FileAppendTransactionBody(
+        fileID=FileId.from_string("0.0.101")._to_proto(), contents=b"World"
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.fileAppend.CopyFrom(chunk_1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.fileAppend.CopyFrom(chunk_1)
+
+    body3 = transaction_pb2.TransactionBody()
+    body3.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body3.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body3.transactionFee = 100
+    body3.fileAppend.CopyFrom(chunk_2)
+
+    body4 = transaction_pb2.TransactionBody()
+    body4.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body4.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body4.transactionFee = 100
+    body4.fileAppend.CopyFrom(chunk_2)
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="fileAppend",
+        transaction_ids=[transaction_id_1, transaction_id_2],
+        node_ids=[
+            AccountId(0, 0, 3),
+            AccountId(0, 0, 4),
+        ],
+        bodies=[body1, body2, body3, body4],
+    )
+
+
+def test_invalid_transaction_bodies_for_chunk_file_append_tx():
+    """Test validation of chunked file append transaction invalid bodies."""
+    transaction_id_1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id_2 = TransactionId.generate(AccountId(0, 0, 2))
+
+    chunk_1 = file_append_pb2.FileAppendTransactionBody(
+        fileID=FileId.from_string("0.0.101")._to_proto(), contents=b"Hello"
+    )
+
+    chunk_2 = file_append_pb2.FileAppendTransactionBody(
+        fileID=FileId.from_string("0.0.102")._to_proto(), contents=b"World"
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.fileAppend.CopyFrom(chunk_1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.fileAppend.CopyFrom(chunk_1)
+
+    body3 = transaction_pb2.TransactionBody()
+    body3.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body3.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body3.transactionFee = 100
+    body3.fileAppend.CopyFrom(chunk_2)
+
+    body4 = transaction_pb2.TransactionBody()
+    body4.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body4.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body4.transactionFee = 100
+    body4.fileAppend.CopyFrom(chunk_2)
+
+    with pytest.raises(ValueError, match="Failed to validate transaction bodies"):
+        Transaction._validate_transaction_bodies(
+            transaction_type="fileAppend",
+            transaction_ids=[transaction_id_1, transaction_id_2],
+            node_ids=[
+                AccountId(0, 0, 3),
+                AccountId(0, 0, 4),
+            ],
+            bodies=[body1, body2, body3, body4],
+        )
