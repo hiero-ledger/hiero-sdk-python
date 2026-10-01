@@ -13,7 +13,7 @@
   "overrides": {
     "js-yaml": "^5.4.1",
     "@babel/core": "^7.29.6",
-    "brace-expansion": "^1.1.16",
+    "brace-expansion": "^1.1.21",
     "browserslist": "^4.28.8"
   }
 }
