@@ -4,9 +4,14 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
 from tck.errors import INVALID_PARAMS, JsonRpcError
 from tck.handlers import contract as contract_handlers
-from tck.param.contract import CreateContractParams, UpdateContractParams
+from tck.param.contract import (
+    CreateContractParams,
+    DeleteContractParams,
+    UpdateContractParams,
+)
 
 
 pytestmark = pytest.mark.unit
@@ -126,3 +131,32 @@ class TestBuildUpdateContractTransaction:
             contract_handlers._build_update_contract_transaction(params)
 
         assert excinfo.value.code == INVALID_PARAMS
+
+
+class TestBuildDeleteContractTransaction:
+    def test_both_transfer_targets_are_set(self):
+        params = DeleteContractParams(
+            sessionId="session-1",
+            contractId="0.0.123",
+            transferContractId="0.0.456",
+            transferAccountId="0.0.789",
+        )
+
+        transaction = contract_handlers._build_delete_contract_transaction(params)
+
+        assert str(transaction.contract_id) == "0.0.123"
+        assert str(transaction.transfer_contract_id) == "0.0.456"
+        assert str(transaction.transfer_account_id) == "0.0.789"
+
+    def test_missing_contract_id_builds_without_raising(self):
+        params = DeleteContractParams(
+            sessionId="session-1",
+            transferAccountId="0.0.789",
+        )
+
+        transaction = contract_handlers._build_delete_contract_transaction(params)
+        transaction.operator_account_id = AccountId(0, 0, 2)
+        transaction.set_node_account_ids([AccountId(0, 0, 3)])
+
+        body = transaction.build_transaction_body()
+        assert not body.contractDeleteInstance.HasField("contractID")

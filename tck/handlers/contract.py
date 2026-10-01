@@ -205,7 +205,7 @@ def _build_delete_contract_transaction(params: DeleteContractParams) -> Contract
 
     if params.transferContractId is not None:
         transaction.set_transfer_contract_id(ContractId.from_string(params.transferContractId))
-    elif params.transferAccountId is not None:
+    if params.transferAccountId is not None:
         transaction.set_transfer_account_id(AccountId.from_string(params.transferAccountId))
 
     if params.permanentRemoval is not None:
