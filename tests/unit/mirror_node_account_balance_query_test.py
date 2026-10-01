@@ -4,6 +4,7 @@ Unit tests for MirrorNodeAccountBalanceQuery.
 
 from __future__ import annotations
 
+import base64
 import json
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError, URLError
@@ -22,17 +23,9 @@ def test_constructor_sets_account_id_and_defaults():
 
     query = MirrorNodeAccountBalanceQuery(account_id)
 
-    assert query.account_id() == account_id
+    assert query.account_id == account_id
     assert query.max_attempts == 10
     assert query.max_backoff == 8.0
-
-
-def test_constructor_rejects_none_account_id():
-    with pytest.raises(
-        ValueError,
-        match="account_id must not be None",
-    ):
-        MirrorNodeAccountBalanceQuery(None)
 
 
 def test_setters_are_fluent_and_round_trip():
@@ -46,9 +39,15 @@ def test_setters_are_fluent_and_round_trip():
         .set_max_backoff(0.5)
     )
 
-    assert query.account_id() == updated_account_id
+    assert query.account_id == updated_account_id
     assert query.max_attempts == 3
     assert query.max_backoff == 0.5
+
+
+def test_constructor_allows_none_account_id():
+    query = MirrorNodeAccountBalanceQuery()
+
+    assert query.account_id is None
 
 
 def test_set_account_id_rejects_none():
@@ -212,7 +211,7 @@ def test_execute_uses_client_request_timeout_when_timeout_is_none():
             "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance",
         ) as balance_class,
     ):
-        balance_class.from_json.return_value = expected_balance
+        balance_class._from_json.return_value = expected_balance
 
         result = query.execute(client, timeout=None)
 
@@ -221,7 +220,7 @@ def test_execute_uses_client_request_timeout_when_timeout_is_none():
         "https://example.com/balances",
         15.0,
     )
-    balance_class.from_json.assert_called_once_with({"balances": []})
+    balance_class._from_json.assert_called_once_with({"balances": []})
 
 
 def test_execute_uses_default_timeout_when_client_has_no_request_timeout():
@@ -245,7 +244,7 @@ def test_execute_uses_default_timeout_when_client_has_no_request_timeout():
             "hiero_sdk_python.query.mirror_node_account_balance_query.MirrorNodeAccountBalance",
         ) as balance_class,
     ):
-        balance_class.from_json.return_value = expected_balance
+        balance_class._from_json.return_value = expected_balance
 
         result = query.execute(client, timeout=None)
 
@@ -254,7 +253,7 @@ def test_execute_uses_default_timeout_when_client_has_no_request_timeout():
         "https://example.com/balances",
         30.0,
     )
-    balance_class.from_json.assert_called_once_with({"balances": []})
+    balance_class._from_json.assert_called_once_with({"balances": []})
 
 
 def test_execute_raises_precheck_error_when_balance_is_none():
@@ -281,7 +280,7 @@ def test_execute_raises_precheck_error_when_balance_is_none():
             match="INVALID_ACCOUNT_ID",
         ),
     ):
-        balance_class.from_json.return_value = None
+        balance_class._from_json.return_value = None
 
         query.execute(client)
 
@@ -464,3 +463,43 @@ def test_request_returns_exception_for_url_error():
     assert status_code == 0
     assert result is None
     assert request_error is error
+
+
+def test_to_account_id_param_uses_evm_address_bytes():
+    account_id = MagicMock(spec=AccountId)
+    account_id.evm_address = bytes.fromhex("1234567890abcdef1234567890abcdef12345678")
+    account_id.alias_key = None
+
+    result = MirrorNodeAccountBalanceQuery._to_account_id_param(account_id)
+
+    assert result == "0x1234567890abcdef1234567890abcdef12345678"
+
+
+def test_to_account_id_param_uses_evm_address_string():
+    account_id = MagicMock(spec=AccountId)
+    account_id.evm_address = "1234567890abcdef1234567890abcdef12345678"
+    account_id.alias_key = None
+
+    result = MirrorNodeAccountBalanceQuery._to_account_id_param(account_id)
+
+    assert result == "0x1234567890abcdef1234567890abcdef12345678"
+
+
+def test_to_account_id_param_uses_public_key_alias():
+    account_id = MagicMock(spec=AccountId)
+    account_id.evm_address = None
+
+    alias_key = MagicMock()
+    protobuf_key = MagicMock()
+    protobuf_key.SerializeToString.return_value = b"test-key-bytes"
+    alias_key.to_proto_key.return_value = protobuf_key
+
+    account_id.alias_key = alias_key
+
+    result = MirrorNodeAccountBalanceQuery._to_account_id_param(account_id)
+
+    expected = base64.b32encode(b"test-key-bytes").decode("ascii").rstrip("=")
+
+    assert result == expected
+    alias_key.to_proto_key.assert_called_once()
+    protobuf_key.SerializeToString.assert_called_once()

@@ -13,14 +13,13 @@ query.
 from __future__ import annotations
 
 import base64
+import json
 import logging
 import time
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
-
-from flask import json
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_mirror_node_balance import (
@@ -46,14 +45,15 @@ class MirrorNodeAccountBalanceQuery:
     Only the HBAR balance is returned.
     """
 
-    def __init__(self, account_id: AccountId) -> None:
-        if account_id is None:
-            raise ValueError("account_id must not be None")
+    def __init__(self, account_id: AccountId | None = None) -> None:
+        if account_id is not None and not isinstance(account_id, AccountId):
+            raise TypeError("account_id must be an AccountId")
 
         self._account_id = account_id
         self._max_attempts = 10
         self._max_backoff = 8.0
 
+    @property
     def account_id(self) -> AccountId:
         """
         Return the account ID.
@@ -193,7 +193,7 @@ class MirrorNodeAccountBalanceQuery:
 
         try:
             root = body
-            balance = MirrorNodeAccountBalance.from_json(root)
+            balance = MirrorNodeAccountBalance._from_json(root)
         except (ValueError, TypeError) as exc:
             raise ValueError("Mirror Node returned a malformed JSON response") from exc
 
@@ -306,9 +306,9 @@ class MirrorNodeAccountBalanceQuery:
             #
             # BaseEncoding.base32()
             #     .omitPadding()
-            #     .encode(accountId.aliasKey.toProtobufKey().toByteArray());
+            #     .encode(accountId.aliasKey.toProtoKey().toByteArray());
 
-            protobuf_key = alias_key.to_protobuf_key()
+            protobuf_key = alias_key.to_proto_key()
             key_bytes = protobuf_key.SerializeToString()
 
             return base64.b32encode(key_bytes).decode("ascii").rstrip("=")

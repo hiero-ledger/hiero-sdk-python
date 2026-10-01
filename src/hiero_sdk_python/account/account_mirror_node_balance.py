@@ -22,7 +22,7 @@ class MirrorNodeAccountBalance:
         if not isinstance(hbars, Hbar):
             raise ValueError("hbars must be an instance of Hbar")
 
-        self.hbars = hbars
+        self._hbars = hbars
 
     @staticmethod
     def _from_json(root: dict[str, Any]) -> MirrorNodeAccountBalance | None:
