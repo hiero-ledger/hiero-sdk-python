@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Literal, overload
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.crypto.signer import Signer, _sign_to_signature_pair
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2, transaction_contents_pb2, transaction_pb2
@@ -23,6 +24,7 @@ from hiero_sdk_python.utils.key_utils import key_to_proto
 
 if TYPE_CHECKING:
     from hiero_sdk_python.crypto.private_key import PrivateKey
+    from hiero_sdk_python.crypto.public_key import PublicKey
     from hiero_sdk_python.schedule.schedule_create_transaction import (
         ScheduleCreateTransaction,
     )
@@ -61,6 +63,8 @@ class Transaction(_Executable):
         # This allows us to maintain the signatures for each unique transaction
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
+        # Signers registered through sign_with(), kept so rebuilt bodies can be re-signed
+        self._signers: list[tuple[PublicKey, Signer]] = []
         # changed from int: 2_000_000 to Hbar: 2
         self._default_transaction_fee = Hbar(2)
         self.operator_account_id = None
@@ -175,34 +179,107 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction body has not been built.
         """
+        return self.sign_with(private_key.public_key(), private_key.sign)
+
+    def sign_with(self, public_key: PublicKey, signer: Signer) -> Transaction:
+        """
+        Signs the transaction with a signer callback instead of a private key.
+
+        Use this when the key is held outside the process, e.g. in an HSM or KMS.
+        The signer is called once for every transaction body (every chunk and every node),
+        with the exact body bytes, and must return the raw signature.
+
+        Signing again with a key that already signed every body is a no-op.
+        If the signer raises, the transaction is left unchanged.
+
+        Args:
+            public_key (PublicKey): The public key matching the signer.
+            signer (Signer): The signing callback.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            Exception: If the transaction body has not been built.
+            TypeError: If the signer is not callable or does not return bytes.
+        """
         # We require the transaction to be frozen before signing
         self._require_frozen()
 
-        # We sign the bodies for each node in case we need to switch nodes during execution.
-        for node_bytes_map in self._transaction_body_bytes.values():
-            for body_bytes in node_bytes_map.values():
-                signature = private_key.sign(body_bytes)
+        if not callable(signer):
+            raise TypeError("signer must be callable")
 
-                public_key_bytes = private_key.public_key().to_bytes_raw()
+        public_key_bytes = public_key.to_bytes_raw()
+        if self._has_signer(public_key_bytes) or self.is_signed_by(public_key):
+            return self
 
-                if private_key.is_ed25519():
-                    sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ed25519=signature)
-                else:
-                    sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ECDSA_secp256k1=signature)
-
-                # We initialize the signature map for this body_bytes if it doesn't exist yet
-                self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap())
-
-                # deduplication check
-                already_signed = any(
-                    sp.pubKeyPrefix == public_key_bytes for sp in self._signature_map[body_bytes].sigPair
-                )
-
-                # append only if not already signed
-                if not already_signed:
-                    self._signature_map[body_bytes].sigPair.append(sig_pair)
+        self._write_signature_pairs(self._collect_signature_pairs(public_key, signer))
+        self._signers.append((public_key, signer))
 
         return self
+
+    def sign_with_operator(self, client: Client) -> Transaction:
+        """
+        Signs the transaction with the client's operator.
+
+        Freezes the transaction with the client first if it is not frozen yet.
+
+        Args:
+            client (Client): The client whose operator signs the transaction.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            ValueError: If the client has no operator.
+        """
+        operator = client.operator
+        if operator is None:
+            raise ValueError("Client must have an operator to sign with the operator.")
+
+        if not self._transaction_body_bytes:
+            self.freeze_with(client)
+
+        return self.sign_with(operator.public_key, operator.signer)
+
+    def _apply_signers(self) -> None:
+        """Re-signs every body that lacks a signature from a registered signer, e.g. after a rebuild."""
+        pending = []
+        for public_key, signer in self._signers:
+            pending.extend(self._collect_signature_pairs(public_key, signer))
+
+        self._write_signature_pairs(pending)
+
+    def _collect_signature_pairs(
+        self, public_key: PublicKey, signer: Signer
+    ) -> list[tuple[bytes, basic_types_pb2.SignaturePair]]:
+        """
+        Signs every body not yet signed by public_key, without touching the signature map.
+
+        We sign the bodies for each node in case we need to switch nodes during execution.
+        """
+        public_key_bytes = public_key.to_bytes_raw()
+
+        return [
+            (body_bytes, _sign_to_signature_pair(public_key, signer, body_bytes))
+            for node_bytes_map in self._transaction_body_bytes.values()
+            for body_bytes in node_bytes_map.values()
+            if not self._is_body_signed_by(body_bytes, public_key_bytes)
+        ]
+
+    def _write_signature_pairs(self, signature_pairs: list[tuple[bytes, basic_types_pb2.SignaturePair]]) -> None:
+        """Adds collected signature pairs to the signature map of their body."""
+        for body_bytes, sig_pair in signature_pairs:
+            self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap()).sigPair.append(sig_pair)
+
+    def _has_signer(self, public_key_bytes: bytes) -> bool:
+        """Checks if a signer for the given raw public key is registered."""
+        return any(public_key.to_bytes_raw() == public_key_bytes for public_key, _ in self._signers)
+
+    def _is_body_signed_by(self, body_bytes: bytes, public_key_bytes: bytes) -> bool:
+        """Checks if the signature map of a body contains a signature for the given raw public key."""
+        sig_map = self._signature_map.get(body_bytes)
+        return sig_map is not None and any(sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair)
 
     def _to_proto(self):
         """
@@ -426,8 +503,10 @@ class Transaction(_Executable):
         if self.operator_account_id is None:
             self.operator_account_id = client.operator_account_id
 
-        if not self.is_signed_by(client.operator_private_key.public_key()):
-            self.sign(client.operator_private_key)
+        # Sign with the operator only when it pays for the transaction
+        operator = client.operator
+        if operator is not None and self._transaction_ids.get(0).account_id == operator.account_id:
+            self.sign_with(operator.public_key, operator.signer)
 
         # Call the _execute function from executable.py to handle the actual execution
         response: TransactionResponse = self._execute(client, timeout)
@@ -456,16 +535,11 @@ class Transaction(_Executable):
         if not self._transaction_body_bytes:
             return False
 
-        for node_transaction_bodies in self._transaction_body_bytes.values():
-            for body_bytes in node_transaction_bodies.values():
-                sig_map = self._signature_map.get(body_bytes)
-
-                if sig_map is None or not any(
-                    sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair
-                ):
-                    return False
-
-        return True
+        return all(
+            self._is_body_signed_by(body_bytes, public_key_bytes)
+            for node_transaction_bodies in self._transaction_body_bytes.values()
+            for body_bytes in node_transaction_bodies.values()
+        )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
@@ -1023,7 +1097,7 @@ class Transaction(_Executable):
         self._require_not_frozen()
         self.set_batch_key(batch_key)
         self.freeze_with(client)
-        self.sign(client.operator_private_key)
+        self.sign_with_operator(client)
         return self
 
     def estimate_fee(self) -> FeeEstimateQuery:
