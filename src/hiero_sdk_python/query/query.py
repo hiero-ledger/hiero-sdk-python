@@ -9,7 +9,8 @@ from typing import Any
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.client.client import Client, Operator
-from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.signer import Signer, _sign_to_signature_pair
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.executable import _Executable, _ExecutionState, _Method
 from hiero_sdk_python.hapi.services import (
@@ -183,9 +184,14 @@ class Query(_Executable):
             return header
 
         if self.operator is not None and not self._node_account_ids.is_empty and self.payment_amount is not None:
+            # An Operator built by hand may only carry a private key
+            payer_public_key = self.operator.public_key or self.operator.private_key.public_key()
+            payer_signer = self.operator.signer or self.operator.private_key.sign
+
             payment_tx = self._build_query_payment_transaction(
                 payer_account_id=self.operator.account_id,
-                payer_private_key=self.operator.private_key,
+                payer_public_key=payer_public_key,
+                payer_signer=payer_signer,
                 node_account_id=self._node_account_ids.current,
                 amount=self.payment_amount,
             )
@@ -196,7 +202,8 @@ class Query(_Executable):
     def _build_query_payment_transaction(
         self,
         payer_account_id: AccountId,
-        payer_private_key: PrivateKey,
+        payer_public_key: PublicKey,
+        payer_signer: Signer,
         node_account_id: AccountId,
         amount: Hbar,
     ) -> transaction_pb2.Transaction:
@@ -207,7 +214,8 @@ class Query(_Executable):
 
         Args:
             payer_account_id: The account ID of the payer
-            payer_private_key: The private key of the payer
+            payer_public_key: The public key of the payer
+            payer_signer: The signing callback of the payer
             node_account_id: The account ID of the node
             amount (Hbar): The amount to pay
 
@@ -244,14 +252,7 @@ class Query(_Executable):
         body_bytes = transaction_body.SerializeToString()
 
         # Sign the transaction body
-        signature = payer_private_key.sign(body_bytes)
-        public_key_bytes = payer_private_key.public_key().to_bytes_raw()
-
-        # Create signature pair
-        if payer_private_key.is_ed25519():
-            sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ed25519=signature)
-        else:
-            sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ECDSA_secp256k1=signature)
+        sig_pair = _sign_to_signature_pair(payer_public_key, payer_signer, body_bytes)
 
         # Create signature map
         signature_map = basic_types_pb2.SignatureMap(sigPair=[sig_pair])
