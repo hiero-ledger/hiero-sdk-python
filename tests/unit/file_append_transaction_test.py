@@ -9,6 +9,7 @@ from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import (
+    file_append_pb2,
     response_header_pb2,
     response_pb2,
     timestamp_pb2,
@@ -553,3 +554,249 @@ def test_set_contents_accepts_bytearray():
 
     assert file_tx.contents == b"buffered content"
     assert isinstance(file_tx.contents, bytes)
+
+
+def test_serialization_non_chunk_transaction_non_freeze(file_id):
+    """Test that FileAppendTransaction can serialize non frozen and non chunk transaction"""
+    content = "Hello! Hiero"
+
+    tx1 = FileAppendTransaction().set_file_id(file_id).set_contents(content).set_chunk_size(100).set_max_chunks(10)
+
+    assert tx1.file_id == file_id
+    assert tx1.contents == content.encode("utf-8")
+    assert tx1.chunk_size == 100
+    assert tx1.max_chunks == 10
+
+    tx_bytes = tx1.to_bytes()
+
+    assert tx_bytes is not None
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, FileAppendTransaction)
+    assert not tx2._transaction_body_bytes
+    assert tx2.file_id == tx1.file_id
+    assert tx2.contents == tx1.contents
+
+    # These values are not serialized because they are not part of FileAppendTransactionBody they should fallback to default values.
+    assert tx2.chunk_size != tx1.chunk_size
+    assert tx2.chunk_size == 4096
+    assert tx2.max_chunks != tx1.max_chunks
+    assert tx2.max_chunks == 20
+
+
+def test_serialization_chunk_transaction_non_freeze(file_id):
+    """Test that FileAppendTransaction can serialize non frozen and chunk transaction"""
+    content = "A" * 8192  # create 2 chucks
+
+    tx1 = FileAppendTransaction().set_file_id(file_id).set_contents(content)
+
+    assert tx1.file_id == file_id
+    assert tx1.contents == content.encode("utf-8")
+
+    tx_bytes = tx1.to_bytes()
+
+    assert tx_bytes is not None
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, FileAppendTransaction)
+    assert not tx2._transaction_body_bytes
+    assert tx2.file_id == tx1.file_id
+    assert tx2.contents == tx1.contents
+
+
+def test_serialization_non_chunk_transaction_freeze(file_id):
+    """Test that FileAppendTransaction can serialize frozen and non chunk transaction"""
+    transaction_id = TransactionId.generate(AccountId(0, 0, 3))
+    content = "Hello! Hiero"
+
+    tx1 = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_contents(content)
+        .set_chunk_size(100)
+        .set_max_chunks(10)
+        .set_transaction_id(transaction_id)
+        .set_node_account_ids([AccountId(0, 0, 4), AccountId(0, 0, 5)])
+        .freeze()
+    )
+
+    assert tx1.file_id == file_id
+    assert tx1.contents == content.encode("utf-8")
+    assert tx1.chunk_size == 100
+    assert tx1.max_chunks == 10
+
+    assert tx1._transaction_body_bytes
+
+    assert tx1.transaction_id == transaction_id
+    assert len(tx1._transaction_ids) == 1  # single chunk
+
+    tx_bytes = tx1.to_bytes()
+
+    assert tx_bytes is not None
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, FileAppendTransaction)
+    assert tx2.file_id == tx1.file_id
+    assert tx2.contents == tx1.contents
+
+    assert tx2.chunk_size != tx1.chunk_size
+    assert tx2.chunk_size == 4096
+    assert tx2.max_chunks != tx1.max_chunks
+    assert tx2.max_chunks == 20
+
+    assert tx2._transaction_body_bytes
+
+    assert tx2.transaction_id == transaction_id
+    assert len(tx2._transaction_ids) == 1  # single chunk
+    for index, transaction_id in enumerate(tx1._transaction_ids.get_list()):
+        assert tx2._transaction_ids.get(index) == transaction_id
+    assert tx2.node_account_ids == tx1.node_account_ids
+
+
+def test_serialization_chunk_transaction_freeze(file_id):
+    """Test that FileAppendTransaction can serialize frozen and chunk transaction"""
+    transaction_id = TransactionId.generate(AccountId(0, 0, 3))
+    content = "A" * 8192  # create 2 chucks
+
+    tx1 = (
+        FileAppendTransaction()
+        .set_file_id(file_id)
+        .set_contents(content)
+        .set_transaction_id(transaction_id)
+        .set_node_account_ids([AccountId(0, 0, 4), AccountId(0, 0, 5)])
+        .freeze()
+    )
+
+    assert tx1.file_id == file_id
+    assert tx1.contents == content.encode("utf-8")
+
+    assert tx1._transaction_body_bytes
+
+    assert tx1.transaction_id == transaction_id
+    assert len(tx1._transaction_ids) == 2  # 2 chunks
+
+    tx_bytes = tx1.to_bytes()
+
+    assert tx_bytes is not None
+
+    tx2 = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(tx2, FileAppendTransaction)
+    assert tx2.file_id == tx1.file_id
+
+    # On freeze, the chunked tx content will be only the first chunk content.
+    # the chunk execution is handle by the _transaction_bytes and _transaction_ids
+    assert tx2.contents != tx1.contents
+    assert tx2.contents == tx1.contents[0:4096]
+
+    assert tx2._transaction_body_bytes
+
+    assert tx2.transaction_id == transaction_id
+    assert len(tx2._transaction_ids) == 2  # 2 chunk
+
+    for index, transaction_id in enumerate(tx1._transaction_ids.get_list()):
+        assert tx2._transaction_ids.get(index) == transaction_id
+
+    assert tx2.node_account_ids == tx1.node_account_ids
+    assert tx1._transaction_body_bytes == tx2._transaction_body_bytes
+    assert tx1._signature_map == tx2._signature_map
+
+
+def test_validate_transaction_bodies_for_chunk_file_append_tx():
+    """Test validation of chunked file append transaction bodies."""
+    transaction_id_1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id_2 = TransactionId.generate(AccountId(0, 0, 2))
+
+    chunk_1 = file_append_pb2.FileAppendTransactionBody(
+        fileID=FileId.from_string("0.0.101")._to_proto(), contents=b"Hello"
+    )
+
+    chunk_2 = file_append_pb2.FileAppendTransactionBody(
+        fileID=FileId.from_string("0.0.101")._to_proto(), contents=b"World"
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.fileAppend.CopyFrom(chunk_1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.fileAppend.CopyFrom(chunk_1)
+
+    body3 = transaction_pb2.TransactionBody()
+    body3.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body3.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body3.transactionFee = 100
+    body3.fileAppend.CopyFrom(chunk_2)
+
+    body4 = transaction_pb2.TransactionBody()
+    body4.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body4.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body4.transactionFee = 100
+    body4.fileAppend.CopyFrom(chunk_2)
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="fileAppend",
+        transaction_ids=[transaction_id_1, transaction_id_2],
+        node_ids=[
+            AccountId(0, 0, 3),
+            AccountId(0, 0, 4),
+        ],
+        bodies=[body1, body2, body3, body4],
+    )
+
+
+def test_invalid_transaction_bodies_for_chunk_file_append_tx():
+    """Test validation of chunked file append transaction invalid bodies."""
+    transaction_id_1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id_2 = TransactionId.generate(AccountId(0, 0, 2))
+
+    chunk_1 = file_append_pb2.FileAppendTransactionBody(
+        fileID=FileId.from_string("0.0.101")._to_proto(), contents=b"Hello"
+    )
+
+    chunk_2 = file_append_pb2.FileAppendTransactionBody(
+        fileID=FileId.from_string("0.0.102")._to_proto(), contents=b"World"
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.fileAppend.CopyFrom(chunk_1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id_1._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.fileAppend.CopyFrom(chunk_1)
+
+    body3 = transaction_pb2.TransactionBody()
+    body3.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body3.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body3.transactionFee = 100
+    body3.fileAppend.CopyFrom(chunk_2)
+
+    body4 = transaction_pb2.TransactionBody()
+    body4.transactionID.CopyFrom(transaction_id_2._to_proto())
+    body4.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body4.transactionFee = 100
+    body4.fileAppend.CopyFrom(chunk_2)
+
+    with pytest.raises(ValueError, match="Failed to validate transaction bodies"):
+        Transaction._validate_transaction_bodies(
+            transaction_type="fileAppend",
+            transaction_ids=[transaction_id_1, transaction_id_2],
+            node_ids=[
+                AccountId(0, 0, 3),
+                AccountId(0, 0, 4),
+            ],
+            bodies=[body1, body2, body3, body4],
+        )
