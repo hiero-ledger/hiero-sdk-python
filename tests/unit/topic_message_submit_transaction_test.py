@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -735,6 +735,116 @@ def test_message_submit_transaction_create_proper_content(topic_id, mock_client)
         assert not proto.HasField("chunkInfo")
         assert body.consensusSubmitMessage.message.decode("utf-8") == message
         assert body.transactionID == transaction_id._to_proto()
+
+
+def test_expired_chunk_regenerates_id_and_preserves_chunk_content(topic_id):
+    """Test that regenerating the first chunk also updates the initial ID."""
+    message = "ABCD"
+
+    expired_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED
+    )
+    ok_response = transaction_response_pb2.TransactionResponse(nodeTransactionPrecheckCode=ResponseCode.OK)
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
+        )
+    )
+    response_sequence = [
+        ok_response,
+        receipt_response,
+        expired_response,
+        ok_response,
+        receipt_response,
+        ok_response,
+        receipt_response,
+        ok_response,
+        receipt_response,
+    ]
+
+    with mock_hedera_servers([response_sequence]) as client, patch("hiero_sdk_python.executable.time.sleep"):
+        tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message(message).set_chunk_size(1)
+        tx.freeze_with(client)
+
+        original_chunk_0_id = tx._transaction_ids.get(0)
+        original_chunk_0_bodies = dict(tx._transaction_body_bytes[original_chunk_0_id])
+        original_chunk_1_id = tx._transaction_ids.get(1)
+        original_initial_transaction_id = tx._initial_transaction_id
+
+        receipts = tx.execute_all(client)
+
+        assert all(receipt.status == ResponseCode.SUCCESS for receipt in receipts)
+
+        assert tx._transaction_ids.get(0) == original_chunk_0_id
+        assert tx._transaction_body_bytes[original_chunk_0_id] == original_chunk_0_bodies
+
+        assert tx._initial_transaction_id == original_initial_transaction_id
+
+        new_chunk_1_id = tx._transaction_ids.get(1)
+        assert new_chunk_1_id != original_chunk_1_id
+        assert original_chunk_1_id not in tx._transaction_body_bytes
+
+        for node_bytes in tx._transaction_body_bytes[new_chunk_1_id].values():
+            body = transaction_pb2.TransactionBody()
+            body.ParseFromString(node_bytes)
+
+            assert body.consensusSubmitMessage.message.decode("utf-8") == "B"
+            assert body.consensusSubmitMessage.chunkInfo.number == 2
+            assert body.transactionID == new_chunk_1_id._to_proto()
+            assert body.consensusSubmitMessage.chunkInfo.initialTransactionID == (
+                original_initial_transaction_id._to_proto()
+            )
+
+
+def test_expired_first_chunk_updates_initial_transaction_id(topic_id):
+    """Test that an expired chunk is rebuilt with its own content."""
+    message = "ABCD"
+
+    expired_response = transaction_response_pb2.TransactionResponse(
+        nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED
+    )
+    ok_response = transaction_response_pb2.TransactionResponse(nodeTransactionPrecheckCode=ResponseCode.OK)
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
+        )
+    )
+
+    # Chunk 0 ("A") expires once then succeeds on retry; chunks 1-3 succeed immediately.
+    response_sequence = [
+        expired_response,
+        ok_response,
+        receipt_response,
+        ok_response,
+        receipt_response,
+        ok_response,
+        receipt_response,
+        ok_response,
+        receipt_response,
+    ]
+
+    with mock_hedera_servers([response_sequence]) as client, patch("hiero_sdk_python.executable.time.sleep"):
+        tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message(message).set_chunk_size(1)
+        tx.freeze_with(client)
+
+        original_chunk_0_id = tx._transaction_ids.get(0)
+
+        receipts = tx.execute_all(client)
+
+        assert all(receipt.status == ResponseCode.SUCCESS for receipt in receipts)
+
+        new_chunk_0_id = tx._transaction_ids.get(0)
+        assert new_chunk_0_id != original_chunk_0_id
+        assert tx._initial_transaction_id == new_chunk_0_id
+
+        for index, transaction_id in enumerate(tx._transaction_ids):
+            for node_bytes in tx._transaction_body_bytes[transaction_id].values():
+                body = transaction_pb2.TransactionBody()
+                body.ParseFromString(node_bytes)
+                assert body.consensusSubmitMessage.chunkInfo.initialTransactionID == new_chunk_0_id._to_proto()
+                assert body.consensusSubmitMessage.chunkInfo.number == index + 1
 
 
 def test_schedule_transaction_rejects_message_exceeding_chunk_size(topic_id):
