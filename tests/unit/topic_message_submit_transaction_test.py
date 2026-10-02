@@ -10,6 +10,7 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
 from hiero_sdk_python.hapi.services import (
+    consensus_submit_message_pb2,
     response_header_pb2,
     response_pb2,
     timestamp_pb2,
@@ -23,6 +24,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -747,3 +749,80 @@ def test_schedule_transaction_rejects_message_exceeding_chunk_size(topic_id):
         f"exceeds the maximum chunk size of {tx.chunk_size} bytes",
     ):
         tx.schedule()
+
+
+def test_topic_message_submit_from_protobuf_single_chunk(topic_id, message):
+    """Test TopicMessageSubmitTransaction._from_protobuf for a single-chunk message."""
+    tx = TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
+    tx_body = tx.build_transaction_body()
+    body_bytes = tx_body.SerializeToString()
+
+    restored = TopicMessageSubmitTransaction._from_protobuf(tx_body, body_bytes, None)
+
+    assert restored.topic_id == topic_id
+    assert restored.message == message.encode("utf-8")
+    assert restored._total_chunks == 1
+    assert restored._current_chunk_index is None
+    assert restored._initial_transaction_id is None
+
+
+def test_topic_message_submit_from_protobuf_with_chunk_info(topic_id, message):
+    """Test TopicMessageSubmitTransaction._from_protobuf with chunkInfo present."""
+    initial_tx_id = TransactionId.generate(AccountId(0, 0, 100))
+    chunk_info = consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+        initialTransactionID=initial_tx_id._to_proto(),
+        total=3,
+        number=2,
+    )
+
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.consensusSubmitMessage.CopyFrom(
+        consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
+            topicID=topic_id._to_proto(),
+            message=b"chunk2",
+            chunkInfo=chunk_info,
+        )
+    )
+
+    restored = TopicMessageSubmitTransaction._from_protobuf(tx_body, b"", None)
+
+    assert restored.topic_id == topic_id
+    assert restored.message == b"chunk2"
+    assert restored._total_chunks == 3
+    assert restored._current_chunk_index == 1
+    assert restored._initial_transaction_id == initial_tx_id
+
+
+def test_topic_message_submit_from_protobuf_unset_fields():
+    """Test TopicMessageSubmitTransaction._from_protobuf with unset fields."""
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.consensusSubmitMessage.CopyFrom(consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody())
+
+    restored = TopicMessageSubmitTransaction._from_protobuf(tx_body, b"", None)
+
+    assert restored.topic_id is None
+    assert restored.message == b""
+    assert restored._total_chunks == 1
+    assert restored._current_chunk_index is None
+    assert restored._initial_transaction_id is None
+
+
+def test_topic_message_submit_round_trip_from_bytes(mock_account_ids, topic_id, message):
+    """Test TopicMessageSubmitTransaction to_bytes() and Transaction.from_bytes() round trip."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    tx_id = TransactionId.generate(operator_id)
+
+    tx = TopicMessageSubmitTransaction(topic_id=topic_id, message=message)
+    tx.set_transaction_id(tx_id)
+    tx.set_node_account_ids([node_account_id])
+
+    tx.freeze()
+    tx_bytes = tx.to_bytes()
+
+    restored = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(restored, TopicMessageSubmitTransaction)
+    assert restored.topic_id == topic_id
+    assert restored.message == message.encode("utf-8")
+    assert restored._total_chunks == 1
+    assert restored._current_chunk_index is None

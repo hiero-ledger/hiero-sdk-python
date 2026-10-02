@@ -11,7 +11,7 @@ from __future__ import annotations
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import consensus_delete_topic_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services import basic_types_pb2, consensus_delete_topic_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -94,3 +94,29 @@ class TopicDeleteTransaction(Transaction):
             _Method: The method to execute the transaction.
         """
         return _Method(transaction_func=channel.topic.deleteTopic, query_func=None)
+
+    @classmethod
+    def _from_protobuf(
+        cls,
+        transaction_body: transaction_pb2.TransactionBody,
+        body_bytes: bytes,
+        sig_map: basic_types_pb2.SignatureMap | None,
+    ) -> TopicDeleteTransaction:
+        """
+        Creates a TopicDeleteTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+            body_bytes (bytes): The raw bytes of the transaction body.
+            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
+
+        Returns:
+            TopicDeleteTransaction: A new transaction instance with all fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+
+        if transaction_body.HasField("consensusDeleteTopic"):
+            pb = transaction_body.consensusDeleteTopic
+            transaction.topic_id = TopicId._from_proto(pb.topicID) if pb.HasField("topicID") else None
+
+        return transaction

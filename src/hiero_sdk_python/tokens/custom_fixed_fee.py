@@ -283,7 +283,36 @@ class CustomFixedFee(CustomFee):
             all_collectors_are_exempt=collectors_are_exempt,
         )
 
-    def __eq__(self, other: CustomFixedFee) -> bool:
+    @classmethod
+    def _from_topic_fee_proto(cls, proto_fee: custom_fees_pb2.FixedCustomFee) -> CustomFixedFee:
+        """Creates a CustomFixedFee instance from a FixedCustomFee protobuf object.
+
+        Specifically used for reconstructing custom fixed fees from Hedera Consensus
+        Service (HCS) topic transactions.
+
+        Args:
+            proto_fee (custom_fees_pb2.FixedCustomFee): The protobuf FixedCustomFee message.
+
+        Returns:
+            CustomFixedFee: The corresponding CustomFixedFee object.
+        """
+        fixed_fee_proto = proto_fee.fixed_fee
+
+        denominating_token_id = None
+        if fixed_fee_proto.HasField("denominating_token_id"):
+            denominating_token_id = TokenId._from_proto(fixed_fee_proto.denominating_token_id)
+
+        fee_collector_account_id = None
+        if proto_fee.HasField("fee_collector_account_id"):
+            fee_collector_account_id = AccountId._from_proto(proto_fee.fee_collector_account_id)
+
+        return cls(
+            amount=fixed_fee_proto.amount,
+            denominating_token_id=denominating_token_id,
+            fee_collector_account_id=fee_collector_account_id,
+        )
+
+    def __eq__(self, other: object) -> bool:
         """Compares this CustomFixedFee instance with another object for equality.
 
         Checks if the other object is also a CustomFixedFee and if all
@@ -296,6 +325,9 @@ class CustomFixedFee(CustomFee):
         Returns:
             bool: True if the objects are considered equal, False otherwise.
         """
+        if not isinstance(other, CustomFixedFee):
+            return False
+
         return (
             super().__eq__(other)
             and self.amount == other.amount

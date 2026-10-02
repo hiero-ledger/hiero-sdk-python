@@ -37,6 +37,41 @@ def test_custom_fixed_fee_proto_round_trip():
     assert new_fee.all_collectors_are_exempt is True
 
 
+def test_custom_fixed_fee_topic_proto_round_trip():
+    """Ensure CustomFixedFee topic protobuf serialization and deserialization behave correctly."""
+    fee = CustomFixedFee(
+        amount=250,
+        denominating_token_id=TokenId(0, 0, 789),
+        fee_collector_account_id=AccountId(0, 0, 999),
+    )
+
+    proto = fee._to_topic_fee_proto()
+    new_fee = CustomFixedFee._from_topic_fee_proto(proto)
+
+    assert isinstance(new_fee, CustomFixedFee)
+    assert new_fee.amount == 250
+    assert new_fee.denominating_token_id == TokenId(0, 0, 789)
+    assert new_fee.fee_collector_account_id == AccountId(0, 0, 999)
+    assert new_fee == fee
+
+
+def test_custom_fixed_fee_topic_proto_round_trip_hbar():
+    """Ensure CustomFixedFee topic protobuf with HBAR fee behaves correctly."""
+    fee = CustomFixedFee(
+        amount=500,
+        fee_collector_account_id=AccountId(0, 0, 111),
+    )
+
+    proto = fee._to_topic_fee_proto()
+    new_fee = CustomFixedFee._from_topic_fee_proto(proto)
+
+    assert isinstance(new_fee, CustomFixedFee)
+    assert new_fee.amount == 500
+    assert new_fee.denominating_token_id is None
+    assert new_fee.fee_collector_account_id == AccountId(0, 0, 111)
+    assert new_fee == fee
+
+
 def test_custom_fixed_fee_str():
     """Test the string representation of CustomFixedFee."""
     fee = CustomFixedFee(

@@ -13,7 +13,12 @@ from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import consensus_update_topic_pb2, duration_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    consensus_update_topic_pb2,
+    duration_pb2,
+    transaction_pb2,
+)
 from hiero_sdk_python.hapi.services.custom_fees_pb2 import FeeExemptKeyList, FixedCustomFeeList
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
@@ -349,3 +354,74 @@ class TopicUpdateTransaction(Transaction):
             _Method: The method to execute the transaction.
         """
         return _Method(transaction_func=channel.topic.updateTopic, query_func=None)
+
+    @classmethod
+    def _from_protobuf(
+        cls,
+        transaction_body: transaction_pb2.TransactionBody,
+        body_bytes: bytes,
+        sig_map: basic_types_pb2.SignatureMap | None,
+    ) -> TopicUpdateTransaction:
+        """
+        Creates a TopicUpdateTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+            body_bytes (bytes): The raw bytes of the transaction body.
+            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
+
+        Returns:
+            TopicUpdateTransaction: A new transaction instance with all fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+
+        if transaction_body.HasField("consensusUpdateTopic"):
+            pb = transaction_body.consensusUpdateTopic
+
+            transaction.topic_id = TopicId._from_proto(pb.topicID) if pb.HasField("topicID") else None
+
+            transaction.topic_memo = pb.memo.value if pb.HasField("memo") else None
+
+            transaction.expiration_time = (
+                Timestamp._from_protobuf(pb.expirationTime) if pb.HasField("expirationTime") else None
+            )
+
+            transaction.admin_key = (
+                Key.from_proto_key(pb.adminKey)
+                if pb.HasField("adminKey") and pb.adminKey.WhichOneof("key") is not None
+                else None
+            )
+
+            transaction.submit_key = (
+                Key.from_proto_key(pb.submitKey)
+                if pb.HasField("submitKey") and pb.submitKey.WhichOneof("key") is not None
+                else None
+            )
+
+            transaction.auto_renew_period = (
+                Duration._from_proto(pb.autoRenewPeriod) if pb.HasField("autoRenewPeriod") else None
+            )
+
+            transaction.auto_renew_account = (
+                AccountId._from_proto(pb.autoRenewAccount) if pb.HasField("autoRenewAccount") else None
+            )
+
+            transaction.fee_schedule_key = (
+                Key.from_proto_key(pb.fee_schedule_key)
+                if pb.HasField("fee_schedule_key") and pb.fee_schedule_key.WhichOneof("key") is not None
+                else None
+            )
+
+            transaction.fee_exempt_keys = (
+                [Key.from_proto_key(k) for k in pb.fee_exempt_key_list.keys if k.WhichOneof("key") is not None]
+                if pb.HasField("fee_exempt_key_list")
+                else None
+            )
+
+            transaction.custom_fees = (
+                [CustomFixedFee._from_topic_fee_proto(f) for f in pb.custom_fees.fees]
+                if pb.HasField("custom_fees")
+                else None
+            )
+
+        return transaction

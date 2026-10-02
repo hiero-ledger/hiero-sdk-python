@@ -11,9 +11,11 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services import (
+    consensus_update_topic_pb2,
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
@@ -21,7 +23,9 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -535,3 +539,163 @@ def test_add_fee_exempt_key_type_error():
     with pytest.raises(TypeError, match="key must be a Key"):
         tx.add_fee_exempt_key(None)  # type: ignore
     assert tx.fee_exempt_keys is None, "Invalid input must not change fee_exempt_keys"
+
+
+def test_topic_update_from_protobuf_all_fields(topic_id):
+    """Test TopicUpdateTransaction._from_protobuf with all fields populated."""
+    admin_key = PrivateKey.generate().public_key()
+    submit_key = PrivateKey.generate().public_key()
+    fee_schedule_key = PrivateKey.generate().public_key()
+    fee_exempt_key = PrivateKey.generate().public_key()
+    auto_renew_account = AccountId(0, 0, 9876)
+    expiration_time = Timestamp(1800000000, 0)
+    fee = CustomFixedFee(100, fee_collector_account_id=AccountId(0, 0, 123))
+
+    tx = TopicUpdateTransaction()
+    tx.set_topic_id(topic_id)
+    tx.set_memo("Updated Memo")
+    tx.set_admin_key(admin_key)
+    tx.set_submit_key(submit_key)
+    tx.set_auto_renew_period(Duration(86400))
+    tx.set_auto_renew_account(auto_renew_account)
+    tx.set_expiration_time(expiration_time)
+    tx.set_fee_schedule_key(fee_schedule_key)
+    tx.set_fee_exempt_keys([fee_exempt_key])
+    tx.set_custom_fees([fee])
+
+    tx_body = tx.build_transaction_body()
+    body_bytes = tx_body.SerializeToString()
+
+    restored = TopicUpdateTransaction._from_protobuf(tx_body, body_bytes, None)
+
+    assert restored.topic_id == topic_id
+    assert restored.topic_memo == "Updated Memo"
+    assert restored.admin_key is not None
+    assert restored.admin_key.to_proto_key() == admin_key.to_proto_key()
+    assert restored.submit_key is not None
+    assert restored.submit_key.to_proto_key() == submit_key.to_proto_key()
+    assert restored.auto_renew_period == Duration(86400)
+    assert restored.auto_renew_account == auto_renew_account
+    assert restored.expiration_time == expiration_time
+    assert restored.fee_schedule_key is not None
+    assert restored.fee_schedule_key.to_proto_key() == fee_schedule_key.to_proto_key()
+    assert restored.fee_exempt_keys is not None
+    assert len(restored.fee_exempt_keys) == 1
+    assert restored.fee_exempt_keys[0].to_proto_key() == fee_exempt_key.to_proto_key()
+    assert restored.custom_fees is not None
+    assert len(restored.custom_fees) == 1
+    assert restored.custom_fees[0] == fee
+
+
+def test_topic_update_from_protobuf_unset_optional_fields():
+    """Test TopicUpdateTransaction._from_protobuf with all fields unset."""
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.consensusUpdateTopic.CopyFrom(consensus_update_topic_pb2.ConsensusUpdateTopicTransactionBody())
+
+    restored = TopicUpdateTransaction._from_protobuf(tx_body, b"", None)
+
+    assert restored.topic_id is None
+    assert restored.topic_memo is None
+    assert restored.expiration_time is None
+    assert restored.admin_key is None
+    assert restored.submit_key is None
+    assert restored.auto_renew_period is None
+    assert restored.auto_renew_account is None
+    assert restored.fee_schedule_key is None
+    assert restored.fee_exempt_keys is None
+    assert restored.custom_fees is None
+
+
+def test_topic_update_from_protobuf_cleared_lists(topic_id):
+    """Test TopicUpdateTransaction._from_protobuf when clearing custom fees and fee exempt keys."""
+    tx = TopicUpdateTransaction()
+    tx.set_topic_id(topic_id)
+    tx.clear_custom_fees()
+    tx.clear_fee_exempt_keys()
+
+    tx_body = tx.build_transaction_body()
+    body_bytes = tx_body.SerializeToString()
+
+    restored = TopicUpdateTransaction._from_protobuf(tx_body, body_bytes, None)
+
+    assert restored.custom_fees == []
+    assert restored.fee_exempt_keys == []
+
+
+def test_topic_update_round_trip_from_bytes_all_fields(mock_account_ids, topic_id):
+    """Test TopicUpdateTransaction to_bytes() and Transaction.from_bytes() round trip with all fields."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    tx_id = TransactionId.generate(operator_id)
+
+    admin_key = PrivateKey.generate().public_key()
+    submit_key = PrivateKey.generate().public_key()
+    fee_schedule_key = PrivateKey.generate().public_key()
+    fee_exempt_key = PrivateKey.generate().public_key()
+    auto_renew_account = AccountId(0, 0, 9876)
+    expiration_time = Timestamp(1800000000, 0)
+    fee = CustomFixedFee(100, fee_collector_account_id=AccountId(0, 0, 123))
+
+    tx = TopicUpdateTransaction()
+    tx.set_transaction_id(tx_id)
+    tx.set_node_account_ids([node_account_id])
+    tx.set_topic_id(topic_id)
+    tx.set_memo("Round Trip Updated Memo")
+    tx.set_admin_key(admin_key)
+    tx.set_submit_key(submit_key)
+    tx.set_auto_renew_period(Duration(86400))
+    tx.set_auto_renew_account(auto_renew_account)
+    tx.set_expiration_time(expiration_time)
+    tx.set_fee_schedule_key(fee_schedule_key)
+    tx.set_fee_exempt_keys([fee_exempt_key])
+    tx.set_custom_fees([fee])
+
+    tx.freeze()
+    tx_bytes = tx.to_bytes()
+
+    restored = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(restored, TopicUpdateTransaction)
+    assert restored.topic_id == topic_id
+    assert restored.topic_memo == "Round Trip Updated Memo"
+    assert restored.admin_key is not None
+    assert restored.admin_key.to_proto_key() == admin_key.to_proto_key()
+    assert restored.submit_key is not None
+    assert restored.submit_key.to_proto_key() == submit_key.to_proto_key()
+    assert restored.auto_renew_period == Duration(86400)
+    assert restored.auto_renew_account == auto_renew_account
+    assert restored.expiration_time == expiration_time
+    assert restored.fee_schedule_key is not None
+    assert restored.fee_schedule_key.to_proto_key() == fee_schedule_key.to_proto_key()
+    assert restored.fee_exempt_keys is not None
+    assert len(restored.fee_exempt_keys) == 1
+    assert restored.fee_exempt_keys[0].to_proto_key() == fee_exempt_key.to_proto_key()
+    assert restored.custom_fees is not None
+    assert len(restored.custom_fees) == 1
+    assert restored.custom_fees[0] == fee
+
+
+def test_topic_update_round_trip_from_bytes_defaults(mock_account_ids):
+    """Test TopicUpdateTransaction to_bytes() and Transaction.from_bytes() round trip with defaults."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    tx_id = TransactionId.generate(operator_id)
+
+    tx = TopicUpdateTransaction()
+    tx.set_transaction_id(tx_id)
+    tx.set_node_account_ids([node_account_id])
+
+    tx.freeze()
+    tx_bytes = tx.to_bytes()
+
+    restored = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(restored, TopicUpdateTransaction)
+    assert restored.topic_id is None
+    assert restored.topic_memo is None
+    assert restored.expiration_time is None
+    assert restored.admin_key is None
+    assert restored.submit_key is None
+    assert restored.auto_renew_period is None
+    assert restored.auto_renew_account is None
+    assert restored.fee_schedule_key is None
+    assert restored.fee_exempt_keys is None
+    assert restored.custom_fees is None

@@ -10,6 +10,7 @@ from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
@@ -17,6 +18,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -117,3 +119,42 @@ def test_execute_topic_delete_transaction(topic_id):
 
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
+
+
+def test_topic_delete_from_protobuf(topic_id):
+    """Test TopicDeleteTransaction._from_protobuf with topic ID set."""
+    tx = TopicDeleteTransaction(topic_id=topic_id)
+    tx_body = tx.build_transaction_body()
+    body_bytes = tx_body.SerializeToString()
+
+    restored = TopicDeleteTransaction._from_protobuf(tx_body, body_bytes, None)
+
+    assert restored.topic_id == topic_id
+
+
+def test_topic_delete_from_protobuf_unset():
+    """Test TopicDeleteTransaction._from_protobuf with topic ID unset."""
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.consensusDeleteTopic.CopyFrom(tx_body.consensusDeleteTopic.__class__())
+
+    restored = TopicDeleteTransaction._from_protobuf(tx_body, b"", None)
+
+    assert restored.topic_id is None
+
+
+def test_topic_delete_round_trip_from_bytes(mock_account_ids, topic_id):
+    """Test TopicDeleteTransaction to_bytes() and Transaction.from_bytes() round trip."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+    tx_id = TransactionId.generate(operator_id)
+
+    tx = TopicDeleteTransaction(topic_id=topic_id)
+    tx.set_transaction_id(tx_id)
+    tx.set_node_account_ids([node_account_id])
+
+    tx.freeze()
+    tx_bytes = tx.to_bytes()
+
+    restored = Transaction.from_bytes(tx_bytes)
+
+    assert isinstance(restored, TopicDeleteTransaction)
+    assert restored.topic_id == topic_id

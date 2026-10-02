@@ -16,7 +16,7 @@ from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import consensus_create_topic_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services import basic_types_pb2, consensus_create_topic_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -66,7 +66,7 @@ class TopicCreateTransaction(Transaction):
         self.topic_memo: str = memo or ""
         self.admin_key: Key | None = admin_key
         self.submit_key: Key | None = submit_key
-        self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
+        self.auto_renew_period: Duration | None = auto_renew_period or Duration(7890000)
         self.auto_renew_account: AccountId | None = auto_renew_account
         self.transaction_fee: int | None = 2_000_000_000  # 20 Hbars
         self.custom_fees: list[CustomFixedFee] = custom_fees or []
@@ -278,3 +278,62 @@ class TopicCreateTransaction(Transaction):
             _Method: The method for executing the transaction.
         """
         return _Method(transaction_func=channel.topic.createTopic, query_func=None)
+
+    @classmethod
+    def _from_protobuf(
+        cls,
+        transaction_body: transaction_pb2.TransactionBody,
+        body_bytes: bytes,
+        sig_map: basic_types_pb2.SignatureMap | None,
+    ) -> TopicCreateTransaction:
+        """
+        Creates a TopicCreateTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+            body_bytes (bytes): The raw bytes of the transaction body.
+            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
+
+        Returns:
+            TopicCreateTransaction: A new transaction instance with all fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+
+        if transaction_body.HasField("consensusCreateTopic"):
+            pb = transaction_body.consensusCreateTopic
+
+            transaction.topic_memo = pb.memo
+
+            transaction.admin_key = (
+                Key.from_proto_key(pb.adminKey)
+                if pb.HasField("adminKey") and pb.adminKey.WhichOneof("key") is not None
+                else None
+            )
+
+            transaction.submit_key = (
+                Key.from_proto_key(pb.submitKey)
+                if pb.HasField("submitKey") and pb.submitKey.WhichOneof("key") is not None
+                else None
+            )
+
+            transaction.auto_renew_period = (
+                Duration._from_proto(pb.autoRenewPeriod) if pb.HasField("autoRenewPeriod") else None
+            )
+
+            transaction.auto_renew_account = (
+                AccountId._from_proto(pb.autoRenewAccount) if pb.HasField("autoRenewAccount") else None
+            )
+
+            transaction.fee_schedule_key = (
+                Key.from_proto_key(pb.fee_schedule_key)
+                if pb.HasField("fee_schedule_key") and pb.fee_schedule_key.WhichOneof("key") is not None
+                else None
+            )
+
+            transaction.fee_exempt_keys = [
+                Key.from_proto_key(k) for k in pb.fee_exempt_key_list if k.WhichOneof("key") is not None
+            ]
+
+            transaction.custom_fees = [CustomFixedFee._from_topic_fee_proto(f) for f in pb.custom_fees]
+
+        return transaction

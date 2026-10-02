@@ -5,13 +5,18 @@ import math
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import consensus_submit_message_pb2, transaction_pb2
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    consensus_submit_message_pb2,
+    transaction_pb2,
+)
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.schedule.schedule_create_transaction import ScheduleCreateTransaction
 from hiero_sdk_python.transaction.chunked_transaction import ChunkedTransaction
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 class TopicMessageSubmitTransaction(ChunkedTransaction):
@@ -227,3 +232,44 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             _Method: The method object with bound transaction execution.
         """
         return _Method(transaction_func=channel.topic.submitMessage, query_func=None)
+
+    @classmethod
+    def _from_protobuf(
+        cls,
+        transaction_body: transaction_pb2.TransactionBody,
+        body_bytes: bytes,
+        sig_map: basic_types_pb2.SignatureMap | None,
+    ) -> TopicMessageSubmitTransaction:
+        """
+        Creates a TopicMessageSubmitTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+            body_bytes (bytes): The raw bytes of the transaction body.
+            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
+
+        Returns:
+            TopicMessageSubmitTransaction: A new transaction instance with all fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+
+        if transaction_body.HasField("consensusSubmitMessage"):
+            pb = transaction_body.consensusSubmitMessage
+            transaction.topic_id = TopicId._from_proto(pb.topicID) if pb.HasField("topicID") else None
+            transaction.message = pb.message
+
+            if pb.HasField("chunkInfo"):
+                chunk_info = pb.chunkInfo
+                transaction._initial_transaction_id = (
+                    TransactionId._from_proto(chunk_info.initialTransactionID)
+                    if chunk_info.HasField("initialTransactionID")
+                    else None
+                )
+                transaction._total_chunks = chunk_info.total
+                transaction._current_chunk_index = chunk_info.number - 1
+            else:
+                transaction._initial_transaction_id = None
+                transaction._total_chunks = 1
+                transaction._current_chunk_index = None
+
+        return transaction
