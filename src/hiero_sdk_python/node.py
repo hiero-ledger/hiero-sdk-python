@@ -303,3 +303,9 @@ class _Node:
     def _decrease_backoff(self) -> None:
         """Decrease the node's backoff duration after a successful operation."""
         self._current_backoff = max(self._current_backoff / 2, self._min_backoff)
+
+    def _reset_backoff(self) -> None:
+        """Reset node health after a successful health probe."""
+        self._current_backoff = self._min_backoff
+        self._readmit_time = time.monotonic()
+        self._bad_grpc_response_count = 0

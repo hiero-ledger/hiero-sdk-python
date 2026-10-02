@@ -422,6 +422,15 @@ class Network:
 
         node._decrease_backoff()
 
+    def _reset_node_health(self, node: _Node) -> None:
+        """Reset a node's health state and make it immediately selectable."""
+        if not isinstance(node, _Node):
+            raise TypeError("node must be of type _Node")
+
+        node._reset_backoff()
+        self._mark_node_healthy(node)
+        self._earliest_readmit_time = time.monotonic()
+
     def _mark_node_unhealthy(self, node: _Node) -> None:
         if not isinstance(node, _Node):
             raise TypeError("node must be of type _Node")

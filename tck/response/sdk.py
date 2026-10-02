@@ -11,3 +11,13 @@ class SetupResponse:
     def __init__(self, message: str):
         self.message = message
         self.status = "SUCCESS"
+
+
+@dataclass
+class PingResponse:
+    message: str = None
+    status: str = None
+
+    def __init__(self, message: str):
+        self.message = message
+        self.status = "SUCCESS"
