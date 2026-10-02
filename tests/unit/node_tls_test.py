@@ -320,7 +320,9 @@ def test_node_set_root_certificates_closes_channel(mock_node_with_address_book):
         assert node._channel is None
 
 
+@patch("socket.create_connection", side_effect=ConnectionRefusedError)
 def test_secure_connect_raise_error_if_no_certificate_is_available(
+    mock_conn,
     mock_node_without_address_book,
 ):
     """Test get channel raise error if no certificate available if transport security true."""
@@ -329,6 +331,27 @@ def test_secure_connect_raise_error_if_no_certificate_is_available(
 
     with pytest.raises(ValueError, match="No certificate available."):
         node._get_channel()
+
+
+@patch("socket.create_connection", side_effect=ConnectionRefusedError)
+@patch("grpc.secure_channel")
+@patch("grpc.insecure_channel")
+def test_secure_connect_raises_when_no_certificate_even_with_verification_disabled(
+    mock_insecure,
+    mock_secure,
+    mock_conn,
+    mock_node_without_address_book,
+):
+    """No certificate fails closed, even if certificate verification is disabled."""
+    node = mock_node_without_address_book
+    node._apply_transport_security(True)
+    node._set_verify_certificates(False)
+
+    with pytest.raises(ValueError, match="No certificate available."):
+        node._get_channel()
+
+    mock_secure.assert_not_called()
+    mock_insecure.assert_not_called()
 
 
 @patch("grpc.secure_channel")
