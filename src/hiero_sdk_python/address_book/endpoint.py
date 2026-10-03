@@ -156,3 +156,11 @@ class Endpoint:
             port=json_data.get("port"),
             domain_name=json_data.get("domain_name"),
         )
+
+    @staticmethod
+    def _validate_no_ip_and_domain(endpoint: Endpoint):
+        """Validate that the endpoint does not contain both an IP address and a domain name"""
+        if endpoint is None:
+            return
+        if endpoint._address is not None and endpoint._domain_name is not None:
+            raise ValueError("Endpoint must not contain both ipAddressV4 and domainName")

@@ -105,6 +105,12 @@ class NodeCreateTransaction(Transaction):
             NodeCreateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if description is None:
+            description = ""
+
+        if len(description.encode("utf-8")) > 100:
+            raise ValueError("description must not exceed 100 bytes when UTF-8 encoded")
+
         self.description = description
         return self
 
@@ -120,6 +126,12 @@ class NodeCreateTransaction(Transaction):
             NodeCreateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if gossip_endpoints is not None and len(gossip_endpoints) > 10:
+            raise ValueError("gossipEndpoints must not contain more than 10 entries")
+
+        for endpoint in gossip_endpoints:
+            Endpoint._validate_no_ip_and_domain(endpoint)
+
         self.gossip_endpoints = gossip_endpoints
         return self
 
@@ -135,6 +147,12 @@ class NodeCreateTransaction(Transaction):
             NodeCreateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if service_endpoints is not None and len(service_endpoints) > 8:
+            raise ValueError("serviceEndpoints must not contain more than 8 entries")
+
+        for endpoint in service_endpoints:
+            Endpoint._validate_no_ip_and_domain(endpoint)
+
         self.service_endpoints = service_endpoints
         return self
 
@@ -150,6 +168,9 @@ class NodeCreateTransaction(Transaction):
             NodeCreateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if gossip_ca_certificate is not None and len(gossip_ca_certificate) == 0:
+            raise ValueError("gossipCaCertificate must not be empty")
+
         self.gossip_ca_certificate = gossip_ca_certificate
         return self
 

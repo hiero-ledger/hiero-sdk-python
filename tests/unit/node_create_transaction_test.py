@@ -161,6 +161,23 @@ def test_set_description(node_params):
     assert result is node_tx  # Should return self for method chaining
 
 
+def test_set_description_as_none():
+    """Test setting description using setter as None result in empty string."""
+    node_tx = NodeCreateTransaction()
+    result = node_tx.set_description(None)
+
+    assert node_tx.description == ""
+    assert result is node_tx  # Should return self for method chaining
+
+
+def test_set_description_with_bytes_greater_than_100():
+    """Test setting description bytes size more than 100."""
+    description = "a" * 101
+
+    with pytest.raises(ValueError, match="description must not exceed 100 bytes when UTF-8 encoded"):
+        NodeCreateTransaction().set_description(description)
+
+
 def test_set_gossip_endpoints(node_params):
     """Test setting gossip_endpoints using the setter method."""
     node_tx = NodeCreateTransaction()
@@ -169,6 +186,32 @@ def test_set_gossip_endpoints(node_params):
 
     assert node_tx.gossip_endpoints == node_params["gossip_endpoints"]
     assert result is node_tx  # Should return self for method chaining
+
+
+def test_set_gossip_endpoints_greater_than_10(node_params):
+    """Test setting more than 10 gossip_endpoints."""
+    endpoints = []
+    for _ in range(11):
+        endpoints.append(node_params["gossip_endpoints"])
+
+    with pytest.raises(ValueError, match="gossipEndpoints must not contain more than 10 entries"):
+        NodeCreateTransaction().set_gossip_endpoints(endpoints)
+
+
+@pytest.mark.parametrize(
+    "endpoints",
+    (
+        [Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211)],
+        [
+            Endpoint(domain_name="test.com", port=50211),
+            Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211),
+        ],
+    ),
+)
+def test_set_gossip_endpoints_containing_both_ip_and_domain(endpoints):
+    """Test setting gossip_endpoints containing both ip and domain."""
+    with pytest.raises(ValueError, match="Endpoint must not contain both ipAddressV4 and domainName"):
+        NodeCreateTransaction().set_gossip_endpoints(endpoints)
 
 
 def test_set_service_endpoints(node_params):
@@ -181,6 +224,32 @@ def test_set_service_endpoints(node_params):
     assert result is node_tx  # Should return self for method chaining
 
 
+def test_set_service_endpoints_greater_than_8(node_params):
+    """Test setting more than 8 service_endpoints."""
+    endpoints = []
+    for _ in range(9):
+        endpoints.append(node_params["service_endpoints"])
+
+    with pytest.raises(ValueError, match="serviceEndpoints must not contain more than 8 entries"):
+        NodeCreateTransaction().set_service_endpoints(endpoints)
+
+
+@pytest.mark.parametrize(
+    "endpoints",
+    (
+        [Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211)],
+        [
+            Endpoint(domain_name="test.com", port=50211),
+            Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211),
+        ],
+    ),
+)
+def test_set_service_endpoints_containing_both_ip_and_domain(endpoints):
+    """Test setting service_endpoints containing both ip and domain."""
+    with pytest.raises(ValueError, match="Endpoint must not contain both ipAddressV4 and domainName"):
+        NodeCreateTransaction().set_service_endpoints(endpoints)
+
+
 def test_set_gossip_ca_certificate(node_params):
     """Test setting gossip_ca_certificate using the setter method."""
     node_tx = NodeCreateTransaction()
@@ -189,6 +258,12 @@ def test_set_gossip_ca_certificate(node_params):
 
     assert node_tx.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert result is node_tx  # Should return self for method chaining
+
+
+def test_set_empty_gossip_ca_certificate():
+    """Test setting empty gossip_ca_certificate using the setter method."""
+    with pytest.raises(ValueError, match="gossipCaCertificate must not be empty"):
+        NodeCreateTransaction().set_gossip_ca_certificate("")
 
 
 def test_set_grpc_certificate_hash(node_params):
