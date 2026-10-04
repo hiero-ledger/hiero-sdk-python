@@ -1,6 +1,6 @@
+from hiero_sdk_python.address_book.address_book_query import AddressBookQuery
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.file.file_id import FileId
-from hiero_sdk_python.query.address_book_query import AddressBookQuery
 
 
 def main():
@@ -14,7 +14,9 @@ def main():
     query = AddressBookQuery().set_file_id(FileId.from_string("0.0.102")).set_limit(2)
 
     print("------------------------\n\nTest\n\n")
-    for node in query.execute(client):
+    nodes = query.execute(client)
+    print(len(nodes))
+    for node in nodes:
         print(node)
 
 
