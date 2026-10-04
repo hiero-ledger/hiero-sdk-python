@@ -12,7 +12,9 @@ class NodeAddressBook:
     """
 
     def __init__(self, node_addresses: list[NodeAddress] | None = None):
-        self._node_addresses: list[NodeAddress] = list(node_addresses or [])
+        self._node_addresses: list[NodeAddress] = []
+        if node_addresses is not None:
+            self.set_node_addresses(node_addresses)
 
     @property
     def node_addresses(self) -> list[NodeAddress]:
@@ -33,7 +35,16 @@ class NodeAddressBook:
 
         Returns:
             NodeAddressBook: This address book instance for method chaining.
+
+        Raises:
+            TypeError: If node_addresses is not a list of NodeAddress
         """
+        if not isinstance(node_addresses, list):
+            raise TypeError("node_addresses must be of type list[NodeAddress]")
+
+        if not all(isinstance(node_address, NodeAddress) for node_address in node_addresses):
+            raise TypeError("node_addresses must contain only NodeAddress instances")
+
         self._node_addresses = list(node_addresses)
         return self
 
@@ -52,7 +63,7 @@ class NodeAddressBook:
         return cls(node_addresses)
 
     @classmethod
-    def form_bytes(cls, data: bytes) -> NodeAddressBook:
+    def from_bytes(cls, data: bytes) -> NodeAddressBook:
         """
         Create a NodeAddressBook from serialized protobuf bytes.
 
@@ -61,7 +72,13 @@ class NodeAddressBook:
 
         Returns:
             NodeAddressBook: A NodeAddressBook created from the serialized data.
+
+        Raises:
+            TypeError: If data is not a bytes
         """
+        if not isinstance(data, bytes):
+            raise TypeError("data must be of type bytes")
+
         return cls._from_proto(basic_types_pb2.NodeAddressBook.FromString(data))
 
     def _to_proto(self) -> basic_types_pb2.NodeAddressBook:
