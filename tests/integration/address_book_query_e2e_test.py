@@ -49,6 +49,7 @@ def test_address_book_query_with_invalid_id_raise_error(env):
 @pytest.mark.integration
 def test_address_book_query_can_be_executed_with_limit(env):
     """Test that the AddressBookQuery return the NodeAddressBook with given limit."""
+    # this will always return single node when run on solo, cause it contain single node
     address_book = AddressBookQuery().set_file_id(FileId.from_string("0.0.102")).set_limit(1).execute(env.client)
     assert address_book is not None
     assert isinstance(address_book, NodeAddressBook)
