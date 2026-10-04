@@ -70,8 +70,22 @@ class Transaction(_Executable):
         self.operator_private_key: PrivateKey | None = None
         self.batch_key: Key | None = None
         self._regenerate_transaction_id: bool | None = None
+        # True once the caller supplies their own transaction ID. A user-chosen ID is never
+        # replaced on TRANSACTION_EXPIRED, since the caller may already have recorded it.
+        self._transaction_id_user_set: bool = False
         # Guards execute() against concurrent calls on the same instance; see execute()
         # for why this matters for TRANSACTION_EXPIRED regeneration.
+        self._execution_lock = threading.Lock()
+
+    def __getstate__(self) -> dict:
+        """Drop the (unpicklable) execution lock so copy.deepcopy() and pickle keep working."""
+        state = self.__dict__.copy()
+        state.pop("_execution_lock", None)
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        """Restore state and give the copy its own fresh, unlocked execution lock."""
+        self.__dict__.update(state)
         self._execution_lock = threading.Lock()
 
     def _make_request(self):
@@ -158,14 +172,15 @@ class Transaction(_Executable):
             # a confusing MaxAttemptsError instead of a direct PrecheckError.
             if (
                 self._regenerate_transaction_id
+                and not self._transaction_id_user_set
                 and self.operator_account_id is not None
                 and not self._has_foreign_signatures()
             ):
                 self._handle_transaction_id_regeneration()
                 return _ExecutionState.RETRY
 
-            # Transaction ID regeneration is disabled, no operator to regenerate from, or
-            # cannot be done safely.
+            # Transaction ID regeneration is disabled, the ID was set by the caller, there is
+            # no operator to regenerate from, or it cannot be done safely.
             return _ExecutionState.EXPIRED
 
         if status == ResponseCode.OK:
@@ -817,6 +832,7 @@ class Transaction(_Executable):
             raise ValueError("transaction_id must have account_id and a valid_start period")
 
         self._transaction_ids.set_list([transaction_id])
+        self._transaction_id_user_set = True
         return self
 
     @property
