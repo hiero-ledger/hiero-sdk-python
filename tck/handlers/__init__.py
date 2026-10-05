@@ -1,4 +1,4 @@
-"""TCK handlers - auto-import all handler modules."""
+﻿"""TCK handlers - auto-import all handler modules."""
 
 # Import registry functions first to make them available
 # Import all handler modules to trigger @rpc_method decorators
@@ -9,6 +9,7 @@ from . import (
     ethereum,
     file,
     key,
+    node,
     schedule,
     sdk,  # setup, reset
     token,
