@@ -135,15 +135,9 @@ class ContractDeleteTransaction(Transaction):
 
         Returns:
             TransactionBody: The built transaction body.
-
-        Raises:
-            ValueError: If contract_id is not set.
         """
-        if self.contract_id is None:
-            raise ValueError("Missing required ContractID")
-
         contract_delete_body = ContractDeleteTransactionBody(
-            contractID=self.contract_id._to_proto(),
+            contractID=(self.contract_id._to_proto() if self.contract_id is not None else None),
             transferContractID=(self.transfer_contract_id._to_proto() if self.transfer_contract_id else None),
             transferAccountID=(self.transfer_account_id._to_proto() if self.transfer_account_id else None),
             permanent_removal=self.permanent_removal,
