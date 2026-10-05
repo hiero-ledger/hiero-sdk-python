@@ -20,6 +20,11 @@ class UpdateContractResponse(StatusOnlyResponse):
 
 
 @dataclass
+class DeleteContractResponse(StatusOnlyResponse):
+    """Response payload for deleteContract."""
+
+
+@dataclass
 class ContractCallResponse:
     """Response payload for contractCallQuery."""
 
