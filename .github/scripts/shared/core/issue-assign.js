@@ -6,23 +6,23 @@
 // configured in config.js.
 //
 // Handles:
-//   • one-time reminders for contributors who express interest
-//   • "/assign" requests
-//   • prerequisite enforcement
-//   • spam restrictions
-//   • assignment limits
-//   • issue assignment
+//   â€¢ one-time reminders for contributors who express interest
+//   â€¢ "/assign" requests
+//   â€¢ prerequisite enforcement
+//   â€¢ spam restrictions
+//   â€¢ assignment limits
+//   â€¢ issue assignment
 //
 // Flow:
 //   1. Validate the issue comment event
 //   2. Resolve the configured repository and skill level
 //   3. If the comment is not "/assign", optionally post a one-time reminder
 //   4. Otherwise:
-//      • reject already-assigned issues
-//      • apply spam restrictions
-//      • enforce prerequisites
-//      • enforce assignment limits
-//      • assign the issue
+//      â€¢ reject already-assigned issues
+//      â€¢ apply spam restrictions
+//      â€¢ enforce prerequisites
+//      â€¢ enforce assignment limits
+//      â€¢ assign the issue
 
 const { CONFIG, LEVEL_KEYS } = require('../config.js');
 
@@ -32,6 +32,7 @@ const {
   isRepoCollaborator,
   postIssueComment,
   fetchAllComments,
+  getIssue,
   assignIssue,
 } = require('../api/github-api.js');
 
@@ -160,7 +161,7 @@ async function runAssignmentFlow({ github, context }) {
 
   console.log(`[assign-bot] Issue #${issueNumber} in ${owner}/${repoName} matched level "${levelKey}".`);
 
-  // ---- plain comment, no /assign — post a reminder ----
+  // ---- plain comment, no /assign â€” post a reminder ----
 
   if (!commentRequestsAssignment(comment.body)) {
     if (isAssigned) {
@@ -260,22 +261,68 @@ async function runAssignmentFlow({ github, context }) {
     }
   }
 
+
   // Assignment limit check
   const maxAllowed = getAssignmentLimit(levelKey, spamUser);
 
-  const openCount = await getOpenAssignments({ github, owner, repo: repoName, username: commenter });
-  if (openCount === null){
+  const openCount = await getOpenAssignments({
+    github,
+    owner,
+    repo: repoName,
+    username: commenter,
+  });
+
+  if (openCount === null) {
     console.log('[assign-bot] Skipping assignment limit check due to API error (fail open).');
-  } else{
-    console.log('[assign-bot] Limit check:', { commenter, openCount, spamUser, maxAllowed });
+  } else {
+    console.log('[assign-bot] Limit check:', {
+      commenter,
+      openCount,
+      spamUser,
+      maxAllowed,
+    });
+
     if (openCount >= maxAllowed) {
       const spamLimited = isSpamLimited(levelKey, spamUser);
-      const body = buildLimitComment(commenter, { openCount, maxAllowed, spamLimited });
-      await postIssueComment({ github, owner, repo: repoName, issueNumber, body }, 'limit warning');
+      const body = buildLimitComment(commenter, {
+        openCount,
+        maxAllowed,
+        spamLimited,
+      });
+
+      await postIssueComment(
+        { github, owner, repo: repoName, issueNumber, body },
+        'limit warning'
+      );
       return;
     }
   }
+  // Refresh the issue immediately before assignment to avoid acting on a stale webhook payload.
+  try {
+    const freshIssue = await getIssue({
+      github,
+      owner,
+      repo: repoName,
+      issueNumber,
+    });
 
+    if (freshIssue.assignees?.length > 0) {
+      const assignee = freshIssue.assignees[0]?.login;
+      const body = buildAlreadyAssignedComment(assignee);
+
+      await postIssueComment(
+        { github, owner, repo: repoName, issueNumber, body },
+        'already assigned'
+      );
+      return;
+    }
+  } catch (error) {
+    console.error('[assign-bot] Failed to refresh issue before assignment:', {
+      message: error.message,
+      issueNumber,
+    });
+    return;
+  }
   // Assign
   try {
     await assignIssue({
@@ -291,7 +338,6 @@ async function runAssignmentFlow({ github, context }) {
     });
     return;
   }
-
   // Trigger CodeRabbit after successful assignment
   try {
     const planExists = await hasExistingCodeRabbitPlan(

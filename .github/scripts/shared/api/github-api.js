@@ -35,7 +35,7 @@ async function countClosedIssuesByAssignee(github, owner, repo, username, labelS
 
 /**
  * Fetches a batch of open, unassigned issues from a repo, sorted oldest-first.
- * Intentionally broad — label filtering happens client-side in filterIssuesByLevel
+ * Intentionally broad ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â label filtering happens client-side in filterIssuesByLevel
  * to avoid one search call per skill level per repo.
  *
  * @param {import('@actions/github').GitHub} github
@@ -168,7 +168,7 @@ async function countCompletedIssuesWithLabel({ github, owner, repo, username, la
  */
 async function isRepoCollaborator({ github, owner, repo, username }) {
   if (username === owner) {
-    console.log(`[github-api] @${username} is the repo owner — treated as collaborator.`);
+    console.log(`[github-api] @${username} is the repo owner ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â treated as collaborator.`);
     return true;
   }
 
@@ -252,6 +252,24 @@ async function fetchAllComments({ github, owner, repo, issueNumber }) {
 }
 
 /**
+ * Fetches the current state of an issue from GitHub.
+ *
+ * @param {object} params
+ * @param {import('@actions/github').GitHub} params.github
+ * @param {string} params.owner
+ * @param {string} params.repo
+ * @param {number} params.issueNumber
+ * @returns {Promise<object>} Current issue data.
+ */
+async function getIssue({ github, owner, repo, issueNumber }) {
+  const { data } = await github.rest.issues.get({
+    owner,
+    repo,
+    issue_number: issueNumber,
+  });
+  return data;
+}
+/**
  * Assigns a contributor to an issue.
  *
  * @param {object} params
@@ -285,5 +303,6 @@ module.exports = {
   isRepoCollaborator,
   postIssueComment,
   fetchAllComments,
+  getIssue,
   assignIssue,
 };

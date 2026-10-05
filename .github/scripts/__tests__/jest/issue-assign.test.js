@@ -10,6 +10,7 @@ jest.mock('../../shared/api/github-api', () => ({
   isRepoCollaborator: jest.fn(),
   postIssueComment: jest.fn(),
   fetchAllComments: jest.fn(),
+  getIssue: jest.fn(),
   assignIssue: jest.fn(),
 }));
 
@@ -91,6 +92,7 @@ beforeEach(() => {
   githubApi.fetchAllComments.mockResolvedValue([]);
   githubApi.postIssueComment.mockResolvedValue();
   githubApi.assignIssue.mockResolvedValue();
+  githubApi.getIssue.mockResolvedValue({ assignees: [] });
 
   spam.isSpamUser.mockReturnValue(false);
   spam.isSpamBlockedLevel.mockReturnValue(false);
@@ -753,4 +755,22 @@ describe('runAssignmentFlow - error handling', () => {
     expect(hasExistingCodeRabbitPlan).not.toHaveBeenCalled();
     expect(triggerCodeRabbitPlan).not.toHaveBeenCalled();
   });
+});
+
+test('does not assign when stale webhook payload says unassigned but issue is already assigned', async () => {
+  githubApi.getIssue.mockResolvedValue({
+    assignees: [{ login: 'another-user' }],
+  });
+
+  const github = createGithub();
+  const context = createContext();
+
+  await runAssignmentFlow({
+    github,
+    context,
+  });
+
+  expect(githubApi.getIssue).toHaveBeenCalled();
+  expect(githubApi.assignIssue).not.toHaveBeenCalled();
+  expect(githubApi.postIssueComment).toHaveBeenCalled();
 });
