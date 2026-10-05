@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 from hiero_sdk_python import AccountId, Client, PrivateKey
-from hiero_sdk_python.exceptions import MaxAttemptsError
-from tck.errors import JsonRpcError
 from tck.handlers.registry import rpc_method
 from tck.param.base import BaseParams
 from tck.param.sdk import PingParams, SetupParams
@@ -62,12 +60,7 @@ def ping_handler(params: PingParams) -> PingResponse:
     client = get_client(params.sessionId)
     node_account_id = AccountId.from_string(params.nodeAccountId)
 
-    try:
-        client.ping(node_account_id)
-    except MaxAttemptsError as e:
-        raise JsonRpcError.internal_error() from e
-    except ValueError as e:
-        raise JsonRpcError.internal_error({"message": str(e)}) from e
+    client.ping(node_account_id)
 
     return PingResponse(f"Successfully pinged node {params.nodeAccountId}.")
 
@@ -75,11 +68,6 @@ def ping_handler(params: PingParams) -> PingResponse:
 @rpc_method("pingAll")
 def ping_all_handler(params: BaseParams) -> PingResponse:
     client = get_client(params.sessionId)
-    try:
-        client.ping_all()
-    except MaxAttemptsError as e:
-        raise JsonRpcError.internal_error() from e
-    except ValueError as e:
-        raise JsonRpcError.internal_error({"message": str(e)}) from e
+    client.ping_all()
 
     return PingResponse("Successfully pinged all nodes.")

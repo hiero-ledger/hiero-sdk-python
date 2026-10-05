@@ -402,7 +402,6 @@ class _Executable(ABC):
         self,
         client: Client,
         timeout: int | float | None = None,
-        allow_unhealthy_node: bool = False,
     ):
         """
         Execute a transaction or query with retry logic.
@@ -414,8 +413,6 @@ class _Executable(ABC):
                 1. Explicitly set via set_request_timeout()
                 2. Timeout passed to execute()
                 3. Client default request_timeout
-            allow_unhealthy_node (bool): Whether to execute against a selected node even when it is in backoff.
-                Defaults to False; health probes use True to test an explicitly requested node.
 
         Returns:
             The response from executing the operation:
@@ -467,7 +464,7 @@ class _Executable(ABC):
             # Build the request using the executable's _make_request method
             proto_request = self._make_request()
 
-            if not allow_unhealthy_node and not node.is_healthy():
+            if not node.is_healthy():
                 self._handle_unhealthy_node(proto_request, attempt, logger, err_persistant)
                 continue
 
@@ -482,9 +479,6 @@ class _Executable(ABC):
 
                 client.network._increase_backoff(node)
                 err_persistant = e
-
-                if allow_unhealthy_node and len(self._node_account_ids) == 1:
-                    break
 
                 self._node_account_ids.advance()
                 continue

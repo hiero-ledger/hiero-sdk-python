@@ -7,10 +7,8 @@ import pytest
 
 from hiero_sdk_python import AccountId, Client
 from hiero_sdk_python.client.network import Network
-from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
 from hiero_sdk_python.hapi.services import (
-    basic_types_pb2,
     crypto_get_info_pb2,
     response_header_pb2,
     response_pb2,
@@ -25,12 +23,7 @@ from tests.unit.mock_server import MockServer, RealRpcError
 pytestmark = pytest.mark.unit
 
 
-def _response(status=ResponseCode.OK, cost=0, account_info=False):
-    info = (
-        crypto_get_info_pb2.CryptoGetInfoResponse.AccountInfo(key=basic_types_pb2.Key(ed25519=b"\x00" * 32))
-        if account_info
-        else None
-    )
+def _response(status=ResponseCode.OK, cost=0):
     return response_pb2.Response(
         cryptoGetInfo=crypto_get_info_pb2.CryptoGetInfoResponse(
             header=response_header_pb2.ResponseHeader(
@@ -38,7 +31,6 @@ def _response(status=ResponseCode.OK, cost=0, account_info=False):
                 responseType=ResponseType.COST_ANSWER,
                 cost=cost,
             ),
-            accountInfo=info,
         )
     )
 
@@ -76,7 +68,7 @@ def test_ping_is_pinned_and_unknown_node_does_not_fallback():
         client.ping(AccountId(0, 0, 4))
         assert not first.calls
         assert len(second.calls) == 1
-        with pytest.raises(ValueError, match="not in the client's network map"):
+        with pytest.raises(RuntimeError, match="No node found for node_account_id: 0.0.999"):
             client.ping(AccountId(0, 0, 999))
         assert len(first.calls) == 0
     finally:
@@ -85,16 +77,8 @@ def test_ping_is_pinned_and_unknown_node_does_not_fallback():
         second.close()
 
 
-def test_ping_transport_failure_marks_node_unhealthy_and_recovers():
-    server = MockServer(
-        [
-            RealRpcError(grpc.StatusCode.UNAVAILABLE, "unavailable"),
-            _response(),
-            _response(),
-            _response(account_info=True),
-            _response(account_info=True),
-        ]
-    )
+def test_ping_transport_failure_uses_normal_backoff():
+    server = MockServer([RealRpcError(grpc.StatusCode.UNAVAILABLE, "unavailable")])
     client, nodes = _client([server])
     node = nodes[0]
     try:
@@ -103,24 +87,15 @@ def test_ping_transport_failure_marks_node_unhealthy_and_recovers():
         assert not node.is_healthy()
         assert node not in client.network._healthy_nodes
 
-        client.ping(node._account_id)
-        assert node.is_healthy()
-        assert node in client.network._healthy_nodes
-        assert node._bad_grpc_response_count == 0
-        assert node._current_backoff == node._min_backoff
-
-        client.set_operator(AccountId(0, 0, 1800), PrivateKey.generate())
-        AccountInfoQuery(AccountId(0, 0, 2)).execute(client)
-        assert [call[1].cryptoGetInfo.header.responseType for call in server.calls[-2:]] == [
-            ResponseType.COST_ANSWER,
-            ResponseType.ANSWER_ONLY,
-        ]
+        with pytest.raises(RuntimeError, match="All nodes are unhealthy"):
+            client.ping(node._account_id)
+        assert len(server.calls) == 1
     finally:
         client.close()
         server.close()
 
 
-def test_ping_transport_failure_on_single_node_does_not_retry():
+def test_ping_transport_failure_retries_when_node_remains_healthy():
     errors = [RealRpcError(grpc.StatusCode.UNAVAILABLE, "unavailable") for _ in range(3)]
     server = MockServer(errors)
     client, nodes = _client([server])
@@ -129,17 +104,14 @@ def test_ping_transport_failure_on_single_node_does_not_retry():
 
     try:
         with (
-            patch.object(
-                client.network, "_increase_backoff", wraps=client.network._increase_backoff
-            ) as increase_backoff,
+            patch.object(client.network, "_increase_backoff") as increase_backoff,
             pytest.raises(MaxAttemptsError),
         ):
             client.ping(node._account_id)
 
-        assert len(server.calls) == 1
-        increase_backoff.assert_called_once_with(node)
-        assert not node.is_healthy()
-        assert node not in client.network._healthy_nodes
+        assert len(server.calls) == 3
+        assert increase_backoff.call_count == 3
+        increase_backoff.assert_called_with(node)
     finally:
         client.close()
         server.close()
@@ -194,16 +166,17 @@ def test_ping_all_is_sequential_and_stops_at_first_failure():
             server.close()
 
 
-def test_ping_all_probes_node_in_backoff_before_continuing():
+def test_ping_all_respects_node_backoff():
     servers = [MockServer([_response()]) for _ in range(3)]
     client, nodes = _client(servers)
     try:
         client.network._increase_backoff(nodes[0])
         assert not nodes[0].is_healthy()
 
-        client.ping_all()
+        with pytest.raises(RuntimeError, match="All nodes are unhealthy"):
+            client.ping_all()
 
-        assert [len(server.calls) for server in servers] == [1, 1, 1]
+        assert not any(server.calls for server in servers)
     finally:
         client.close()
         for server in servers:
@@ -214,7 +187,18 @@ def test_ping_all_probes_every_node_successfully():
     servers = [MockServer([_response()]) for _ in range(3)]
     client, _ = _client(servers)
     try:
-        client.ping_all()
+        completed = []
+        original_ping = client.ping
+
+        def ping_and_check_order(node_account_id):
+            index = len(completed)
+            assert node_account_id == AccountId(0, 0, index + 3)
+            assert [len(server.calls) for server in servers] == [int(i < index) for i in range(3)]
+            original_ping(node_account_id)
+            completed.append(node_account_id)
+
+        with patch.object(client, "ping", side_effect=ping_and_check_order):
+            client.ping_all()
 
         assert [len(server.calls) for server in servers] == [1, 1, 1]
         for server in servers:
