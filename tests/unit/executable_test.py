@@ -12,7 +12,6 @@ from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTrans
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
 from hiero_sdk_python.executable import (
-    _ExecutionState,
     _is_transaction_receipt_or_record_request,
 )
 from hiero_sdk_python.hapi.services import (
@@ -30,7 +29,6 @@ from hiero_sdk_python.hapi.services.transaction_get_record_pb2 import Transactio
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
-from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.transaction_get_receipt_query import (
     TransactionGetReceiptQuery,
@@ -38,7 +36,6 @@ from hiero_sdk_python.query.transaction_get_receipt_query import (
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
-from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from tests.unit.mock_server import RealRpcError, mock_hedera_servers
 
 
@@ -212,67 +209,6 @@ def test_transaction_with_expired_error_not_retried_when_regeneration_disabled()
             transaction.execute(client)
 
         assert str(error_response.nodeTransactionPrecheckCode) in str(exc_info.value)
-
-
-def test_transaction_regenerate_transaction_id_defaults_to_client_setting():
-    """Test that freeze_with() resolves regenerate_transaction_id from the client default."""
-    error_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
-
-    response_sequences = [[error_response]]
-
-    with (
-        mock_hedera_servers(response_sequences) as client,
-        patch("hiero_sdk_python.executable.time.sleep"),
-    ):
-        client.set_default_regenerate_transaction_id(False)
-
-        transaction = (
-            AccountCreateTransaction()
-            .set_key_without_alias(PrivateKey.generate().public_key())
-            .set_initial_balance(100_000_000)
-        )
-
-        assert transaction.regenerate_transaction_id is None
-
-        with pytest.raises(PrecheckError):
-            transaction.execute(client)
-
-        assert transaction.regenerate_transaction_id is False
-
-
-def test_transaction_id_regeneration_declines_when_multi_signed():
-    """Test that a transaction signed by a non-operator key is not regenerated."""
-    expired_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
-
-    response_sequences = [[expired_response]]
-
-    with (
-        mock_hedera_servers(response_sequences) as client,
-        patch("hiero_sdk_python.executable.time.sleep"),
-    ):
-        other_signer_key = PrivateKey.generate()
-
-        transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
-        transaction.freeze_with(client)
-        transaction.sign(other_signer_key)
-
-        with pytest.raises(PrecheckError):
-            transaction.execute(client)
-
-        # No regeneration should have happened: the transaction ID is unchanged, and the
-        # foreign signature is still the only one recorded alongside the operator's.
-        assert transaction.is_signed_by(other_signer_key.public_key())
-
-
-def test_should_retry_returns_expired_outside_execute(mock_client):
-    """Test TRANSACTION_EXPIRED returns EXPIRED when no execute() regeneration context is active."""
-    transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
-    transaction.freeze_with(mock_client)
-    transaction.sign(mock_client.operator_private_key)
-
-    response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
-
-    assert transaction._should_retry(response) == _ExecutionState.EXPIRED
 
 
 def test_transaction_with_fatal_error_not_retried():

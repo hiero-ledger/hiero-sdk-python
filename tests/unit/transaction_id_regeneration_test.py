@@ -14,6 +14,7 @@ from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTrans
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
+from hiero_sdk_python.executable import _ExecutionState
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import (
@@ -347,6 +348,13 @@ def test_batch_transaction_is_never_regenerated(no_sleep, request_spy, batch_key
 
 
 # Execution-scoped operator state
+
+
+def test_should_retry_returns_expired_outside_execute(mock_client):
+    """Test that TRANSACTION_EXPIRED is not retried when no execute() regeneration context is active."""
+    tx = _transfer().freeze_with(mock_client).sign(mock_client.operator_private_key)
+
+    assert tx._should_retry(_expired()) == _ExecutionState.EXPIRED
 
 
 @pytest.mark.parametrize("responses", [[_expired(), _ok()], [_expired(), _expired()]], ids=["success", "failure"])
