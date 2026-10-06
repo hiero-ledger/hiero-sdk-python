@@ -341,7 +341,7 @@ def test_execute_raises_when_called_concurrently_on_same_instance(mock_client):
 
 
 def test_transaction_id_regeneration_declines_when_multi_signed():
-    """Test concurrent execution on the same transaction is rejected."""
+    """Test that a transaction signed by a non-operator key is not regenerated."""
     expired_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
 
     response_sequences = [[expired_response]]
@@ -365,7 +365,7 @@ def test_transaction_id_regeneration_declines_when_multi_signed():
 
 
 def test_transaction_id_regeneration_is_noop_without_operator_account_id(mock_client):
-    """Test concurrent execution on the same transaction is rejected."""
+    """Test that regeneration is a no-op when there is no operator account ID."""
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
     transaction.operator_account_id = None
@@ -393,7 +393,7 @@ def test_should_retry_returns_expired_without_operator_account_id(mock_client):
 
 
 def test_has_foreign_signatures_recognizes_shortened_operator_prefix(mock_client):
-    """Test missing operator account ID returns EXPIRED."""
+    """Test that a shortened operator key prefix is not treated as a foreign signature."""
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
     transaction.operator_private_key = mock_client.operator_private_key
@@ -408,7 +408,7 @@ def test_has_foreign_signatures_recognizes_shortened_operator_prefix(mock_client
 
 
 def test_has_foreign_signatures_treats_empty_prefix_as_foreign(mock_client):
-    """Test missing operator account ID returns EXPIRED."""
+    """Test that an empty key prefix is treated as a foreign signature."""
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
     transaction.operator_private_key = mock_client.operator_private_key

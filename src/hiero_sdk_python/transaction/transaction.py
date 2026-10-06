@@ -73,6 +73,9 @@ class Transaction(_Executable):
         # True once the caller supplies their own transaction ID. A user-chosen ID is never
         # replaced on TRANSACTION_EXPIRED, since the caller may already have recorded it.
         self._transaction_id_user_set: bool = False
+        # True once the ID may be held outside this object: the transaction was serialized with
+        # to_bytes() or restored with from_bytes(). Replacing it would desynchronize the copy.
+        self._transaction_id_exposed: bool = False
         # Guards execute() against concurrent calls on the same instance; see execute()
         # for why this matters for TRANSACTION_EXPIRED regeneration.
         self._execution_lock = threading.Lock()
@@ -173,14 +176,15 @@ class Transaction(_Executable):
             if (
                 self._regenerate_transaction_id
                 and not self._transaction_id_user_set
+                and not self._transaction_id_exposed
                 and self.operator_account_id is not None
                 and not self._has_foreign_signatures()
             ):
                 self._handle_transaction_id_regeneration()
                 return _ExecutionState.RETRY
 
-            # Transaction ID regeneration is disabled, the ID was set by the caller, there is
-            # no operator to regenerate from, or it cannot be done safely.
+            # Transaction ID regeneration is disabled, the ID was set by the caller or has
+            # already been serialized/restored from bytes, there is no operator to regenerate from, or it cannot be done safely.
             return _ExecutionState.EXPIRED
 
         if status == ResponseCode.OK:
@@ -939,6 +943,9 @@ class Transaction(_Executable):
         """
         self._require_frozen()
 
+        # The bytes may now be signed or submitted elsewhere, so this ID must stay stable.
+        self._transaction_id_exposed = True
+
         # Get the transaction protobuf
         transaction_proto = self._to_proto()
 
@@ -1144,6 +1151,8 @@ class Transaction(_Executable):
 
         if transaction_body.HasField("transactionID"):
             transaction._transaction_ids.set_list([TransactionId._from_proto(transaction_body.transactionID)])
+            # Restored from bytes: the original holder may still use this ID.
+            transaction._transaction_id_exposed = True
 
         if transaction_body.HasField("nodeAccountID"):
             transaction._node_account_ids.set_list([AccountId._from_proto(transaction_body.nodeAccountID)])

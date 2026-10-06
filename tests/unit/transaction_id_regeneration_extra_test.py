@@ -10,6 +10,7 @@ import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
@@ -23,6 +24,8 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.batch_transaction import BatchTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from tests.unit.mock_server import mock_hedera_servers
@@ -130,3 +133,68 @@ def test_expired_later_chunk_regenerates_only_that_chunk_for_file_append():
             body.ParseFromString(node_bytes)
             assert body.fileAppend.contents == b"B"
             assert body.transactionID == new_chunk_1_id._to_proto()
+
+
+def test_serialized_transaction_id_is_not_regenerated():
+    """Test that a transaction ID already serialized with to_bytes() is not replaced on expiry."""
+    with mock_hedera_servers([[_expired()]]) as client, patch("hiero_sdk_python.executable.time.sleep"):
+        tx = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
+        tx.freeze_with(client)
+        original_id = tx.transaction_id
+
+        tx.to_bytes()
+
+        with pytest.raises(PrecheckError):
+            tx.execute(client)
+
+        assert tx.transaction_id == original_id
+
+
+def test_transaction_restored_from_bytes_is_not_regenerated():
+    """Test that a transaction restored with from_bytes() keeps its transaction ID on expiry."""
+    with mock_hedera_servers([[_expired()]]) as client, patch("hiero_sdk_python.executable.time.sleep"):
+        source = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
+        source.freeze_with(client)
+        original_id = source.transaction_id
+
+        restored = Transaction.from_bytes(source.to_bytes())
+
+        with pytest.raises(PrecheckError):
+            restored.execute(client)
+
+        assert restored.transaction_id == original_id
+
+
+def test_reading_transaction_id_does_not_disable_regeneration():
+    """Test that reading transaction_id after freeze does not stop an expired transaction from retrying."""
+    with mock_hedera_servers([[_expired()]]) as client, patch("hiero_sdk_python.executable.time.sleep"):
+        tx = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
+        tx.freeze_with(client)
+        original_id = tx.transaction_id  # reading must not pin the ID
+
+        with pytest.raises(Exception):  # noqa: B017 - mock has no reply after the retry
+            tx.execute(client)
+
+        assert tx.transaction_id != original_id
+
+
+def test_batch_transaction_signed_by_batch_key_is_not_regenerated(mock_client):
+    """Test that a batch signed by a non-operator batch key is not regenerated on expiry."""
+    batch_key = PrivateKey.generate()
+
+    with mock_hedera_servers([[_expired()]]) as client, patch("hiero_sdk_python.executable.time.sleep"):
+        inner = (
+            TransferTransaction()
+            .add_hbar_transfer(AccountId(0, 0, 1001), Hbar(-1))
+            .add_hbar_transfer(AccountId(0, 0, 1002), Hbar(1))
+            .batchify(mock_client, batch_key)
+        )
+        batch = BatchTransaction().add_inner_transaction(inner).freeze_with(client).sign(batch_key)
+        original_id = batch.transaction_id
+        original_inner_id = inner.transaction_id
+
+        with pytest.raises(PrecheckError):
+            batch.execute(client)
+
+        assert batch.transaction_id == original_id
+        assert inner.transaction_id == original_inner_id
