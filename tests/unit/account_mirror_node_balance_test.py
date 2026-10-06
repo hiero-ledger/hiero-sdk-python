@@ -112,3 +112,18 @@ def test_from_json_rejects_missing_balance_field():
         match="balances entry has no `balance` field",
     ):
         MirrorNodeAccountBalance._from_json({"balances": [{}]})
+
+
+def test_hbars_returns_hbars():
+    hbars = Hbar.from_tinybars(100)
+    balance = MirrorNodeAccountBalance(hbars)
+
+    assert balance.hbars == hbars
+
+
+def test_str_returns_expected_string():
+    hbars = Hbar.from_tinybars(100)
+
+    result = MirrorNodeAccountBalance(hbars)
+
+    assert str(result) == f"MirrorNodeAccountBalance{{hbars={hbars}}}"

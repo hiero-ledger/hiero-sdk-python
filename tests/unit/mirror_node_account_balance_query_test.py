@@ -503,3 +503,35 @@ def test_to_account_id_param_uses_public_key_alias():
     assert result == expected
     alias_key.to_proto_key.assert_called_once()
     protobuf_key.SerializeToString.assert_called_once()
+
+
+def test_constructor_init_with_invalid_account_id_type():
+    with pytest.raises(
+        TypeError,
+        match="account_id must be an AccountId",
+    ):
+        MirrorNodeAccountBalanceQuery(account_id="0.0.5005")
+
+
+def test_execute_raises_error_when_malformed_json_is_received():
+    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
+
+    client = MagicMock()
+
+    with (
+        patch.object(
+            query,
+            "_build_url",
+            return_value="https://example.com/balances",
+        ),
+        patch.object(
+            query,
+            "_fetch_body",
+            return_value={"not balances": []},
+        ),
+        pytest.raises(
+            ValueError,
+            match="Mirror Node returned a malformed JSON response",
+        ),
+    ):
+        query.execute(client)

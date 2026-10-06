@@ -75,7 +75,7 @@ class MirrorNodeAccountBalance:
         Returns:
             The HBAR balance of the account.
         """
-        return self.hbars
+        return self._hbars
 
     def __str__(self) -> str:
         return f"MirrorNodeAccountBalance{{hbars={self.hbars}}}"
