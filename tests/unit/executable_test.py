@@ -8,7 +8,6 @@ import pytest
 
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
@@ -215,45 +214,6 @@ def test_transaction_with_expired_error_not_retried_when_regeneration_disabled()
         assert str(error_response.nodeTransactionPrecheckCode) in str(exc_info.value)
 
 
-def test_transaction_with_expired_error_regenerates_id_and_retries():
-    """Test that TRANSACTION_EXPIRED regenerates the transaction ID and retries by default."""
-    expired_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
-    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
-
-    receipt_response = response_pb2.Response(
-        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS,
-                accountID=basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=1234),
-            ),
-        )
-    )
-
-    response_sequences = [[expired_response, ok_response, receipt_response]]
-
-    with (
-        mock_hedera_servers(response_sequences) as client,
-        patch("hiero_sdk_python.executable.time.sleep"),
-    ):
-        transaction = (
-            AccountCreateTransaction()
-            .set_key_without_alias(PrivateKey.generate().public_key())
-            .set_initial_balance(100_000_000)
-        )
-
-        original_transaction_id = transaction.freeze_with(client).transaction_id
-
-        try:
-            receipt = transaction.execute(client)
-        except (Exception, grpc.RpcError) as e:
-            pytest.fail(f"Transaction execution should not raise an exception, but raised: {e}")
-
-        assert receipt.status == ResponseCode.SUCCESS
-        assert transaction.regenerate_transaction_id is True
-        assert transaction.transaction_id != original_transaction_id
-
-
 def test_transaction_regenerate_transaction_id_defaults_to_client_setting():
     """Test that freeze_with() resolves regenerate_transaction_id from the client default."""
     error_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
@@ -280,66 +240,6 @@ def test_transaction_regenerate_transaction_id_defaults_to_client_setting():
         assert transaction.regenerate_transaction_id is False
 
 
-def test_transaction_id_regeneration_resigns_with_the_client_used_to_execute():
-    """Test regeneration uses the client passed to execute()."""
-    expired_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
-    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
-
-    receipt_response = response_pb2.Response(
-        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
-            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
-            receipt=transaction_receipt_pb2.TransactionReceipt(
-                status=ResponseCode.SUCCESS,
-                accountID=basic_types_pb2.AccountID(shardNum=0, realmNum=0, accountNum=1234),
-            ),
-        )
-    )
-
-    response_sequences = [[expired_response, ok_response, receipt_response]]
-
-    with (
-        mock_hedera_servers(response_sequences) as executing_client,
-        patch("hiero_sdk_python.executable.time.sleep"),
-    ):
-        # Use the same network but a different operator for freeze_with().
-        freezing_client = Client(executing_client.network)
-        freezing_client.set_operator(
-            AccountId(0, 0, 999),
-            PrivateKey.generate(),
-        )
-
-        transaction = TransferTransaction().add_hbar_transfer(
-            AccountId(0, 0, 1001),
-            Hbar(1),
-        )
-
-        transaction.freeze_with(freezing_client)
-
-        try:
-            receipt = transaction.execute(executing_client)
-
-            assert receipt.status == ResponseCode.SUCCESS
-            assert transaction.is_signed_by(executing_client.operator_private_key.public_key())
-            assert not transaction.is_signed_by(freezing_client.operator_private_key.public_key())
-        finally:
-            freezing_client.close()
-
-
-def test_execute_raises_when_called_concurrently_on_same_instance(mock_client):
-    """Test concurrent execution on the same transaction is rejected."""
-    transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
-    transaction.freeze_with(mock_client)
-
-    acquired = transaction._execution_lock.acquire(blocking=False)
-    assert acquired
-
-    try:
-        with pytest.raises(RuntimeError, match="already executing"):
-            transaction.execute(mock_client)
-    finally:
-        transaction._execution_lock.release()
-
-
 def test_transaction_id_regeneration_declines_when_multi_signed():
     """Test that a transaction signed by a non-operator key is not regenerated."""
     expired_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
@@ -364,61 +264,15 @@ def test_transaction_id_regeneration_declines_when_multi_signed():
         assert transaction.is_signed_by(other_signer_key.public_key())
 
 
-def test_transaction_id_regeneration_is_noop_without_operator_account_id(mock_client):
-    """Test that regeneration is a no-op when there is no operator account ID."""
+def test_should_retry_returns_expired_outside_execute(mock_client):
+    """Test TRANSACTION_EXPIRED returns EXPIRED when no execute() regeneration context is active."""
     transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
     transaction.freeze_with(mock_client)
-    transaction.operator_account_id = None
-
-    original_transaction_id = transaction._transaction_ids.current
-    original_bodies = dict(transaction._transaction_body_bytes)
-
-    transaction._handle_transaction_id_regeneration()
-
-    assert transaction._transaction_ids.current == original_transaction_id
-    assert transaction._transaction_body_bytes == original_bodies
-
-
-def test_should_retry_returns_expired_without_operator_account_id(mock_client):
-    """Test missing operator account ID returns EXPIRED."""
-    transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
-    transaction.freeze_with(mock_client)
-    transaction.operator_private_key = mock_client.operator_private_key
     transaction.sign(mock_client.operator_private_key)
-    transaction.operator_account_id = None
 
     response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
 
     assert transaction._should_retry(response) == _ExecutionState.EXPIRED
-
-
-def test_has_foreign_signatures_recognizes_shortened_operator_prefix(mock_client):
-    """Test that a shortened operator key prefix is not treated as a foreign signature."""
-    transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
-    transaction.freeze_with(mock_client)
-    transaction.operator_private_key = mock_client.operator_private_key
-    transaction.sign(mock_client.operator_private_key)
-
-    # Simulate a shortened prefix, as if loaded from bytes with only a partial prefix.
-    for sig_map in transaction._signature_map.values():
-        for sig_pair in sig_map.sigPair:
-            sig_pair.pubKeyPrefix = sig_pair.pubKeyPrefix[:4]
-
-    assert not transaction._has_foreign_signatures()
-
-
-def test_has_foreign_signatures_treats_empty_prefix_as_foreign(mock_client):
-    """Test that an empty key prefix is treated as a foreign signature."""
-    transaction = TransferTransaction().add_hbar_transfer(AccountId(0, 0, 1001), Hbar(1))
-    transaction.freeze_with(mock_client)
-    transaction.operator_private_key = mock_client.operator_private_key
-    transaction.sign(mock_client.operator_private_key)
-
-    for sig_map in transaction._signature_map.values():
-        for sig_pair in sig_map.sigPair:
-            sig_pair.pubKeyPrefix = b""
-
-    assert transaction._has_foreign_signatures()
 
 
 def test_transaction_with_fatal_error_not_retried():

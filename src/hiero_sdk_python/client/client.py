@@ -317,7 +317,16 @@ class Client:
         Set whether transactions executed by this client should regenerate their transaction ID
         and retry when the network returns TRANSACTION_EXPIRED.
 
-        A transaction may override this default via `Transaction.set_regenerate_transaction_id()`.
+        Defaults to True. A transaction may override this default via
+        `Transaction.set_regenerate_transaction_id()`; otherwise it is resolved in
+        `freeze_with()`.
+
+        Only transaction IDs that are not pinned are regenerated. Setting the ID, reading the
+        `transaction_id` property, calling `to_bytes()` or loading the transaction with
+        `from_bytes()` pins it, so reading the ID before `execute()` disables regeneration,
+        matching the Java and JavaScript SDKs. The ID is also kept when its payer is not this
+        client's operator, when it carries signatures from other keys, or for a
+        `BatchTransaction`.
 
         Args:
             regenerate_transaction_id (bool): Whether to regenerate the transaction ID on

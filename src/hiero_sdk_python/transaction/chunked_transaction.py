@@ -144,6 +144,15 @@ class ChunkedTransaction(Transaction, ABC):
         """Helper to set the current chunk index before building the transaction body."""
         self._current_chunk_index = index
 
+    def _on_transaction_ids_regenerated(self: T, start_index: int) -> None:
+        """
+        Moves the initial transaction ID to the regenerated first chunk ID, so every rebuilt
+        chunk body references it. Later-chunk regeneration keeps the original initial ID,
+        since the first chunk has already been submitted.
+        """
+        if start_index == 0:
+            self._initial_transaction_id = self._transaction_ids.get(0)
+
     def _current_chunk_slice(self, contents: bytes) -> bytes:
         """
         Return the portion of contents corresponding to the current chunk,

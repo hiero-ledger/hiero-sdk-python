@@ -334,6 +334,10 @@ class _Executable(ABC):
         """Format the request ID for the logger."""
         return f"{self.__class__.__name__}:{time.time_ns()}"
 
+    def _transaction_id_for_logging(self):
+        """Return the transaction ID to log for this request, if it has one."""
+        return getattr(self, "transaction_id", None)
+
     def _resolve_execution_config(self, client: Client, timeout: int | float | None) -> None:
         """Resolve unset execution configuration from the Client defaults."""
         # Set request_timeout explicitly set via set_request_timeout()
@@ -423,7 +427,6 @@ class _Executable(ABC):
         self._resolve_execution_config(client, timeout)
 
         err_persistant = None
-        tx_id = getattr(self, "transaction_id", None)
 
         logger = client.logger
         start = time.monotonic()
@@ -494,7 +497,7 @@ class _Executable(ABC):
                 "state",
                 execution_state.name,
                 "txID",
-                tx_id,
+                self._transaction_id_for_logging(),
             )
 
             # Handle the execution state
