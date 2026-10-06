@@ -14,8 +14,6 @@ Usage:
 
 import sys
 
-from dotenv import load_dotenv
-
 from hiero_sdk_python import (
     AccountCreateTransaction,
     AccountId,
@@ -26,9 +24,6 @@ from hiero_sdk_python import (
     Signer,
     TransferTransaction,
 )
-
-
-load_dotenv()
 
 
 def setup_client() -> Client:
