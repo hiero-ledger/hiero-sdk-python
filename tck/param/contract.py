@@ -5,7 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from tck.param.base import BaseParams, BaseTransactionParams
-from tck.util.param_utils import parse_common_transaction_params, parse_session_id
+from tck.util.param_utils import (
+    parse_common_transaction_params,
+    parse_session_id,
+    to_bool,
+)
 
 
 @dataclass
@@ -48,6 +52,39 @@ class CreateContractParams(BaseTransactionParams):
 
 
 @dataclass
+class UpdateContractParams(BaseTransactionParams):
+    """Parameters for updating a smart contract. Extends BaseTransactionParams to include CommonTransactionParams."""
+
+    contractId: str | None = None
+    adminKey: str | None = None
+    autoRenewPeriod: str | None = None
+    expirationTime: str | None = None
+    memo: str | None = None
+    autoRenewAccountId: str | None = None
+    maxAutomaticTokenAssociations: int | None = None
+    stakedAccountId: str | None = None
+    stakedNodeId: str | None = None
+    declineStakingReward: bool | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> UpdateContractParams:
+        return cls(
+            contractId=params.get("contractId"),
+            adminKey=params.get("adminKey"),
+            autoRenewPeriod=params.get("autoRenewPeriod"),
+            expirationTime=params.get("expirationTime"),
+            memo=params.get("memo"),
+            autoRenewAccountId=params.get("autoRenewAccountId"),
+            maxAutomaticTokenAssociations=params.get("maxAutomaticTokenAssociations"),
+            stakedAccountId=params.get("stakedAccountId"),
+            stakedNodeId=params.get("stakedNodeId"),
+            declineStakingReward=params.get("declineStakingReward"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
+
+
+@dataclass
 class ContractCallQueryParams(BaseParams):
     """Parameters for contractCallQuery."""
 
@@ -84,4 +121,43 @@ class ContractByteCodeQueryParams(BaseParams):
             contractId=params.get("contractId"),
             queryPayment=params.get("queryPayment"),
             maxQueryPayment=params.get("maxQueryPayment"),
+        )
+
+
+@dataclass
+class ContractInfoQueryParams(BaseParams):
+    """Parameters for contractInfoQuery."""
+
+    contractId: str | None = None
+    queryPayment: str | None = None
+    maxQueryPayment: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> ContractInfoQueryParams:
+        return cls(
+            contractId=params.get("contractId"),
+            queryPayment=params.get("queryPayment"),
+            maxQueryPayment=params.get("maxQueryPayment"),
+            sessionId=parse_session_id(params),
+        )
+
+
+@dataclass
+class DeleteContractParams(BaseTransactionParams):
+    """Parameters for deleting a smart contract. Extends BaseTransactionParams to include common transaction parameters."""
+
+    contractId: str | None = None
+    transferAccountId: str | None = None
+    transferContractId: str | None = None
+    permanentRemoval: bool | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteContractParams:
+        return cls(
+            contractId=params.get("contractId"),
+            transferAccountId=params.get("transferAccountId"),
+            transferContractId=params.get("transferContractId"),
+            permanentRemoval=to_bool(params.get("permanentRemoval")),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
         )

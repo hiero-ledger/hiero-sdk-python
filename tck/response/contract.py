@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
+from tck.response.base import StatusOnlyResponse
 
 
 @dataclass
@@ -11,6 +12,16 @@ class CreateContractResponse:
 
     contractId: str | None = None
     status: str | None = None
+
+
+@dataclass
+class UpdateContractResponse(StatusOnlyResponse):
+    """Response payload for updateContract."""
+
+
+@dataclass
+class DeleteContractResponse(StatusOnlyResponse):
+    """Response payload for deleteContract."""
 
 
 @dataclass
@@ -35,3 +46,35 @@ class ContractByteCodeResponse:
 
     contractId: str | None = None
     bytecode: str | None = None
+
+
+@dataclass
+class ContractInfoResponse:
+    """Response payload for contractInfoQuery."""
+
+    contractId: str | None = None
+    accountId: str | None = None
+    contractAccountId: str | None = None
+    adminKey: str | None = None
+    expirationTime: str | None = None
+    autoRenewPeriod: str | None = None
+    autoRenewAccountId: str | None = None
+    storage: str | None = None
+    contractMemo: str | None = None
+    balance: str | None = None
+    isDeleted: bool | None = None
+    maxAutomaticTokenAssociations: str | None = None
+    ledgerId: str | None = None
+    stakingInfo: StakingInfoResponse | None = None
+
+
+@dataclass
+class StakingInfoResponse:
+    """Represent stakingInfoResponse for contractInfoQuery."""
+
+    declineStakingReward: bool | None = None
+    stakePeriodStart: str | None = None
+    pendingReward: str | None = None
+    stakedToMe: str | None = None
+    stakedAccountId: str | None = None
+    stakedNodeId: str | None = None

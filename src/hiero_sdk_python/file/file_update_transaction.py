@@ -146,15 +146,9 @@ class FileUpdateTransaction(Transaction):
 
         Returns:
             FileUpdateTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If file_id is not set.
         """
-        if self.file_id is None:
-            raise ValueError("Missing required FileID")
-
         return FileUpdateTransactionBody(
-            fileID=self.file_id._to_proto(),
+            fileID=self.file_id._to_proto() if self.file_id is not None else None,
             keys=KeyList(self.keys).to_proto() if self.keys is not None else None,
             contents=self.contents if self.contents is not None else b"",
             expirationTime=(self.expiration_time._to_protobuf() if self.expiration_time else None),
