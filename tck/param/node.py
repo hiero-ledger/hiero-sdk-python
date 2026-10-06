@@ -82,3 +82,19 @@ class ServiceEndpointParams:
             port=self.port,
             domain_name=self.domainName,
         )
+
+
+@dataclass
+class DeleteNodeParams(BaseTransactionParams):
+    """Request parameters for deleteNode endpoint."""
+
+    nodeId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> DeleteNodeParams:
+        """Parse JSON-RPC params into a DeleteNodeParams instance."""
+        return cls(
+            nodeId=params.get("nodeId"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )
