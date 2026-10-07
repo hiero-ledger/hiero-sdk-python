@@ -61,18 +61,16 @@ class ContractInfoQuery(Query):
             Query: The protobuf query message.
 
         Raises:
-            ValueError: If the contract ID is not set.
             Exception: If any other error occurs during request construction.
         """
         try:
-            if not self.contract_id:
-                raise ValueError("Contract ID must be set before making the request.")
-
             query_header = self._make_request_header()
 
             contract_info_query = contract_get_info_pb2.ContractGetInfoQuery()
             contract_info_query.header.CopyFrom(query_header)
-            contract_info_query.contractID.CopyFrom(self.contract_id._to_proto())
+
+            if self.contract_id is not None:
+                contract_info_query.contractID.CopyFrom(self.contract_id._to_proto())
 
             query = query_pb2.Query()
             query.contractGetInfo.CopyFrom(contract_info_query)

@@ -64,19 +64,17 @@ class ContractBytecodeQuery(Query):
             Query: The protobuf query message.
 
         Raises:
-            ValueError: If the contract ID is not set.
-            Exception: If any other error occurs during request construction.
+            Exception: If any error occurs during request construction.
         """
         try:
-            if not self.contract_id:
-                raise ValueError("Contract ID must be set before making the request.")
-
             query_header = self._make_request_header()
 
             contract_bytecode_query = contract_get_bytecode_pb2.ContractGetBytecodeQuery(
                 header=query_header,
-                contractID=self.contract_id._to_proto(),
             )
+
+            if self.contract_id is not None:
+                contract_bytecode_query.contractID.CopyFrom(self.contract_id._to_proto())
 
             query = query_pb2.Query()
             query.contractGetBytecode.CopyFrom(contract_bytecode_query)

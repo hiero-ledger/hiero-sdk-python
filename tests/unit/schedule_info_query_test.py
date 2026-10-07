@@ -50,12 +50,15 @@ def test_set_schedule_id():
     assert query.schedule_id == schedule_id
 
 
-def test_execute_fails_with_missing_schedule_id(mock_client):
+def test_schedule_id_missing_when_none():
     """Test request creation with missing Schedule ID."""
     query = ScheduleInfoQuery()
 
-    with pytest.raises(ValueError, match="Schedule ID must be set before making the request."):
-        query.execute(mock_client)
+    request = query._make_request()
+
+    assert request is not None
+    assert request.scheduleGetInfo is not None
+    assert not request.scheduleGetInfo.HasField("scheduleID")
 
 
 def test_get_method():

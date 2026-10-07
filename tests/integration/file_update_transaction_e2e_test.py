@@ -7,7 +7,9 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python import PrivateKey
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
+from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
@@ -130,3 +132,79 @@ def test_integration_file_update_transaction_fails_when_key_is_invalid(env):
     assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
         f"File update should have failed with INVALID_SIGNATURE status but got: {ResponseCode(receipt.status).name}"
     )
+
+
+@pytest.mark.integration
+def test_integration_file_update_transaction_with_supported_key_types(env):
+    """Test FileUpdateTransaction with all supported key types."""
+    initial_private_key = PrivateKey.generate()
+
+    create_receipt = (
+        FileCreateTransaction()
+        .set_keys([initial_private_key])
+        .set_contents("Hello, Hedera!")
+        .freeze_with(env.client)
+        .sign(initial_private_key)
+        .execute(env.client)
+    )
+
+    assert create_receipt.status == ResponseCode.SUCCESS
+    assert create_receipt.file_id is not None
+
+    file_id = create_receipt.file_id
+    info = FileInfoQuery(file_id).execute(env.client)
+    assert len(info.keys) == 1
+
+    file_private_key = PrivateKey.generate()
+
+    file_public_key_private = PrivateKey.generate()
+    file_public_key = file_public_key_private.public_key()
+
+    key_list_private_key = PrivateKey.generate()
+    key_list = KeyList([key_list_private_key])
+
+    threshold_private_key_1 = PrivateKey.generate()
+    threshold_private_key_2 = PrivateKey.generate()
+    threshold_key = KeyList(
+        [threshold_private_key_1, threshold_private_key_2],
+        threshold=1,
+    )
+
+    update_receipt = (
+        FileUpdateTransaction()
+        .set_file_id(file_id)
+        .set_keys(
+            [
+                file_private_key,
+                file_public_key,
+                key_list,
+                threshold_key,
+            ]
+        )
+        .freeze_with(env.client)
+        .sign(initial_private_key)
+        .sign(file_private_key)
+        .sign(file_public_key_private)
+        .sign(key_list_private_key)
+        .sign(threshold_private_key_1)
+        .sign(threshold_private_key_2)
+        .execute(env.client)
+    )
+
+    assert update_receipt.status == ResponseCode.SUCCESS
+    info = FileInfoQuery(file_id).execute(env.client)
+    assert len(info.keys) == 4
+
+    # Verify the stored keys authorize file deletion.
+    delete_receipt = (
+        FileDeleteTransaction()
+        .set_file_id(file_id)
+        .freeze_with(env.client)
+        .sign(file_private_key)
+        .sign(file_public_key_private)
+        .sign(key_list_private_key)
+        .sign(threshold_private_key_1)  # sign with one since threshold is set to one
+        .execute(env.client)
+    )
+
+    assert delete_receipt.status == ResponseCode.SUCCESS

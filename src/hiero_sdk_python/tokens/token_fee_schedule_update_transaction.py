@@ -62,15 +62,14 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
         self,
     ) -> token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody:
         """Builds the protobuf body for the transaction."""
-        if self.token_id is None:
-            raise ValueError("Missing token ID")
-
-        custom_fees_proto = [fee._to_proto() for fee in self.custom_fees]
-
-        return token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody(
-            token_id=self.token_id._to_proto(),
-            custom_fees=custom_fees_proto,
+        body = token_fee_schedule_update_pb2.TokenFeeScheduleUpdateTransactionBody(
+            custom_fees=[fee._to_proto() for fee in self.custom_fees]
         )
+
+        if self.token_id is not None:
+            body.token_id.CopyFrom(self.token_id._to_proto())
+
+        return body
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """Builds and returns the protobuf transaction body."""

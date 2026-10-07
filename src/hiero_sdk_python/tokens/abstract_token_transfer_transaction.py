@@ -125,6 +125,13 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
     ) -> None:
         """Adds a fungible token transfer to the transaction's list.
 
+        Transfers for the same (token_id, account_id) pair are merged into a single
+        entry only when their approval status matches; a regular and an approved
+        transfer for the same account are kept as separate entries, since spending
+        an allowance is semantically different from spending the account's own
+        balance. When merging, an explicitly provided expected_decimals updates the
+        entry; passing None leaves the previously set value unchanged.
+
         Args:
             token_id (TokenId): The ID of the fungible token being transferred.
             account_id (AccountId): The account ID of the sender (negative amount)
@@ -154,9 +161,10 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             raise TypeError("is_approved must be a boolean.")
 
         for transfer in self.token_transfers[token_id]:
-            if transfer.account_id == account_id:
+            if transfer.account_id == account_id and transfer.is_approved == is_approved:
                 transfer.amount += amount
-                transfer.expected_decimals = expected_decimals
+                if expected_decimals is not None:
+                    transfer.expected_decimals = expected_decimals
                 return
 
         self.token_transfers[token_id].append(
