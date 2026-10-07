@@ -32,7 +32,7 @@ from tests.integration.utils import wait_for_mirror_node
 def require_operator_balance(env, amount: Hbar) -> None:
     balance = MirrorNodeAccountBalanceQuery(env.client.operator_account_id).execute(env.client)
 
-    if balance is None or balance._hbars < amount:
+    if balance is None or balance.hbars < amount:
         pytest.skip(f"Operator account does not have enough HBAR for this test: requires {amount}")
 
 
@@ -45,7 +45,7 @@ def test_can_fetch_balance_for_client_operator(env):
     balance = query.execute(env.client)
 
     assert balance is not None
-    assert balance._hbars.to_tinybars() > 0
+    assert balance.hbars.to_tinybars() > 0
 
 
 def test_can_fetch_balance_by_evm_address(env):
@@ -82,10 +82,10 @@ def test_can_fetch_balance_by_evm_address(env):
 
     balance = wait_for_mirror_node(
         fn=lambda: MirrorNodeAccountBalanceQuery(evm_address_account_id).execute(env.client),
-        predicate=lambda bal: bal._hbars == initial_balance,
+        predicate=lambda bal: bal.hbars == initial_balance,
     )
 
-    assert balance._hbars == initial_balance
+    assert balance.hbars == initial_balance
 
 
 def test_can_fetch_balance_by_alias(env):
@@ -123,10 +123,10 @@ def test_can_fetch_balance_by_alias(env):
 
     balance = wait_for_mirror_node(
         fn=lambda: MirrorNodeAccountBalanceQuery(alias_account_id).execute(env.client),
-        predicate=lambda bal: bal._hbars == initial_balance,
+        predicate=lambda bal: bal.hbars == initial_balance,
     )
 
-    assert balance._hbars == initial_balance
+    assert balance.hbars == initial_balance
 
 
 @pytest.mark.parametrize(

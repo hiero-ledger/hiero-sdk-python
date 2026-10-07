@@ -49,9 +49,9 @@ class MirrorNodeAccountBalanceQuery:
         if account_id is not None and not isinstance(account_id, AccountId):
             raise TypeError("account_id must be an AccountId")
 
-        self._account_id = account_id
-        self._max_attempts = 10
-        self._max_backoff = 8.0
+        self._account_id: AccountId | None = account_id
+        self._max_attempts: int = 10
+        self._max_backoff: float = 8.0
 
     @property
     def account_id(self) -> AccountId:
@@ -68,10 +68,13 @@ class MirrorNodeAccountBalanceQuery:
         Set the account ID for which the balance is requested.
 
         Args:
-            account_id: The account ID.
+            account_id (AccountId): The account ID.
 
         Returns:
             This query instance.
+        Raises:
+            ValueError: If account_id is None.
+            TypeError: If account_id is not of type AccountId
         """
         if account_id is None:
             raise ValueError("account_id must not be None")
@@ -100,12 +103,13 @@ class MirrorNodeAccountBalanceQuery:
         Set the maximum number of HTTP attempts.
 
         Args:
-            max_attempts: Maximum number of attempts.
+            max_attempts (int): Maximum number of attempts.
 
         Returns:
             This query instance.
 
         Raises:
+            TypeError: If max_attempts is not an int
             ValueError: If max_attempts is not greater than zero.
         """
 
@@ -136,13 +140,13 @@ class MirrorNodeAccountBalanceQuery:
         Set the maximum retry backoff in seconds.
 
         Args:
-            max_backoff: Maximum backoff duration in seconds.
+            max_backoff (int|float): Maximum backoff duration in seconds.
 
         Returns:
             This query instance.
 
         Raises:
-            TypeError: If max_backoff is not a number.
+            TypeError: If max_backoff is not a int ot float.
             ValueError: If max_backoff is less than 0.5 seconds.
         """
         if isinstance(max_backoff, bool) or not isinstance(max_backoff, (int, float)):
@@ -164,14 +168,14 @@ class MirrorNodeAccountBalanceQuery:
     def execute(
         self,
         client: Client,
-        timeout: float | None = None,
+        timeout: int | float | None = None,
     ) -> MirrorNodeAccountBalance:
         """
         Execute the query synchronously.
 
         Args:
-            client: The client used to determine the mirror node URL.
-            timeout: Maximum duration for each HTTP request in seconds.
+            client (Client): The client used to determine the mirror node URL.
+            timeout (int | float | None): Maximum duration for each HTTP request in seconds.
 
         Returns:
             The retrieved MirrorNodeAccountBalance.

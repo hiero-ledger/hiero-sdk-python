@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any
 
 from hiero_sdk_python.hbar import Hbar
 
 
+@dataclass
 class MirrorNodeAccountBalance:
     """
     The HBAR balance of an account as reported by the mirror node REST API.
@@ -12,17 +14,11 @@ class MirrorNodeAccountBalance:
     Returned by MirrorNodeAccountBalanceQuery. Token balances are not included.
     """
 
-    def __init__(self, hbars: Hbar) -> None:
-        """
-        Initialize a mirror node account balance.
+    hbars: Hbar
 
-        Args:
-            hbars: The HBAR balance of the account.
-        """
-        if not isinstance(hbars, Hbar):
+    def __post_init__(self) -> None:
+        if not isinstance(self.hbars, Hbar):
             raise ValueError("hbars must be an instance of Hbar")
-
-        self._hbars = hbars
 
     @staticmethod
     def _from_json(root: dict[str, Any]) -> MirrorNodeAccountBalance | None:
@@ -69,13 +65,5 @@ class MirrorNodeAccountBalance:
 
         return MirrorNodeAccountBalance(Hbar.from_tinybars(int(balance["balance"])))
 
-    @property
-    def hbars(self) -> Hbar:
-        """
-        Returns:
-            The HBAR balance of the account.
-        """
-        return self._hbars
-
     def __str__(self) -> str:
-        return f"MirrorNodeAccountBalance{{hbars={self.hbars}}}"
+        return f"MirrorNodeAccountBalance(hbars={self.hbars})"

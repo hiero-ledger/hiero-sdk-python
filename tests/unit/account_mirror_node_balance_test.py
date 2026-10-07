@@ -33,7 +33,7 @@ def test_init_with_hbar():
 
     result = MirrorNodeAccountBalance(hbars)
 
-    assert result._hbars == hbars
+    assert result.hbars == hbars
 
 
 def test_from_json_returns_none_for_empty_balances():
@@ -56,7 +56,7 @@ def test_from_json_returns_balance_for_account_with_hbar():
     result = MirrorNodeAccountBalance._from_json(root)
 
     assert result is not None
-    assert result._hbars == Hbar.from_tinybars(100)
+    assert result.hbars == Hbar.from_tinybars(100)
 
 
 def test_from_json_returns_zero_balance_for_account_with_no_hbar():
@@ -71,7 +71,7 @@ def test_from_json_returns_zero_balance_for_account_with_no_hbar():
     result = MirrorNodeAccountBalance._from_json(root)
 
     assert result is not None
-    assert result._hbars == Hbar.from_tinybars(0)
+    assert result.hbars == Hbar.from_tinybars(0)
 
 
 def test_from_json_rejects_non_dict_root():
@@ -126,4 +126,4 @@ def test_str_returns_expected_string():
 
     result = MirrorNodeAccountBalance(hbars)
 
-    assert str(result) == f"MirrorNodeAccountBalance{{hbars={hbars}}}"
+    assert str(result) == f"MirrorNodeAccountBalance(hbars={hbars})"
