@@ -19,6 +19,7 @@ from hiero_sdk_python.query.mirror_node_account_balance_query import (
 
 
 def test_constructor_sets_account_id_and_defaults():
+    """Test that the constructor sets the account ID and default values."""
     account_id = AccountId.from_string("0.0.5005")
 
     query = MirrorNodeAccountBalanceQuery(account_id)
@@ -29,6 +30,7 @@ def test_constructor_sets_account_id_and_defaults():
 
 
 def test_setters_are_fluent_and_round_trip():
+    """Test that setter methods update values and return the query instance."""
     initial_account_id = AccountId.from_string("0.0.5005")
     updated_account_id = AccountId.from_string("0.0.6006")
 
@@ -45,108 +47,74 @@ def test_setters_are_fluent_and_round_trip():
 
 
 def test_constructor_allows_none_account_id():
+    """Test that the constructor allows an unset account ID."""
     query = MirrorNodeAccountBalanceQuery()
 
     assert query.account_id is None
 
 
 def test_set_account_id_rejects_none():
-    account_id = AccountId.from_string("0.0.5005")
-    query = MirrorNodeAccountBalanceQuery(account_id)
-
-    with pytest.raises(
-        ValueError,
-        match="account_id must not be None",
-    ):
-        query.set_account_id(None)
+    """Test that set_account_id raises an error when given None."""
+    with pytest.raises(ValueError, match="account_id must not be None"):
+        MirrorNodeAccountBalanceQuery().set_account_id(None)
 
 
-def test_set_account_id_rejects_invalid_type():
-    account_id = AccountId.from_string("0.0.5005")
-    query = MirrorNodeAccountBalanceQuery(account_id)
-
-    with pytest.raises(
-        TypeError,
-        match="account_id must be an AccountId instance",
-    ):
-        query.set_account_id("0.0.6006")
+@pytest.mark.parametrize("account_id", ["0.0.1", True, 1, 0.2, {}, []])
+def test_set_account_id_rejects_invalid_type(account_id):
+    """Test that set_account_id rejects values that are not AccountId instances."""
+    with pytest.raises(TypeError, match="account_id must be an AccountId instance"):
+        MirrorNodeAccountBalanceQuery().set_account_id(account_id)
 
 
-def test_set_max_attempts_rejects_zero():
-    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
-
-    with pytest.raises(
-        ValueError,
-        match="greater than zero",
-    ):
-        query.set_max_attempts(0)
+@pytest.mark.parametrize("attempts", [-1, 0])
+def test_set_max_attempts_rejects_attempt_less_than_one(attempts):
+    """Test that set_max_attempts rejects values less than one."""
+    with pytest.raises(ValueError, match="greater than zero"):
+        MirrorNodeAccountBalanceQuery().set_max_attempts(attempts)
 
 
-def test_set_max_attempts_rejects_negative():
-    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
+@pytest.mark.parametrize("attempts", ["1", True, None, 0.2, {}, []])
+def test_set_max_attempts_rejects_non_integer(attempts):
+    """Test that set_max_attempts rejects non-integer values."""
 
-    with pytest.raises(
-        ValueError,
-        match="greater than zero",
-    ):
-        query.set_max_attempts(-1)
-
-
-def test_set_max_attempts_rejects_non_integer():
-    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
-
-    with pytest.raises(
-        TypeError,
-        match="max_attempts must be an integer",
-    ):
-        query.set_max_attempts(3.5)
+    with pytest.raises(TypeError, match="max_attempts must be an integer"):
+        MirrorNodeAccountBalanceQuery().set_max_attempts(attempts)
 
 
 def test_set_max_backoff_rejects_values_below_half_second():
-    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
-
-    with pytest.raises(
-        ValueError,
-        match="at least 0.5 seconds",
-    ):
-        query.set_max_backoff(0.499)
+    """Test that set_max_backoff rejects values below 0.5 seconds."""
+    with pytest.raises(ValueError, match="at least 0.5 seconds"):
+        MirrorNodeAccountBalanceQuery().set_max_backoff(0.499)
 
 
-def test_set_max_backoff_rejects_negative():
-    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
-
-    with pytest.raises(
-        ValueError,
-        match="at least 0.5 seconds",
-    ):
-        query.set_max_backoff(-1)
-
-
-def test_set_max_backoff_rejects_non_numeric():
-    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
-
+@pytest.mark.parametrize("backoff", ["1", True, None, {}, []])
+def test_set_max_backoff_rejects_non_numeric(backoff):
+    """Test that set_max_backoff rejects non-numeric values."""
     with pytest.raises(
         TypeError,
         match="max_backoff must be a number",
     ):
-        query.set_max_backoff("1.0")
+        MirrorNodeAccountBalanceQuery().set_max_backoff(backoff)
 
 
 def test_to_string_includes_account_id():
+    """Test that the string representation includes the account ID."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
-
     assert "0.0.5005" in str(query)
 
 
 def test_should_retry_status_for_408():
+    """Test that HTTP 408 is considered retryable."""
     assert MirrorNodeAccountBalanceQuery._should_retry_status(408)
 
 
 def test_should_retry_status_for_429():
+    """Test that HTTP 429 is considered retryable."""
     assert MirrorNodeAccountBalanceQuery._should_retry_status(429)
 
 
 def test_should_retry_status_for_server_errors():
+    """Test that HTTP 5xx status codes are considered retryable."""
     assert MirrorNodeAccountBalanceQuery._should_retry_status(500)
     assert MirrorNodeAccountBalanceQuery._should_retry_status(501)
     assert MirrorNodeAccountBalanceQuery._should_retry_status(502)
@@ -155,10 +123,12 @@ def test_should_retry_status_for_server_errors():
 
 
 def test_should_not_retry_status_for_success():
+    """Test that HTTP 200 is not considered retryable."""
     assert not MirrorNodeAccountBalanceQuery._should_retry_status(200)
 
 
 def test_should_not_retry_status_for_client_errors():
+    """Test that non-retryable HTTP 4xx status codes are not retried."""
     assert not MirrorNodeAccountBalanceQuery._should_retry_status(400)
     assert not MirrorNodeAccountBalanceQuery._should_retry_status(401)
     assert not MirrorNodeAccountBalanceQuery._should_retry_status(403)
@@ -167,10 +137,12 @@ def test_should_not_retry_status_for_client_errors():
 
 
 def test_should_not_retry_status_above_server_error_range():
+    """Test that HTTP status codes above 599 are not considered retryable."""
     assert not MirrorNodeAccountBalanceQuery._should_retry_status(600)
 
 
 def test_to_account_id_param_uses_standard_account_id():
+    """Test that an account ID without an alias uses its standard string format."""
     account_id = AccountId.from_string("0.0.5005")
 
     result = MirrorNodeAccountBalanceQuery._to_account_id_param(account_id)
@@ -179,6 +151,7 @@ def test_to_account_id_param_uses_standard_account_id():
 
 
 def test_execute_rejects_none_client():
+    """Test that execute raises an error when the client is None."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     with pytest.raises(
@@ -189,6 +162,7 @@ def test_execute_rejects_none_client():
 
 
 def test_execute_uses_client_request_timeout_when_timeout_is_none():
+    """Test that execute uses the client's request timeout when no timeout is provided."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     client = MagicMock()
@@ -224,6 +198,7 @@ def test_execute_uses_client_request_timeout_when_timeout_is_none():
 
 
 def test_execute_uses_default_timeout_when_client_has_no_request_timeout():
+    """Test that execute uses the default timeout when the client has no request timeout."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     client = MagicMock(spec=["network"])
@@ -257,6 +232,7 @@ def test_execute_uses_default_timeout_when_client_has_no_request_timeout():
 
 
 def test_execute_raises_precheck_error_when_balance_is_none():
+    """Test that execute raises a PrecheckError when no account balance is returned."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     client = MagicMock()
@@ -286,6 +262,7 @@ def test_execute_raises_precheck_error_when_balance_is_none():
 
 
 def test_build_url():
+    """Test that _build_url creates the expected mirror node REST URL."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     client = MagicMock()
@@ -301,6 +278,7 @@ def test_build_url():
     [408, 429, 500, 501, 502, 503, 599],
 )
 def test_fetch_body_retries_retryable_http_statuses(status_code):
+    """Test that _fetch_body retries requests for retryable HTTP status codes."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005")).set_max_attempts(2)
 
     first_response = MagicMock()
@@ -346,6 +324,7 @@ def test_fetch_body_retries_retryable_http_statuses(status_code):
 
 
 def test_fetch_body_does_not_retry_non_retryable_http_status():
+    """Test that _fetch_body does not retry non-retryable HTTP status codes."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005")).set_max_attempts(3)
 
     response = MagicMock()
@@ -373,6 +352,7 @@ def test_fetch_body_does_not_retry_non_retryable_http_status():
 
 
 def test_fetch_body_stops_retrying_after_max_attempts():
+    """Test that _fetch_body stops retrying after the configured maximum attempts."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005")).set_max_attempts(3)
 
     response = MagicMock()
@@ -400,6 +380,7 @@ def test_fetch_body_stops_retrying_after_max_attempts():
 
 
 def test_request_returns_response_for_success():
+    """Test that _request returns the response for a successful request."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     response = MagicMock()
@@ -422,6 +403,7 @@ def test_request_returns_response_for_success():
 
 
 def test_request_returns_http_error_status_without_exception():
+    """Test that _request returns the HTTP error status without an exception."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     error = HTTPError(
@@ -447,6 +429,7 @@ def test_request_returns_http_error_status_without_exception():
 
 
 def test_request_returns_exception_for_url_error():
+    """Test that _to_account_id_param uses the EVM address when provided as bytes."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     error = URLError("connection failed")
@@ -466,6 +449,7 @@ def test_request_returns_exception_for_url_error():
 
 
 def test_to_account_id_param_uses_evm_address_bytes():
+    """Test that _to_account_id_param uses the EVM address when provided as bytes."""
     account_id = MagicMock(spec=AccountId)
     account_id.evm_address = bytes.fromhex("1234567890abcdef1234567890abcdef12345678")
     account_id.alias_key = None
@@ -476,6 +460,7 @@ def test_to_account_id_param_uses_evm_address_bytes():
 
 
 def test_to_account_id_param_uses_evm_address_string():
+    """Test that _to_account_id_param uses the EVM address when provided as a string."""
     account_id = MagicMock(spec=AccountId)
     account_id.evm_address = "1234567890abcdef1234567890abcdef12345678"
     account_id.alias_key = None
@@ -486,6 +471,7 @@ def test_to_account_id_param_uses_evm_address_string():
 
 
 def test_to_account_id_param_uses_public_key_alias():
+    """Test that _to_account_id_param uses the public key alias when no EVM address is available."""
     account_id = MagicMock(spec=AccountId)
     account_id.evm_address = None
 
@@ -506,6 +492,7 @@ def test_to_account_id_param_uses_public_key_alias():
 
 
 def test_constructor_init_with_invalid_account_id_type():
+    """Test that the constructor rejects an invalid account ID type."""
     with pytest.raises(
         TypeError,
         match="account_id must be an AccountId",
@@ -514,6 +501,7 @@ def test_constructor_init_with_invalid_account_id_type():
 
 
 def test_execute_raises_error_when_malformed_json_is_received():
+    """Test that execute raises an error when the mirror node returns malformed JSON."""
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     client = MagicMock()
@@ -535,3 +523,9 @@ def test_execute_raises_error_when_malformed_json_is_received():
         ),
     ):
         query.execute(client)
+
+
+def test_execute_raise_error_if_no_account_id_set(mock_client):
+    """Test that execute raises an error when no account ID is set."""
+    with pytest.raises(ValueError, match="accountId must be set before executing MirrorNodeAccountBalanceQuery"):
+        MirrorNodeAccountBalanceQuery().execute(mock_client)

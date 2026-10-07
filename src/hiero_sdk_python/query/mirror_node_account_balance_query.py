@@ -191,6 +191,9 @@ class MirrorNodeAccountBalanceQuery:
         if timeout is None:
             timeout = getattr(client, "request_timeout", 30.0)
 
+        if self.account_id is None:
+            raise ValueError("accountId must be set before executing MirrorNodeAccountBalanceQuery")
+
         url = self._build_url(client)
 
         body = self._fetch_body(url, timeout)

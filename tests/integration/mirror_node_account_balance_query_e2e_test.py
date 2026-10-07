@@ -26,6 +26,7 @@ from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.query.mirror_node_account_balance_query import (
     MirrorNodeAccountBalanceQuery,
 )
+from hiero_sdk_python.response_code import ResponseCode
 from tests.integration.utils import wait_for_mirror_node
 
 
@@ -144,11 +145,11 @@ def test_throws_invalid_account_id_for_non_existent_account(env, account_id):
     """
     client = env.client
 
-    with pytest.raises(PrecheckError):
+    with pytest.raises(PrecheckError) as e:
         MirrorNodeAccountBalanceQuery(account_id).execute(client)
+    assert e.value.status == ResponseCode.INVALID_ACCOUNT_ID
 
 
-@pytest.mark.skip(reason="Requires an operator account with sufficient HBAR to create a test contract")
 def test_can_fetch_balance_for_contract(env):
     """
     Can fetch the HBAR balance of a contract passed as an account ID.
