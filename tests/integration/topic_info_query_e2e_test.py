@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -43,3 +44,31 @@ def test_integration_topic_info_query_can_execute():
         )
     finally:
         env.close()
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_topic_info_query_get_cost(env):
+    """Test the get_cost method for the topic_info query."""
+    receipt = (
+        TopicCreateTransaction(memo="Topic for info query", admin_key=env.public_operator_key)
+        .freeze_with(env.client)
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Topic creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+    topic_id = receipt.topic_id
+
+    # With operator
+    cost1 = TopicInfoQuery().set_topic_id(topic_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost = TopicInfoQuery().set_topic_id(topic_id).get_cost(client)
+
+    assert cost is not None
+    assert cost.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost.to_tinybars}"

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
@@ -50,3 +51,29 @@ def test_integration_token_nft_info_query_fail_nonexistent_nft():
             TokenNftInfoQuery(nft_id).execute(env.client)
     finally:
         env.close()
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_token_nft_info_query_get_cost(env):
+    """Test the get_cost method for the token_nft_info query."""
+    token_id = create_nft_token(env)
+    receipt = TokenMintTransaction(token_id=token_id, metadata=b"hello hiero").execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token minting failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    nft_id = NftId(token_id, receipt.serial_numbers[0])
+
+    # With operator
+    cost1 = TokenNftInfoQuery().set_nft_id(nft_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = TokenNftInfoQuery().set_nft_id(nft_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars}"

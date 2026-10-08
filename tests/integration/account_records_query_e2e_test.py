@@ -8,6 +8,7 @@ import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_records_query import AccountRecordsQuery
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
@@ -93,3 +94,21 @@ def test_integration_account_record_query_insufficient_payment(env):
 
     with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_TX_FEE"):
         records_query.set_query_payment(Hbar.from_tinybars(1)).execute(env.client)
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_account_record_query_get_cost_method(env):
+    """Test the get_cost for the account_record query."""
+    # With operator
+    cost1 = AccountRecordsQuery().set_account_id(env.operator_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = AccountRecordsQuery().set_account_id(env.operator_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars}"

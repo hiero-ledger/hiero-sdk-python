@@ -11,6 +11,7 @@ from examples.contract.contracts import (
     SIMPLE_CONTRACT_BYTECODE,
     SIMPLE_CONTRACT_RUNTIME_BYTECODE,
 )
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.contract.contract_bytecode_query import ContractBytecodeQuery
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
@@ -111,3 +112,37 @@ def test_integration_contract_bytecode_query_fails_with_invalid_contract_id(env)
 
     with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_CONTRACT_ID"):
         ContractBytecodeQuery(contract_id).execute(env.client)
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_contract_bytecode_query_get_cost_method(env):
+    """Test the get_cost for the contract_bytecode query."""
+    bytecode = bytes.fromhex(SIMPLE_CONTRACT_BYTECODE)
+    receipt = (
+        ContractCreateTransaction()
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_bytecode(bytecode)
+        .set_contract_memo("contract create with bytecode")
+        .execute(env.client)
+    )
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    contract_id = receipt.contract_id
+    # With operator
+    cost1 = ContractBytecodeQuery().set_contract_id(contract_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars}"
+
+    # Without operator
+    client = Client(env.client.network)
+
+    cost2 = ContractBytecodeQuery().set_contract_id(contract_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars}"
