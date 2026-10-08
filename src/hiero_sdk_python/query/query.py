@@ -274,7 +274,7 @@ class Query(_Executable):
         exceptions raised by it.
 
         Args:
-            client (Client): The client instance to use for execution. Must have an operator set.
+            client (Client): The client instance to use for execution. No operator required.
 
         Returns:
             Hbar: The cost in Hbars to execute this query.

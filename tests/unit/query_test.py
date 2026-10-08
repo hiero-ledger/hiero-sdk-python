@@ -471,7 +471,7 @@ def test_request_header_uses_answer_only_when_payment_not_require_payments(query
     assert not header.HasField("payment"), "Payment field should not be present when query not require payment"
 
 
-def test_get_cost_called_twice_only_executes_cost_query(query_requires_payment, token_id):
+def test_get_cost_called_only_executes_cost_query(query_requires_payment, token_id):
     """Test that get_cost only sends COST_ANSWER."""
     response = response_pb2.Response(
         tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(
