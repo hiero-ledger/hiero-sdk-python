@@ -493,3 +493,12 @@ def test_get_cost_called_twice_only_executes_cost_query(query_requires_payment, 
         # COST_ANSWER request.
         second_result = query_requires_payment.get_cost(client)
         assert second_result == Hbar.from_tinybars(2)
+
+
+def test_get_cost_raise_error_if_client_none(query_requires_payment, query):
+    """Test that get_cost raise error when client is none."""
+    with pytest.raises(ValueError, match="Client must be set to get the cost"):
+        query.get_cost(None)
+
+    with pytest.raises(ValueError, match="Client must be set to get the cost"):
+        query_requires_payment.get_cost(None)
