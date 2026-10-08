@@ -289,14 +289,14 @@ class Query(_Executable):
             MaxAttemptsError: If the cost query fails after maximum retry attempts
             ReceiptStatusError: If the cost query fails with a receipt error
         """
+        if client is None:
+            raise ValueError("Client must be set to get the cost")
+
         if not self._is_payment_required():
             return Hbar.from_tinybars(0)
 
         if self.payment_amount is not None:
             return self.payment_amount
-
-        if client is None:
-            raise ValueError("Client must be set to get the cost")
 
         if self._node_account_ids.is_empty:
             self._node_account_ids.set_list([node._account_id for node in client.network.nodes])
