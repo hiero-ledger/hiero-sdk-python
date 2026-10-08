@@ -176,11 +176,11 @@ def test_integration_schedule_info_query_get_cost_methods(env):
     cost1 = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).get_cost(env.client)
 
     assert cost1 is not None
-    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars}"
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars()}"
 
     # Without operator
     client = Client(env.client.network)
     cost2 = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).get_cost(client)
 
     assert cost2 is not None
-    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars}"
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars()}"

@@ -137,7 +137,7 @@ def test_integration_contract_bytecode_query_get_cost_method(env):
     cost1 = ContractBytecodeQuery().set_contract_id(contract_id).get_cost(env.client)
 
     assert cost1 is not None
-    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars}"
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars()}"
 
     # Without operator
     client = Client(env.client.network)
@@ -145,4 +145,4 @@ def test_integration_contract_bytecode_query_get_cost_method(env):
     cost2 = ContractBytecodeQuery().set_contract_id(contract_id).get_cost(client)
 
     assert cost2 is not None
-    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars}"
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars()}"
