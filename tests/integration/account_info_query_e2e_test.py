@@ -5,6 +5,7 @@ import pytest
 from hiero_sdk_python import Duration
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
@@ -284,3 +285,21 @@ def test_integration_account_info_query_nft_owned():
         assert info.owned_nfts == 2, f"Expected 2 owned NFTs, but got {info.owned_nfts}"
     finally:
         env.close()
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_account_info_query_get_cost(env):
+    """Test the get_cost for the account_info query."""
+    # With operator
+    cost1 = AccountInfoQuery().set_account_id(env.operator_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = AccountInfoQuery().set_account_id(env.operator_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars}"

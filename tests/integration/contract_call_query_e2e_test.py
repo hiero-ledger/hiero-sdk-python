@@ -11,6 +11,7 @@ from examples.contract.contracts.contract_utils import (
     SIMPLE_CONTRACT_BYTECODE,
     STATEFUL_CONTRACT_BYTECODE,
 )
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
@@ -254,3 +255,38 @@ def test_integration_contract_call_query_fails_with_no_gas(env):
 
     with pytest.raises(PrecheckError, match="failed precheck with status: INSUFFICIENT_GAS"):
         contract_call_query.execute(env.client)
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_contract_call_query_get_cost_methos(env):
+    """Test the get_cost for the contract_call query."""
+    bytecode = bytes.fromhex(SIMPLE_CONTRACT_BYTECODE)
+    receipt = (
+        ContractCreateTransaction()
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_bytecode(bytecode)
+        .set_contract_memo("contract create with bytecode")
+        .execute(env.client)
+    )
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+    contract_id = receipt.contract_id
+
+    # With operator
+    cost1 = (
+        ContractCallQuery().set_contract_id(contract_id).set_gas(10000000).set_function("greet").get_cost(env.client)
+    )
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = ContractCallQuery().set_contract_id(contract_id).set_gas(10000000).set_function("greet").get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars}"

@@ -19,8 +19,11 @@ import threading
 
 import pytest
 
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_delete_transaction import AccountDeleteTransaction
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import ReceiptStatusError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
@@ -508,3 +511,29 @@ def test_get_receipt_query_duplicate_receipts_mapping_e2e(env):
             assert duplicate_receipt.transaction_id == tx_id, (
                 f"Duplicate receipt must have transaction_id={tx_id} (same as parent for context)"
             )
+
+
+# Requires no payment so get_cost() return Hbar == 0
+@pytest.mark.integration
+def test_integration_transaction_receipt_query_get_cost(env):
+    """Test the get_cost for the transaction receipt query."""
+    receipt = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_initial_balance(Hbar(1))
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS
+
+    # With operator
+    cost1 = TransactionGetReceiptQuery().set_transaction_id(receipt.transaction_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() == 0, f"Expected cost to be equal 0 but get {cost1.to_tinybars}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = TransactionGetReceiptQuery().set_transaction_id(receipt.transaction_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() == 0, f"Expected cost to be equal 0 but get {cost2.to_tinybars}"
