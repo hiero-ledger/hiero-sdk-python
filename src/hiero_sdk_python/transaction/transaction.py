@@ -1021,6 +1021,51 @@ class Transaction(_Executable):
         transaction._node_account_ids.set_lock(True)
 
     @staticmethod
+    def _validate_transaction_pairs(
+        transaction_ids: list[TransactionId],
+        node_ids: list[AccountId],
+        bodies: list[transaction_pb2.TransactionBody],
+    ) -> None:
+        """
+        Validate that each transaction-node pair occurs exactly once and are ordered.
+
+        Raises:
+            ValueError: If a pair is duplicated, missing, or out of order.
+        """
+        if not transaction_ids or not node_ids:
+            return
+
+        expected_pairs = [
+            (
+                transaction_id._to_proto().SerializeToString(),
+                node_id._to_proto().SerializeToString(),
+            )
+            for transaction_id in transaction_ids
+            for node_id in node_ids
+        ]
+
+        actual_pairs = []
+
+        for body in bodies:
+            if not body.HasField("transactionID") or not body.HasField("nodeAccountID"):
+                raise ValueError("Failed to validate transaction bodies: transaction ID or node account ID is missing")
+
+            actual_pairs.append(
+                (
+                    body.transactionID.SerializeToString(),
+                    body.nodeAccountID.SerializeToString(),
+                )
+            )
+
+        if len(actual_pairs) != len(set(actual_pairs)):
+            raise ValueError("Failed to validate transaction bodies: duplicate transaction ID and node account ID pair")
+
+        if actual_pairs != expected_pairs:
+            raise ValueError(
+                "Failed to validate transaction bodies: missing or incorrectly ordered transaction-node pairs"
+            )
+
+    @staticmethod
     def _validate_transaction_bodies(
         transaction_type: str,
         transaction_ids: list[TransactionId],
@@ -1059,6 +1104,9 @@ class Transaction(_Executable):
         expected_body_count = transaction_count * group_size
         if len(bodies) != expected_body_count or has_invalid_transaction_count:
             raise ValueError("Failed to validate transaction bodies")
+
+        # check for unique pairs and pair order
+        Transaction._validate_transaction_pairs(transaction_ids, node_ids, bodies)
 
         ignored_fields = {"nodeAccountID"}
         for transaction_index in range(transaction_count):

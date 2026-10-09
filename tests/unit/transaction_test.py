@@ -1073,3 +1073,230 @@ def test_lock_restored_transaction_locks_frozen_transaction(mock_client):
 
     assert transaction._transaction_ids._locked
     assert transaction._node_account_ids._locked
+
+
+def test_validate_transaction_pairs_valid_pairs():
+    """Test that valid transaction pairs pass validation."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    Transaction._validate_transaction_pairs(
+        [transaction_id],
+        [node_a, node_b],
+        bodies,
+    )
+
+
+def test_validate_transaction_pairs_invalid_valid_pairs():
+    """Test that invalid valid transaction pairs fails validation."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(
+            transactionID=transaction_id._to_proto(),
+            nodeAccountID=node_a._to_proto(),  # Duplicate; node_b is missing.
+        ),
+    ]
+
+    with pytest.raises(ValueError, match="duplicate transaction ID and node account ID pair"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_rejects_missing_pair():
+    """Test that validation rejects a missing transaction pair."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_a._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_rejects_incorrect_order():
+    """Test that validation rejects transaction pairs in the wrong order."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_a._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_rejects_unexpected_transaction_id():
+    """Test that validation rejects a body with an unexpected transaction ID."""
+    node_a = AccountId.from_string("0.0.3")
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+
+    body = transaction_pb2.TransactionBody(
+        transactionID=TransactionId.generate(AccountId.from_string("0.0.101"))._to_proto(),
+        nodeAccountID=node_a._to_proto(),
+    )
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered transaction-node pairs"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [node_a],
+            [body],
+        )
+
+
+def test_validate_transaction_pairs_rejects_missing_node_account_id():
+    """Test that validation rejects a body without a node account ID."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.3"))
+
+    body = transaction_pb2.TransactionBody(
+        transactionID=transaction_id._to_proto(),
+    )
+
+    with pytest.raises(ValueError, match="transaction ID or node account ID is missing"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [AccountId.from_string("0.0.3")],
+            [body],
+        )
+
+
+def test_validate_transaction_pairs_valid_multiple_transactions():
+    """Test that valid transaction pairs across multiple transactions pass validation."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    Transaction._validate_transaction_pairs(
+        [tx1, tx2],
+        [node_a, node_b],
+        bodies,
+    )
+
+
+def test_validate_transaction_pairs_valid_multiple_duplicate_transactions():
+    """Test that validation rejects duplicate transaction pairs across multiple transactions."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="duplicate transaction ID and node account ID pair"):
+        Transaction._validate_transaction_pairs(
+            [tx1, tx2],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_valid_multiple_transactions_unexpected_tx_id():
+    """Test that validation rejects transaction pairs across multiple transactions for unexpected tx_id."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(
+            transactionID=TransactionId.generate(AccountId.from_string("0.0.100"))._to_proto(),
+            nodeAccountID=node_a._to_proto(),
+        ),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered transaction-node pairs"):
+        Transaction._validate_transaction_pairs(
+            [tx1, tx2],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_valid_multiple_transactions_unorder():
+    """Test that validation rejects unorder transaction pairs across multiple transactions."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered transaction-node pairs"):
+        Transaction._validate_transaction_pairs(
+            [tx1, tx2],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_valid_multiple_transactions_missing_pair():
+    """Test that validation rejects unorder transaction pairs across multiple transactions."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_a._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered transaction-node pairs"):
+        Transaction._validate_transaction_pairs(
+            [tx1, tx2],
+            [node_a, node_b],
+            bodies,
+        )
