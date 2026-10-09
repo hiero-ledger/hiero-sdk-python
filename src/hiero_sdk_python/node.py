@@ -20,6 +20,60 @@ CERT_FETCH_TIMEOUT_SECONDS = 10
 
 logger = logging.getLogger(__name__)
 
+# Length of a raw SHA-384 digest (the form carried by the protobuf address book).
+_SHA384_DIGEST_LENGTH = hashlib.sha384().digest_size
+
+# Lowercase ASCII hexadecimal digits, used to tell hex text apart from a raw digest.
+_HEX_DIGITS = frozenset("0123456789abcdef")
+
+
+def _is_hex_text(value: bytes | bytearray) -> bool:
+    """
+    Whether ``value`` reads as (optionally ``0x`` prefixed) ASCII hexadecimal text.
+
+    An empty string, or one that is only the ``0x`` prefix, is not text.
+    """
+    try:
+        text = bytes(value).decode("ascii")
+    except UnicodeDecodeError:
+        return False
+
+    digits = text[2:] if text[:2].lower() == "0x" else text
+    return len(digits) > 0 and all(character in _HEX_DIGITS for character in digits.lower())
+
+
+def _normalize_cert_hash(cert_hash: bytes | None) -> str | None:
+    """
+    Normalize a certificate hash to a lowercase hexadecimal string.
+
+    Args:
+        cert_hash: Raw digest bytes, or UTF-8 (optionally ``0x`` prefixed) hex text.
+
+    Returns:
+        str | None: Lowercase hex fingerprint, or None when no usable hash is
+        present (not bytes-like, empty, whitespace only, or ``0x`` only).
+    """
+    if not isinstance(cert_hash, (bytes, bytearray)) or len(cert_hash) == 0:
+        return None
+
+    if len(cert_hash) == _SHA384_DIGEST_LENGTH and not _is_hex_text(cert_hash):
+        return bytes(cert_hash).hex().lower()
+
+    try:
+        decoded = cert_hash.decode("utf-8").strip().lower()
+    except UnicodeDecodeError:
+        return bytes(cert_hash).hex().lower() or None
+
+    if decoded.startswith("0x"):
+        decoded = decoded[2:]
+
+    return decoded or None
+
+
+_NO_TRUST_ANCHOR_MESSAGE = (
+    "Transport security and certificate verification are enabled, but no applicable address book was found"
+)
+
 
 class _HederaTrustManager:
     """
@@ -33,24 +87,18 @@ class _HederaTrustManager:
         Initialize the trust manager.
 
         Args:
-            cert_hash: Expected certificate hash from address book (UTF-8 encoded hex string)
+            cert_hash: Expected certificate hash from the address book. Either the
+                raw SHA-384 digest (48 bytes) or its UTF-8 encoded hexadecimal
+                representation (optionally prefixed with ``0x``).
             verify_certificate: Whether to enforce certificate verification
         """
-        if cert_hash is None or len(cert_hash) == 0:
-            if verify_certificate:
-                raise ValueError(
-                    "Transport security and certificate verification are enabled, "
-                    "but no applicable address book was found"
-                )
-            self.cert_hash = None
-        else:
-            # Convert bytes to hex string (matching Java's String conversion)
-            try:
-                self.cert_hash = cert_hash.decode("utf-8").strip().lower()
-                if self.cert_hash.startswith("0x"):
-                    self.cert_hash = self.cert_hash[2:]
-            except UnicodeDecodeError:
-                self.cert_hash = cert_hash.hex().lower()
+        normalized_hash = _normalize_cert_hash(cert_hash)
+
+        self.verify_certificate: bool = verify_certificate
+        self.cert_hash: str | None = normalized_hash
+
+        if self.cert_hash is None and verify_certificate:
+            raise ValueError(_NO_TRUST_ANCHOR_MESSAGE)
 
     def check_server_trusted(self, pem_cert: bytes) -> bool:
         """
@@ -69,10 +117,14 @@ class _HederaTrustManager:
             return True
 
         # Compute SHA-384 hash of PEM certificate (matching Java implementation)
-        cert_hash_bytes = hashlib.sha384(pem_cert).digest()
-        actual_hash = cert_hash_bytes.hex().lower()
+        actual_hash = hashlib.sha384(pem_cert).hexdigest()
 
-        if not hmac.compare_digest(actual_hash, self.cert_hash):
+        try:
+            hash_matches = hmac.compare_digest(actual_hash, self.cert_hash)
+        except TypeError:
+            hash_matches = False
+
+        if not hash_matches:
             raise ValueError(
                 f"Failed to confirm the server's certificate from a known address book. "
                 f"Expected hash: {self.cert_hash}, received hash: {actual_hash}"
@@ -82,18 +134,24 @@ class _HederaTrustManager:
 
 
 class _Node:
-    def __init__(self, account_id: AccountId, address: str, address_book: NodeAddress):
+    def __init__(
+        self,
+        account_id: AccountId,
+        address: str,
+        address_book: NodeAddress | None = None,
+    ):
         """
         Initialize a new Node instance.
 
         Args:
             account_id (AccountId): The account ID of the node.
             address (str): The address of the node.
-            min_backoff (int): The minimum backoff time in seconds.
+            address_book (NodeAddress | None): The address-book entry for the node.
+                ``None`` when the node was built without address-book metadata.
         """
         self._account_id: AccountId = account_id
         self._channel: _Channel | None = None
-        self._address_book: NodeAddress = address_book
+        self._address_book: NodeAddress | None = address_book
         self._address: _ManagedNodeAddress = _ManagedNodeAddress._from_string(address)
         self._verify_certificates: bool = True
         self._root_certificates: bytes | None = None
@@ -127,13 +185,16 @@ class _Node:
             return self._channel
 
         if self._address._is_transport_security():
+            if self._verify_certificates and not self._has_trust_anchor():
+                raise ValueError(_NO_TRUST_ANCHOR_MESSAGE)
+
             if self._root_certificates:
                 # Use the certificate that is provided
                 self._node_pem_cert = self._root_certificates
 
             else:
-                # Fetch pem_cert for the node (works even without an
-                # address book). Returns None if the handshake fails(unreachable host, no TLS listener)
+                # Fetch pem_cert for the node (a trust anchor was verified above).
+                # Returns None if the handshake fails(unreachable host, no TLS listener)
                 self._node_pem_cert = self._fetch_server_certificate_pem()
 
             if not self._node_pem_cert:
@@ -217,45 +278,63 @@ class _Node:
             ("grpc.keepalive_permit_without_calls", 1),
         ]
 
+    def _resolve_trust_anchor(self) -> bytes | None:
+        """
+        Resolve the address-book certificate hash used to pin fetched certificates.
+
+        Returns:
+            bytes | None: The address-book certificate hash, or None if the node
+            has no address book.
+        """
+        if self._address_book is not None:
+            return self._address_book.cert_hash
+
+        return None
+
+    def _has_trust_anchor(self) -> bool:
+        """
+        Whether this node can authenticate the server when verification is enabled.
+
+        A trust anchor exists when explicitly configured root certificates are
+        present, allowing the TLS stack to validate the server against them,
+        or when the address book supplies a non-empty certificate hash to pin the fetched certificate.
+        """
+        if bool(self._root_certificates and self._root_certificates.strip()):
+            return True
+
+        cert_hash = self._resolve_trust_anchor()
+        return bool(_normalize_cert_hash(cert_hash))
+
     def _validate_tls_certificate_with_trust_manager(self):
         """
         Validate the remote TLS certificate using HederaTrustManager.
         This performs a pre-handshake validation by fetching the server certificate
         and comparing its hash to the expected hash from the address book.
 
-        Note: If verification is enabled but no cert hash is available (e.g., in unit tests
-        without address books), validation is skipped rather than raising an error.
+        Raises:
+            ValueError: If verification is enabled but no trust anchor exists
+                (no address-book certificate hash and no explicitly configured
+                root certificates), or if the certificate hash does not match.
         """
         if not self._address._is_transport_security() or not self._verify_certificates:
             return
 
-        cert_hash = None
-        if self._address_book:  # pylint: disable=protected-access
-            cert_hash = self._address_book._cert_hash  # pylint: disable=protected-access
-
-        # Skip validation if no cert hash is available (e.g., in unit tests)
-        # This allows tests to run without address books while still enabling
-        # verification in production where address books are available.
-        if cert_hash is None or len(cert_hash) == 0:
+        # Explicitly configured root certificates are a complete trust anchor:
+        # the TLS stack authenticates the server against them, so certificate
+        # hash pinning does not apply.
+        if self._root_certificates:
             return
+
+        if not self._has_trust_anchor():
+            raise ValueError(_NO_TRUST_ANCHOR_MESSAGE)
+
+        cert_hash = self._resolve_trust_anchor()
 
         # Create trust manager and validate certificate
         trust_manager = _HederaTrustManager(cert_hash, self._verify_certificates)
         trust_manager.check_server_trusted(self._node_pem_cert)
 
-    @staticmethod
-    def _normalize_cert_hash(cert_hash: bytes) -> str:
-        """Normalize the certificate hash to a lowercase hex string."""
-        try:
-            decoded = cert_hash.decode("utf-8").strip().lower()
-            if decoded.startswith("0x"):
-                decoded = decoded[2:]
-
-            return decoded
-        except UnicodeDecodeError:
-            return cert_hash.hex()
-
-    def _fetch_server_certificate_pem(self) -> bytes:
+    def _fetch_server_certificate_pem(self) -> bytes | None:
         """
         Perform a TLS handshake and retrieve the server certificate in PEM format.
 

@@ -428,6 +428,7 @@ class _Executable(ABC):
         """
         self._resolve_execution_config(client, timeout)
 
+        self._unhealthy_skip_count = 0
         err_persistant = None
         tx_id = getattr(self, "transaction_id", None)
 
