@@ -13,6 +13,7 @@ from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
+    consensus_submit_message_pb2,
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
@@ -898,6 +899,107 @@ def test_validate_transaction_bodies_multiple_nodes():
             AccountId(0, 0, 4),
         ],
         bodies=[body1, body2],
+    )
+
+
+def test_validate_transaction_bodies_chunk_transaction(topic_id):
+    """Test validation of a chunked transaction."""
+    transaction_id1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id2 = TransactionId.generate(AccountId(0, 0, 3))
+
+    chunk1 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("Hello"))._build_proto_body()
+
+    chunk1.chunkInfo.CopyFrom(
+        consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=transaction_id1._to_proto(),
+            total=2,
+            number=1,
+        )
+    )
+
+    chunk2 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("World"))._build_proto_body()
+    chunk2.chunkInfo.CopyFrom(
+        consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=transaction_id1._to_proto(),
+            total=2,
+            number=2,
+        )
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id1._to_proto())
+    body1.transactionFee = 100
+    body1.consensusSubmitMessage.CopyFrom(chunk1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id2._to_proto())
+    body2.transactionFee = 100
+    body2.consensusSubmitMessage.CopyFrom(chunk2)
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="consensusSubmitMessage",
+        transaction_ids=[transaction_id1, transaction_id2],
+        node_ids=[],
+        bodies=[body1, body2],
+    )
+
+
+def test_validate_transaction_bodies_chunk_transaction_mutiple_node_ids(topic_id):
+    """Test validation of a chunked transaction mutiple node."""
+    node1 = AccountId.from_string("0.0.101")
+    node2 = AccountId.from_string("0.0.102")
+
+    transaction_id1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id2 = TransactionId.generate(AccountId(0, 0, 3))
+
+    chunk1 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("Hello"))._build_proto_body()
+
+    chunk1.chunkInfo.CopyFrom(
+        consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=transaction_id1._to_proto(),
+            total=2,
+            number=1,
+        )
+    )
+
+    chunk2 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("World"))._build_proto_body()
+    chunk2.chunkInfo.CopyFrom(
+        consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=transaction_id1._to_proto(),
+            total=2,
+            number=2,
+        )
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id1._to_proto())
+    body1.nodeAccountID.CopyFrom(node1._to_proto())
+    body1.transactionFee = 100
+    body1.consensusSubmitMessage.CopyFrom(chunk1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id1._to_proto())
+    body2.nodeAccountID.CopyFrom(node2._to_proto())
+    body2.transactionFee = 100
+    body2.consensusSubmitMessage.CopyFrom(chunk1)
+
+    body3 = transaction_pb2.TransactionBody()
+    body3.transactionID.CopyFrom(transaction_id2._to_proto())
+    body3.nodeAccountID.CopyFrom(node1._to_proto())
+    body3.transactionFee = 100
+    body3.consensusSubmitMessage.CopyFrom(chunk2)
+
+    body4 = transaction_pb2.TransactionBody()
+    body4.transactionID.CopyFrom(transaction_id2._to_proto())
+    body4.nodeAccountID.CopyFrom(node2._to_proto())
+    body4.transactionFee = 100
+    body4.consensusSubmitMessage.CopyFrom(chunk2)
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="consensusSubmitMessage",
+        transaction_ids=[transaction_id1, transaction_id2],
+        node_ids=[node1, node2],
+        bodies=[body1, body2, body3, body4],
     )
 
 
