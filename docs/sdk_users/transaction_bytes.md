@@ -135,6 +135,27 @@ final_tx = Transaction.from_bytes(signed_bytes)
 receipt = final_tx.execute(client)
 ```
 
+## Transaction ID Pinning
+
+If the network rejects a transaction with `TRANSACTION_EXPIRED`, `execute()` can replace its transaction ID and retry once. This is on by default; turn it off with `Transaction.set_regenerate_transaction_id(False)` or `Client.set_default_regenerate_transaction_id(False)`.
+
+The SDK only replaces an ID that nobody outside the SDK can have seen. Any of these **pins** the ID, so it is never replaced:
+
+- setting it with `set_transaction_id()` or `transaction.transaction_id = ...`
+- reading `transaction.transaction_id`
+- calling `to_bytes()`
+- loading the transaction with `Transaction.from_bytes()`
+
+A pinned ID that expires raises `PrecheckError` with status `TRANSACTION_EXPIRED`, as before. This matches the Java and JavaScript SDKs, and it keeps serialized bytes and the live transaction from drifting apart.
+
+To keep regeneration available, read the ID after `execute()`, or take it from the response:
+
+```python
+transaction.freeze_with(client)
+response = transaction.execute(client, wait_for_receipt=False)
+print(response.transaction_id)  # the ID that was actually submitted
+```
+
 ## Method Comparison
 
 | Feature | `freeze()` | `freeze_with(client)` |

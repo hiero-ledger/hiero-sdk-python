@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -27,6 +28,21 @@ if TYPE_CHECKING:
         ScheduleCreateTransaction,
     )
     from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+
+
+@dataclass
+class _RegenerationContext:
+    """
+    Execution-scoped state for regenerating the transaction ID on TRANSACTION_EXPIRED.
+
+    Lives only for the duration of a single `Transaction.execute()` call, so the operator's
+    private key is never retained on the transaction afterwards.
+    """
+
+    operator_account_id: AccountId | None
+    operator_private_key: PrivateKey
+    enabled: bool
+    regenerated: bool = False
 
 
 class Transaction(_Executable):
@@ -65,6 +81,14 @@ class Transaction(_Executable):
         self._default_transaction_fee = Hbar(2)
         self.operator_account_id = None
         self.batch_key: Key | None = None
+        self._regenerate_transaction_id: bool | None = None
+        # True once the transaction ID may be known outside the SDK: it was set by the caller,
+        # read through the public `transaction_id` property, serialized with to_bytes(), or
+        # restored with from_bytes(). A pinned ID is never replaced on TRANSACTION_EXPIRED.
+        # This is independent of the freeze lock on `_transaction_ids`.
+        self._transaction_id_pinned: bool = False
+        # Only set while execute() is running; see _RegenerationContext.
+        self._regeneration_context: _RegenerationContext | None = None
 
     def _make_request(self):
         """
@@ -77,6 +101,10 @@ class Transaction(_Executable):
             Transaction: The protobuf transaction message ready to be sent
         """
         return self._to_proto()
+
+    def _transaction_id_for_logging(self) -> TransactionId | None:
+        """Log the current transaction ID without pinning it."""
+        return self._current_transaction_id
 
     def _map_response(self, response, node_id, proto_request):  # noqa: ARG002
         """
@@ -140,6 +168,10 @@ class Transaction(_Executable):
             return _ExecutionState.RETRY
 
         if status == ResponseCode.TRANSACTION_EXPIRED:
+            if self._can_regenerate_transaction_id():
+                self._regenerate_transaction_ids()
+                return _ExecutionState.RETRY
+
             return _ExecutionState.EXPIRED
 
         if status == ResponseCode.OK:
@@ -162,6 +194,88 @@ class Transaction(_Executable):
 
         return PrecheckError(error_code, tx_id)
 
+    def _supports_transaction_id_regeneration(self) -> bool:
+        """
+        Whether this transaction type may have its transaction ID regenerated on
+        TRANSACTION_EXPIRED. Subclasses that cannot be safely rebuilt override this.
+        """
+        return True
+
+    def _on_transaction_ids_regenerated(self, start_index: int) -> None:
+        """
+        Hook called after the transaction IDs from `start_index` onwards have been replaced,
+        and before their bodies are rebuilt.
+        """
+        pass
+
+    def _can_regenerate_transaction_id(self) -> bool:
+        """
+        Whether the current transaction ID may be replaced after TRANSACTION_EXPIRED.
+
+        Only an ID the SDK generated itself, that nobody outside the SDK has seen, and that
+        the executing operator alone pays for and signs may be replaced, and at most once
+        per execute() call.
+        """
+        context = self._regeneration_context
+        if context is None or not context.enabled or context.regenerated:
+            return False
+
+        if self._transaction_id_pinned or not self._supports_transaction_id_regeneration():
+            return False
+
+        # The new ID keeps the current payer, so it must be the executing operator.
+        if self._transaction_ids.current.account_id != context.operator_account_id:
+            return False
+
+        # Only the operator's signature can be reproduced over the rebuilt bodies.
+        operator_public_key_bytes = context.operator_private_key.public_key().to_bytes_raw()
+        for transaction_id in self._transaction_ids.get_list()[self._transaction_ids.index :]:
+            for body_bytes in self._transaction_body_bytes.get(transaction_id, {}).values():
+                sig_map = self._signature_map.get(body_bytes)
+                if sig_map is not None and any(
+                    sig_pair.pubKeyPrefix != operator_public_key_bytes for sig_pair in sig_map.sigPair
+                ):
+                    return False
+
+        return True
+
+    def _regenerate_transaction_ids(self) -> None:
+        """
+        Replace the current transaction ID and every later one, then rebuild and re-sign
+        only those bodies with the operator's key.
+
+        IDs before the current index belong to chunks that were already submitted and are
+        left untouched. The new IDs keep the current payer and are spaced 1ns apart, as at
+        freeze time.
+        """
+        context = self._regeneration_context
+        start_index = self._transaction_ids.index
+        old_transaction_ids = self._transaction_ids.get_list()[start_index:]
+        new_transaction_ids = self._consecutive_transaction_ids(
+            TransactionId.generate(self._transaction_ids.current.account_id), len(old_transaction_ids)
+        )
+
+        self._transaction_ids.set_lock(False)
+        for offset, transaction_id in enumerate(new_transaction_ids):
+            self._transaction_ids.set(start_index + offset, transaction_id)
+        self._transaction_ids.set_lock(True)
+
+        self._on_transaction_ids_regenerated(start_index)
+
+        for transaction_id in old_transaction_ids:
+            for body_bytes in self._transaction_body_bytes.pop(transaction_id, {}).values():
+                self._signature_map.pop(body_bytes, None)
+
+        try:
+            for offset, transaction_id in enumerate(new_transaction_ids):
+                self._set_current_chunk_index(start_index + offset)
+                self._transaction_body_bytes[transaction_id] = self._build_node_transaction_bodies(transaction_id)
+        finally:
+            self._set_current_chunk_index(None)
+
+        self._sign_transaction_bodies(context.operator_private_key, new_transaction_ids)
+        context.regenerated = True
+
     def sign(self, private_key: PrivateKey) -> Transaction:
         """
         Signs the transaction using the provided private key.
@@ -178,9 +292,22 @@ class Transaction(_Executable):
         # We require the transaction to be frozen before signing
         self._require_frozen()
 
+        return self._sign_transaction_bodies(private_key, list(self._transaction_body_bytes))
+
+    def _sign_transaction_bodies(self, private_key: PrivateKey, transaction_ids: list[TransactionId]) -> Transaction:
+        """
+        Signs the node bodies of the given transaction IDs with `private_key`.
+
+        Args:
+            private_key (PrivateKey): The private key to sign with.
+            transaction_ids (list[TransactionId]): The transaction IDs whose bodies to sign.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+        """
         # We sign the bodies for each node in case we need to switch nodes during execution.
-        for node_bytes_map in self._transaction_body_bytes.values():
-            for body_bytes in node_bytes_map.values():
+        for transaction_id in transaction_ids:
+            for body_bytes in self._transaction_body_bytes[transaction_id].values():
                 signature = private_key.sign(body_bytes)
 
                 public_key_bytes = private_key.public_key().to_bytes_raw()
@@ -301,6 +428,10 @@ class Transaction(_Executable):
         if self._transaction_body_bytes:
             return self
 
+        # Resolve regenerate_transaction_id against the client default when not explicitly set.
+        if self._regenerate_transaction_id is None and client is not None:
+            self._regenerate_transaction_id = client.default_regenerate_transaction_id
+
         # Resolve transaction_id and node_accountids to be set when using freeze()
         self._resolve_transaction_id(client)
         self._resolve_node_ids(client)
@@ -315,43 +446,58 @@ class Transaction(_Executable):
         self._transaction_ids.set_lock(True)
 
         for index, transaction_id in enumerate(self._transaction_ids):
-            node_transaction_bodies = {}
-
             self._set_current_chunk_index(index)
-            transaction_body = self.build_transaction_body()
-
-            for node_account_id in self._node_account_ids.get_list():
-                transaction_body.transactionID.CopyFrom(transaction_id._to_proto())
-                transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
-                node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
-
-            self._transaction_body_bytes[transaction_id] = node_transaction_bodies
+            self._transaction_body_bytes[transaction_id] = self._build_node_transaction_bodies(transaction_id)
 
         self._set_current_chunk_index(None)
 
         return self
 
+    def _build_node_transaction_bodies(self, transaction_id: TransactionId) -> dict[AccountId, bytes]:
+        """
+        Builds and serializes the transaction body for `transaction_id`, once per node in
+        `_node_account_ids`.
+
+        Callers are responsible for setting the current chunk index (for chunked transactions)
+        before calling this, since `build_transaction_body()` depends on it.
+
+        Args:
+            transaction_id (TransactionId): The transaction ID to embed in each built body.
+
+        Returns:
+            dict[AccountId, bytes]: Serialized transaction body bytes keyed by node account ID.
+        """
+        transaction_body = self.build_transaction_body()
+
+        node_transaction_bodies = {}
+        for node_account_id in self._node_account_ids.get_list():
+            transaction_body.transactionID.CopyFrom(transaction_id._to_proto())
+            transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
+            node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
+
+        return node_transaction_bodies
+
     def _generate_transaction_ids(self, initial_id: TransactionId, count: int) -> None:
         """Generate all transaction_id for require chunks."""
-        self._transaction_ids.clear()
+        self._transaction_ids.set_list(self._consecutive_transaction_ids(initial_id, count))
 
-        if count == 1:
-            self._transaction_ids.set_list([initial_id])
-            return
+    @staticmethod
+    def _consecutive_transaction_ids(initial_id: TransactionId, count: int) -> list[TransactionId]:
+        """
+        Returns `count` transaction IDs starting at `initial_id`, with the same payer and
+        valid starts 1ns apart.
+        """
+        transaction_ids = [initial_id] if count > 0 else []
 
-        transaction_id = initial_id
-        for i in range(count):
-            self._transaction_ids.append(transaction_id)
-
-            next_nanos = initial_id.valid_start.nanos + (i + 1)
+        for i in range(1, count):
+            next_nanos = initial_id.valid_start.nanos + i
             next_valid_start = timestamp_pb2.Timestamp(
                 seconds=initial_id.valid_start.seconds + next_nanos // 1_000_000_000,
                 nanos=next_nanos % 1_000_000_000,
             )
+            transaction_ids.append(TransactionId(account_id=initial_id.account_id, valid_start=next_valid_start))
 
-            transaction_id = TransactionId(
-                account_id=self._transaction_ids.get(0).account_id, valid_start=next_valid_start
-            )
+        return transaction_ids
 
     def _set_current_chunk_index(self, index: int | None) -> None:
         """Helper to set the current chunk index before building the transaction body."""
@@ -429,8 +575,18 @@ class Transaction(_Executable):
         if not self.is_signed_by(client.operator_private_key.public_key()):
             self.sign(client.operator_private_key)
 
-        # Call the _execute function from executable.py to handle the actual execution
-        response: TransactionResponse = self._execute(client, timeout)
+        # Resolved in freeze_with(). A transaction frozen with freeze() leaves it unset, but its
+        # caller-set ID is pinned and could never be regenerated anyway.
+        self._regeneration_context = _RegenerationContext(
+            operator_account_id=client.operator_account_id,
+            operator_private_key=client.operator_private_key,
+            enabled=self._regenerate_transaction_id is True,
+        )
+        try:
+            # Call the _execute function from executable.py to handle the actual execution
+            response: TransactionResponse = self._execute(client, timeout)
+        finally:
+            self._regeneration_context = None
 
         response.validate_status = True
         response.transaction = self
@@ -633,18 +789,40 @@ class Transaction(_Executable):
 
     @property
     def transaction_id(self) -> TransactionId | None:
-        if self._transaction_ids.is_empty:
-            return None
+        """
+        The current transaction ID, or None if none has been set or generated yet.
 
-        return self._transaction_ids.current
+        Reading a transaction ID pins it: once you have seen the ID, the SDK will not
+        replace it if the network returns TRANSACTION_EXPIRED, even when
+        regenerate_transaction_id is enabled, because you may already have recorded it.
+        Reading the ID before execute() therefore disables regeneration for this
+        transaction. This matches the Java and JavaScript SDKs. Read it after execute(), or
+        use the ID on the returned response or receipt.
+        """
+        transaction_id = self._current_transaction_id
+        if transaction_id is not None:
+            self._transaction_id_pinned = True
+
+        return transaction_id
 
     @transaction_id.setter
     def transaction_id(self, transaction_id: TransactionId):
         self.set_transaction_id(transaction_id)
 
+    @property
+    def _current_transaction_id(self) -> TransactionId | None:
+        """The current transaction ID for internal use. Unlike `transaction_id`, it does not pin."""
+        if self._transaction_ids.is_empty:
+            return None
+
+        return self._transaction_ids.current
+
     def set_transaction_id(self, transaction_id: TransactionId):
         """
         Sets the transaction ID for the transaction.
+
+        A transaction ID set by the caller is pinned: it is never replaced on
+        TRANSACTION_EXPIRED, even when regenerate_transaction_id is enabled.
 
         Args:
             transaction_id (TransactionId): The transaction ID to set.
@@ -666,6 +844,57 @@ class Transaction(_Executable):
             raise ValueError("transaction_id must have account_id and a valid_start period")
 
         self._transaction_ids.set_list([transaction_id])
+        self._transaction_id_pinned = True
+        return self
+
+    @property
+    def regenerate_transaction_id(self) -> bool | None:
+        """
+        Whether this transaction should regenerate its transaction ID and retry when the
+        network returns TRANSACTION_EXPIRED.
+
+        Returns None when not explicitly set on the transaction, in which case
+        `Client.default_regenerate_transaction_id` is resolved by `freeze_with()`.
+        """
+        return self._regenerate_transaction_id
+
+    def set_regenerate_transaction_id(self, regenerate_transaction_id: bool) -> Transaction:
+        """
+        Sets whether this transaction should regenerate its transaction ID and retry when the
+        network returns TRANSACTION_EXPIRED.
+
+        This transaction-level setting takes precedence over
+        `Client.default_regenerate_transaction_id`.
+
+        Even when enabled, the ID is only regenerated (at most once per execute() call) if:
+        - it was generated by the SDK and is not pinned. Setting it with set_transaction_id(),
+          reading the `transaction_id` property, calling to_bytes(), or loading the transaction
+          with from_bytes() pins it. Reading the ID before execute() therefore disables
+          regeneration, matching the Java and JavaScript SDKs;
+        - its payer is the executing client's operator account, which stays the payer;
+        - every signature on the bodies to be rebuilt is the operator's;
+        - the transaction is not a BatchTransaction.
+        Otherwise execute() raises PrecheckError(TRANSACTION_EXPIRED) as before.
+
+        Args:
+            regenerate_transaction_id (bool): Whether to regenerate the transaction ID on
+                TRANSACTION_EXPIRED.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If regenerate_transaction_id is not a bool.
+            Exception: If the transaction has already been frozen.
+        """
+        self._require_not_frozen()
+
+        if not isinstance(regenerate_transaction_id, bool):
+            raise TypeError(
+                f"regenerate_transaction_id must be of type bool, got {type(regenerate_transaction_id).__name__}"
+            )
+
+        self._regenerate_transaction_id = regenerate_transaction_id
         return self
 
     # this will preserves original behavior
@@ -724,12 +953,18 @@ class Transaction(_Executable):
         signed_bytes = tx.to_bytes()  # Ready to submit to network
         ```
 
+        Serializing pins the transaction ID: the bytes may be signed or submitted elsewhere, so
+        the SDK will no longer replace the ID on TRANSACTION_EXPIRED.
+
         Returns:
             bytes: The serialized transaction as bytes.
 
         Raises:
             Exception: If the transaction has not been frozen yet.
         """
+        # Pin first, so it holds whatever the serialized format.
+        self._transaction_id_pinned = True
+
         self._require_frozen()
 
         # Get the transaction protobuf
@@ -790,6 +1025,9 @@ class Transaction(_Executable):
         receipt = final_tx.execute(client)
         ```
 
+        The restored transaction ID is pinned: whoever produced the bytes may still hold or
+        submit them, so the SDK will not replace the ID on TRANSACTION_EXPIRED.
+
         Args:
             transaction_bytes (bytes): The protobuf-encoded transaction bytes.
 
@@ -833,9 +1071,12 @@ class Transaction(_Executable):
         if transaction_class is None:
             raise ValueError(f"Unknown transaction type: {transaction_type}")
 
-        return transaction_class._from_protobuf(
+        transaction = transaction_class._from_protobuf(
             transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
         )
+        transaction._transaction_id_pinned = True
+
+        return transaction
 
     @staticmethod
     def _get_transaction_class(transaction_type: str):
