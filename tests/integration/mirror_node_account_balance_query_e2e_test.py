@@ -150,6 +150,7 @@ def test_throws_invalid_account_id_for_non_existent_account(env, account_id):
     assert e.value.status == ResponseCode.INVALID_ACCOUNT_ID
 
 
+@pytest.mark.skip(reason="Requires a funded testnet operator account")
 def test_can_fetch_balance_for_contract(env):
     """
     Can fetch the HBAR balance of a contract passed as an account ID.
