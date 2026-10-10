@@ -800,3 +800,102 @@ def test_invalid_transaction_bodies_for_chunk_file_append_tx():
             ],
             bodies=[body1, body2, body3, body4],
         )
+
+
+def _round_trip_append(tx, mock_client):
+    """Freeze and deserialize an append transaction, checking byte identity."""
+    tx.freeze_with(mock_client)
+    original_bytes = tx.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, FileAppendTransaction)
+    assert restored.to_bytes() == original_bytes
+    return restored
+
+
+@pytest.mark.parametrize(
+    "target_id",
+    [FileId(), FileId(1, 2, 345)],
+    ids=["present-zero", "nonzero-components"],
+)
+def test_from_bytes_restores_all_fields(mock_client, target_id):
+    """Restore the append file ID, binary contents, and transaction memo."""
+    tx = FileAppendTransaction(
+        file_id=target_id,
+        contents=b"\x00\xffAppend payload",
+    )
+
+    tx.set_transaction_memo("Append transaction memo")
+
+    restored = _round_trip_append(tx, mock_client)
+
+    assert restored.file_id == target_id
+    assert restored.contents == tx.contents
+    assert restored.memo == tx.memo
+    assert restored.get_required_chunks() == 1
+
+
+@pytest.mark.parametrize("contents", [None, b""])
+def test_from_bytes_empty_contents_remain_executable(mock_client, file_id, contents):
+    """Restore empty contents as one chunk and exercise mocked execution."""
+    tx = FileAppendTransaction(file_id=file_id, contents=contents)
+
+    assert tx.get_required_chunks() == 1
+    restored = _round_trip_append(tx, mock_client)
+
+    assert restored.file_id == file_id
+    assert restored.contents == b""
+    assert restored.get_required_chunks() == 1
+
+    response = MagicMock()
+    with patch.object(Transaction, "execute", return_value=response) as execute:
+        responses = restored.execute_all(mock_client)
+
+    assert responses == [response]
+    execute.assert_called_once()
+
+
+def test_from_bytes_preserves_all_frozen_chunks(mock_client, file_id):
+    """Preserve every frozen chunk while exposing the first body's contents."""
+    tx = FileAppendTransaction(file_id=file_id, contents=b"AAAABBBBCCCC", chunk_size=4)
+    restored = _round_trip_append(tx, mock_client)
+
+    assert tx.get_required_chunks() == 3
+    assert len(tx._transaction_ids) == 3
+
+    assert restored.contents == b"AAAA"
+    assert restored.file_id == file_id
+    assert len(restored._transaction_ids) == 3
+    assert restored.get_required_chunks() == 3
+    assert restored._transaction_body_bytes == tx._transaction_body_bytes
+
+    assert restored._validate_chunking() == 3
+    assert restored._total_chunks == 3
+
+
+def test_from_bytes_preserves_a_large_single_chunk(mock_client, file_id):
+    """Preserve a frozen chunk larger than the restored default chunk size."""
+    contents = b"x" * 6000
+    tx = FileAppendTransaction(file_id=file_id, contents=contents, chunk_size=6000)
+
+    restored = _round_trip_append(tx, mock_client)
+
+    assert restored.contents == contents
+    assert len(restored._transaction_ids) == 1
+
+    assert restored.chunk_size == 4096
+    assert restored.get_required_chunks() == 1
+    assert restored._validate_chunking() == 1
+    assert restored._total_chunks == 1
+
+
+def test_from_protobuf_restores_absent_file_id():
+    """Preserve an absent append file ID instead of creating a zero-valued ID."""
+    body = transaction_pb2.TransactionBody(fileAppend=file_append_pb2.FileAppendTransactionBody())
+
+    restored = FileAppendTransaction._from_protobuf(body)
+
+    assert restored.file_id is None
+    assert restored.contents == b""
+    assert restored.get_required_chunks() == 1
