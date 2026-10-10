@@ -188,6 +188,51 @@ def test_set_auto_renew_account_id_to_zero():
     assert result is tx  # Method chaining
 
 
+def test_clear_auto_renew_account_id():
+    """Test clearing auto renew account ID."""
+    tx = ContractUpdateTransaction()
+    tx.set_auto_renew_account_id(AccountId(0, 0, 1234))
+    result = tx.clear_auto_renew_account_id()
+
+    assert tx.auto_renew_account_id == AccountId(0, 0, 0)
+    assert result is tx  # Method chaining
+
+    # Chaining assertion after other setters
+    chained_tx = (
+        ContractUpdateTransaction()
+        .set_contract_memo("Memo")
+        .set_auto_renew_account_id(AccountId(0, 0, 1234))
+        .clear_auto_renew_account_id()
+    )
+    assert chained_tx.auto_renew_account_id == AccountId(0, 0, 0)
+
+
+def test_clear_auto_renew_account_id_serialization(mock_account_ids, transaction_id):
+    """Test serialization of contract update transaction with cleared auto renew account ID."""
+    _, _, node_account_id, _, _ = mock_account_ids
+    tx = ContractUpdateTransaction()
+    tx.set_auto_renew_account_id(AccountId(0, 0, 1234))
+    tx.clear_auto_renew_account_id()
+    tx.transaction_id = transaction_id
+    tx.set_node_account_ids([node_account_id])
+
+    body = tx.build_transaction_body()
+
+    assert body.contractUpdateInstance.HasField("auto_renew_account_id")
+    assert body.contractUpdateInstance.auto_renew_account_id.WhichOneof("account") is None
+    assert body.contractUpdateInstance.auto_renew_account_id.SerializeToString() == b""
+
+
+def test_clear_auto_renew_account_id_frozen(contract_id, mock_client):
+    """Test that clear_auto_renew_account_id raises exception when frozen."""
+    tx = ContractUpdateTransaction()
+    tx.set_contract_id(contract_id)
+    tx.freeze_with(mock_client)
+
+    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen."):
+        tx.clear_auto_renew_account_id()
+
+
 def test_set_staked_account_id():
     """Test setting a valid staked account ID clears an existing staked node ID."""
     tx = ContractUpdateTransaction()
