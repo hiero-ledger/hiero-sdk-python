@@ -32,6 +32,7 @@ const {
   isRepoCollaborator,
   postIssueComment,
   fetchAllComments,
+  getIssue,
   assignIssue,
 } = require('../api/github-api.js');
 
@@ -276,6 +277,46 @@ async function runAssignmentFlow({ github, context }) {
     }
   }
 
+  // Refetch immediately before the write. Concurrency queues later
+  // /assign runs, but their webhook payload stays stale.
+  let currentIssue;
+  try {
+    currentIssue = await getIssue({ github, owner, repo: repoName, issueNumber });
+  } catch (error) {
+    console.error('[assign-bot] Failed to fetch current issue state before assignment:', {
+      message: error.message,
+      status: error.status,
+      owner,
+      repo: repoName,
+      issueNumber,
+      commenter,
+    });
+    return;
+  }
+
+  if (resolveLevelKey(currentIssue, repoConfig) !== levelKey) {
+    console.log('[assign-bot] Exit: current issue no longer matches the original skill level', {
+      issueNumber,
+      levelKey,
+    });
+    return;
+  }
+
+  if (currentIssue.state !== 'open') {
+    console.log('[assign-bot] Exit: current issue state is not open', {
+      issueNumber,
+      state: currentIssue.state,
+    });
+    return;
+  }
+
+  if (Array.isArray(currentIssue.assignees) && currentIssue.assignees.length > 0) {
+    console.log('[assign-bot] Exit: current issue state is already assigned', { issueNumber });
+    const body = buildAlreadyAssignedComment(commenter, currentIssue, { owner, repo: repoName, label });
+    await postIssueComment({ github, owner, repo: repoName, issueNumber, body }, 'already-assigned notice');
+    return;
+  }
+
   // Assign
   try {
     await assignIssue({
@@ -306,7 +347,7 @@ async function runAssignmentFlow({ github, context }) {
       github,
       owner,
       repoName,
-      issue
+      currentIssue
     );
     } else if (planExists === true) {
         console.log(
