@@ -8,12 +8,14 @@ import pytest
 
 from hiero_sdk_python import PrivateKey
 from hiero_sdk_python.crypto.key_list import KeyList
+from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 @pytest.mark.integration
@@ -208,3 +210,49 @@ def test_integration_file_update_transaction_with_supported_key_types(env):
     )
 
     assert delete_receipt.status == ResponseCode.SUCCESS
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("file_memo", [None, "", "Updated memo"])
+def test_integration_file_update_from_bytes(env, file_memo):
+    """Execute a deserialized update transaction and verify contents and memo."""
+    public_key = env.operator_key.public_key()
+    created = FileCreateTransaction(
+        keys=[public_key],
+        contents=b"Initial",
+        file_memo="Original memo",
+    ).execute(env.client)
+
+    assert created.status == ResponseCode.SUCCESS
+    file_id = created.file_id
+    assert file_id is not None
+
+    try:
+        tx = FileUpdateTransaction(
+            file_id=file_id, keys=[public_key], contents=b"Updated", file_memo=file_memo
+        ).freeze_with(env.client)
+
+        original_bytes = tx.to_bytes()
+        restored = Transaction.from_bytes(original_bytes)
+
+        assert isinstance(restored, FileUpdateTransaction)
+        assert restored.file_id == file_id
+        assert restored.file_memo == file_memo
+        assert restored.contents == b"Updated"
+        assert restored.keys is not None
+        assert [key.to_proto_key() for key in restored.keys] == [public_key.to_proto_key()]
+        assert restored.to_bytes() == original_bytes
+
+        restored.sign(env.operator_key)
+        receipt = restored.execute(env.client)
+        assert receipt.status == ResponseCode.SUCCESS
+
+        info = FileInfoQuery(file_id=file_id).execute(env.client)
+        expected_memo = "Original memo" if file_memo is None else file_memo
+        assert info.file_memo == expected_memo
+
+        actual = FileContentsQuery(file_id=file_id).execute(env.client)
+        assert actual == b"Updated"
+    finally:
+        cleanup = FileDeleteTransaction(file_id=file_id).execute(env.client)
+        assert cleanup.status == ResponseCode.SUCCESS

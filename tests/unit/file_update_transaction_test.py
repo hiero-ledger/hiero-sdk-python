@@ -19,8 +19,11 @@ from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
     response_pb2,
+    transaction_contents_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
 )
+from hiero_sdk_python.hapi.services.file_update_pb2 import FileUpdateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -33,6 +36,7 @@ from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -448,3 +452,111 @@ def test_set_contents_accepts_bytearray():
 
     assert file_tx.contents == b"buffered content"
     assert isinstance(file_tx.contents, bytes)
+
+
+def _round_trip_update(tx, mock_client, signer=None):
+    """Freeze, optionally sign, and deserialize while checking byte identity."""
+    tx.freeze_with(mock_client)
+    if signer is not None:
+        tx.sign(signer)
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, FileUpdateTransaction)
+    assert restored.to_bytes() == original_bytes
+    return restored
+
+
+@pytest.mark.parametrize("signed", [False, True])
+def test_from_bytes_restores_all_fields(mock_client, private_key, signed):
+    """Restore update fields, signatures, and frozen transaction behavior."""
+    ed25519_key = private_key.public_key()
+    ecdsa_key = PrivateKey.generate_ecdsa().public_key()
+
+    keys = [ed25519_key, ecdsa_key, KeyList([ed25519_key, ecdsa_key]), KeyList([ed25519_key, ecdsa_key], threshold=1)]
+
+    tx = FileUpdateTransaction(
+        file_id=FileId(1, 2, 345),
+        keys=keys,
+        contents=b"\x00\xffUpdated file contents",
+        expiration_time=Timestamp(1_800_000_000, 123_456_789),
+        file_memo="File metadata memo",
+    )
+
+    tx.set_transaction_memo("Different transaction memo")
+
+    restored = _round_trip_update(tx, mock_client, signer=private_key if signed else None)
+
+    assert restored.file_id == tx.file_id
+    assert restored.keys is not None
+    assert [key.to_proto_key() for key in restored.keys] == [key.to_proto_key() for key in keys]
+    assert restored.contents == tx.contents
+    assert restored.expiration_time == tx.expiration_time
+    assert restored.file_memo == tx.file_memo
+
+    if signed:
+        assert restored.is_signed_by(private_key.public_key())
+
+    with pytest.raises(Exception, match="immutable"):
+        restored.set_file_memo("Cannot change a frozen transaction")
+
+
+def test_from_bytes_restores_unset_fields(mock_client):
+    """Preserve absent update fields and normalize contents to empty bytes."""
+    restored = _round_trip_update(FileUpdateTransaction(), mock_client)
+
+    assert restored.file_id is None
+    assert restored.expiration_time is None
+    assert restored.keys is None
+    assert restored.file_memo is None
+    assert restored.contents == b""
+
+
+@pytest.mark.parametrize("empty_keys", [False, True])
+@pytest.mark.parametrize("file_memo", [None, ""])
+@pytest.mark.parametrize("contents", [None, b""])
+def test_from_bytes_preserves_optional_presence(mock_client, file_id, empty_keys, file_memo, contents):
+    """Distinguish absent keys and memos from explicitly empty values."""
+    keys = [] if empty_keys else None
+    tx = FileUpdateTransaction(
+        file_id=file_id,
+        keys=keys,
+        contents=contents,
+        file_memo=file_memo,
+    )
+
+    restored = _round_trip_update(tx, mock_client)
+
+    assert restored.file_id == file_id
+    assert restored.keys == keys
+    assert restored.file_memo == file_memo
+    assert restored.expiration_time is None
+    assert restored.contents == b""
+
+
+def test_from_bytes_preserves_present_zero_messages(mock_client):
+    """Preserve explicitly present zero-valued file IDs and timestamps."""
+    tx = FileUpdateTransaction(
+        file_id=FileId(),
+        expiration_time=Timestamp(0, 0),
+    )
+
+    restored = _round_trip_update(tx, mock_client)
+
+    assert restored.file_id == tx.file_id
+    assert restored.expiration_time == Timestamp(0, 0)
+
+
+def test_from_bytes_rejects_an_invalid_present_key():
+    body = transaction_pb2.TransactionBody(
+        fileUpdate=FileUpdateTransactionBody(
+            keys=basic_types_pb2.KeyList(keys=[basic_types_pb2.Key()]),
+        ),
+    )
+
+    signed = transaction_contents_pb2.SignedTransaction(bodyBytes=body.SerializeToString())
+    encoded = transaction_pb2.Transaction(signedTransactionBytes=signed.SerializeToString()).SerializeToString()
+
+    with pytest.raises(ValueError, match="Unknown key type"):
+        Transaction.from_bytes(encoded)
