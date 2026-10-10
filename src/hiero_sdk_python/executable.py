@@ -398,7 +398,11 @@ class _Executable(ABC):
         self._node_account_ids.advance()
         return True
 
-    def _execute(self, client: Client, timeout: int | float | None = None):
+    def _execute(
+        self,
+        client: Client,
+        timeout: int | float | None = None,
+    ):
         """
         Execute a transaction or query with retry logic.
 
@@ -475,6 +479,7 @@ class _Executable(ABC):
 
                 client.network._increase_backoff(node)
                 err_persistant = e
+
                 self._node_account_ids.advance()
                 continue
 
