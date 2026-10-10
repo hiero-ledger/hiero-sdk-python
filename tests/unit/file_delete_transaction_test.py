@@ -9,9 +9,11 @@ from unittest.mock import MagicMock
 import pytest
 
 from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 pytestmark = pytest.mark.unit
@@ -136,3 +138,31 @@ def test_get_method():
 
     assert method.query is None
     assert method.transaction == mock_file_stub.deleteFile
+
+
+def _round_trip_delete(tx, mock_client):
+    """Freeze and deserialize a delete transaction, checking byte identity."""
+    tx.freeze_with(mock_client)
+    original_bytes = tx.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, FileDeleteTransaction)
+    assert restored.to_bytes() == original_bytes
+    return restored
+
+
+@pytest.mark.parametrize(
+    "target_id",
+    [None, FileId(), FileId(1, 2, 345)],
+    ids=["absent", "present-zero", "nonzero-components"],
+)
+def test_from_bytes_restores_file_id(mock_client, target_id):
+    """Restore absent, zero-valued, and nonzero file IDs with the memo."""
+    tx = FileDeleteTransaction(file_id=target_id)
+    tx.set_transaction_memo("Delete transaction memo")
+
+    restored = _round_trip_delete(tx, mock_client)
+
+    assert restored.file_id == target_id
+    assert restored.memo == tx.memo

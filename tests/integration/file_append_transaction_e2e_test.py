@@ -7,7 +7,9 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
+from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -326,3 +328,37 @@ def test_file_append_chunk_transaction_can_execute_with_manual_freeze(env):
 
     file_contents = FileContentsQuery().set_file_id(file_id).execute(env.client)
     assert file_contents == bytes(content, "utf-8")
+
+
+@mark.integration
+@pytest.mark.parametrize("contents", [None, b"", b"\x00\xffAppended"])
+def test_integration_file_append_from_bytes(env, contents):
+    """Execute a deserialized append transaction and verify file contents."""
+    initial_contents = b"Initial"
+    created = FileCreateTransaction(keys=[env.operator_key.public_key()], contents=initial_contents).execute(env.client)
+
+    assert created.status == ResponseCode.SUCCESS
+    file_id = created.file_id
+    assert file_id is not None
+
+    try:
+        tx = FileAppendTransaction(file_id=file_id, contents=contents).freeze_with(env.client)
+
+        original_bytes = tx.to_bytes()
+        restored = Transaction.from_bytes(original_bytes)
+
+        assert isinstance(restored, FileAppendTransaction)
+        assert restored.file_id == file_id
+        assert restored.contents == (contents if contents is not None else b"")
+        assert restored.to_bytes() == original_bytes
+
+        restored.sign(env.operator_key)
+        receipt = restored.execute(env.client)
+        assert receipt.status == ResponseCode.SUCCESS
+
+        actual = FileContentsQuery(file_id=file_id).execute(env.client)
+        expected_append = contents if contents is not None else b""
+        assert actual == initial_contents + expected_append
+    finally:
+        cleanup = FileDeleteTransaction(file_id=file_id).execute(env.client)
+        assert cleanup.status == ResponseCode.SUCCESS
