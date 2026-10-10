@@ -13,6 +13,7 @@ from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
+    consensus_submit_message_pb2,
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
@@ -846,3 +847,558 @@ def test_is_signed_by_returns_true_when_signed_by_given_key():
 
     transaction.sign(key)
     assert transaction.is_signed_by(key.public_key()) is True
+
+
+# Test transaction vlidation
+
+
+def test_validate_transaction_bodies_single_transaction():
+    """Test validation of a single non-chunked transaction."""
+    create_account_tx = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    transaction_id = TransactionId.generate(AccountId(0, 0, 2))
+
+    body = transaction_pb2.TransactionBody()
+    body.transactionID.CopyFrom(transaction_id._to_proto())
+    body.transactionFee = 100
+    body.cryptoCreateAccount.CopyFrom(create_account_tx._build_proto_body())
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="cryptoCreateAccount",
+        transaction_ids=[transaction_id],
+        node_ids=[],
+        bodies=[body],
+    )
+
+
+def test_validate_transaction_bodies_multiple_nodes():
+    """Test validation of transaction bodies for multiple nodes."""
+    create_account_tx = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    transaction_id = TransactionId.generate(AccountId(0, 0, 2))
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.cryptoCreateAccount.CopyFrom(create_account_tx._build_proto_body())
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.cryptoCreateAccount.CopyFrom(create_account_tx._build_proto_body())
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="cryptoCreateAccount",
+        transaction_ids=[transaction_id],
+        node_ids=[
+            AccountId(0, 0, 3),
+            AccountId(0, 0, 4),
+        ],
+        bodies=[body1, body2],
+    )
+
+
+def test_validate_transaction_bodies_chunk_transaction(topic_id):
+    """Test validation of a chunked transaction."""
+    transaction_id1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id2 = TransactionId.generate(AccountId(0, 0, 3))
+
+    chunk1 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("Hello"))._build_proto_body()
+
+    chunk1.chunkInfo.CopyFrom(
+        consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=transaction_id1._to_proto(),
+            total=2,
+            number=1,
+        )
+    )
+
+    chunk2 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("World"))._build_proto_body()
+    chunk2.chunkInfo.CopyFrom(
+        consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=transaction_id1._to_proto(),
+            total=2,
+            number=2,
+        )
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id1._to_proto())
+    body1.transactionFee = 100
+    body1.consensusSubmitMessage.CopyFrom(chunk1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id2._to_proto())
+    body2.transactionFee = 100
+    body2.consensusSubmitMessage.CopyFrom(chunk2)
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="consensusSubmitMessage",
+        transaction_ids=[transaction_id1, transaction_id2],
+        node_ids=[],
+        bodies=[body1, body2],
+    )
+
+
+def test_validate_transaction_bodies_chunk_transaction_mutiple_node_ids(topic_id):
+    """Test validation of a chunked transaction mutiple node."""
+    node1 = AccountId.from_string("0.0.101")
+    node2 = AccountId.from_string("0.0.102")
+
+    transaction_id1 = TransactionId.generate(AccountId(0, 0, 2))
+    transaction_id2 = TransactionId.generate(AccountId(0, 0, 3))
+
+    chunk1 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("Hello"))._build_proto_body()
+
+    chunk1.chunkInfo.CopyFrom(
+        consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=transaction_id1._to_proto(),
+            total=2,
+            number=1,
+        )
+    )
+
+    chunk2 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("World"))._build_proto_body()
+    chunk2.chunkInfo.CopyFrom(
+        consensus_submit_message_pb2.ConsensusMessageChunkInfo(
+            initialTransactionID=transaction_id1._to_proto(),
+            total=2,
+            number=2,
+        )
+    )
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id1._to_proto())
+    body1.nodeAccountID.CopyFrom(node1._to_proto())
+    body1.transactionFee = 100
+    body1.consensusSubmitMessage.CopyFrom(chunk1)
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id1._to_proto())
+    body2.nodeAccountID.CopyFrom(node2._to_proto())
+    body2.transactionFee = 100
+    body2.consensusSubmitMessage.CopyFrom(chunk1)
+
+    body3 = transaction_pb2.TransactionBody()
+    body3.transactionID.CopyFrom(transaction_id2._to_proto())
+    body3.nodeAccountID.CopyFrom(node1._to_proto())
+    body3.transactionFee = 100
+    body3.consensusSubmitMessage.CopyFrom(chunk2)
+
+    body4 = transaction_pb2.TransactionBody()
+    body4.transactionID.CopyFrom(transaction_id2._to_proto())
+    body4.nodeAccountID.CopyFrom(node2._to_proto())
+    body4.transactionFee = 100
+    body4.consensusSubmitMessage.CopyFrom(chunk2)
+
+    Transaction._validate_transaction_bodies(
+        transaction_type="consensusSubmitMessage",
+        transaction_ids=[transaction_id1, transaction_id2],
+        node_ids=[node1, node2],
+        bodies=[body1, body2, body3, body4],
+    )
+
+
+def test_validate_transaction_bodies_rejects_inconsistent_bodies():
+    """Test inconsistent transaction bodies are rejected."""
+    create_account_tx1 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    create_account_tx2 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    transaction_id = TransactionId.generate(AccountId(0, 0, 2))
+
+    body1 = transaction_pb2.TransactionBody()
+    body1.transactionID.CopyFrom(transaction_id._to_proto())
+    body1.nodeAccountID.CopyFrom(AccountId(0, 0, 3)._to_proto())
+    body1.transactionFee = 100
+    body1.cryptoCreateAccount.CopyFrom(create_account_tx1._build_proto_body())
+
+    body2 = transaction_pb2.TransactionBody()
+    body2.transactionID.CopyFrom(transaction_id._to_proto())
+    body2.nodeAccountID.CopyFrom(AccountId(0, 0, 4)._to_proto())
+    body2.transactionFee = 100
+    body2.cryptoCreateAccount.CopyFrom(create_account_tx2._build_proto_body())
+
+    with pytest.raises(
+        ValueError,
+        match="Failed to validate transaction bodies",
+    ):
+        Transaction._validate_transaction_bodies(
+            transaction_type="cryptoCreateAccount",
+            transaction_ids=[transaction_id],
+            node_ids=[
+                AccountId(0, 0, 3),
+                AccountId(0, 0, 4),
+            ],
+            bodies=[body1, body2],
+        )
+
+
+@pytest.mark.parametrize(
+    "ignored_fields",
+    [
+        set(),
+        {"transactionID"},
+        {"nodeAccountID"},
+        {"transactionID", "nodeAccountID"},
+    ],
+)
+def test_compare_transaction_bodies_equal(
+    ignored_fields: set[str],
+):
+    """Test transaction bodies are equal when all compared fields match."""
+    create_account_tx = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    first = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx._build_proto_body(),
+    )
+    second = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx._build_proto_body(),
+    )
+
+    assert Transaction._compare_transaction_bodies(first, second, ignored_fields) is True
+
+
+def test_compare_transaction_bodies_different_field():
+    """Test transaction bodies differ when a non-ignored field differs."""
+    create_account_tx1 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    create_account_tx2 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    first = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx1._build_proto_body(),
+    )
+    second = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx2._build_proto_body(),
+    )
+
+    assert Transaction._compare_transaction_bodies(first, second, set()) is False
+
+
+def test_compare_transaction_bodies_ignores_selected_fields_only():
+    """Test ignored fields do not hide differences in other fields."""
+    first = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        nodeAccountID=basic_types_pb2.AccountID(accountNum=3),
+        transactionFee=100,
+    )
+    second = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        nodeAccountID=basic_types_pb2.AccountID(accountNum=5),
+        transactionFee=200,
+    )
+
+    # ignore transactionFee and nodeAccountId
+    assert Transaction._compare_transaction_bodies(first, second, {"transactionFee", "nodeAccountID"}) is True
+    # ignore nodeAccountId
+    assert Transaction._compare_transaction_bodies(first, second, {"nodeAccountID"}) is False
+
+
+def test_compare_transaction_bodies_ignores_selected_nested_fields_only():
+    """Test ignored fields do not hide differences in other fields."""
+    create_account_tx1 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+    create_account_tx2 = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    first = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx1._build_proto_body(),
+    )
+    second = transaction_pb2.TransactionBody(
+        transactionID=basic_types_pb2.TransactionID(
+            accountID=basic_types_pb2.AccountID(accountNum=2),
+        ),
+        cryptoCreateAccount=create_account_tx2._build_proto_body(),
+    )
+
+    # ignore key
+    assert Transaction._compare_transaction_bodies(first, second, {"key"}) is True
+    # ignore nodeAccountId
+    assert Transaction._compare_transaction_bodies(first, second, {"nodeAccountID"}) is False
+
+
+def test_lock_restored_transaction_does_not_lock_unfrozen_transaction():
+    """Test unfrozen transaction identifiers and node IDs remain unlocked."""
+    transaction = (
+        AccountCreateTransaction().set_account_memo("Test account").set_key_without_alias(PrivateKey.generate_ed25519())
+    )
+
+    Transaction._lock_restored_transaction(transaction)
+
+    assert not transaction._transaction_ids._locked
+    assert not transaction._node_account_ids._locked
+
+
+def test_lock_restored_transaction_locks_frozen_transaction(mock_client):
+    """Test frozen transaction identifiers and node IDs are locked."""
+    transaction = (
+        AccountCreateTransaction()
+        .set_account_memo("Test account")
+        .set_key_without_alias(PrivateKey.generate_ed25519())
+        .freeze_with(mock_client)
+    )
+
+    Transaction._lock_restored_transaction(transaction)
+
+    assert transaction._transaction_ids._locked
+    assert transaction._node_account_ids._locked
+
+
+def test_validate_transaction_pairs_valid_pairs():
+    """Test that valid transaction pairs pass validation."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    Transaction._validate_transaction_pairs(
+        [transaction_id],
+        [node_a, node_b],
+        bodies,
+    )
+
+
+def test_validate_transaction_pairs_invalid_valid_pairs():
+    """Test that invalid valid transaction pairs fails validation."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(
+            transactionID=transaction_id._to_proto(),
+            nodeAccountID=node_a._to_proto(),  # Duplicate; node_b is missing.
+        ),
+    ]
+
+    with pytest.raises(ValueError, match="duplicate transaction ID and node account ID pair"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_rejects_missing_pair():
+    """Test that validation rejects a missing transaction pair."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_a._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_rejects_incorrect_order():
+    """Test that validation rejects transaction pairs in the wrong order."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=transaction_id._to_proto(), nodeAccountID=node_a._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_rejects_unexpected_transaction_id():
+    """Test that validation rejects a body with an unexpected transaction ID."""
+    node_a = AccountId.from_string("0.0.3")
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.2"))
+
+    body = transaction_pb2.TransactionBody(
+        transactionID=TransactionId.generate(AccountId.from_string("0.0.101"))._to_proto(),
+        nodeAccountID=node_a._to_proto(),
+    )
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered transaction-node pairs"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [node_a],
+            [body],
+        )
+
+
+def test_validate_transaction_pairs_rejects_missing_node_account_id():
+    """Test that validation rejects a body without a node account ID."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.3"))
+
+    body = transaction_pb2.TransactionBody(
+        transactionID=transaction_id._to_proto(),
+    )
+
+    with pytest.raises(ValueError, match="transaction ID or node account ID is missing"):
+        Transaction._validate_transaction_pairs(
+            [transaction_id],
+            [AccountId.from_string("0.0.3")],
+            [body],
+        )
+
+
+def test_validate_transaction_pairs_valid_multiple_transactions():
+    """Test that valid transaction pairs across multiple transactions pass validation."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    Transaction._validate_transaction_pairs(
+        [tx1, tx2],
+        [node_a, node_b],
+        bodies,
+    )
+
+
+def test_validate_transaction_pairs_valid_multiple_duplicate_transactions():
+    """Test that validation rejects duplicate transaction pairs across multiple transactions."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="duplicate transaction ID and node account ID pair"):
+        Transaction._validate_transaction_pairs(
+            [tx1, tx2],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_valid_multiple_transactions_unexpected_tx_id():
+    """Test that validation rejects transaction pairs across multiple transactions for unexpected tx_id."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(
+            transactionID=TransactionId.generate(AccountId.from_string("0.0.100"))._to_proto(),
+            nodeAccountID=node_a._to_proto(),
+        ),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered transaction-node pairs"):
+        Transaction._validate_transaction_pairs(
+            [tx1, tx2],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_valid_multiple_transactions_unorder():
+    """Test that validation rejects unorder transaction pairs across multiple transactions."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_b._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered transaction-node pairs"):
+        Transaction._validate_transaction_pairs(
+            [tx1, tx2],
+            [node_a, node_b],
+            bodies,
+        )
+
+
+def test_validate_transaction_pairs_valid_multiple_transactions_missing_pair():
+    """Test that validation rejects unorder transaction pairs across multiple transactions."""
+    tx1 = TransactionId.generate(AccountId.from_string("0.0.5"))
+    tx2 = TransactionId.generate(AccountId.from_string("0.0.6"))
+
+    node_a = AccountId.from_string("0.0.3")
+    node_b = AccountId.from_string("0.0.4")
+
+    bodies = [
+        transaction_pb2.TransactionBody(transactionID=tx1._to_proto(), nodeAccountID=node_a._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_b._to_proto()),
+        transaction_pb2.TransactionBody(transactionID=tx2._to_proto(), nodeAccountID=node_a._to_proto()),
+    ]
+
+    with pytest.raises(ValueError, match="missing or incorrectly ordered transaction-node pairs"):
+        Transaction._validate_transaction_pairs(
+            [tx1, tx2],
+            [node_a, node_b],
+            bodies,
+        )
