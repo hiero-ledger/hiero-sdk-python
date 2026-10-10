@@ -8,6 +8,7 @@ import datetime
 
 import pytest
 
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
@@ -138,3 +139,48 @@ def test_integration_schedule_info_query_fails_with_invalid_schedule_id(env):
 
     with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_SCHEDULE_ID"):
         ScheduleInfoQuery(schedule_id).execute(env.client)
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_schedule_info_query_get_cost_methods(env):
+    """Test the get_cost for the schedule_info query."""
+    account = env.create_account()
+    schedule_create_tx = (
+        TransferTransaction()
+        .add_hbar_transfer(account.id, -1000)  # 1000 tinybars
+        .add_hbar_transfer(env.operator_id, 1000)
+        .schedule()
+    )
+
+    current_time = datetime.datetime.now()
+    future_expiration = Timestamp.from_date(current_time + datetime.timedelta(seconds=30))
+
+    receipt = (
+        schedule_create_tx.set_payer_account_id(account.id)
+        .set_admin_key(env.operator_key.public_key())
+        .set_schedule_memo("test schedule info query")
+        .set_expiration_time(future_expiration)
+        .set_wait_for_expiry(True)
+        .freeze_with(env.client)
+        .sign(account.key)
+        .execute(env.client)
+    )
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Schedule create transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
+    assert receipt.schedule_id is not None
+
+    # With Operator
+    cost1 = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars()}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars()}"

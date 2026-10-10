@@ -7,6 +7,8 @@ from __future__ import annotations
 import pytest
 
 from examples.contract.contracts import CONTRACT_DEPLOY_GAS, STATEFUL_CONTRACT_BYTECODE
+from examples.contract.contracts.contract_utils import SIMPLE_CONTRACT_BYTECODE
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
@@ -230,3 +232,37 @@ def test_integration_contract_info_query_can_execute_without_admin_key(env):
     assert str(info.contract_id) == str(contract_id), "Contract ID mismatch"
     assert isinstance(info.admin_key, ContractId), "Admin key should be a ContractId"
     assert str(info.admin_key) == str(contract_id), "Admin key should be the contract ID"
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_contract_info_query_get_cost_method(env):
+    """Test the get_cost for the contract_info query."""
+    bytecode = bytes.fromhex(SIMPLE_CONTRACT_BYTECODE)
+    receipt = (
+        ContractCreateTransaction()
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_bytecode(bytecode)
+        .set_contract_memo("contract create with bytecode")
+        .execute(env.client)
+    )
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    contract_id = receipt.contract_id
+
+    # With operator
+    cost1 = ContractInfoQuery().set_contract_id(contract_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars()}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = ContractInfoQuery().set_contract_id(contract_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars()}"

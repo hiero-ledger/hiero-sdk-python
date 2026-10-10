@@ -274,7 +274,7 @@ class Query(_Executable):
         exceptions raised by it.
 
         Args:
-            client (Client): The client instance to use for execution. Must have an operator set.
+            client (Client): The client instance to use for execution. No operator required.
 
         Returns:
             Hbar: The cost in Hbars to execute this query.
@@ -284,25 +284,26 @@ class Query(_Executable):
                 - Otherwise, fetches the cost from the network for a paid query.
 
         Raises:
-            ValueError: If the client is None or the client's operator is not set
+            ValueError: If the client is None
             PrecheckError: If the cost query fails precheck validation
             MaxAttemptsError: If the cost query fails after maximum retry attempts
             ReceiptStatusError: If the cost query fails with a receipt error
         """
+        if client is None:
+            raise ValueError("Client must be set to get the cost")
+
         if not self._is_payment_required():
             return Hbar.from_tinybars(0)
 
         if self.payment_amount is not None:
             return self.payment_amount
 
-        if client is None or client.operator is None:
-            raise ValueError("Client and operator must be set to get the cost")
-
         if self._node_account_ids.is_empty:
             self._node_account_ids.set_list([node._account_id for node in client.network.nodes])
 
         # Here we execute the query to get the cost of it
         resp = self._execute(client)
+
         query_response = self._get_query_response(resp)
 
         return Hbar.from_tinybars(query_response.header.cost)

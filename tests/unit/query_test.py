@@ -6,6 +6,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.client.client import Operator
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.executable import _ExecutionState
 from hiero_sdk_python.hapi.services import (
     crypto_get_account_balance_pb2,
@@ -408,3 +411,94 @@ def test_payment_query_use_client_max_payment_and_error(query_requires_payment, 
     expected_msg = "Query cost ℏ2.0 HBAR exceeds max set query payment: ℏ1.0 HBAR"
     with pytest.raises(ValueError, match=re.escape(expected_msg)):
         query_requires_payment._before_execute(mock_client)
+
+
+def test_get_cost_without_operator(query_requires_payment, token_id):
+    """Test that get_cost works without a client operator."""
+    response = response_pb2.Response(
+        tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK,
+                responseType=query_header_pb2.ResponseType.COST_ANSWER,
+                cost=2,
+            )
+        )
+    )
+
+    response_sequences = [[response]]
+
+    with mock_hedera_servers(response_sequences) as client:
+        # The cost query should not require an operator.
+        client.operator_account_id = None
+        client.operator_private_key = None
+        query_requires_payment.set_token_id(token_id)
+        result = query_requires_payment.get_cost(client)
+        assert result.to_tinybars() == 2
+
+
+def test_request_header_uses_cost_answer_without_payment(
+    query_requires_payment,
+):
+    """Test that a payment query requests COST_ANSWER when payment is not set."""
+    query_requires_payment.payment_amount = None
+
+    header = query_requires_payment._make_request_header()
+
+    assert isinstance(header, query_header_pb2.QueryHeader)
+    assert header.responseType == query_header_pb2.ResponseType.COST_ANSWER
+    assert not header.HasField("payment"), "Payment field should not be present when payment amount is not set"
+
+
+def test_request_header_uses_answer_only_when_payment_is_set(query_requires_payment):
+    """Test that a payment query requests ANSWER_ONLY when payment is set."""
+    query_requires_payment.payment_amount = Hbar(1)
+    query_requires_payment.operator = Operator(AccountId(0, 0, 2), PrivateKey.generate_ecdsa())
+    query_requires_payment.node_account_ids = [AccountId(0, 0, 3)]
+
+    header = query_requires_payment._make_request_header()
+
+    assert isinstance(header, query_header_pb2.QueryHeader)
+    assert header.responseType == query_header_pb2.ResponseType.ANSWER_ONLY
+    assert header.HasField("payment"), "Payment field should be present when payment amount is set"
+
+
+def test_request_header_uses_answer_only_when_payment_not_require_payments(query):
+    """Test that a non payment query requests ANSWER_ONLY."""
+    header = query._make_request_header()
+
+    assert isinstance(header, query_header_pb2.QueryHeader)
+    assert header.responseType == query_header_pb2.ResponseType.ANSWER_ONLY
+    assert not header.HasField("payment"), "Payment field should not be present when query not require payment"
+
+
+def test_get_cost_called_only_executes_cost_query(query_requires_payment, token_id):
+    """Test that get_cost only sends COST_ANSWER."""
+    response = response_pb2.Response(
+        tokenGetInfo=token_get_info_pb2.TokenGetInfoResponse(
+            header=response_header_pb2.ResponseHeader(
+                nodeTransactionPrecheckCode=ResponseCode.OK,
+                responseType=query_header_pb2.ResponseType.COST_ANSWER,
+                cost=2,
+            )
+        )
+    )
+
+    with mock_hedera_servers([[response, response]]) as client:
+        query_requires_payment.set_token_id(token_id)
+
+        # First call should query the network using COST_ANSWER.
+        first_result = query_requires_payment.get_cost(client)
+        assert first_result == Hbar.from_tinybars(2)
+
+        # COST_ANSWER request.
+        second_result = query_requires_payment.get_cost(client)
+        assert second_result == Hbar.from_tinybars(2)
+
+
+def test_get_cost_raise_error_if_client_none(query_requires_payment, query):
+    """Test that get_cost raise error when client is none."""
+    with pytest.raises(ValueError, match="Client must be set to get the cost"):
+        query.get_cost(None)
+
+    with pytest.raises(ValueError, match="Client must be set to get the cost"):
+        query_requires_payment.get_cost(None)

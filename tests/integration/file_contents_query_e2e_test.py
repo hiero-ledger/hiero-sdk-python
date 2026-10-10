@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
@@ -103,3 +104,31 @@ def test_integration_file_contents_query_fails_with_invalid_file_id(env):
 
     with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_FILE_ID"):
         FileContentsQuery(file_id).execute(env.client)
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_file_content_query_get_cost(env):
+    """Test the get_cost for the file_content query."""
+    receipt = (
+        FileCreateTransaction()
+        .set_keys([env.operator_key.public_key()])
+        .set_contents(FILE_CONTENT)
+        .set_transaction_memo("python sdk e2e tests")
+        .execute(env.client)
+    )
+    file_id = receipt.file_id
+    assert file_id is not None, "File ID should not be None"
+
+    # With operator
+    cost1 = FileContentsQuery().set_file_id(file_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars()}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = FileContentsQuery().set_file_id(file_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars()}"
