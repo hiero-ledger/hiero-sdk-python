@@ -189,7 +189,7 @@ class MirrorNodeAccountBalanceQuery:
             raise ValueError("client must not be None")
 
         if timeout is None:
-            timeout = getattr(client, "request_timeout", 30.0)
+            timeout = getattr(client, "_request_timeout", 30.0)
 
         if self.account_id is None:
             raise ValueError("accountId must be set before executing MirrorNodeAccountBalanceQuery")

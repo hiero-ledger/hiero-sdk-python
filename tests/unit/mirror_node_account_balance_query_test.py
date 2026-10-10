@@ -166,7 +166,7 @@ def test_execute_uses_client_request_timeout_when_timeout_is_none():
     query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005"))
 
     client = MagicMock()
-    client.request_timeout = 15.0
+    client._request_timeout = 15.0
 
     expected_balance = MagicMock()
 

@@ -20,7 +20,7 @@ python examples/query/mirror_node_account_balance_query.py
 
 import sys
 
-from hiero_sdk_python import Client, Hbar
+from hiero_sdk_python import Client
 from hiero_sdk_python.query.mirror_node_account_balance_query import (
     MirrorNodeAccountBalanceQuery,
 )
@@ -89,9 +89,9 @@ def main():
         if balance_tinybars is None:
             raise ValueError(f"Mirror node response contained no balance for account {operator_id}")
 
-        operators_balance = Hbar.from_tinybars(int(balance_tinybars))
+        balance = MirrorNodeAccountBalanceQuery().set_account_id(operator_id).execute(client)
 
-        print(f"Operator's Hbar account balance: {operators_balance}")
+        print(f"Operator's Hbar account balance: {balance}")
 
         print("Get Account Balance Example Complete!")
 
