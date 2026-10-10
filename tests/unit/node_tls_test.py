@@ -11,7 +11,7 @@ import pytest
 from src.hiero_sdk_python.account.account_id import AccountId
 from src.hiero_sdk_python.address_book.endpoint import Endpoint
 from src.hiero_sdk_python.address_book.node_address import NodeAddress
-from src.hiero_sdk_python.node import _Node
+from src.hiero_sdk_python.node import _Node, _normalize_cert_hash
 
 
 pytestmark = pytest.mark.unit
@@ -226,14 +226,16 @@ def test_node_validate_tls_certificate_no_verification(mock_node_with_address_bo
 
 
 def test_node_validate_tls_certificate_no_address_book():
-    """Test certificate validation skips when verification enabled but no address book."""
+    """Test certificate validation fails closed when no address book exists."""
     node = _Node(AccountId(0, 0, 3), "127.0.0.1:50212", None)
     node._verify_certificates = True
+    node._address = node._address._to_secure()
 
-    # Validation should skip (not raise) when no address book is available
-    # This allows unit tests to work without address books while still enabling
-    # verification in production where address books are available.
-    node._validate_tls_certificate_with_trust_manager()  # Should not raise
+    # Validation must NOT be skipped: without a trust anchor (address book hash
+    # or configured root certificates) verification cannot be performed, so
+    # fail closed to prevent an intercepted cert becoming its own trust anchor.
+    with pytest.raises(ValueError, match="no applicable address book was found"):
+        node._validate_tls_certificate_with_trust_manager()
 
 
 @patch("grpc.secure_channel")
@@ -320,15 +322,105 @@ def test_node_set_root_certificates_closes_channel(mock_node_with_address_book):
         assert node._channel is None
 
 
+@patch("socket.create_connection", side_effect=ConnectionRefusedError)
+@patch("grpc.secure_channel")
+@patch("grpc.insecure_channel")
 def test_secure_connect_raise_error_if_no_certificate_is_available(
+    mock_insecure,
+    mock_secure,
+    mock_conn,
     mock_node_without_address_book,
 ):
-    """Test get channel raise error if no certificate available if transport security true."""
+    """Test get channel fails closed before even fetching when no trust anchor exists."""
     node = mock_node_without_address_book
     node._apply_transport_security(True)
 
+    with pytest.raises(ValueError, match="no applicable address book was found"):
+        node._get_channel()
+
+    # The fetch must never be attempted and no channel of any kind created.
+    mock_conn.assert_not_called()
+    mock_secure.assert_not_called()
+    mock_insecure.assert_not_called()
+
+
+@patch("socket.create_connection", side_effect=ConnectionRefusedError)
+@patch("grpc.secure_channel")
+@patch("grpc.insecure_channel")
+def test_secure_connect_raises_when_no_certificate_even_with_verification_disabled(
+    mock_insecure,
+    mock_secure,
+    mock_conn,
+    mock_node_without_address_book,
+):
+    """No certificate fails closed, even if certificate verification is disabled."""
+    node = mock_node_without_address_book
+    node._apply_transport_security(True)
+    node._set_verify_certificates(False)
+
     with pytest.raises(ValueError, match="No certificate available."):
         node._get_channel()
+
+    mock_secure.assert_not_called()
+    mock_insecure.assert_not_called()
+
+
+@patch("grpc.secure_channel")
+@patch("grpc.insecure_channel")
+def test_node_get_channel_successful_fetch_without_address_book_fails_closed(
+    mock_insecure,
+    mock_secure,
+    mock_node_without_address_book,
+):
+    """
+    A fetched certificate without a trust anchor must not be used as its own
+    root certificate.
+
+    Even when the certificate fetch succeeds, a node without an address book
+    (e.g. a fallback node) cannot validate the fetched certificate, so channel
+    creation must fail closed before grpc.secure_channel is ever called.
+    """
+    node = mock_node_without_address_book
+    node._address = node._address._to_secure()
+
+    # Certificate fetch SUCCEEDS (mimics an on-path attacker answering the
+    # unauthenticated TLS handshake with a certificate of their choice).
+    with (
+        patch.object(node, "_fetch_server_certificate_pem", return_value=b"attacker-cert"),
+        pytest.raises(ValueError, match="no applicable address book was found"),
+    ):
+        node._get_channel()
+
+    # No channel of any kind was created: the intercepted certificate is never
+    # installed as a trust root.
+    mock_secure.assert_not_called()
+    mock_insecure.assert_not_called()
+
+
+@patch("grpc.secure_channel")
+def test_node_get_channel_successful_fetch_without_address_book_but_root_certificates(
+    mock_secure,
+    mock_node_without_address_book,
+):
+    """
+    Explicitly configured root certificates remain a valid trust anchor even
+    without an address book, so the secure channel is still created.
+    """
+    node = mock_node_without_address_book
+    node._address = node._address._to_secure()
+    node._set_root_certificates(b"explicit-root-certs")
+
+    with patch.object(node, "_fetch_server_certificate_pem") as mock_fetch:
+        mock_channel = Mock()
+        mock_secure.return_value = mock_channel
+
+        channel = node._get_channel()
+
+        # The fetched certificate is not needed: the configured roots are the
+        # trust anchor and the TLS stack validates against them.
+        mock_fetch.assert_not_called()
+        assert node._node_pem_cert == b"explicit-root-certs"
+        assert channel is not None
 
 
 @patch("grpc.secure_channel")
@@ -366,12 +458,56 @@ def test_node_get_channel_with_root_certificates(mock_secure, mock_node_with_add
         (b"  AbCdEf  ", "abcdef"),
         (b"abcdef123456", "abcdef123456"),
         (b"\xff\xfe\xfd\xfc", "fffefdfc"),
+        # A raw 48-byte SHA-384 digest (as carried by the protobuf address book)
+        # is hex encoded; it cannot be mistaken for text here because it contains
+        # bytes that are not ASCII hex digits.
+        (bytes(range(48)), bytes(range(48)).hex()),
+        (b"\x00" * 48, (b"\x00" * 48).hex()),
+        # Hex text wins for exactly 48 characters, even though 48 bytes is also
+        # the raw SHA-384 digest length.
+        (b"a" * 48, "a" * 48),
+        (b"AB" * 24, "ab" * 24),
+        (b"0x" + b"ab" * 23, "ab" * 23),
+        (b"0X" + b"ab" * 23, "ab" * 23),
+        (b"deadbeef" * 6, "deadbeef" * 6),
+        # Whitespace disqualifies the hex-text reading of a 48-byte value,
+        # so it falls back to treating it as a raw digest.
+        (b" " + b"a" * 47, (b" " + b"a" * 47).hex()),
+        (b" " * 48, (b" " * 48).hex()),
+        # No usable fingerprint
+        (None, None),
+        (b"", None),
+        (b"   ", None),
+        (b"0x", None),
+        # Bytes-like values other than ``bytes`` are handled too
+        (bytearray(b"0xABCDEF1234"), "abcdef1234"),
+        (bytearray(bytes(range(48))), bytes(range(48)).hex()),
     ],
 )
 def test_normalize_cert_hash(cert_hash, expected):
     """Test certificate hash normalization."""
-    result = _Node._normalize_cert_hash(cert_hash)
+    result = _normalize_cert_hash(cert_hash)
     assert result == expected
+
+
+@pytest.mark.parametrize("cert_hash", ["0x1234abcd", 12345, ["0x12"]])
+def test_normalize_cert_hash_rejects_non_bytes(cert_hash):
+    """Non bytes-like values fail closed instead of raising a TypeError."""
+    assert _normalize_cert_hash(cert_hash) is None
+
+
+def test_normalize_cert_hash_prefers_hex_text_for_48_ascii_hex_characters():
+    """
+    A 48 character ASCII hex string is text, not the hex encoding of its bytes.
+
+    Regression test: treating every 48-byte value as a raw digest turned such a
+    fingerprint into a wrong 96 character value that could never match.
+    """
+    supplied = b"deadbeef" * 6  # exactly 48 ASCII hex characters
+    assert len(supplied) == 48
+
+    assert _normalize_cert_hash(supplied) == supplied.decode("ascii")
+    assert _normalize_cert_hash(supplied) != supplied.hex()
 
 
 def test_validate_tls_skipped_when_not_secure(mock_node_with_address_book):
