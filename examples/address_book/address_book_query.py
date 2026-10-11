@@ -14,7 +14,6 @@ import sys
 from hiero_sdk_python.address_book.address_book_query import AddressBookQuery
 from hiero_sdk_python.address_book.node_address_book import NodeAddressBook
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.client.network import Network
 from hiero_sdk_python.file.file_id import FileId
 
 
@@ -48,8 +47,9 @@ def main() -> None:
         # Query using a client without an operator account.
         # AddressBookQuery does not require an operator to execute.
         print("\n=== Address Book Query without Operator ===")
-        client = Client(network=Network(network="solo"))
-
+        # Use network config from the client so we can use the network configured in env.
+        network = client.network
+        client = Client(network=network)
         address_book = query_address_book(client)
         print_address_book(address_book)
 
