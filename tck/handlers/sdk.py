@@ -17,7 +17,9 @@ def setup_handler(params: SetupParams) -> SetupResponse:
         nodes = {params.nodeIp: AccountId.from_string(params.nodeAccountId)}
 
         client = Client.for_network(network_map=nodes)
-        client.network.mirror_address = params.mirrorNetworkIp
+        # The driver sends the mirror node as a URL (e.g. "http://localhost:38081"),
+        # but the SDK expects host:port and derives the REST URL from it.
+        client.network.mirror_address = params.mirrorNetworkIp.split("://", 1)[-1]
 
         client.set_operator(operator_account_id, operator_private_key)
 
