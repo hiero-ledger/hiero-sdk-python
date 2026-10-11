@@ -5,6 +5,7 @@ from .account.account_create_transaction import AccountCreateTransaction
 from .account.account_delete_transaction import AccountDeleteTransaction
 from .account.account_id import AccountId
 from .account.account_info import AccountInfo
+from .account.account_mirror_node_balance import MirrorNodeAccountBalance
 from .account.account_records_query import AccountRecordsQuery
 from .account.account_update_transaction import AccountUpdateTransaction
 
@@ -98,6 +99,7 @@ from .prng_transaction import PrngTransaction
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.account_info_query import AccountInfoQuery
 from .query.fee_estimate_query import FeeEstimateQuery
+from .query.mirror_node_account_balance_query import MirrorNodeAccountBalanceQuery
 from .query.token_info_query import TokenInfoQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
 from .query.topic_info_query import TopicInfoQuery
@@ -191,6 +193,7 @@ __all__ = [
     "AccountAllowanceApproveTransaction",
     "AccountAllowanceDeleteTransaction",
     "AccountRecordsQuery",
+    "MirrorNodeAccountBalance",
     # Crypto
     "PrivateKey",
     "PublicKey",
@@ -258,6 +261,7 @@ __all__ = [
     "TokenNftInfoQuery",
     "TokenInfoQuery",
     "AccountInfoQuery",
+    "MirrorNodeAccountBalanceQuery",
     # Address book
     "BlockNodeApi",
     "BlockNodeServiceEndpoint",
