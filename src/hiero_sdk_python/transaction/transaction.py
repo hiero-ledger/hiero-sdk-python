@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-from decimal import Decimal
 from typing import TYPE_CHECKING, Literal, overload
 
 from hiero_sdk_python.account.account_id import AccountId
@@ -1262,7 +1261,7 @@ class Transaction(_Executable):
 
         return get_fields(first) == get_fields(second)
 
-    def set_default_max_transaction_fee(self, max_transaction_fee):
+    def set_max_transaction_fee(self, max_transaction_fee):
         """
          Sets the maximum transaction fee for this transaction.
 
@@ -1403,18 +1402,6 @@ class Transaction(_Executable):
                 CustomFeeLimit._from_proto(fee) for fee in transaction_body.max_custom_fees
             ]
 
-        if not transaction._node_account_ids.is_empty:
-            # TODO: This will change, Instead of node_account_id use the signature map to decide if we need to freeze
-            # Currently the unit test for this is skip the implemtation will change in follow up PR
-            transaction._transaction_ids.set_lock(True)
-            transaction._node_account_ids.set_lock(True)
-
-            node_transaction_bodies = {}
-            node_transaction_bodies[transaction._node_account_ids.current] = body_bytes
-            transaction._transaction_body_bytes[transaction._transaction_ids.current] = node_transaction_bodies
-
-        if sig_map and sig_map.sigPair:
-            transaction._signature_map[body_bytes] = sig_map
         return transaction
 
     def set_batch_key(self, key: Key):
