@@ -122,7 +122,11 @@ class Endpoint:
         if port == 0 or port == 50111:
             port = 50211
 
-        return cls(address=service_endpoint.ipAddressV4, port=port, domain_name=service_endpoint.domain_name)
+        address = service_endpoint.ipAddressV4
+        if address:
+            address = bytes(str(ipaddress.ip_address(address)), "utf-8")
+
+        return cls(address=address, port=port, domain_name=service_endpoint.domain_name)
 
     def _to_proto(self) -> ServiceEndpoint:
         """
@@ -131,7 +135,11 @@ class Endpoint:
         Returns:
             ServiceEndpoint: A protobuf ServiceEndpoint object.
         """
-        return ServiceEndpoint(ipAddressV4=self._address, port=self._port, domain_name=self._domain_name)
+        service_endpoint = ServiceEndpoint(port=self._port, domain_name=self._domain_name)
+        if self._address:
+            service_endpoint.ipAddressV4 = ipaddress.ip_address(self._address.decode("utf-8")).packed
+
+        return service_endpoint
 
     def __str__(self) -> str:
         """
@@ -140,12 +148,11 @@ class Endpoint:
         Returns:
             str: The string representation in the format 'domain:port' or 'ip:port'.
         """
-        try:
-            address = str(ipaddress.ip_address(self._address))
-        except ValueError:
+        if self._address:
             address = self._address.decode("utf-8")
+            return f"{address}:{self._port}"
 
-        return f"{address}:{self._port}"
+        return f"{self._domain_name}:{self._port}"
 
     @classmethod
     def from_dict(cls, json_data: EndpointDict) -> Endpoint:

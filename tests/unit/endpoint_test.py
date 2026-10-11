@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 from unittest.mock import MagicMock
 
 import pytest
@@ -77,7 +78,7 @@ def test_from_proto_port_mapping(input_port, expected_port):
     """
     mock_proto = MagicMock()
     mock_proto.port = input_port
-    mock_proto.ipAddressV4 = b"127.0.1.1"
+    mock_proto.ipAddressV4 = ipaddress.ip_address("127.0.1.1").packed
     mock_proto.domain_name = "redpanda.com"
 
     endpoint = Endpoint._from_proto(mock_proto)
@@ -126,7 +127,7 @@ def test_to_proto():
     """
     endpoint = Endpoint(address=b"127.0.1.1", port=77777, domain_name="redpanda.com")
     proto = endpoint._to_proto()
-    assert proto.ipAddressV4 == b"127.0.1.1"
+    assert proto.ipAddressV4 == ipaddress.ip_address("127.0.1.1").packed
     assert proto.port == 77777
     assert proto.domain_name == "redpanda.com"
 
@@ -139,13 +140,6 @@ def test_str():
     # Verify return type
     assert isinstance(result, str), "String representation should return a string"
     assert result == "127.0.1.1:77777"
-
-
-def test_str_with_none_values():
-    """Test string representation when address or port is None."""
-    endpoint = Endpoint(address=None, port=None, domain_name="example.com")
-    with pytest.raises(AttributeError):
-        str(endpoint)
 
 
 @pytest.mark.parametrize(
