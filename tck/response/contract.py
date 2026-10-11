@@ -25,6 +25,11 @@ class DeleteContractResponse(StatusOnlyResponse):
 
 
 @dataclass
+class ExecuteContractResponse(StatusOnlyResponse):
+    """Response payload for executeContract."""
+
+
+@dataclass
 class ContractCallResponse:
     """Response payload for contractCallQuery."""
 
