@@ -8,13 +8,11 @@ on:
       - "src/**"
       - "tck/**"
       - "tests/tck/**"
-      - ".github/workflows/pr-check-secondary-tck-test.yml"
   pull_request:
     paths:
       - "src/**"
       - "tck/**"
       - "tests/tck/**"
-      - ".github/workflows/pr-check-secondary-tck-test.yml"
   workflow_dispatch: {}
 
 permissions:
