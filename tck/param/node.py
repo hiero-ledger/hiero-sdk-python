@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 from hiero_sdk_python.address_book.endpoint import Endpoint
 from tck.param.base import BaseTransactionParams
-from tck.util.param_utils import parse_common_transaction_params, parse_session_id, to_bool, to_int
+from tck.util.param_utils import decode_hex, parse_common_transaction_params, parse_session_id, to_bool, to_int
 
 
 @dataclass
@@ -78,7 +78,7 @@ class ServiceEndpointParams:
 
     def to_sdk_endpoint(self) -> Endpoint:
         return Endpoint(
-            address=bytes.fromhex(self.ipAddressV4) if self.ipAddressV4 is not None else None,
+            address=decode_hex(self.ipAddressV4) if self.ipAddressV4 is not None else None,
             port=self.port,
             domain_name=self.domainName,
         )

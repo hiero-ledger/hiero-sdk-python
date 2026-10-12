@@ -129,7 +129,7 @@ class NodeCreateTransaction(Transaction):
         if gossip_endpoints is not None and len(gossip_endpoints) > 10:
             raise ValueError("gossipEndpoints must not contain more than 10 entries")
 
-        for endpoint in gossip_endpoints:
+        for endpoint in gossip_endpoints or []:
             Endpoint._validate_no_ip_and_domain(endpoint)
 
         self.gossip_endpoints = gossip_endpoints
@@ -150,7 +150,7 @@ class NodeCreateTransaction(Transaction):
         if service_endpoints is not None and len(service_endpoints) > 8:
             raise ValueError("serviceEndpoints must not contain more than 8 entries")
 
-        for endpoint in service_endpoints:
+        for endpoint in service_endpoints or []:
             Endpoint._validate_no_ip_and_domain(endpoint)
 
         self.service_endpoints = service_endpoints

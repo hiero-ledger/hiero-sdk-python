@@ -162,5 +162,9 @@ class Endpoint:
         """Validate that the endpoint does not contain both an IP address and a domain name"""
         if endpoint is None:
             return
-        if endpoint._address is not None and endpoint._domain_name is not None:
+
+        has_ip_address = endpoint._address not in (None, b"")
+        has_domain_name = endpoint._domain_name not in (None, "")
+
+        if has_ip_address and has_domain_name:
             raise ValueError("Endpoint must not contain both ipAddressV4 and domainName")

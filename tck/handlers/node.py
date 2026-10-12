@@ -10,12 +10,12 @@ from tck.response.node import NodeResponse
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
-from tck.util.param_utils import to_int
+from tck.util.param_utils import decode_hex, to_int
 from tck.util.transaction_utils import execute_validated
 
 
-def _build_node_create_transaaction(params: CreateNodeParams) -> NodeCreateTransaction:
-    """Build NodeCreateTransaction from CreateNodeParasm."""
+def _build_node_create_transaction(params: CreateNodeParams) -> NodeCreateTransaction:
+    """Build NodeCreateTransaction from CreateNodeParams."""
     transaction = NodeCreateTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
 
     if params.accountId is not None:
@@ -27,9 +27,9 @@ def _build_node_create_transaaction(params: CreateNodeParams) -> NodeCreateTrans
     if params.serviceEndpoints is not None:
         transaction.set_service_endpoints([e.to_sdk_endpoint() for e in params.serviceEndpoints])
     if params.gossipCaCertificate is not None:
-        transaction.set_gossip_ca_certificate(bytes.fromhex(params.gossipCaCertificate))
+        transaction.set_gossip_ca_certificate(decode_hex(params.gossipCaCertificate))
     if params.grpcCertificateHash is not None:
-        transaction.set_grpc_certificate_hash(bytes.fromhex(params.grpcCertificateHash))
+        transaction.set_grpc_certificate_hash(decode_hex(params.grpcCertificateHash))
     if params.grpcWebProxyEndpoint is not None:
         transaction.set_grpc_web_proxy_endpoint(params.grpcWebProxyEndpoint.to_sdk_endpoint())
     if params.adminKey is not None:
@@ -45,12 +45,12 @@ def create_node(params: CreateNodeParams) -> NodeResponse:
     """Create a node."""
     client = get_client(params.sessionId)
 
-    transaction = _build_node_create_transaaction(params)
+    transaction = _build_node_create_transaction(params)
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
     receipt = execute_validated(transaction, client)
-    node_id = ""
+    node_id = None
 
     if receipt.node_id is not None and receipt.node_id > 0:
         node_id = str(receipt.node_id)
@@ -72,7 +72,7 @@ def delete_node(params: DeleteNodeParams) -> NodeResponse:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
     receipt = execute_validated(transaction, client)
-    node_id = ""
+    node_id = None
 
     if receipt.node_id is not None and receipt.node_id > 0:
         node_id = str(receipt.node_id)

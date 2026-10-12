@@ -188,11 +188,19 @@ def test_set_gossip_endpoints(node_params):
     assert result is node_tx  # Should return self for method chaining
 
 
+def test_set_gossip_endpoints_with_none():
+    """Test setting gossip_endpoints as None using the setter method."""
+    node_tx = NodeCreateTransaction()
+
+    result = node_tx.set_gossip_endpoints(None)
+
+    assert node_tx.gossip_endpoints is None
+    assert result is node_tx  # Should return self for method chaining
+
+
 def test_set_gossip_endpoints_greater_than_10(node_params):
     """Test setting more than 10 gossip_endpoints."""
-    endpoints = []
-    for _ in range(11):
-        endpoints.append(node_params["gossip_endpoints"])
+    endpoints = [node_params["gossip_endpoints"]] * 11
 
     with pytest.raises(ValueError, match="gossipEndpoints must not contain more than 10 entries"):
         NodeCreateTransaction().set_gossip_endpoints(endpoints)
@@ -224,11 +232,19 @@ def test_set_service_endpoints(node_params):
     assert result is node_tx  # Should return self for method chaining
 
 
+def test_set_service_endpoints_with_none():
+    """Test setting service_endpoints as None using the setter method."""
+    node_tx = NodeCreateTransaction()
+
+    result = node_tx.set_service_endpoints(None)
+
+    assert node_tx.service_endpoints is None
+    assert result is node_tx  # Should return self for method chaining
+
+
 def test_set_service_endpoints_greater_than_8(node_params):
     """Test setting more than 8 service_endpoints."""
-    endpoints = []
-    for _ in range(9):
-        endpoints.append(node_params["service_endpoints"])
+    endpoints = [node_params["service_endpoints"]] * 9
 
     with pytest.raises(ValueError, match="serviceEndpoints must not contain more than 8 entries"):
         NodeCreateTransaction().set_service_endpoints(endpoints)
@@ -263,7 +279,7 @@ def test_set_gossip_ca_certificate(node_params):
 def test_set_empty_gossip_ca_certificate():
     """Test setting empty gossip_ca_certificate using the setter method."""
     with pytest.raises(ValueError, match="gossipCaCertificate must not be empty"):
-        NodeCreateTransaction().set_gossip_ca_certificate("")
+        NodeCreateTransaction().set_gossip_ca_certificate(b"")
 
 
 def test_set_grpc_certificate_hash(node_params):
