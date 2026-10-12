@@ -134,7 +134,7 @@ def _build_file_info_response(info: FileInfo) -> GetFileInfoResponse:
         fileId=str(info.file_id) if info.file_id is not None else None,
         size=str(info.size) if info.size is not None else None,
         expirationTime=str(info.expiration_time.seconds) if info.expiration_time is not None else None,
-        isDeleted=False,
+        isDeleted=info.is_deleted,
         keys=keys,
         memo=info.file_memo,
         ledgerId=info.ledger_id.hex() if info.ledger_id is not None else None,
