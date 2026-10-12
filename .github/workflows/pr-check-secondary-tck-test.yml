@@ -1,4 +1,4 @@
-name: Secondary PR Check - TCK Unit Test
+name: Secondary PR Check - TCK Test
 
 on:
   push:
@@ -55,3 +55,27 @@ jobs:
       - name: Run unit tests
         run: |
           uv run pytest tests/tck -v
+
+  tck-compatiblity:
+    runs-on: ubuntu-latest
+    name: TCK Compatiblity Check
+    timeout-minutes: 45
+
+    steps:
+      - name: Harden runner (audit outbound calls)
+        uses: step-security/harden-runner@351661ca32ac09a36dc5ee2d536e3128f2a3c8ed # v2.22.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout SDK
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Start Hiero Solo
+        uses: hiero-ledger/hiero-solo-action@c5326debc5b38e50fa4032361c0a35f46166c0e7 # v0.25.0
+        with:
+          installMirrorNode: true
+
+      - name: Run Hiero TCK
+        uses: hiero-hackers/hiero-tck-action@71c05203834ed80c5897a387c44a25ab215b3efe #v0.0.1
+        with:
+          sdk: python
