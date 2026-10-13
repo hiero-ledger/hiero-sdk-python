@@ -18,13 +18,11 @@ class MirrorNodeTokenBalance:
       token_id: The ID of the token.
       balance: The balance held, in the token's smallest denomination or as an NFT count.
       decimals: The number of decimal places for the token, or None if the Mirror Node does not report it.
-      associated: Whether the account has a relationship with the token.
     """
 
     token_id: TokenId
     balance: int
     decimals: int | None
-    associated: bool
 
     def __post_init__(self) -> None:
         """Validate the token balance fields."""
@@ -36,9 +34,6 @@ class MirrorNodeTokenBalance:
 
         if self.decimals is not None and (isinstance(self.decimals, bool) or not isinstance(self.decimals, int)):
             raise TypeError("decimals must be an integer or None")
-
-        if not isinstance(self.associated, bool):
-            raise TypeError("associated must be a boolean")
 
     @staticmethod
     def _from_json(root: dict[str, Any], requested_token_id: TokenId) -> MirrorNodeTokenBalance:
@@ -71,7 +66,7 @@ class MirrorNodeTokenBalance:
         tokens = root.get("tokens")
 
         if tokens is None or tokens == []:
-            return MirrorNodeTokenBalance(requested_token_id, 0, None, False)
+            return MirrorNodeTokenBalance(requested_token_id, 0, None)
 
         if not isinstance(tokens, list):
             raise TypeError("Mirror Node returned a malformed response: tokens must be a list")
@@ -88,6 +83,5 @@ class MirrorNodeTokenBalance:
         balance = 0 if balance_value is None else balance_value
 
         decimals = relationship.get("decimals")
-        associated = relationship.get("automatic_association", False)
 
-        return MirrorNodeTokenBalance(token_id, balance, decimals, associated)
+        return MirrorNodeTokenBalance(token_id, balance, decimals)
