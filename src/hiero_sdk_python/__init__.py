@@ -8,6 +8,7 @@ from .account.account_info import AccountInfo
 from .account.account_mirror_node_balance import MirrorNodeAccountBalance
 from .account.account_records_query import AccountRecordsQuery
 from .account.account_update_transaction import AccountUpdateTransaction
+from .account.mirror_node_token_balance import MirrorNodeTokenBalance
 
 # Address book
 from .address_book.block_node_api import BlockNodeApi
@@ -194,6 +195,7 @@ __all__ = [
     "AccountAllowanceDeleteTransaction",
     "AccountRecordsQuery",
     "MirrorNodeAccountBalance",
+    "MirrorNodeTokenBalance",
     # Crypto
     "PrivateKey",
     "PublicKey",
