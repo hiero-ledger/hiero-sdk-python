@@ -161,17 +161,37 @@ class TokenBurnTransaction(Transaction):
         """
         return _Method(transaction_func=channel.token.burnToken, query_func=None)
 
-    def _from_proto(self, proto: TokenBurnTransactionBody) -> TokenBurnTransaction:
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes | None = None, sig_map=None):
         """
-        Deserializes a TokenBurnTransactionBody from a protobuf object.
+        Creates a TokenBurnTransaction instance from protobuf components.
 
         Args:
-            proto (TokenBurnTransactionBody): The protobuf object to deserialize.
+            transaction_body: The parsed TransactionBody protobuf
+            body_bytes (bytes): The raw bytes of the transaction body
+            sig_map: The SignatureMap protobuf containing signatures
 
         Returns:
-            TokenBurnTransaction: Returns self for method chaining.
+            TokenBurnTransaction: A new transaction instance with all fields restored
         """
-        self.token_id = TokenId._from_proto(proto.token)
-        self.amount = proto.amount
-        self.serials = list(proto.serialNumbers)
-        return self
+        try:
+            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        except TypeError:
+            transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenBurn"):
+            pb = transaction_body.tokenBurn
+
+            if pb.HasField("token"):
+                transaction.token_id = TokenId._from_proto(pb.token)
+            else:
+                transaction.token_id = None
+
+            if pb.serialNumbers:
+                transaction.serials = list(pb.serialNumbers)
+                transaction.amount = None
+            else:
+                transaction.amount = pb.amount
+                transaction.serials = []
+
+        return transaction

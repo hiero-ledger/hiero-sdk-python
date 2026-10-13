@@ -149,18 +149,42 @@ class TokenWipeTransaction(Transaction):
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(transaction_func=channel.token.wipeTokenAccount, query_func=None)
 
-    def _from_proto(self, proto: TokenWipeAccountTransactionBody) -> TokenWipeTransaction:
+    @classmethod
+    def _from_protobuf(cls, transaction_body, body_bytes: bytes | None = None, sig_map=None):
         """
-        Deserializes a TokenWipeAccountTransactionBody from a protobuf object.
+        Creates a TokenWipeTransaction instance from protobuf components.
 
         Args:
-            proto (TokenWipeAccountTransactionBody): The protobuf object to deserialize.
+            transaction_body: The parsed TransactionBody protobuf
+            body_bytes (bytes): The raw bytes of the transaction body
+            sig_map: The SignatureMap protobuf containing signatures
 
         Returns:
-            TokenWipeTransaction: Returns self for method chaining.
+            TokenWipeTransaction: A new transaction instance with all fields restored
         """
-        self.token_id = TokenId._from_proto(proto.token)
-        self.account_id = AccountId._from_proto(proto.account)
-        self.amount = proto.amount
-        self.serial = list(proto.serialNumbers)
-        return self
+        try:
+            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        except TypeError:
+            transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenWipe"):
+            pb = transaction_body.tokenWipe
+
+            if pb.HasField("token"):
+                transaction.token_id = TokenId._from_proto(pb.token)
+            else:
+                transaction.token_id = None
+
+            if pb.HasField("account"):
+                transaction.account_id = AccountId._from_proto(pb.account)
+            else:
+                transaction.account_id = None
+
+            if pb.serialNumbers:
+                transaction.serial = list(pb.serialNumbers)
+                transaction.amount = None
+            else:
+                transaction.amount = pb.amount
+                transaction.serial = []
+
+        return transaction
