@@ -93,6 +93,13 @@ class GetAccountBalanceResponse:
 
 
 @dataclass
+class GetMirrorNodeAccountBalanceResponse:
+    """Response payload for getMirrorNodeAccountBalance."""
+
+    hbars: str | None = None
+
+
+@dataclass
 class ExchangeRateResponse:
     """Exchange rate details included in a transaction receipt."""
 
