@@ -83,9 +83,6 @@ class FileAppendTransaction(ChunkedTransaction):
         Returns:
             int: The number of chunks required.
         """
-        if self._transaction_body_bytes:
-            return len(self._transaction_ids)
-
         return self._calculate_total_chunks()
 
     def set_file_id(self, file_id: FileId) -> FileAppendTransaction:

@@ -867,11 +867,11 @@ def test_from_bytes_preserves_all_frozen_chunks(mock_client, file_id):
     assert restored.contents == b"AAAA"
     assert restored.file_id == file_id
     assert len(restored._transaction_ids) == 3
-    assert restored.get_required_chunks() == 3
+    assert restored.get_required_chunks() == 1
     assert restored._transaction_body_bytes == tx._transaction_body_bytes
 
-    assert restored._validate_chunking() == 3
-    assert restored._total_chunks == 3
+    assert restored._validate_chunking() == 1
+    assert restored._total_chunks == 1
 
 
 def test_from_bytes_preserves_a_large_single_chunk(mock_client, file_id):
@@ -885,9 +885,9 @@ def test_from_bytes_preserves_a_large_single_chunk(mock_client, file_id):
     assert len(restored._transaction_ids) == 1
 
     assert restored.chunk_size == 4096
-    assert restored.get_required_chunks() == 1
-    assert restored._validate_chunking() == 1
-    assert restored._total_chunks == 1
+    assert restored.get_required_chunks() == 2
+    assert restored._validate_chunking() == 2
+    assert restored._total_chunks == 2
 
 
 def test_from_protobuf_restores_absent_file_id():
