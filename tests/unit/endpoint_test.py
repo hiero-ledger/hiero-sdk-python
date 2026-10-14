@@ -170,3 +170,29 @@ def test_from_dict_success():
     assert endpoint.get_address() == b"127.0.0.1"
     assert endpoint.get_port() == 77777
     assert endpoint.get_domain_name() == "redpanda.com"
+
+
+@pytest.mark.parametrize(
+    "endpoint",
+    (
+        Endpoint(address=b"", domain_name="test.com", port=50211),
+        Endpoint(address=b"127.0.0.1", domain_name="", port=50211),
+        Endpoint(address=None, domain_name="test.com", port=50211),
+        Endpoint(address=b"127.0.0.1", domain_name=None, port=50211),
+    ),
+)
+def test_validate_no_ip_and_domain(endpoint):
+    """Test validate_no_ip_and_domain with endpoint containing either ip or domain."""
+    Endpoint._validate_no_ip_and_domain(endpoint)
+
+
+def test_validate_no_ip_and_domain_with_none_param():
+    """Test validate_no_ip_and_domain with endpoint as none."""
+    Endpoint._validate_no_ip_and_domain(None)
+
+
+def test_validate_no_ip_and_domain_containing_both_ip_and_domain():
+    """Test validate_no_ip_and_domain with endpoint containing both ip and domain."""
+    endpoint = Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211)
+    with pytest.raises(ValueError, match="Endpoint must not contain both ipAddressV4 and domainName"):
+        Endpoint._validate_no_ip_and_domain(endpoint)
