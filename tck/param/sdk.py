@@ -24,3 +24,12 @@ class SetupParams(BaseParams):
             mirrorNetworkIp=params.get("mirrorNetworkIp"),
             sessionId=parse_session_id(params),
         )
+
+
+@dataclass
+class PingParams(BaseParams):
+    nodeAccountId: str = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> PingParams:
+        return cls(nodeAccountId=params.get("nodeAccountId"), sessionId=parse_session_id(params))

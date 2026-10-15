@@ -9,6 +9,7 @@ from . import (
     ethereum,
     file,
     key,
+    node,
     schedule,
     sdk,  # setup, reset
     token,
