@@ -19,6 +19,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Allowance Approve Transaction](#allowance-approve-transaction)
   - [Allowance Delete Transaction](#allowance-delete-transaction)
   - [Querying Account Records](#querying-account-records)
+  - [Querying Account Token Balance Using Mirror Node](#querying-account-token-balance-using-mirror-node)
 - [Token Transactions](#token-transactions)
   - [Creating a Token](#creating-a-token)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -366,6 +367,30 @@ records = AccountRecordsQuery().set_account_id(account_id).execute(client)
 for record in records:
     print(record)
 ```
+
+### Querying Account Token Balance Using Mirror Node
+
+#### Pythonic Syntax:
+```python
+token_balance = (
+    MirrorNodeTokenBalanceQuery(account_id, token_id)
+    .execute(client)
+)
+print(token_balance)
+```
+
+#### Method Chaining:
+```python
+token_balance = (
+    MirrorNodeTokenBalanceQuery()
+    .set_account_id(account_id)
+    .set_token_id(token_id)
+    .execute(client)
+)
+print(token_balance)
+```
+
+
 
 ## Token Transactions
 
