@@ -36,6 +36,52 @@ def successful_response():
 # __init__
 
 
+def test_constructor_without_params():
+    """Test constructor without params."""
+    query = MirrorNodeTokenBalanceQuery()
+    assert query is not None
+    assert query.token_id is None
+    assert query.account_id is None
+    # Defaults
+    assert query.max_attempts == 10
+    assert query.max_backoff == 8
+
+
+def test_constructor_with_params(mock_account_ids, token_id):
+    """Test constructor with params."""
+    # With accountId
+    query1 = MirrorNodeTokenBalanceQuery(account_id=mock_account_ids[0])
+    assert query1 is not None
+    assert query1.account_id is not None
+    assert query1.account_id == mock_account_ids[0]
+    assert query1.token_id is None
+    assert query1.max_attempts == 10
+    assert query1.max_backoff == 8
+
+    # With accountId
+    query2 = MirrorNodeTokenBalanceQuery(token_id=token_id)
+    assert query2 is not None
+    assert query2.account_id is None
+    assert query2.token_id is not None
+    assert query2.token_id == token_id
+    assert query2.max_attempts == 10
+    assert query2.max_backoff == 8
+
+
+@pytest.mark.parametrize("account_id", ["0.0.1", 100, 0.1, True, {}, []])
+def test_constructor_with_invalid_account_id(account_id):
+    """Test constructor with invalid account_id params."""
+    with pytest.raises(TypeError, match="account_id must be of type AccountId"):
+        MirrorNodeTokenBalanceQuery(account_id=account_id)
+
+
+@pytest.mark.parametrize("token_id", ["0.0.1", 100, 0.1, True, {}, []])
+def test_constructor_with_invalid_token_id(token_id):
+    """Test constructor with invalid token_id params."""
+    with pytest.raises(TypeError, match="token_id must be of type TokenId"):
+        MirrorNodeTokenBalanceQuery(token_id=token_id)
+
+
 # set_account_id
 
 
