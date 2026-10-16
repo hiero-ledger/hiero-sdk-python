@@ -1349,8 +1349,6 @@ class Transaction(_Executable):
 
         Args:
             transaction_body: The parsed TransactionBody protobuf
-            body_bytes (bytes): The raw bytes of the transaction body
-            sig_map: The SignatureMap protobuf containing signatures
 
         Returns:
             Transaction: A new transaction instance with all fields restored
