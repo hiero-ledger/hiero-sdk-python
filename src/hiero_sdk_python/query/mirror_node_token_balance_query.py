@@ -31,11 +31,17 @@ class MirrorNodeTokenBalanceQuery:
         token_id (TokenId): The token whose balance is requested.
     """
 
-    def __init__(self):
+    def __init__(self, account_id: AccountId | None = None, token_id: TokenId | None = None):
         self._account_id: AccountId | None = None
+        if account_id is not None:
+            self.set_account_id(account_id)
+
         self._token_id: TokenId | None = None
+        if token_id is not None:
+            self.set_token_id(token_id)
+
         self._max_attempts: int = 10
-        self._max_backoff: float = 8.0
+        self._max_backoff: float = 8.0  # 8 secinds
 
     @property
     def account_id(self) -> AccountId | None:
