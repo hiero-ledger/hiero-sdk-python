@@ -9,6 +9,7 @@ import requests
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.mirror_node_token_balance import MirrorNodeTokenBalance
 from hiero_sdk_python.client.client import Client
+from hiero_sdk_python.exceptions import MaxAttemptsError
 from hiero_sdk_python.tokens.token_id import TokenId
 
 
@@ -158,14 +159,17 @@ class MirrorNodeTokenBalanceQuery:
             ValueError: If required parameters are missing or the response
                 contains malformed data.
             TypeError: If an argument has an invalid type.
-            RuntimeError: If the Mirror Node request fails.
-            TimeoutError: If the overall request timeout is exceeded
         """
 
         if client is None:
             raise ValueError("client must not be None")
+        if not isinstance(client, Client):
+            raise TypeError("client must be of type Client")
+
         if timeout is None:
             timeout = client._request_timeout
+        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+            raise TypeError("timeout must be a number")
 
         if self.account_id is None:
             raise ValueError("account_id must be set before executing MirrorNodeTokenBalanceQuery")
@@ -175,6 +179,9 @@ class MirrorNodeTokenBalanceQuery:
 
         url = self._build_url(client)
         response = self._fetch_token_balance(url, timeout)
+
+        if response is None:
+            return MirrorNodeTokenBalance(self.token_id, 0, None)
 
         try:
             return MirrorNodeTokenBalance._from_json(response, self.token_id)
@@ -209,22 +216,33 @@ class MirrorNodeTokenBalanceQuery:
                 if resp.status_code == 200:
                     return resp.json()
 
-                if resp.status_code not in _RETRYABLE_HTTP_STATUSES or attempt == self._max_attempts - 1:
+                # java sdk equivalent to handle 404 response
+                if resp.status_code == 404:
+                    return None
+
+                if resp.status_code not in _RETRYABLE_HTTP_STATUSES:
                     raise RuntimeError(f"Mirror node error: HTTP {resp.status_code} - {resp.text}")
 
+                if attempt == self._max_attempts:
+                    raise MaxAttemptsError(
+                        f"Failed to fetch account balance after {attempt} attempts. ",
+                        f"Last HTTP status: {resp.status_code} - {resp.text}",
+                    )
+
                 last_exception = RuntimeError(f"HTTP {resp.status_code}")
+                self._delay_for_attempt(attempt, last_exception)
 
             except (requests.Timeout, requests.ConnectionError) as e:
-                if attempt == self._max_attempts - 1 or time.monotonic() - start >= timeout:
-                    raise RuntimeError(
+                if attempt == self._max_attempts:
+                    raise MaxAttemptsError(
                         f"Failed to fetch MirrorNodeTokenBalance after {self._max_attempts} attempts"
                     ) from e
 
                 last_exception = e
-                self.warn_and_delay(attempt, last_exception)
+                self._delay_for_attempt(attempt, last_exception)
 
         raise RuntimeError(
-            f"Failed to fetch MirrorNodeTokenBalance after {self._max_attempts} attempts"
+            f"Failed to fetch MirrorNodeTokenBalance due to timeout or max attempts reached ({self._max_attempts})."
         ) from last_exception
 
     @staticmethod
@@ -244,7 +262,7 @@ class MirrorNodeTokenBalanceQuery:
 
         return str(account_id)
 
-    def warn_and_delay(self, attempt: int, e: Exception) -> None:
+    def _delay_for_attempt(self, attempt: int, e: Exception) -> None:
         """Log a retry and sleep using capped exponential backoff."""
         delay = min(0.5 * (2**attempt), self._max_backoff)
         logger.warning(
