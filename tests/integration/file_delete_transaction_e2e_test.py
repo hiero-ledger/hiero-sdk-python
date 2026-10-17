@@ -139,5 +139,5 @@ def test_integration_file_delete_from_bytes(env):
         assert info.is_deleted is True
     finally:
         if not deleted:
-            cleanup = FileDeleteTransaction(file_id=file_id).execute(env.client)
-            assert cleanup.status == ResponseCode.SUCCESS
+            cleanup_receipt = FileDeleteTransaction(file_id=file_id).execute(env.client)
+            assert cleanup_receipt.status == ResponseCode.SUCCESS

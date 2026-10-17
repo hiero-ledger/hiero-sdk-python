@@ -556,8 +556,10 @@ def test_from_bytes_rejects_an_invalid_present_key():
         ),
     )
 
-    signed = transaction_contents_pb2.SignedTransaction(bodyBytes=body.SerializeToString())
-    encoded = transaction_pb2.Transaction(signedTransactionBytes=signed.SerializeToString()).SerializeToString()
+    signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body.SerializeToString())
+    transaction_bytes = transaction_pb2.Transaction(
+        signedTransactionBytes=signed_transaction.SerializeToString()
+    ).SerializeToString()
 
     with pytest.raises(ValueError, match="Unknown key type"):
-        Transaction.from_bytes(encoded)
+        Transaction.from_bytes(transaction_bytes)

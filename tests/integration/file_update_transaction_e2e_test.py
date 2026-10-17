@@ -254,5 +254,5 @@ def test_integration_file_update_from_bytes(env, file_memo):
         actual = FileContentsQuery(file_id=file_id).execute(env.client)
         assert actual == b"Updated"
     finally:
-        cleanup = FileDeleteTransaction(file_id=file_id).execute(env.client)
-        assert cleanup.status == ResponseCode.SUCCESS
+        cleanup_receipt = FileDeleteTransaction(file_id=file_id).execute(env.client)
+        assert cleanup_receipt.status == ResponseCode.SUCCESS

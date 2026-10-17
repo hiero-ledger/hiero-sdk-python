@@ -104,7 +104,9 @@ class FileDeleteTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("fileDelete"):
-            pb = transaction_body.fileDelete
-            transaction.file_id = FileId._from_proto(pb.fileID) if pb.HasField("fileID") else None
+            file_delete_body = transaction_body.fileDelete
+            transaction.file_id = (
+                FileId._from_proto(file_delete_body.fileID) if file_delete_body.HasField("fileID") else None
+            )
 
         return transaction
