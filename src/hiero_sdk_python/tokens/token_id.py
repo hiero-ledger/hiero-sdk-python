@@ -194,6 +194,8 @@ class TokenId:
             raise TypeError("serial must be an integer")
         if serial <= 0:
             raise ValueError("serial must be greater than 0")
+        if serial > (1 << 63) - 1:
+            raise ValueError("serial must not exceed 9223372036854775807")
 
         from hiero_sdk_python.tokens.nft_id import NftId
 

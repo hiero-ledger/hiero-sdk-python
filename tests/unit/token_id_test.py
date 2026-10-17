@@ -117,3 +117,11 @@ def test_token_id_nft_rejects_invalid_serial_type(serial):
 
     with pytest.raises(TypeError):
         token_id.nft(serial)
+
+
+def test_token_id_nft_rejects_serial_above_int64_max():
+    """Should reject serial numbers outside the protobuf int64 range."""
+    token_id = TokenId(0, 0, 1234)
+
+    with pytest.raises(ValueError):
+        token_id.nft(1 << 63)
