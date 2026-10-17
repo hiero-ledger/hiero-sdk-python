@@ -208,14 +208,20 @@ class FileUpdateTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("fileUpdate"):
-            pb = transaction_body.fileUpdate
+            file_update_body = transaction_body.fileUpdate
 
-            transaction.file_id = FileId._from_proto(pb.fileID) if pb.HasField("fileID") else None
-            transaction.expiration_time = (
-                Timestamp._from_protobuf(pb.expirationTime) if pb.HasField("expirationTime") else None
+            transaction.file_id = (
+                FileId._from_proto(file_update_body.fileID) if file_update_body.HasField("fileID") else None
             )
-            transaction.keys = KeyList.from_proto(pb.keys).keys if pb.HasField("keys") else None
-            transaction.contents = pb.contents
-            transaction.file_memo = pb.memo.value if pb.HasField("memo") else None
+            transaction.expiration_time = (
+                Timestamp._from_protobuf(file_update_body.expirationTime)
+                if file_update_body.HasField("expirationTime")
+                else None
+            )
+            transaction.keys = (
+                KeyList.from_proto(file_update_body.keys).keys if file_update_body.HasField("keys") else None
+            )
+            transaction.contents = file_update_body.contents
+            transaction.file_memo = file_update_body.memo.value if file_update_body.HasField("memo") else None
 
         return transaction

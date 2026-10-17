@@ -549,6 +549,7 @@ def test_from_bytes_preserves_present_zero_messages(mock_client):
 
 
 def test_from_bytes_rejects_an_invalid_present_key():
+    """Reject a present key without a recognized key type."""
     body = transaction_pb2.TransactionBody(
         fileUpdate=FileUpdateTransactionBody(
             keys=basic_types_pb2.KeyList(keys=[basic_types_pb2.Key()]),

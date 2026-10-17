@@ -78,7 +78,7 @@ class FileAppendTransaction(ChunkedTransaction):
 
     def get_required_chunks(self) -> int:
         """
-        Return stored chunk counts when frozen, otherwise calculate them.
+        Calculate the chunks required for the current contents and chunk size.
 
         Returns:
             int: The number of chunks required.
