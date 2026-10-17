@@ -5,6 +5,7 @@ from hiero_sdk_python.contract.contract_bytecode_query import ContractBytecodeQu
 from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import ContractCreateTransaction
 from hiero_sdk_python.contract.contract_delete_transaction import ContractDeleteTransaction
+from hiero_sdk_python.contract.contract_execute_transaction import ContractExecuteTransaction
 from hiero_sdk_python.contract.contract_function_result import ContractFunctionResult
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_info import ContractInfo
@@ -24,6 +25,7 @@ from tck.param.contract import (
     ContractInfoQueryParams,
     CreateContractParams,
     DeleteContractParams,
+    ExecuteContractParams,
     UpdateContractParams,
 )
 from tck.response.contract import (
@@ -32,6 +34,7 @@ from tck.response.contract import (
     ContractInfoResponse,
     CreateContractResponse,
     DeleteContractResponse,
+    ExecuteContractResponse,
     StakingInfoResponse,
     UpdateContractResponse,
 )
@@ -227,6 +230,45 @@ def delete_contract(params: DeleteContractParams) -> DeleteContractResponse:
     receipt = execute_validated(transaction, client)
 
     return DeleteContractResponse(ResponseCode(receipt.status).name)
+
+
+def _build_execute_contract_transaction(params: ExecuteContractParams) -> ContractExecuteTransaction:
+    """Map executeContract JSON-RPC params onto a ContractExecuteTransaction.
+
+    Only supplied params are applied, so SDK defaults stay intact.
+    """
+    transaction = ContractExecuteTransaction().set_grpc_deadline(DEFAULT_GRPC_TIMEOUT)
+
+    if params.contractId is not None:
+        transaction.set_contract_id(ContractId.from_string(params.contractId))
+
+    if params.gas is not None:
+        transaction.set_gas(_require_int64(params.gas, "gas"))
+
+    # Negative amounts are passed through for the network to reject with
+    # CONTRACT_NEGATIVE_VALUE.
+    if params.amount is not None:
+        transaction.set_payable_amount(_require_int64(params.amount, "amount"))
+
+    if params.functionParameters is not None:
+        transaction.set_function_parameters(decode_hex(params.functionParameters))
+
+    return transaction
+
+
+@rpc_method("executeContract")
+def execute_contract(params: ExecuteContractParams) -> ExecuteContractResponse:
+    """Execute a smart contract function."""
+    client = get_client(params.sessionId)
+
+    transaction = _build_execute_contract_transaction(params)
+
+    if params.commonTransactionParams is not None:
+        params.commonTransactionParams.apply_common_params(transaction, client)
+
+    receipt = execute_validated(transaction, client)
+
+    return ExecuteContractResponse(ResponseCode(receipt.status).name)
 
 
 def _build_contract_call_query(params: ContractCallQueryParams) -> ContractCallQuery:
