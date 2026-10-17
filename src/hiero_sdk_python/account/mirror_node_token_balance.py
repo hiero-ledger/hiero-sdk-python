@@ -6,7 +6,7 @@ from typing import Any
 from hiero_sdk_python.tokens.token_id import TokenId
 
 
-@dataclass
+@dataclass(frozen=True)
 class MirrorNodeTokenBalance:
     """
     Represents an account's balance for a single token, as reported by a Mirror Node REST API.
@@ -17,12 +17,16 @@ class MirrorNodeTokenBalance:
     Attributes:
       token_id: The ID of the token.
       balance: The balance held, in the token's smallest denomination or as an NFT count.
-      decimals: The number of decimal places for the token, or None if the Mirror Node does not report it.
+      decimals: The number of decimal places for the token. This is 0 for an NFT and when the
+        Mirror Node reports null.
+      associated: False only when the account has no relationship with the token (the Mirror Node
+        returned an empty tokens array); True otherwise.
     """
 
     token_id: TokenId
     balance: int
-    decimals: int | None
+    decimals: int
+    associated: bool = True
 
     def __post_init__(self) -> None:
         """Validate the token balance fields."""
@@ -32,8 +36,11 @@ class MirrorNodeTokenBalance:
         if isinstance(self.balance, bool) or not isinstance(self.balance, int):
             raise TypeError("balance must be an integer")
 
-        if self.decimals is not None and (isinstance(self.decimals, bool) or not isinstance(self.decimals, int)):
-            raise TypeError("decimals must be an integer or None")
+        if isinstance(self.decimals, bool) or not isinstance(self.decimals, int):
+            raise TypeError("decimals must be an integer")
+
+        if not isinstance(self.associated, bool):
+            raise TypeError("associated must be a bool")
 
     @staticmethod
     def _from_json(root: dict[str, Any], requested_token_id: TokenId) -> MirrorNodeTokenBalance:
@@ -43,8 +50,9 @@ class MirrorNodeTokenBalance:
         The response is expected to contain the tokens array returned
         by GET /api/v1/accounts/{id}/tokens.
 
-        If the array is missing, null, or empty, the account is treated as
-        not associated with the requested token.
+        An empty array means the account has no relationship with the requested token, and
+        the result has balance 0, decimals 0 and associated False. A missing or null tokens
+        array is malformed, not "not associated", and raises ValueError.
 
         Args:
           root: The JSON response containing token relationships.
@@ -54,8 +62,8 @@ class MirrorNodeTokenBalance:
           A MirrorNodeTokenBalance representing the token balance or the absence of a token relationship.
 
         Raises:
-          TypeError: If the response or a token relationship has an unexpected type.
-          ValueError: If the response contains invalid token data.
+          TypeError: If the response, a token relationship, or a balance/decimals value has an unexpected type.
+          ValueError: If the tokens array is missing or null, or the token ID is invalid.
         """
         if not isinstance(root, dict):
             raise TypeError("Mirror Node returned a malformed response: root must be a dictionary")
@@ -65,11 +73,14 @@ class MirrorNodeTokenBalance:
 
         tokens = root.get("tokens")
 
-        if tokens is None or tokens == []:
-            return MirrorNodeTokenBalance(requested_token_id, 0, None)
+        if tokens is None:
+            raise ValueError("Mirror Node returned a malformed response: missing tokens array")
 
         if not isinstance(tokens, list):
             raise TypeError("Mirror Node returned a malformed response: tokens must be a list")
+
+        if not tokens:
+            return MirrorNodeTokenBalance(requested_token_id, 0, 0, associated=False)
 
         relationship = tokens[0]
         if not isinstance(relationship, dict):
@@ -79,9 +90,11 @@ class MirrorNodeTokenBalance:
         if relationship.get("token_id") is not None:
             token_id = TokenId.from_string(relationship.get("token_id"))
 
-        balance_value = relationship.get("balance")
-        balance = 0 if balance_value is None else balance_value
-
+        balance = relationship.get("balance")
         decimals = relationship.get("decimals")
 
-        return MirrorNodeTokenBalance(token_id, balance, decimals)
+        return MirrorNodeTokenBalance(
+            token_id,
+            0 if balance is None else balance,
+            0 if decimals is None else decimals,
+        )

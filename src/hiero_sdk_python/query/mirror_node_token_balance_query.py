@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-import base64
 import logging
 import time
+from typing import Any
+from urllib.parse import quote
 
 import requests
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.mirror_node_token_balance import MirrorNodeTokenBalance
 from hiero_sdk_python.client.client import Client
-from hiero_sdk_python.exceptions import MaxAttemptsError
+from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.query._mirror_node_rest import to_account_id_param
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 
 
@@ -26,6 +29,22 @@ class MirrorNodeTokenBalanceQuery:
     This query retrieves token balance information from the following endpoint:
     GET /api/v1/accounts/{id}/tokens?token.id={token_id}&limit=1
 
+    The account may be identified by a shard.realm.num id, an EVM address or a public-key alias.
+
+    The ``timeout`` passed to ``execute`` is the total deadline for the whole call, including
+    retries and backoff; each individual HTTP attempt is additionally bounded at 30 seconds.
+    The per-attempt bound is applied by ``requests`` to connecting and to each read, so a
+    response that keeps trickling bytes can run slightly past it.
+
+    An HTTP 404 (unknown account) raises ``PrecheckError(ResponseCode.INVALID_ACCOUNT_ID)``. An empty
+    ``tokens`` array (the account exists but has no relationship with the token) yields a balance of 0,
+    decimals of 0 and ``associated=False``.
+
+    This API may change once hiero-ledger/sdk-collaboration-hub#281 is finalised.
+
+    Results are not read-after-write consistent: the mirror node lags consensus by a few seconds, so a
+    balance queried immediately after a transaction may not yet reflect it.
+
     Attributes:
         account_id (AccountId): The account whose token balance is requested.
         token_id (TokenId): The token whose balance is requested.
@@ -41,7 +60,7 @@ class MirrorNodeTokenBalanceQuery:
             self.set_token_id(token_id)
 
         self._max_attempts: int = 10
-        self._max_backoff: float = 8.0  # 8 secinds
+        self._max_backoff: float = 8.0  # 8 seconds
 
     @property
     def account_id(self) -> AccountId | None:
@@ -155,16 +174,22 @@ class MirrorNodeTokenBalanceQuery:
 
         Args:
             client: The client used to access the Mirror Node.
-            timeout: Maximum duration of the query in seconds.
+            timeout: Total deadline in seconds for the whole call, including retries and
+                backoff. Each HTTP attempt is bounded by min(30, remaining time).
                 Defaults to the client's configured request timeout.
 
         Returns:
             The token balance reported by the Mirror Node.
 
         Raises:
-            ValueError: If required parameters are missing or the response
-                contains malformed data.
+            PrecheckError: With ResponseCode.INVALID_ACCOUNT_ID if the Mirror Node returns HTTP 404.
+            RuntimeError: If the Mirror Node returns a non-retryable error status, or retries
+                or the total deadline are exhausted.
+            ValueError: If required parameters are missing, timeout is not positive, or the
+                response is not valid JSON or contains malformed data.
             TypeError: If an argument has an invalid type.
+            requests.RequestException: For transport failures other than timeouts and
+                connection errors (for example a truncated response), which are not retried.
         """
 
         if client is None:
@@ -176,6 +201,8 @@ class MirrorNodeTokenBalanceQuery:
             timeout = client._request_timeout
         if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
             raise TypeError("timeout must be a number")
+        if timeout <= 0:
+            raise ValueError("timeout must be greater than zero")
 
         if self.account_id is None:
             raise ValueError("account_id must be set before executing MirrorNodeTokenBalanceQuery")
@@ -186,9 +213,6 @@ class MirrorNodeTokenBalanceQuery:
         url = self._build_url(client)
         response = self._fetch_token_balance(url, timeout)
 
-        if response is None:
-            return MirrorNodeTokenBalance(self.token_id, 0, None)
-
         try:
             return MirrorNodeTokenBalance._from_json(response, self.token_id)
         except (ValueError, TypeError) as e:
@@ -197,80 +221,69 @@ class MirrorNodeTokenBalanceQuery:
     def _build_url(self, client: Client) -> str:
         """Build the Mirror Node token balance endpoint URL."""
         mirror_rest_url = client.network.get_mirror_rest_url().rstrip("/")
-        account_param = self._to_account_id_param(self._account_id)
+        account_param = quote(self._to_account_id_param(self._account_id), safe="")
+        token_param = quote(str(self._token_id), safe="")
 
-        return f"{mirror_rest_url}/accounts/{account_param}/tokens?token.id={self.token_id}&limit=1"
+        return f"{mirror_rest_url}/accounts/{account_param}/tokens?token.id={token_param}&limit=1"
 
-    def _fetch_token_balance(self, url: str, timeout: float) -> dict:
+    def _fetch_token_balance(self, url: str, timeout: float) -> dict[str, Any]:
         """
         Fetch the token balance JSON with retries and exponential backoff.
 
-        The timeout covers the overall retry operation. Each HTTP request
-        receives the remaining time as its request timeout.
+        The timeout is the total deadline for the whole operation, including retries and
+        backoff sleeps. Each HTTP request is bounded by min(30, remaining time).
+
+        Raises:
+            PrecheckError: With INVALID_ACCOUNT_ID on HTTP 404 (not retried).
+            RuntimeError: On a non-retryable HTTP status, or when attempts or the deadline are exhausted.
+            ValueError: If a 200 response body is not valid JSON.
         """
         last_exception: Exception | None = None
-
-        start = time.monotonic()
+        deadline = time.monotonic() + timeout
 
         for attempt in range(1, self._max_attempts + 1):
-            if time.monotonic() - start >= timeout:
-                break
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise RuntimeError(
+                    f"Failed to fetch MirrorNodeTokenBalance after {attempt - 1} attempts: "
+                    f"total timeout of {timeout}s exceeded"
+                ) from last_exception
 
             try:
-                resp = requests.get(url, timeout=_DEFAULT_PER_REQUEST_TIMEOUT)
-
+                attempt_timeout = min(_DEFAULT_PER_REQUEST_TIMEOUT, remaining)
+                resp = requests.get(url, timeout=attempt_timeout)
+            except (requests.Timeout, requests.ConnectionError) as e:
+                last_exception = e
+            else:
                 if resp.status_code == 200:
-                    return resp.json()
+                    try:
+                        return resp.json()
+                    except ValueError as e:
+                        raise ValueError("Mirror Node returned a malformed JSON response") from e
 
-                # java sdk equivalent to handle 404 response
                 if resp.status_code == 404:
-                    return None
+                    raise PrecheckError(ResponseCode.INVALID_ACCOUNT_ID)
 
                 if resp.status_code not in _RETRYABLE_HTTP_STATUSES:
-                    raise RuntimeError(f"Mirror node error: HTTP {resp.status_code} - {resp.text}")
-
-                if attempt == self._max_attempts:
-                    raise MaxAttemptsError(
-                        f"Failed to fetch account balance after {attempt} attempts. ",
-                        f"Last HTTP status: {resp.status_code} - {resp.text}",
-                    )
+                    raise RuntimeError(f"Mirror Node error: HTTP {resp.status_code}")
 
                 last_exception = RuntimeError(f"HTTP {resp.status_code}")
-                self._delay_for_attempt(attempt, last_exception)
 
-            except (requests.Timeout, requests.ConnectionError) as e:
-                if attempt == self._max_attempts:
-                    raise MaxAttemptsError(
-                        f"Failed to fetch MirrorNodeTokenBalance after {self._max_attempts} attempts"
-                    ) from e
-
-                last_exception = e
-                self._delay_for_attempt(attempt, last_exception)
+            if attempt < self._max_attempts:
+                self._delay_for_attempt(attempt, last_exception, deadline - time.monotonic())
 
         raise RuntimeError(
-            f"Failed to fetch MirrorNodeTokenBalance due to timeout or max attempts reached ({self._max_attempts})."
+            f"Failed to fetch MirrorNodeTokenBalance after {self._max_attempts} attempts"
         ) from last_exception
 
     @staticmethod
     def _to_account_id_param(account_id: AccountId) -> str:
-        """Convert an account ID to its Mirror Node URL representation."""
-        evm_address = account_id.evm_address
+        """Convert an account ID to its mirror node URL representation."""
+        return to_account_id_param(account_id)
 
-        if evm_address is not None:
-            return "0x" + str(evm_address)
-
-        alias_key = account_id.alias_key
-        if alias_key is not None:
-            protobuf_key = alias_key.to_proto_key()
-            key_bytes = protobuf_key.SerializeToString()
-
-            return base64.b32encode(key_bytes).decode("ascii").rstrip("=")
-
-        return str(account_id)
-
-    def _delay_for_attempt(self, attempt: int, e: Exception) -> None:
-        """Log a retry and sleep using capped exponential backoff."""
-        delay = min(0.5 * (2**attempt), self._max_backoff)
+    def _delay_for_attempt(self, attempt: int, e: Exception | None, cap: float = float("inf")) -> None:
+        """Log a retry and sleep using capped exponential backoff, never beyond the remaining budget."""
+        delay = max(0.0, min(0.5 * (2**attempt), self._max_backoff, cap))
         logger.warning(
             "Error fetching MirrorNodeTokenBalance (attempt %d/%d). Retrying in %.1fs: %s",
             attempt,

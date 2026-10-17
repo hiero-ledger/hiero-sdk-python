@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 
 from hiero_sdk_python.account.mirror_node_token_balance import MirrorNodeTokenBalance
@@ -28,32 +30,46 @@ def test_constructor_with_params(token_id):
     assert token_balance1.decimals is not None
     assert token_balance1.decimals == decimals
 
-    # decimals as None
+    assert token_balance1.associated is True
 
-    token_balance2 = MirrorNodeTokenBalance(token_id, balance, None)
-    assert token_balance2 is not None
+    token_balance2 = MirrorNodeTokenBalance(token_id, balance, 0, associated=False)
     assert token_balance2.token_id == token_id
     assert token_balance2.balance == balance
+    assert token_balance2.associated is False
+
+
+def test_frozen(token_id):
+    """Test MirrorNodeTokenBalance is immutable."""
+    token_balance = MirrorNodeTokenBalance(token_id, 1, 0)
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        token_balance.balance = 2
+
+
+@pytest.mark.parametrize("associated", [1, 0, "True", None, {}])
+def test_constructor_with_invalid_associated(token_id, associated):
+    """Test MirrorNodeTokenBalance constructor with non-bool associated raises error."""
+    with pytest.raises(TypeError, match="associated must be a bool"):
+        MirrorNodeTokenBalance(token_id, 1, 0, associated=associated)
 
 
 @pytest.mark.parametrize("token_id", ["0.0.100", 101, 0.1, True, {}, [], None])
 def test_constructor_with_invalid_token_id(token_id):
     """Test MirrorNodeTokenBalance constructor with invalid token_id raises error."""
     with pytest.raises(TypeError, match="token_id must be an instance of TokenId"):
-        MirrorNodeTokenBalance(token_id, 1, None)
+        MirrorNodeTokenBalance(token_id, 1, 0)
 
 
 @pytest.mark.parametrize("balance", ["100", 0.1, True, {}, [], None])
 def test_constructor_with_invalid_balance(token_id, balance):
     """Test MirrorNodeTokenBalance constructor with invalid balance raises error."""
     with pytest.raises(TypeError, match="balance must be an integer"):
-        MirrorNodeTokenBalance(token_id, balance, None)
+        MirrorNodeTokenBalance(token_id, balance, 0)
 
 
-@pytest.mark.parametrize("decimals", ["100", 0.1, True, {}, []])
+@pytest.mark.parametrize("decimals", ["100", 0.1, True, {}, [], None])
 def test_constructor_with_invalid_decimals(token_id, decimals):
     """Test MirrorNodeTokenBalance constructor with invalid decimals raises error."""
-    with pytest.raises(TypeError, match="decimals must be an integer or None"):
+    with pytest.raises(TypeError, match="decimals must be an integer"):
         MirrorNodeTokenBalance(token_id, 1, decimals)
 
 
@@ -86,25 +102,60 @@ def test_from_json_parses_json_response(token_id):
     assert token_balance1.decimals is not None
     assert token_balance1.decimals == decimals
 
-    # decimal as None ans associated as False
+    assert token_balance1.associated is True
+
+    # decimals null -> 0, still associated
     response2 = json_response(str(token_id), balance)
     token_balance2 = MirrorNodeTokenBalance._from_json(response2, token_id)
     assert token_balance2 is not None
     assert token_balance2.token_id == token_id
     assert token_balance2.balance == balance
-    assert token_balance2.decimals is None
+    assert token_balance2.decimals == 0
+    assert token_balance2.associated is True
 
 
-@pytest.mark.parametrize("tokens", [[], None])
-def test_from_json_parse_empyt_and_null_tokens_field(token_id, tokens):
-    """Test from_json parse None and empty tokens field and return not associated token_balance."""
-    response = {"tokens": tokens}
-    token_balance = MirrorNodeTokenBalance._from_json(response, token_id)
+def test_from_json_empty_tokens_is_not_associated(token_id):
+    """Test from_json maps an empty tokens array to a not-associated balance."""
+    token_balance = MirrorNodeTokenBalance._from_json({"tokens": []}, token_id)
 
-    assert token_balance is not None
     assert token_balance.token_id == token_id
     assert token_balance.balance == 0
-    assert token_balance.decimals is None
+    assert token_balance.decimals == 0
+    assert token_balance.associated is False
+
+
+def test_from_json_missing_tokens_key_raises(token_id):
+    """Test from_json raises ValueError when the tokens key is absent."""
+    with pytest.raises(ValueError, match="missing tokens array"):
+        MirrorNodeTokenBalance._from_json({}, token_id)
+
+
+def test_from_json_null_tokens_raises(token_id):
+    """Test from_json raises ValueError when tokens is null."""
+    with pytest.raises(ValueError, match="missing tokens array"):
+        MirrorNodeTokenBalance._from_json({"tokens": None}, token_id)
+
+
+@pytest.mark.parametrize("balance", [2**53 + 1, 2**63 - 1])
+def test_from_json_large_balance_round_trips_exactly(token_id, balance):
+    """Test large integer balances are preserved exactly."""
+    token_balance = MirrorNodeTokenBalance._from_json(json_response(token_id, balance, 2), token_id)
+    assert type(token_balance.balance) is int
+    assert token_balance.balance == balance
+
+
+@pytest.mark.parametrize("balance", [10.0, "10", True])
+def test_from_json_invalid_balance_type_raises(token_id, balance):
+    """Test from_json rejects non-integer balances."""
+    with pytest.raises(TypeError, match="balance must be an integer"):
+        MirrorNodeTokenBalance._from_json(json_response(token_id, balance, 0), token_id)
+
+
+@pytest.mark.parametrize("decimals", [True, 1.0, "1"])
+def test_from_json_invalid_decimals_type_raises(token_id, decimals):
+    """Test from_json rejects non-integer decimals."""
+    with pytest.raises(TypeError, match="decimals must be an integer"):
+        MirrorNodeTokenBalance._from_json(json_response(token_id, 1, decimals), token_id)
 
 
 @pytest.mark.parametrize("tokens", ["[]", {"balance": 10}, 1, 0.1, True])

@@ -19,6 +19,7 @@ You can choose either syntax or even mix both styles in your projects.
   - [Allowance Approve Transaction](#allowance-approve-transaction)
   - [Allowance Delete Transaction](#allowance-delete-transaction)
   - [Querying Account Records](#querying-account-records)
+  - [Querying Account HBAR Balance Using Mirror Node](#querying-account-hbar-balance-using-mirror-node)
   - [Querying Account Token Balance Using Mirror Node](#querying-account-token-balance-using-mirror-node)
 - [Token Transactions](#token-transactions)
   - [Creating a Token](#creating-a-token)
@@ -92,6 +93,10 @@ You can choose either syntax or even mix both styles in your projects.
 ## Account Transactions
 
 ### Querying Account Balance
+
+`CryptoGetAccountBalanceQuery` asks a consensus node and needs a configured client. For free,
+operator-less reads of a committed balance, use the mirror node queries below instead; they lag
+the network by a few seconds.
 
 #### Pythonic Syntax:
 ```
@@ -368,7 +373,32 @@ for record in records:
     print(record)
 ```
 
+### Querying Account HBAR Balance Using Mirror Node
+
+Free and operator-less. The account may be given as `shard.realm.num`, an EVM address or a
+public key alias. An unknown account raises `PrecheckError` with `INVALID_ACCOUNT_ID`.
+
+#### Pythonic Syntax:
+```python
+balance = MirrorNodeAccountBalanceQuery(account_id).execute(client)
+print(f"Account balance: {balance.hbars}")
+```
+
+#### Method Chaining:
+```python
+balance = (
+    MirrorNodeAccountBalanceQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+print(f"Account balance: {balance.hbars}")
+```
+
 ### Querying Account Token Balance Using Mirror Node
+
+Free and operator-less. `balance` is in the token's smallest unit with `decimals` alongside it,
+and `associated` is `False` when the account has no relationship with the token. An unknown
+account raises `PrecheckError` with `INVALID_ACCOUNT_ID`.
 
 #### Pythonic Syntax:
 ```python

@@ -30,7 +30,6 @@ def setup_client():
     """
     Initialize and configure the Hiero SDK client.
 
-    ```
     Returns:
         Client: Configured client.
 
@@ -61,7 +60,7 @@ def main():
         client = setup_client()
 
         # Step 1:
-        # Query the opoperator account's HBAR balance
+        # Query the operator account's HBAR balance
         operator_id = client.operator_account_id
         balance = MirrorNodeAccountBalanceQuery().set_account_id(operator_id).execute(client)
 

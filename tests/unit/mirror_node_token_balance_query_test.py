@@ -9,8 +9,9 @@ import requests
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.mirror_node_token_balance import MirrorNodeTokenBalance
 from hiero_sdk_python.crypto.private_key import PrivateKey
-from hiero_sdk_python.exceptions import MaxAttemptsError
+from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.query.mirror_node_token_balance_query import MirrorNodeTokenBalanceQuery
+from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 
 
@@ -247,29 +248,51 @@ def test_fetch_token_balance_success(mock_account_ids, token_id):
         result = query._fetch_token_balance(mock_url, timeout=10)
 
     assert result == mock_response.json.return_value
-    mock_get.assert_called_once_with(mock_url, timeout=30)
+    mock_get.assert_called_once()
+    assert mock_get.call_args.args == (mock_url,)
+    assert 0 < mock_get.call_args.kwargs["timeout"] <= 10
     mock_delay.assert_not_called()
 
 
 def test_fetch_token_balance_not_found(mock_account_ids, token_id):
-    """Test fetching token balance with 404 status."""
+    """Test 404 raises PrecheckError(INVALID_ACCOUNT_ID) after one request and no sleep."""
     query = MirrorNodeTokenBalanceQuery().set_account_id(mock_account_ids[0]).set_token_id(token_id)
     mock_url = f"http://testnode/api/v1/accounts/{mock_account_ids[0]}/tokens?token.id={token_id}&limit=1"
 
     mock_response = Mock()
     mock_response.status_code = 404
-    mock_response.json.return_value = {"status": "Not Found"}
     with (
         patch(
             "hiero_sdk_python.query.mirror_node_token_balance_query.requests.get", return_value=mock_response
         ) as mock_get,
-        patch.object(query, "_delay_for_attempt") as mock_delay,
+        patch("hiero_sdk_python.query.mirror_node_token_balance_query.time.sleep") as mock_sleep,
+        pytest.raises(PrecheckError) as exc_info,
     ):
-        result = query._fetch_token_balance(mock_url, timeout=10)
+        query._fetch_token_balance(mock_url, timeout=10)
 
-    assert result is None
-    mock_get.assert_called_once_with(mock_url, timeout=30)
-    mock_delay.assert_not_called()
+    assert exc_info.value.status == ResponseCode.INVALID_ACCOUNT_ID
+    assert mock_get.call_count == 1
+    mock_sleep.assert_not_called()
+
+
+def test_fetch_token_balance_not_found_is_not_retried(mock_account_ids, token_id):
+    """Test 404 is not retried even when max_attempts > 1."""
+    query = MirrorNodeTokenBalanceQuery().set_account_id(mock_account_ids[0]).set_token_id(token_id).set_max_attempts(5)
+    not_found = Mock()
+    not_found.status_code = 404
+
+    with (
+        patch(
+            "hiero_sdk_python.query.mirror_node_token_balance_query.requests.get",
+            side_effect=[not_found, successful_response()],
+        ) as mock_get,
+        patch("hiero_sdk_python.query.mirror_node_token_balance_query.time.sleep") as mock_sleep,
+        pytest.raises(PrecheckError),
+    ):
+        query._fetch_token_balance("http://testnode/x", timeout=10)
+
+    assert mock_get.call_count == 1
+    mock_sleep.assert_not_called()
 
 
 @pytest.mark.parametrize("status_code", [408, 429, 500, 502, 503, 504])
@@ -315,7 +338,7 @@ def test_fetch_token_balance_fails_when_retries_reach_max_attempts(status_code, 
             side_effect=[error_response, error_response, response],
         ) as mock_get,
         patch.object(query, "_delay_for_attempt") as mock_delay,
-        pytest.raises(MaxAttemptsError, match="Failed to fetch account balance after 2 attempts"),
+        pytest.raises(RuntimeError, match="Failed to fetch MirrorNodeTokenBalance after 2 attempts"),
     ):
         query._fetch_token_balance(mock_url, timeout=10)
 
@@ -341,12 +364,12 @@ def test_fetch_token_balance_with_unretryable_status(status_code, mock_account_i
         patch.object(query, "_delay_for_attempt") as mock_delay,
         pytest.raises(
             RuntimeError,
-            match=f"Mirror node error: HTTP {status_code} - {error_response.text}",
+            match=f"Mirror Node error: HTTP {status_code}$",
         ),
     ):
         query._fetch_token_balance(mock_url, timeout=10)
 
-    mock_get.assert_called_once_with(mock_url, timeout=30)
+    assert mock_get.call_count == 1
     mock_delay.assert_not_called()
 
 
@@ -398,7 +421,7 @@ def test_fetch_token_balance_with_retryable_network_errors_when_retry_exausted(m
             side_effect=[error, error, response],
         ) as mock_get,
         patch.object(query, "_delay_for_attempt") as mock_delay,
-        pytest.raises(MaxAttemptsError, match="Failed to fetch MirrorNodeTokenBalance after 2 attempts"),
+        pytest.raises(RuntimeError, match="Failed to fetch MirrorNodeTokenBalance after 2 attempts"),
     ):
         query._fetch_token_balance(mock_url, timeout=10)
 
@@ -528,39 +551,6 @@ def test_execute_with_valid_response(mock_account_ids, token_id, mock_client):
     mock_fetch.assert_called_once_with(expected_url, timeout)
 
 
-def test_execute_when_fetch_return_none(mock_account_ids, token_id, mock_client):
-    """Test that execute parse the MirrorNodeTokenBalance when fetch return None"""
-    query = MirrorNodeTokenBalanceQuery().set_account_id(mock_account_ids[0]).set_token_id(token_id)
-
-    mock_base_url = "http://testnode/api/v1"
-    mock_client.network.get_mirror_rest_url = Mock(return_value=mock_base_url)
-
-    expected_url = f"{mock_base_url}/accounts/{mock_account_ids[0]}/tokens?token.id={token_id}&limit=1"
-
-    # Without timeout
-    with patch.object(query, "_fetch_token_balance", return_value=None) as mock_fetch:
-        result = query.execute(mock_client)
-
-    assert result == MirrorNodeTokenBalance(
-        token_id,
-        0,
-        None,
-    )
-    mock_fetch.assert_called_once_with(expected_url, mock_client._request_timeout)
-
-    # With timeout
-    timeout = 10
-    with patch.object(query, "_fetch_token_balance", return_value=None) as mock_fetch:
-        result = query.execute(mock_client, timeout)
-
-    assert result == MirrorNodeTokenBalance(
-        token_id,
-        0,
-        None,
-    )
-    mock_fetch.assert_called_once_with(expected_url, timeout)
-
-
 @pytest.mark.parametrize("response", ["response", {"tokens": "0.0.3"}, {"tokens": ["0.0.3"]}, object()])
 def test_execute_raise_error_for_malformed_response(mock_account_ids, token_id, mock_client, response):
     """Test execute raise error for malformed response."""
@@ -574,3 +564,173 @@ def test_execute_raise_error_for_malformed_response(mock_account_ids, token_id, 
         pytest.raises(ValueError, match="Mirror Node returned a malformed JSON response"),
     ):
         query.execute(mock_client)
+
+
+# deadline / timeout / quoting / misc
+
+MODULE = "hiero_sdk_python.query.mirror_node_token_balance_query"
+
+
+def _error_response(status_code):
+    response = Mock()
+    response.status_code = status_code
+    return response
+
+
+def test_deadline_spent_before_second_attempt_raises_without_second_request():
+    """An exhausted total deadline stops retries before another HTTP request."""
+    query = MirrorNodeTokenBalanceQuery()
+    # start=0 (deadline 10), remaining check 1 -> 1, after-failure cap -> 5, remaining check 2 -> 11
+    with (
+        patch(f"{MODULE}.time.monotonic", side_effect=[0, 1, 5, 11]),
+        patch(f"{MODULE}.time.sleep"),
+        patch(f"{MODULE}.requests.get", return_value=_error_response(503)) as mock_get,
+        pytest.raises(RuntimeError, match="MirrorNodeTokenBalance") as exc_info,
+    ):
+        query._fetch_token_balance("http://testnode/x", timeout=10)
+
+    assert mock_get.call_count == 1
+    assert isinstance(exc_info.value.__cause__, RuntimeError)
+    assert str(exc_info.value.__cause__) == "HTTP 503"
+
+
+def test_zero_timeout_raises_without_request():
+    """A non-positive total budget never issues a request."""
+    query = MirrorNodeTokenBalanceQuery()
+    with (
+        patch(f"{MODULE}.requests.get") as mock_get,
+        pytest.raises(RuntimeError, match="MirrorNodeTokenBalance"),
+    ):
+        query._fetch_token_balance("http://testnode/x", timeout=0)
+
+    mock_get.assert_not_called()
+
+
+def test_per_attempt_timeout_is_min_of_30_and_remaining():
+    """Per-attempt HTTP timeout is min(30, remaining)."""
+    query = MirrorNodeTokenBalanceQuery()
+    # deadline = 100. attempt 1: remaining 100 -> 30. cap computation. attempt 2: remaining 7.5.
+    with (
+        patch(f"{MODULE}.time.monotonic", side_effect=[0, 0, 1, 92.5]),
+        patch(f"{MODULE}.time.sleep"),
+        patch(f"{MODULE}.requests.get", side_effect=[_error_response(503), successful_response()]) as mock_get,
+    ):
+        query._fetch_token_balance("http://testnode/x", timeout=100)
+
+    assert mock_get.call_args_list[0].kwargs["timeout"] == 30
+    assert mock_get.call_args_list[1].kwargs["timeout"] == 7.5
+
+
+def test_backoff_is_capped_by_remaining_budget():
+    """The sleep is capped by the remaining budget when it is below the exponential backoff."""
+    query = MirrorNodeTokenBalanceQuery()
+    # deadline = 10. attempt 1 remaining 10; cap = 10 - 9.7 = 0.3 (< 0.5 * 2 = 1); attempt 2 remaining 0.2
+    with (
+        patch(f"{MODULE}.time.monotonic", side_effect=[0, 0, 9.7, 9.8]),
+        patch(f"{MODULE}.time.sleep") as mock_sleep,
+        patch(f"{MODULE}.requests.get", side_effect=[_error_response(503), successful_response()]),
+    ):
+        query._fetch_token_balance("http://testnode/x", timeout=10)
+
+    assert mock_sleep.call_count == 1
+    assert mock_sleep.call_args.args[0] == pytest.approx(0.3)
+
+
+def test_delay_for_attempt_never_negative():
+    """A negative cap results in a zero sleep."""
+    query = MirrorNodeTokenBalanceQuery()
+    with patch(f"{MODULE}.time.sleep") as sleep:
+        query._delay_for_attempt(1, Exception("Error"), -5)
+    sleep.assert_called_once_with(0)
+
+
+@pytest.mark.parametrize("error", [requests.exceptions.JSONDecodeError("bad", "doc", 0), ValueError("bad")])
+def test_fetch_token_balance_invalid_json_body(error):
+    """A 200 response whose body is not JSON raises a malformed JSON ValueError."""
+    query = MirrorNodeTokenBalanceQuery()
+    response = Mock()
+    response.status_code = 200
+    response.json.side_effect = error
+
+    with (
+        patch(f"{MODULE}.requests.get", return_value=response),
+        pytest.raises(ValueError, match="Mirror Node returned a malformed JSON response") as exc_info,
+    ):
+        query._fetch_token_balance("http://testnode/x", timeout=10)
+
+    assert exc_info.value.__cause__ is error
+
+
+def test_non_retryable_status_400_single_request_no_sleep():
+    """A 400 raises immediately, with no retry and no sleep."""
+    query = MirrorNodeTokenBalanceQuery().set_max_attempts(5)
+    with (
+        patch(f"{MODULE}.requests.get", return_value=_error_response(400)) as mock_get,
+        patch(f"{MODULE}.time.sleep") as mock_sleep,
+        pytest.raises(RuntimeError, match=r"^Mirror Node error: HTTP 400$"),
+    ):
+        query._fetch_token_balance("http://testnode/x", timeout=10)
+
+    assert mock_get.call_count == 1
+    mock_sleep.assert_not_called()
+
+
+def test_build_url_quotes_alias_and_token_id(token_id, mock_client):
+    """Account param and token id are percent-encoded with safe=''."""
+    mock_client.network.get_mirror_rest_url = Mock(return_value="http://testnode/api/v1/")
+    query = MirrorNodeTokenBalanceQuery().set_account_id(AccountId(0, 0, num=1)).set_token_id(token_id)
+
+    with patch.object(MirrorNodeTokenBalanceQuery, "_to_account_id_param", return_value="AB/C=?#"):
+        url = query._build_url(mock_client)
+
+    assert url == f"http://testnode/api/v1/accounts/AB%2FC%3D%3F%23/tokens?token.id={token_id}&limit=1"
+
+    with patch.object(MirrorNodeTokenBalanceQuery, "_to_account_id_param", return_value="0xabc"):
+        url = query._build_url(mock_client)
+    assert "/accounts/0xabc/tokens" in url
+
+
+def test_build_url_quotes_token_id_with_safe_empty(mock_client):
+    """The token id string is quoted with safe=''."""
+    mock_client.network.get_mirror_rest_url = Mock(return_value="http://testnode/api/v1")
+    fake_token = Mock()
+    fake_token.__str__ = Mock(return_value="0.0/5")
+    query = MirrorNodeTokenBalanceQuery()
+    query._account_id = AccountId(0, 0, num=1)
+    query._token_id = fake_token
+
+    assert "token.id=0.0%2F5&limit=1" in query._build_url(mock_client)
+
+
+def test_build_url_with_real_base32_alias(mock_client, token_id):
+    """A real alias account yields a URL containing its unpadded base32 string."""
+    mock_client.network.get_mirror_rest_url = Mock(return_value="http://testnode/api/v1")
+    alias_key = PrivateKey.generate_ecdsa().public_key()
+    account_id = AccountId(0, 0, alias_key=alias_key)
+    url = MirrorNodeTokenBalanceQuery().set_account_id(account_id).set_token_id(token_id)._build_url(mock_client)
+
+    expected = base64.b32encode(alias_key.to_proto_key().SerializeToString()).decode("ascii").rstrip("=")
+    assert f"/accounts/{expected}/tokens" in url
+    assert "=" not in url.split("?")[0]
+
+
+def test_account_params_from_bytes_evm_address():
+    """A bytes EVM address becomes 0x + hex."""
+    account_id = Mock()
+    account_id.evm_address = bytes.fromhex("00" * 19 + "ab")
+
+    assert MirrorNodeTokenBalanceQuery._to_account_id_param(account_id) == "0x" + "00" * 19 + "ab"
+
+
+@pytest.mark.parametrize("timeout", [0, -1, -0.5])
+def test_execute_rejects_non_positive_timeout(mock_account_ids, token_id, mock_client, timeout):
+    """A zero or negative total timeout is a bad argument, not a network failure."""
+    query = MirrorNodeTokenBalanceQuery().set_account_id(mock_account_ids[0]).set_token_id(token_id)
+
+    with (
+        patch(f"{MODULE}.requests.get") as mock_get,
+        pytest.raises(ValueError, match="timeout must be greater than zero"),
+    ):
+        query.execute(mock_client, timeout)
+
+    mock_get.assert_not_called()
