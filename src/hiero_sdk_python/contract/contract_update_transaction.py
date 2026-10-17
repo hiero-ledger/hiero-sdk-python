@@ -206,6 +206,22 @@ class ContractUpdateTransaction(Transaction):
         self.auto_renew_account_id = auto_renew_account_id
         return self
 
+    def clear_auto_renew_account_id(self) -> ContractUpdateTransaction:
+        """
+        Clears the account ID charged for auto-renewal.
+
+        Setting an AccountId of `0.0.0` removes the auto-renew account on the network.
+
+        Returns:
+            ContractUpdateTransaction: This transaction instance.
+
+        Raises:
+            Exception: If the transaction has already been frozen.
+        """
+        self._require_not_frozen()
+        self.auto_renew_account_id = AccountId(0, 0, 0)
+        return self
+
     def set_staked_node_id(self, staked_node_id: int | None) -> ContractUpdateTransaction:
         """
         Sets the new node ID to which the contract stakes.

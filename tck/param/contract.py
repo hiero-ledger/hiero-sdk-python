@@ -161,3 +161,26 @@ class DeleteContractParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class ExecuteContractParams(BaseTransactionParams):
+    """Parameters for executing a smart contract function. Extends BaseTransactionParams to include common transaction parameters."""
+
+    contractId: str | None = None
+    gas: str | None = None
+    amount: str | None = None
+    functionParameters: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> ExecuteContractParams:
+        # The TCK driver sends the call data as "functionParameters" (the spec
+        # table calls it "parameters"); follow the driver, like the JS TCK server.
+        return cls(
+            contractId=params.get("contractId"),
+            gas=params.get("gas"),
+            amount=params.get("amount"),
+            functionParameters=params.get("functionParameters"),
+            sessionId=parse_session_id(params),
+            commonTransactionParams=parse_common_transaction_params(params),
+        )

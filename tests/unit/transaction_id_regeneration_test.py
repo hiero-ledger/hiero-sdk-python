@@ -376,7 +376,7 @@ def test_no_operator_state_remains_after_execute(no_sleep, responses):
             except PrecheckError:
                 pass
 
-        assert contexts[0].operator_private_key is client.operator_private_key
+        assert contexts[0].operator == client.operator
         assert tx._regeneration_context is None
         assert not hasattr(tx, "operator_private_key")
         assert not any(isinstance(value, PrivateKey) for value in vars(tx).values())

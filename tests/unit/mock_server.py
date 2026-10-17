@@ -34,6 +34,7 @@ class MockServer:
             responses (list): List of response objects to return in sequence
         """
         self.responses = responses
+        self.calls = []
         self._lock = threading.Lock()
         self.server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
 
@@ -99,6 +100,7 @@ class MockServer:
         """
         responses = self.responses
         lock = self._lock
+        calls = self.calls
 
         class MockServicer(servicer_class):
             def __getattribute__(self, name):
@@ -106,8 +108,9 @@ class MockServer:
                 if name in ("_next_response", "__class__"):
                     return super().__getattribute__(name)
 
-                def method_wrapper(_, context):
+                def method_wrapper(request, context):
                     with lock:
+                        calls.append((name, request))
                         if not responses:
                             return None
 

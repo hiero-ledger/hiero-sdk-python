@@ -131,6 +131,18 @@ class GetAccountBalanceParams(BaseParams):
 
 
 @dataclass
+class GetMirrorNodeAccountBalanceParams(BaseParams):
+    """Request parameters for the getMirrorNodeAccountBalance endpoint."""
+
+    accountId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GetMirrorNodeAccountBalanceParams:
+        """Parse JSON-RPC params into a GetMirrorNodeAccountBalanceParams instance."""
+        return cls(accountId=params.get("accountId"), sessionId=parse_session_id(params))
+
+
+@dataclass
 class GetTransactionReceiptParams(BaseParams):
     """Request parameters for the getTransactionReceipt endpoint."""
 

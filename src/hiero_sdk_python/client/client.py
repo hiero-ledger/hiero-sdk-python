@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.crypto.signer import Signer
 from hiero_sdk_python.hapi.mirror import (
     consensus_service_pb2_grpc as mirror_consensus_grpc,
 )
@@ -35,10 +37,17 @@ NetworkName = Literal["mainnet", "testnet", "previewnet"]
 
 
 class Operator(NamedTuple):
-    """A named tuple for the operator's account ID and private key."""
+    """
+    A named tuple for the operator's account ID and signing credentials.
+
+    private_key is None when the operator was set with Client.set_operator_with().
+    public_key and signer are always set on an Operator returned by Client.operator.
+    """
 
     account_id: AccountId
-    private_key: PrivateKey
+    private_key: PrivateKey | None
+    public_key: PublicKey | None = None
+    signer: Signer | None = None
 
 
 class Client:
@@ -51,6 +60,8 @@ class Client:
         """
         self.operator_account_id: AccountId = None
         self.operator_private_key: PrivateKey = None
+        self._operator_public_key: PublicKey | None = None
+        self._operator_signer: Signer | None = None
 
         if network is None:
             network = Network()
@@ -188,21 +199,72 @@ class Client:
         nodes = [_Node(account_id, address, None) for address, account_id in network_map.items()]
         return cls(Network(network=network_name, nodes=nodes))
 
-    def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> None:
-        """Sets the operator credentials (account ID and private key)."""
-        self.operator_account_id = account_id
+    def set_operator(self, account_id: AccountId, private_key: PrivateKey) -> Client:
+        """
+        Sets the operator credentials (account ID and private key).
+
+        Args:
+            account_id (AccountId): The operator account, which pays for transactions and queries.
+            private_key (PrivateKey): The operator account's private key.
+
+        Returns:
+            Client: This client instance for fluent chaining.
+        """
+        self.set_operator_with(account_id, private_key.public_key(), private_key.sign)
         self.operator_private_key = private_key
+        return self
+
+    def set_operator_with(self, account_id: AccountId, public_key: PublicKey, signer: Signer) -> Client:
+        """
+        Sets the operator with a signer callback instead of a private key.
+
+        Use this when the operator key is held outside the process, e.g. in an HSM or KMS.
+        The signer receives the canonical body bytes and must return the raw signature.
+        After this call, operator_private_key is None.
+
+        Args:
+            account_id (AccountId): The operator account, which pays for transactions and queries.
+            public_key (PublicKey): The public key matching the signer.
+            signer (Signer): The signing callback.
+
+        Returns:
+            Client: This client instance for fluent chaining.
+        """
+        self.operator_account_id = account_id
+        self.operator_private_key = None
+        self._operator_public_key = public_key
+        self._operator_signer = signer
+        return self
+
+    @property
+    def operator_public_key(self) -> PublicKey | None:
+        """The operator's public key, or None if no operator signer is set."""
+        if self.operator_private_key is not None:
+            return self.operator_private_key.public_key()
+        return self._operator_public_key
+
+    @property
+    def operator_signer(self) -> Signer | None:
+        """The operator's signing callback, or None if no operator signer is set."""
+        if self.operator_private_key is not None:
+            return self.operator_private_key.sign
+        return self._operator_signer
 
     @property
     def operator(self) -> Operator | None:
         """
-        Returns an Operator namedtuple if both account ID and private key are set,
+        Returns an Operator namedtuple if both the account ID and a signer are set,
         otherwise None.
         """
-        if self.operator_account_id and self.operator_private_key:
+        public_key = self.operator_public_key
+        signer = self.operator_signer
+
+        if self.operator_account_id and public_key is not None and signer is not None:
             return Operator(
                 account_id=self.operator_account_id,
                 private_key=self.operator_private_key,
+                public_key=public_key,
+                signer=signer,
             )
         return None
 
@@ -217,6 +279,18 @@ class Client:
         if self.network and self.network.nodes:
             return [node._account_id for node in self.network.nodes]  # pylint: disable=W0212
         raise ValueError("No nodes available in the network configuration.")
+
+    def ping(self, node_account_id: AccountId) -> None:
+        """Probe one node with an unpaid COST_ANSWER account-info query."""
+        from hiero_sdk_python.query.account_info_query import AccountInfoQuery
+
+        query = AccountInfoQuery(AccountId(0, 0, 2)).set_node_account_ids([node_account_id])
+        query.get_cost(self)
+
+    def ping_all(self) -> None:
+        """Probe each node in the current network map sequentially, stopping on failure."""
+        for node_account_id in self.get_node_account_ids():
+            self.ping(node_account_id)
 
     def close(self) -> None:
         """
