@@ -42,8 +42,13 @@ class ContractExecuteTransaction(Transaction):
                 You may pass an integer (tinybars) or an Hbar object.
                 The value is always stored internally as an integer (tinybars).
             function_parameters (bytes, optional): The parameters to pass to the contract function.
+
+        Raises:
+            ValueError: If gas is negative.
         """
         super().__init__()
+        if gas is not None and gas < 0:
+            raise ValueError("Gas cannot be negative")
         self.contract_id: ContractId | None = contract_id
         self.gas: int | None = gas
         self.amount: int | None = amount.to_tinybars() if isinstance(amount, Hbar) else amount
@@ -66,8 +71,13 @@ class ContractExecuteTransaction(Transaction):
 
         Args:
             gas (int | None): The gas to use for the contract execution.
+
+        Raises:
+            ValueError: If gas is negative.
         """
         self._require_not_frozen()
+        if gas is not None and gas < 0:
+            raise ValueError("Gas cannot be negative")
         self.gas = gas
         return self
 
@@ -124,15 +134,11 @@ class ContractExecuteTransaction(Transaction):
 
         Returns:
             ContractCallTransactionBody: The protobuf body for this transaction.
-
-        Raises:
-            ValueError: If contract_id is not set.
         """
-        if self.contract_id is None:
-            raise ValueError("Missing required ContractID")
-
+        # A missing contract ID is left for the network to reject with
+        # INVALID_CONTRACT_ID, matching the other SDKs.
         return ContractCallTransactionBody(
-            contractID=self.contract_id._to_proto(),
+            contractID=(self.contract_id._to_proto() if self.contract_id is not None else None),
             gas=self.gas,
             amount=self.amount,
             functionParameters=self.function_parameters,

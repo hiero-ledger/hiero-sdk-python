@@ -6,7 +6,7 @@ import pytest
 
 from tck.errors import INVALID_PARAMS, JsonRpcError
 from tck.handlers import contract as contract_handlers
-from tck.param.contract import CreateContractParams, UpdateContractParams
+from tck.param.contract import CreateContractParams, ExecuteContractParams, UpdateContractParams
 
 
 pytestmark = pytest.mark.unit
@@ -40,6 +40,108 @@ class TestBuildCreateContractTransaction:
 
         with pytest.raises(JsonRpcError) as excinfo:
             contract_handlers._build_create_contract_transaction(params)
+
+        assert excinfo.value.code == INVALID_PARAMS
+
+
+class TestExecuteContractParams:
+    def test_reads_call_data_from_function_parameters_key(self):
+        params = ExecuteContractParams.parse_json_params(
+            {
+                "sessionId": "session-1",
+                "contractId": "0.0.123",
+                "gas": "100000",
+                "amount": "1000",
+                "functionParameters": "0xdeadbeef",
+            }
+        )
+
+        assert params.contractId == "0.0.123"
+        assert params.gas == "100000"
+        assert params.amount == "1000"
+        assert params.functionParameters == "0xdeadbeef"
+        assert params.commonTransactionParams is None
+
+
+class TestBuildExecuteContractTransaction:
+    def test_supplied_fields_are_set(self):
+        params = ExecuteContractParams(
+            sessionId="session-1",
+            contractId="0.0.123",
+            gas="100000",
+            amount="1000",
+            functionParameters="0xdeadbeef",
+        )
+
+        transaction = contract_handlers._build_execute_contract_transaction(params)
+
+        assert str(transaction.contract_id) == "0.0.123"
+        assert transaction.gas == 100000
+        assert transaction.amount == 1000
+        assert transaction.function_parameters == bytes.fromhex("deadbeef")
+
+    def test_unsupplied_fields_keep_sdk_defaults(self):
+        params = ExecuteContractParams(sessionId="session-1")
+
+        transaction = contract_handlers._build_execute_contract_transaction(params)
+        proto_body = transaction._build_proto_body()
+
+        assert transaction.contract_id is None
+        assert transaction.gas is None
+        assert transaction.amount is None
+        assert transaction.function_parameters is None
+        assert not proto_body.HasField("contractID")
+
+    def test_empty_function_parameters_are_set_as_empty_bytes(self):
+        params = ExecuteContractParams(sessionId="session-1", functionParameters="")
+
+        transaction = contract_handlers._build_execute_contract_transaction(params)
+
+        assert transaction.function_parameters == b""
+
+    @pytest.mark.parametrize("amount", ["-100", "-9223372036854775808"])
+    def test_negative_amount_is_passed_through(self, amount):
+        params = ExecuteContractParams(sessionId="session-1", amount=amount)
+
+        transaction = contract_handlers._build_execute_contract_transaction(params)
+
+        assert transaction.amount == int(amount)
+
+    @pytest.mark.parametrize("gas", ["-1", "-9223372036854775808"])
+    def test_negative_gas_raises_value_error(self, gas):
+        params = ExecuteContractParams(sessionId="session-1", gas=gas)
+
+        with pytest.raises(ValueError, match="Gas cannot be negative"):
+            contract_handlers._build_execute_contract_transaction(params)
+
+    @pytest.mark.parametrize("contract_id", ["invalid", ""])
+    def test_invalid_contract_id_raises(self, contract_id):
+        params = ExecuteContractParams(sessionId="session-1", contractId=contract_id)
+
+        with pytest.raises(ValueError):
+            contract_handlers._build_execute_contract_transaction(params)
+
+    def test_invalid_hex_function_parameters_raises(self):
+        params = ExecuteContractParams(sessionId="session-1", functionParameters="0xZZ")
+
+        with pytest.raises(ValueError):
+            contract_handlers._build_execute_contract_transaction(params)
+
+    @pytest.mark.parametrize(
+        ("field_name", "value"),
+        [
+            ("gas", "not-a-number"),
+            ("gas", "9223372036854775808"),
+            ("amount", "not-a-number"),
+            ("amount", "9223372036854775808"),
+            ("amount", "-9223372036854775809"),
+        ],
+    )
+    def test_invalid_int64_field_raises_invalid_params(self, field_name, value):
+        params = ExecuteContractParams(sessionId="session-1", **{field_name: value})
+
+        with pytest.raises(JsonRpcError) as excinfo:
+            contract_handlers._build_execute_contract_transaction(params)
 
         assert excinfo.value.code == INVALID_PARAMS
 
