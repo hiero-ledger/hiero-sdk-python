@@ -25,7 +25,7 @@ permissions:
 jobs:
   add-reviewers-as-assignees:
     name: Add Reviewers as Assignees
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ github.repository_owner == 'hiero-ledger' && 'hl-sdk-py-lin-md' || 'ubuntu-latest' }}
     if: |
       !contains(github.actor, '[bot]') &&
       (
@@ -58,7 +58,7 @@ jobs:
 
   clear-review-state-on-draft:
     name: Clear Review State on Draft
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ github.repository_owner == 'hiero-ledger' && 'hl-sdk-py-lin-md' || 'ubuntu-latest' }}
     if: |
       !contains(github.actor, '[bot]') &&
       github.event_name == 'pull_request_target' &&
@@ -89,7 +89,7 @@ jobs:
 
   remove-reviewer-from-assignees:
     name: Remove Reviewer from Assignees
-    runs-on: hl-sdk-py-lin-md
+    runs-on: ${{ github.repository_owner == 'hiero-ledger' && 'hl-sdk-py-lin-md' || 'ubuntu-latest' }}
     if: |
       github.event_name == 'workflow_run' &&
       github.event.workflow_run.conclusion == 'success' &&
