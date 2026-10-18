@@ -179,23 +179,23 @@ class TokenWipeTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("tokenWipe"):
-            pb = transaction_body.tokenWipe
+            token_wipe_body = transaction_body.tokenWipe
 
-            if pb.HasField("token"):
-                transaction.token_id = TokenId._from_proto(pb.token)
+            if token_wipe_body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(token_wipe_body.token)
             else:
                 transaction.token_id = None
 
-            if pb.HasField("account"):
-                transaction.account_id = AccountId._from_proto(pb.account)
+            if token_wipe_body.HasField("account"):
+                transaction.account_id = AccountId._from_proto(token_wipe_body.account)
             else:
                 transaction.account_id = None
 
-            if pb.serialNumbers:
-                transaction.serial = list(pb.serialNumbers)
+            if token_wipe_body.serialNumbers:
+                transaction.serial = list(token_wipe_body.serialNumbers)
                 transaction.amount = None
             else:
-                transaction.amount = pb.amount
+                transaction.amount = token_wipe_body.amount
                 transaction.serial = []
 
         return transaction

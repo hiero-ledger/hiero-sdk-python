@@ -190,18 +190,18 @@ class TokenBurnTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("tokenBurn"):
-            pb = transaction_body.tokenBurn
+            token_burn_body = transaction_body.tokenBurn
 
-            if pb.HasField("token"):
-                transaction.token_id = TokenId._from_proto(pb.token)
+            if token_burn_body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(token_burn_body.token)
             else:
                 transaction.token_id = None
 
-            if pb.serialNumbers:
-                transaction.serials = list(pb.serialNumbers)
+            if token_burn_body.serialNumbers:
+                transaction.serials = list(token_burn_body.serialNumbers)
                 transaction.amount = None
             else:
-                transaction.amount = pb.amount
+                transaction.amount = token_burn_body.amount
                 transaction.serials = []
 
         return transaction

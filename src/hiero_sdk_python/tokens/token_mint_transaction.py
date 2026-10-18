@@ -151,18 +151,18 @@ class TokenMintTransaction(Transaction):
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("tokenMint"):
-            pb = transaction_body.tokenMint
+            token_mint_body = transaction_body.tokenMint
 
-            if pb.HasField("token"):
-                transaction.token_id = TokenId._from_proto(pb.token)
+            if token_mint_body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(token_mint_body.token)
             else:
                 transaction.token_id = None
 
-            if pb.metadata:
-                transaction.metadata = list(pb.metadata)
+            if token_mint_body.metadata:
+                transaction.metadata = list(token_mint_body.metadata)
                 transaction.amount = None
             else:
-                transaction.amount = pb.amount
+                transaction.amount = token_mint_body.amount
                 transaction.metadata = None
 
         return transaction
