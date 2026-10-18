@@ -125,3 +125,16 @@ def test_token_id_nft_rejects_serial_above_int64_max():
 
     with pytest.raises(ValueError):
         token_id.nft(1 << 63)
+
+
+def test_token_id_nft_accepts_int64_max():
+    """Should accept the maximum valid protobuf int64 serial."""
+    token_id = TokenId(0, 0, 1234)
+    max_serial = (1 << 63) - 1
+
+    nft = token_id.nft(max_serial)
+
+    assert isinstance(nft, NftId)
+    assert nft.token_id == token_id
+    assert nft.serial_number == max_serial
+    assert nft._to_proto().serial_number == max_serial

@@ -188,14 +188,12 @@ class TokenId:
 
         Raises:
             TypeError: If serial is not an integer.
-            ValueError: If serial is not greater than zero.
+            ValueError: If serial is outside the positive int64 range.
         """
         if not isinstance(serial, int) or isinstance(serial, bool):
             raise TypeError("serial must be an integer")
-        if serial <= 0:
-            raise ValueError("serial must be greater than 0")
-        if serial > (1 << 63) - 1:
-            raise ValueError("serial must not exceed 9223372036854775807")
+        if not 0 < serial <= (1 << 63) - 1:
+            raise ValueError("serial must be between 1 and 2^63 - 1")
 
         from hiero_sdk_python.tokens.nft_id import NftId
 
