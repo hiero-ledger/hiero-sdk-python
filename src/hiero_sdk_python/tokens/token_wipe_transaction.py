@@ -194,8 +194,13 @@ class TokenWipeTransaction(Transaction):
             if token_wipe_body.serialNumbers:
                 transaction.serial = list(token_wipe_body.serialNumbers)
                 transaction.amount = None
-            else:
+            elif token_wipe_body.amount > 0:
                 transaction.amount = token_wipe_body.amount
+                transaction.serial = []
+            else:
+                # In proto3, uint64 lacks presence information. When serialNumbers is empty
+                # and amount is 0, restore amount as None to preserve the unconfigured state.
+                transaction.amount = None
                 transaction.serial = []
 
         return transaction

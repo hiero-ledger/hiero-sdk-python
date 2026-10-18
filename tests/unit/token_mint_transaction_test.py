@@ -360,3 +360,36 @@ def test_from_protobuf_without_token():
     assert restored.token_id is None
     assert restored.amount == 500
     assert restored.metadata is None
+
+
+def test_from_protobuf_empty_body():
+    """Test _from_protobuf correctly restores amount as None for an empty body."""
+    from hiero_sdk_python.hapi.services import token_mint_pb2
+
+    tx_body = TransactionBody()
+    tx_body.tokenMint.CopyFrom(token_mint_pb2.TokenMintTransactionBody())
+
+    restored = TokenMintTransaction._from_protobuf(tx_body)
+    assert restored.token_id is None
+    assert restored.amount is None
+    assert restored.metadata is None
+
+
+def test_from_bytes_round_trip_unconfigured(mock_account_ids):
+    """Test round-trip preserves amount is None for an unconfigured mint transaction."""
+    payer_account, _, node_account_id, _, _ = mock_account_ids
+
+    tx1 = (
+        TokenMintTransaction()
+        .set_transaction_id(generate_transaction_id(payer_account))
+        .set_node_account_ids([node_account_id])
+    )
+    tx1.freeze()
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenMintTransaction)
+    assert tx2.token_id is None
+    assert tx2.amount is None
+    assert tx2.metadata is None
+    assert tx2.to_bytes() == data

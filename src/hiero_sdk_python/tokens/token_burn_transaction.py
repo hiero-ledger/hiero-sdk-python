@@ -200,8 +200,13 @@ class TokenBurnTransaction(Transaction):
             if token_burn_body.serialNumbers:
                 transaction.serials = list(token_burn_body.serialNumbers)
                 transaction.amount = None
-            else:
+            elif token_burn_body.amount > 0:
                 transaction.amount = token_burn_body.amount
+                transaction.serials = []
+            else:
+                # In proto3, uint64 lacks presence information. When serialNumbers is empty
+                # and amount is 0, restore amount as None to preserve the unconfigured state.
+                transaction.amount = None
                 transaction.serials = []
 
         return transaction

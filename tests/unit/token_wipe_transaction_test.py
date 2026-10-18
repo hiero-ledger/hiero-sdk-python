@@ -329,3 +329,38 @@ def test_from_protobuf_without_token_or_account():
     assert restored.account_id is None
     assert restored.amount == 300
     assert restored.serial == []
+
+
+def test_from_protobuf_empty_body():
+    """Test _from_protobuf correctly restores amount as None for an empty body."""
+    from hiero_sdk_python.hapi.services import token_wipe_account_pb2
+
+    tx_body = TransactionBody()
+    tx_body.tokenWipe.CopyFrom(token_wipe_account_pb2.TokenWipeAccountTransactionBody())
+
+    restored = TokenWipeTransaction._from_protobuf(tx_body)
+    assert restored.token_id is None
+    assert restored.account_id is None
+    assert restored.amount is None
+    assert restored.serial == []
+
+
+def test_from_bytes_round_trip_unconfigured(mock_account_ids):
+    """Test round-trip preserves amount is None for an unconfigured wipe transaction."""
+    account_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx1 = (
+        TokenWipeTransaction()
+        .set_transaction_id(generate_transaction_id(account_id))
+        .set_node_account_ids([node_account_id])
+    )
+    tx1.freeze()
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenWipeTransaction)
+    assert tx2.token_id is None
+    assert tx2.account_id is None
+    assert tx2.amount is None
+    assert tx2.serial == []
+    assert tx2.to_bytes() == data

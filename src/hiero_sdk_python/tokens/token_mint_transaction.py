@@ -161,8 +161,13 @@ class TokenMintTransaction(Transaction):
             if token_mint_body.metadata:
                 transaction.metadata = list(token_mint_body.metadata)
                 transaction.amount = None
-            else:
+            elif token_mint_body.amount > 0:
                 transaction.amount = token_mint_body.amount
+                transaction.metadata = None
+            else:
+                # In proto3, uint64 lacks presence information. When metadata is empty
+                # and amount is 0, restore amount as None to preserve the unconfigured state.
+                transaction.amount = None
                 transaction.metadata = None
 
         return transaction
