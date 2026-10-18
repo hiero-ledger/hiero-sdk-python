@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
@@ -78,3 +79,23 @@ def test_integration_token_info_query_fails_with_invalid_token_id():
             TokenInfoQuery(token_id).execute(env.client)
     finally:
         env.close()
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_token_info_query_get_cost(env):
+    """Test the get_cost for the token_info query."""
+    token_id = create_fungible_token(env)
+
+    # With operator
+    cost1 = TokenInfoQuery().set_token_id(token_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars()}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = TokenInfoQuery().set_token_id(token_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars()}"

@@ -283,7 +283,7 @@ class Client:
         from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 
         query = AccountInfoQuery(AccountId(0, 0, 2)).set_node_account_ids([node_account_id])
-        query._execute(self)
+        query.get_cost(self)
 
     def ping_all(self) -> None:
         """Probe each node in the current network map sequentially, stopping on failure."""

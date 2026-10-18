@@ -8,6 +8,7 @@ import pytest
 
 from hiero_sdk_python import AccountId, TransactionRecord
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.transaction_record_query import TransactionRecordQuery
@@ -324,6 +325,32 @@ def test_transaction_record_new_fields():
         _assert_fields(record)
     finally:
         env.close()
+
+
+# Requires payment so get_cost() return Hbar > 0
+@pytest.mark.integration
+def test_integration_transaction_record_query_get_cost_method(env):
+    """Test the get_cost for the transaction record query."""
+    receipt = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_initial_balance(Hbar(1))
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS
+
+    # With operator
+    cost1 = TransactionRecordQuery().set_transaction_id(receipt.transaction_id).get_cost(env.client)
+
+    assert cost1 is not None
+    assert cost1.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost1.to_tinybars()}"
+
+    # Without operator
+    client = Client(env.client.network)
+    cost2 = TransactionRecordQuery().set_transaction_id(receipt.transaction_id).get_cost(client)
+
+    assert cost2 is not None
+    assert cost2.to_tinybars() > 0, f"Expected cost to be greater than 0 but get {cost2.to_tinybars()}"
 
 
 def _assert_basic_record_fields(record: TransactionRecord, receipt) -> None:
