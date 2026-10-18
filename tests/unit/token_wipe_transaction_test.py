@@ -4,14 +4,17 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, timestamp_pb2, transaction_get_receipt_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.token_wipe_account_pb2 import TokenWipeAccountTransactionBody
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_wipe_transaction import TokenWipeTransaction
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -164,6 +167,34 @@ def test_wipe_transaction_can_execute(mock_account_ids):
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
 
 
+def test_wipe_transaction_from_proto(mock_account_ids):
+    """Test that a wipe transaction can be created from a protobuf object."""
+    _, wipe_account_id, _, token_id, _ = mock_account_ids
+
+    # Create protobuf object with token wipe details
+    proto = TokenWipeAccountTransactionBody(
+        token=token_id._to_proto(), account=wipe_account_id._to_proto(), amount=1000, serialNumbers=[1, 2, 3]
+    )
+
+    # Deserialize the protobuf object
+    from_proto = TokenWipeTransaction()._from_proto(proto)
+
+    # Verify deserialized transaction matches original data
+    assert from_proto.token_id == token_id
+    assert from_proto.account_id == wipe_account_id
+    assert from_proto.amount == 1000
+    assert from_proto.serial == [1, 2, 3]
+
+    # Deserialize empty protobuf
+    from_proto = TokenWipeTransaction()._from_proto(TokenWipeAccountTransactionBody())
+
+    # Verify empty protobuf deserializes to empty/default values
+    assert from_proto.token_id == TokenId(0, 0, 0)
+    assert from_proto.account_id == AccountId(0, 0, 0)
+    assert from_proto.amount == 0
+    assert from_proto.serial == []
+
+
 def test_build_scheduled_body(mock_account_ids):
     """Test building a scheduled transaction body for token wipe transaction."""
     _, wipe_account_id, _, token_id, _ = mock_account_ids
@@ -208,7 +239,7 @@ def test_token_wipe_transaction_from_protobuf_fungible(mock_account_ids, amount)
     transaction_body = TransactionBody()
     transaction_body.tokenWipe.CopyFrom(body)
 
-    parsed = TokenWipeTransaction._from_protobuf(transaction_body, b"", None)
+    parsed = TokenWipeTransaction._from_protobuf(transaction_body)
 
     assert parsed.token_id == token_id
     assert parsed.account_id == wipe_account_id
@@ -229,7 +260,7 @@ def test_token_wipe_transaction_from_protobuf_nft(mock_account_ids):
     transaction_body = TransactionBody()
     transaction_body.tokenWipe.CopyFrom(body)
 
-    parsed = TokenWipeTransaction._from_protobuf(transaction_body, b"", None)
+    parsed = TokenWipeTransaction._from_protobuf(transaction_body)
 
     assert parsed.token_id == token_id
     assert parsed.account_id == wipe_account_id
@@ -293,30 +324,8 @@ def test_from_protobuf_without_token_or_account():
     tx_body = TransactionBody()
     tx_body.tokenWipe.CopyFrom(token_wipe_account_pb2.TokenWipeAccountTransactionBody(amount=300))
 
-    restored = TokenWipeTransaction._from_protobuf(tx_body, b"", None)
+    restored = TokenWipeTransaction._from_protobuf(tx_body)
     assert restored.token_id is None
     assert restored.account_id is None
     assert restored.amount == 300
-    assert restored.serial == []
-
-
-def test_from_protobuf_with_optional_arguments(mock_account_ids):
-    """Test _from_protobuf accepts body_bytes and sig_map arguments."""
-    account_id, wipe_account_id, node_account_id, token_id, _ = mock_account_ids
-
-    tx1 = (
-        TokenWipeTransaction()
-        .set_token_id(token_id)
-        .set_account_id(wipe_account_id)
-        .set_amount(100)
-        .set_transaction_id(generate_transaction_id(account_id))
-        .set_node_account_ids([node_account_id])
-    )
-    body = tx1.build_transaction_body()
-
-    restored = TokenWipeTransaction._from_protobuf(body, b"test_body_bytes", None)
-    assert isinstance(restored, TokenWipeTransaction)
-    assert restored.token_id == token_id
-    assert restored.account_id == wipe_account_id
-    assert restored.amount == 100
     assert restored.serial == []

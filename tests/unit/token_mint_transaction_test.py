@@ -281,7 +281,7 @@ def test_token_mint_transaction_from_protobuf_fungible(mock_account_ids, amount)
     transaction_body = TransactionBody()
     transaction_body.tokenMint.CopyFrom(body)
 
-    parsed = TokenMintTransaction._from_protobuf(transaction_body, b"", None)
+    parsed = TokenMintTransaction._from_protobuf(transaction_body)
 
     assert parsed.token_id == token_id
     assert parsed.amount == amount
@@ -298,7 +298,7 @@ def test_token_mint_transaction_from_protobuf_nft(mock_account_ids, metadata):
     transaction_body = TransactionBody()
     transaction_body.tokenMint.CopyFrom(body)
 
-    parsed = TokenMintTransaction._from_protobuf(transaction_body, b"", None)
+    parsed = TokenMintTransaction._from_protobuf(transaction_body)
 
     assert parsed.token_id == token_id
     assert parsed.metadata == metadata
@@ -356,7 +356,7 @@ def test_from_protobuf_without_token():
     tx_body = TransactionBody()
     tx_body.tokenMint.CopyFrom(token_mint_pb2.TokenMintTransactionBody(amount=500))
 
-    restored = TokenMintTransaction._from_protobuf(tx_body, b"", None)
+    restored = TokenMintTransaction._from_protobuf(tx_body)
     assert restored.token_id is None
     assert restored.amount == 500
     assert restored.metadata is None

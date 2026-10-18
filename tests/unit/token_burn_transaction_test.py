@@ -6,6 +6,7 @@ from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, tr
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.token_burn_pb2 import TokenBurnTransactionBody
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
@@ -124,6 +125,30 @@ def test_burn_transaction_can_execute(mock_account_ids):
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
 
 
+def test_burn_transaction_from_proto(mock_account_ids):
+    """Test that a burn transaction can be created from a protobuf object."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    # Create protobuf object with token burn details
+    proto = TokenBurnTransactionBody(token=token_id._to_proto(), amount=100, serialNumbers=[1, 2, 3])
+
+    # Deserialize the protobuf object
+    from_proto = TokenBurnTransaction()._from_proto(proto)
+
+    # Verify deserialized transaction matches original data
+    assert from_proto.token_id == token_id
+    assert from_proto.amount == 100
+    assert from_proto.serials == [1, 2, 3]
+
+    # Deserialize empty protobuf
+    from_proto = TokenBurnTransaction()._from_proto(TokenBurnTransactionBody())
+
+    # Verify empty protobuf deserializes to empty/default values
+    assert from_proto.token_id == TokenId(0, 0, 0)
+    assert from_proto.amount == 0
+    assert from_proto.serials == []
+
+
 def test_build_scheduled_body_fungible(mock_account_ids):
     """Test building a scheduled transaction body for fungible token burn transaction."""
     _, _, _, token_id, _ = mock_account_ids
@@ -171,7 +196,7 @@ def test_token_burn_transaction_from_protobuf_fungible(mock_account_ids, amount)
     transaction_body = TransactionBody()
     transaction_body.tokenBurn.CopyFrom(body)
 
-    parsed = TokenBurnTransaction._from_protobuf(transaction_body, b"", None)
+    parsed = TokenBurnTransaction._from_protobuf(transaction_body)
 
     assert parsed.token_id == token_id
     assert parsed.amount == amount
@@ -189,7 +214,7 @@ def test_token_burn_transaction_from_protobuf_nft(mock_account_ids):
     transaction_body = TransactionBody()
     transaction_body.tokenBurn.CopyFrom(body)
 
-    parsed = TokenBurnTransaction._from_protobuf(transaction_body, b"", None)
+    parsed = TokenBurnTransaction._from_protobuf(transaction_body)
 
     assert parsed.token_id == token_id
     assert parsed.serials == serials
@@ -248,7 +273,7 @@ def test_from_protobuf_without_token():
     tx_body = TransactionBody()
     tx_body.tokenBurn.CopyFrom(token_burn_pb2.TokenBurnTransactionBody(amount=300))
 
-    restored = TokenBurnTransaction._from_protobuf(tx_body, b"", None)
+    restored = TokenBurnTransaction._from_protobuf(tx_body)
     assert restored.token_id is None
     assert restored.amount == 300
     assert restored.serials == []

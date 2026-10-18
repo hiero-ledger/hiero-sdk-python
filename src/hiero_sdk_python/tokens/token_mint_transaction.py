@@ -138,22 +138,17 @@ class TokenMintTransaction(Transaction):
         return _Method(transaction_func=channel.token.mintToken, query_func=None)
 
     @classmethod
-    def _from_protobuf(cls, transaction_body, body_bytes: bytes | None = None, sig_map=None):
+    def _from_protobuf(cls, transaction_body):
         """
         Creates a TokenMintTransaction instance from protobuf components.
 
         Args:
             transaction_body: The parsed TransactionBody protobuf
-            body_bytes (bytes): The raw bytes of the transaction body
-            sig_map: The SignatureMap protobuf containing signatures
 
         Returns:
             TokenMintTransaction: A new transaction instance with all fields restored
         """
-        try:
-            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
-        except TypeError:
-            transaction = super()._from_protobuf(transaction_body)
+        transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("tokenMint"):
             pb = transaction_body.tokenMint
