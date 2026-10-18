@@ -707,8 +707,9 @@ def test_serialization_chunk_transaction_freeze(file_id):
 
 def test_validate_transaction_bodies_for_chunk_file_append_tx():
     """Test validation of chunked file append transaction bodies."""
-    transaction_id_1 = TransactionId.generate(AccountId(0, 0, 2))
-    transaction_id_2 = TransactionId.generate(AccountId(0, 0, 2))
+    # Chunk transaction IDs share the payer and have increasing valid starts, as freeze() generates them
+    transaction_id_1 = TransactionId.from_string("0.0.2@1700000000.0")
+    transaction_id_2 = TransactionId.from_string("0.0.2@1700000000.1")
 
     chunk_1 = file_append_pb2.FileAppendTransactionBody(
         fileID=FileId.from_string("0.0.101")._to_proto(), contents=b"Hello"

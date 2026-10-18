@@ -895,14 +895,15 @@ def test_signing_serialize_chunk_transaction_sign_all_available_bytes(topic_id):
 
 def test_validate_transaction_bodies_for_chunk_message_submit_tx():
     """Test validation of chunked message submit transaction bodies."""
-    transaction_id_1 = TransactionId.generate(AccountId(0, 0, 2))
-    transaction_id_2 = TransactionId.generate(AccountId(0, 0, 2))
+    # Chunk transaction IDs share the payer and have increasing valid starts, as freeze() generates them
+    transaction_id_1 = TransactionId.from_string("0.0.2@1700000000.0")
+    transaction_id_2 = TransactionId.from_string("0.0.2@1700000000.1")
 
     chunk_1 = consensus_submit_message_pb2.ConsensusSubmitMessageTransactionBody(
         topicID=TopicId.from_string("0.0.1")._to_proto(),
         message=b"Hello",
         chunkInfo=consensus_submit_message_pb2.ConsensusMessageChunkInfo(
-            initialTransactionID=TransactionId.generate(AccountId.from_string("0.0.2"))._to_proto(), total=2, number=1
+            initialTransactionID=transaction_id_1._to_proto(), total=2, number=1
         ),
     )
 
@@ -910,7 +911,7 @@ def test_validate_transaction_bodies_for_chunk_message_submit_tx():
         topicID=TopicId.from_string("0.0.1")._to_proto(),
         message=b"World",
         chunkInfo=consensus_submit_message_pb2.ConsensusMessageChunkInfo(
-            initialTransactionID=TransactionId.generate(AccountId.from_string("0.0.2"))._to_proto(), total=2, number=1
+            initialTransactionID=transaction_id_1._to_proto(), total=2, number=2
         ),
     )
 

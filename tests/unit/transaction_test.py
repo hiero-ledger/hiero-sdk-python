@@ -904,8 +904,9 @@ def test_validate_transaction_bodies_multiple_nodes():
 
 def test_validate_transaction_bodies_chunk_transaction(topic_id):
     """Test validation of a chunked transaction."""
-    transaction_id1 = TransactionId.generate(AccountId(0, 0, 2))
-    transaction_id2 = TransactionId.generate(AccountId(0, 0, 3))
+    # Chunk transaction IDs share the payer and have increasing valid starts, as freeze() generates them
+    transaction_id1 = TransactionId.from_string("0.0.2@1700000000.0")
+    transaction_id2 = TransactionId.from_string("0.0.2@1700000000.1")
 
     chunk1 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("Hello"))._build_proto_body()
 
@@ -949,8 +950,9 @@ def test_validate_transaction_bodies_chunk_transaction_mutiple_node_ids(topic_id
     node1 = AccountId.from_string("0.0.101")
     node2 = AccountId.from_string("0.0.102")
 
-    transaction_id1 = TransactionId.generate(AccountId(0, 0, 2))
-    transaction_id2 = TransactionId.generate(AccountId(0, 0, 3))
+    # Chunk transaction IDs share the payer and have increasing valid starts, as freeze() generates them
+    transaction_id1 = TransactionId.from_string("0.0.2@1700000000.0")
+    transaction_id2 = TransactionId.from_string("0.0.2@1700000000.1")
 
     chunk1 = (TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("Hello"))._build_proto_body()
 
