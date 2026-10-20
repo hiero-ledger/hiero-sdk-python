@@ -67,18 +67,18 @@ class FileAppendTransaction(ChunkedTransaction):
 
     def _calculate_total_chunks(self) -> int:
         """
-        Calculates the total number of chunks needed for the current contents.
+        Calculate payload chunks, treating empty contents as one chunk.
 
         Returns:
             int: The total number of chunks needed.
         """
-        if self.contents is None:
+        if not self.contents:
             return 1
         return math.ceil(len(self.contents) / self.chunk_size)
 
     def get_required_chunks(self) -> int:
         """
-        Gets the number of chunks required for the current contents.
+        Calculate the chunks required for the current contents and chunk size.
 
         Returns:
             int: The number of chunks required.
@@ -196,7 +196,7 @@ class FileAppendTransaction(ChunkedTransaction):
 
     def _from_proto(self, proto: file_append_pb2.FileAppendTransactionBody) -> FileAppendTransaction:
         """
-        Initializes a new FileAppendTransaction instance from a protobuf object.
+        Restore file append fields from a protobuf body.
 
         Args:
             proto: The protobuf object to initialize from.
@@ -204,7 +204,7 @@ class FileAppendTransaction(ChunkedTransaction):
         Returns:
             FileAppendTransaction: This transaction instance.
         """
-        self.file_id = FileId._from_proto(proto.fileID) if proto.fileID else None
+        self.file_id = FileId._from_proto(proto.fileID) if proto.HasField("fileID") else None
         self.contents = proto.contents
         self._total_chunks = self._calculate_total_chunks()
         return self
