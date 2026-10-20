@@ -137,7 +137,7 @@ class FeeEstimateQuery:
         self._ensure_frozen(self._transaction, client)
 
         if self._is_chunked():
-            return self._execute_chunked(client, url, mode)
+            return self._execute_chunked(url, mode)
 
         return self._execute_single(url, mode)
 
@@ -154,7 +154,7 @@ class FeeEstimateQuery:
     def _ensure_frozen(self, tx: Transaction, client) -> None:
         """Ensure the transaction is frozen before serialization."""
         if not tx._transaction_body_bytes:
-            tx.freeze_with(client) if hasattr(tx, "freeze_with") else tx.freeze()
+            tx.freeze_with(client)
 
     def _post(self, url: str, payload: bytes) -> dict:
         """POST with retry for transient failures."""
@@ -191,20 +191,13 @@ class FeeEstimateQuery:
         raise RuntimeError("Unreachable")
 
     def _execute_single(self, url: str, mode: FeeEstimateMode) -> FeeEstimateResponse:
-        data = self._post(url, self._transaction.to_bytes())
+        data = self._post(url, self._transaction._to_proto().SerializeToString())
         return self._to_response(data, mode)
 
-    def _execute_chunked(self, client, url: str, mode: FeeEstimateMode) -> FeeEstimateResponse:
+    def _execute_chunked(self, url: str, mode: FeeEstimateMode) -> FeeEstimateResponse:
         """
         Aggregate fees across all chunks into a single response.
         """
-
-        # Save original state to restore later
-        original_id = self._transaction.transaction_id
-        original_index = getattr(self._transaction, "_current_chunk_index", 0)
-        original_bodies = dict(self._transaction._transaction_body_bytes)
-        original_signatures = dict(self._transaction._signature_map)
-
         total_node_base = 0
         total_service_base = 0
         total_network_subtotal = 0
@@ -216,15 +209,9 @@ class FeeEstimateQuery:
         final_hvm = 0
 
         try:
-            for i, chunk_tx_id in enumerate(self._transaction._transaction_ids):
-                self._transaction._current_chunk_index = i
-                self._transaction.transaction_id = chunk_tx_id
+            for _ in range(self._transaction.get_required_chunks()):
+                tx_bytes = self._transaction._to_proto().SerializeToString()
 
-                self._transaction._transaction_body_bytes.clear()
-
-                self._transaction.freeze_with(client)
-
-                tx_bytes = self._transaction.to_bytes()
                 data = self._post(url, tx_bytes)
                 response = self._to_response(data, mode)
 
@@ -241,13 +228,10 @@ class FeeEstimateQuery:
 
                 final_hvm = response.high_volume_multiplier
 
+                self._transaction._transaction_ids.advance()
+
         finally:
-            self._transaction.transaction_id = original_id
-            self._transaction._current_chunk_index = original_index
-            self._transaction._transaction_body_bytes.clear()
-            self._transaction._transaction_body_bytes.update(original_bodies)
-            self._transaction._signature_map.clear()
-            self._transaction._signature_map.update(original_signatures)
+            self._transaction._transaction_ids.set_index(0)
 
         return FeeEstimateResponse(
             mode=mode,

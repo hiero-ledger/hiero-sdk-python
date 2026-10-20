@@ -9,9 +9,11 @@ from unittest.mock import MagicMock
 import pytest
 
 from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 pytestmark = pytest.mark.unit
@@ -29,12 +31,17 @@ def test_build_transaction_body(mock_account_ids, file_id):
     assert transaction_body.fileDelete.fileID == file_id._to_proto()
 
 
-def test_missing_file_id():
-    """Test that building a transaction without setting FileID raises a ValueError."""
+def test_missing_file_id(mock_account_ids):
+    """Test that building without FileID leaves fileID unset instead of raising."""
+    account_id, _, node_account_id, _, _ = mock_account_ids
     delete_tx = FileDeleteTransaction()
+    delete_tx.set_node_account_ids([node_account_id])
+    delete_tx.operator_account_id = account_id
 
-    with pytest.raises(ValueError, match="Missing required FileID"):
-        delete_tx.build_transaction_body()
+    transaction_body = delete_tx.build_transaction_body()
+
+    assert transaction_body.HasField("fileDelete")
+    assert not transaction_body.fileDelete.HasField("fileID")
 
 
 def test_set_file_id(file_id):
@@ -74,7 +81,7 @@ def test_sign_transaction(mock_client, file_id):
     delete_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = delete_tx._transaction_body_bytes[node_id]
+    body_bytes = delete_tx._transaction_body_bytes[delete_tx.transaction_id][node_id]
 
     assert len(delete_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = delete_tx._signature_map[body_bytes].sigPair[0]
@@ -131,3 +138,31 @@ def test_get_method():
 
     assert method.query is None
     assert method.transaction == mock_file_stub.deleteFile
+
+
+def _round_trip_delete(tx, mock_client):
+    """Freeze and deserialize a delete transaction, checking byte identity."""
+    tx.freeze_with(mock_client)
+    original_bytes = tx.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, FileDeleteTransaction)
+    assert restored.to_bytes() == original_bytes
+    return restored
+
+
+@pytest.mark.parametrize(
+    "target_id",
+    [None, FileId(), FileId(1, 2, 345)],
+    ids=["absent", "present-zero", "nonzero-components"],
+)
+def test_from_bytes_restores_file_id(mock_client, target_id):
+    """Restore absent, zero-valued, and nonzero file IDs with the memo."""
+    tx = FileDeleteTransaction(file_id=target_id)
+    tx.set_transaction_memo("Delete transaction memo")
+
+    restored = _round_trip_delete(tx, mock_client)
+
+    assert restored.file_id == target_id
+    assert restored.memo == tx.memo

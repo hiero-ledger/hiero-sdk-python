@@ -14,6 +14,7 @@ from typing import Any
 import eth_abi
 from google.protobuf.wrappers_pb2 import BytesValue, Int64Value
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.contract.contract_log_info import ContractLogInfo
 from hiero_sdk_python.contract.contract_nonce_info import ContractNonceInfo
@@ -41,6 +42,7 @@ class ContractFunctionResult:
     function_parameters: bytes | None = None
     contract_nonces: list[ContractNonceInfo] = field(default_factory=list)
     signer_nonce: int | None = None
+    sender_id: AccountId | None = None
 
     def get_result(self, output_types: list[str]) -> list[Any]:
         """
@@ -487,6 +489,7 @@ class ContractFunctionResult:
             function_parameters=proto.functionParameters,
             contract_nonces=contract_nonces,
             signer_nonce=proto.signer_nonce.value if proto.signer_nonce else None,
+            sender_id=AccountId._from_proto(proto.sender_id) if proto.HasField("sender_id") else None,
         )
 
     def _to_proto(self) -> contract_types_pb2.ContractFunctionResult:
@@ -509,4 +512,5 @@ class ContractFunctionResult:
             functionParameters=self.function_parameters,
             signer_nonce=Int64Value(value=self.signer_nonce) if self.signer_nonce is not None else None,
             contract_nonces=[contract_nonce._to_proto() for contract_nonce in self.contract_nonces or []],
+            sender_id=self.sender_id._to_proto() if self.sender_id else None,
         )

@@ -124,11 +124,29 @@ def test_build_scheduled_body_with_valid_parameters(mock_account_ids, execute_pa
 
 
 def test_build_transaction_body_missing_contract_id():
-    """Test that build_transaction_body raises ValueError when contract_id is missing."""
+    """Test that a missing contract_id is left unset for the network to reject."""
     execute_tx = ContractExecuteTransaction()
 
-    with pytest.raises(ValueError, match="Missing required ContractID"):
-        execute_tx.build_transaction_body()
+    transaction_body = execute_tx.build_transaction_body()
+
+    assert transaction_body.HasField("contractCall")
+    assert not transaction_body.contractCall.HasField("contractID")
+
+
+def test_set_gas_rejects_negative_values():
+    """Test that set_gas rejects negative gas, matching the JS SDK."""
+    execute_tx = ContractExecuteTransaction()
+
+    with pytest.raises(ValueError, match="Gas cannot be negative"):
+        execute_tx.set_gas(-1)
+
+    assert execute_tx.set_gas(0).gas == 0
+
+
+def test_constructor_rejects_negative_gas():
+    """Test that gas supplied via the constructor is validated like set_gas."""
+    with pytest.raises(ValueError, match="Gas cannot be negative"):
+        ContractExecuteTransaction(gas=-1)
 
 
 def test_set_contract_id(execute_params):
@@ -325,7 +343,7 @@ def test_sign_transaction(mock_client, execute_params):
     execute_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = execute_tx._transaction_body_bytes[node_id]
+    body_bytes = execute_tx._transaction_body_bytes[execute_tx.transaction_id][node_id]
 
     assert len(execute_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = execute_tx._signature_map[body_bytes].sigPair[0]

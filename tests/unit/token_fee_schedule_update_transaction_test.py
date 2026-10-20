@@ -42,21 +42,34 @@ def test_setters_chaining(mock_account_ids):
     assert len(txn.custom_fees) == 1
 
 
-def test_build_raises_error_if_no_token_id():
-    update_tx = TokenFeeScheduleUpdateTransaction()
-    test_fee_list = [CustomFixedFee(amount=100, fee_collector_account_id=AccountId(0, 0, 987))]
-    update_tx.set_custom_fees(test_fee_list)
+def test_build_proto_body_without_token_id_omits_field():
+    """Missing token IDs omits field."""
+    update_tx = TokenFeeScheduleUpdateTransaction().set_custom_fees(
+        [
+            CustomFixedFee(
+                amount=100,
+                fee_collector_account_id=AccountId(0, 0, 987),
+            )
+        ]
+    )
 
-    with pytest.raises(ValueError, match="Missing token ID"):
-        update_tx.build_transaction_body()
+    body = update_tx._build_proto_body()
+
+    assert not body.HasField("token_id")
+    assert len(body.custom_fees) == 1
 
 
-def test_fails_precheck_without_token_id():
-    """Test precheck failure when token ID is missing."""
-    new_fee = CustomFixedFee(amount=50, fee_collector_account_id=AccountId(0, 0, 123))
-    update_tx = TokenFeeScheduleUpdateTransaction().set_custom_fees([new_fee])
-    with pytest.raises(ValueError, match="Missing token ID"):
-        update_tx.build_transaction_body()
+def test_build_scheduled_body_without_token_id_omits_field():
+    """Scheduled bodies should also omit missing token ID."""
+    update_tx = TokenFeeScheduleUpdateTransaction().set_custom_fees(
+        [CustomFixedFee(amount=50, fee_collector_account_id=AccountId(0, 0, 123))]
+    )
+
+    scheduled_body = update_tx.build_scheduled_body()
+
+    assert scheduled_body.HasField("token_fee_schedule_update")
+    assert not scheduled_body.token_fee_schedule_update.HasField("token_id")
+    assert len(scheduled_body.token_fee_schedule_update.custom_fees) == 1
 
 
 def test_build_transaction_body_sets_token_id(mock_account_ids):

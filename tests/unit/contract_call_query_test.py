@@ -93,12 +93,14 @@ def test_setters_combined():
     assert query.function_parameters == ContractFunctionParameters("testFunction").to_bytes()
 
 
-def test_execute_fails_with_missing_contract_id(mock_client):
+def test_contract_id_missing_when_none(mock_client):
     """Test request creation with missing Contract ID."""
     query = ContractCallQuery()
+    request = query._make_request()
 
-    with pytest.raises(ValueError, match="Contract ID must be set before making the request."):
-        query.execute(mock_client)
+    assert request is not None
+    assert request.contractCallLocal is not None
+    assert not request.contractCallLocal.HasField("contractID")
 
 
 def test_get_method():

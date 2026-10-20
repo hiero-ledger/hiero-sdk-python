@@ -7,11 +7,15 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python import PrivateKey
+from hiero_sdk_python.crypto.key_list import KeyList
+from hiero_sdk_python.file.file_contents_query import FileContentsQuery
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
+from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.file.file_info_query import FileInfoQuery
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 @pytest.mark.integration
@@ -130,3 +134,125 @@ def test_integration_file_update_transaction_fails_when_key_is_invalid(env):
     assert receipt.status == ResponseCode.INVALID_SIGNATURE, (
         f"File update should have failed with INVALID_SIGNATURE status but got: {ResponseCode(receipt.status).name}"
     )
+
+
+@pytest.mark.integration
+def test_integration_file_update_transaction_with_supported_key_types(env):
+    """Test FileUpdateTransaction with all supported key types."""
+    initial_private_key = PrivateKey.generate()
+
+    create_receipt = (
+        FileCreateTransaction()
+        .set_keys([initial_private_key])
+        .set_contents("Hello, Hedera!")
+        .freeze_with(env.client)
+        .sign(initial_private_key)
+        .execute(env.client)
+    )
+
+    assert create_receipt.status == ResponseCode.SUCCESS
+    assert create_receipt.file_id is not None
+
+    file_id = create_receipt.file_id
+    info = FileInfoQuery(file_id).execute(env.client)
+    assert len(info.keys) == 1
+
+    file_private_key = PrivateKey.generate()
+
+    file_public_key_private = PrivateKey.generate()
+    file_public_key = file_public_key_private.public_key()
+
+    key_list_private_key = PrivateKey.generate()
+    key_list = KeyList([key_list_private_key])
+
+    threshold_private_key_1 = PrivateKey.generate()
+    threshold_private_key_2 = PrivateKey.generate()
+    threshold_key = KeyList(
+        [threshold_private_key_1, threshold_private_key_2],
+        threshold=1,
+    )
+
+    update_receipt = (
+        FileUpdateTransaction()
+        .set_file_id(file_id)
+        .set_keys(
+            [
+                file_private_key,
+                file_public_key,
+                key_list,
+                threshold_key,
+            ]
+        )
+        .freeze_with(env.client)
+        .sign(initial_private_key)
+        .sign(file_private_key)
+        .sign(file_public_key_private)
+        .sign(key_list_private_key)
+        .sign(threshold_private_key_1)
+        .sign(threshold_private_key_2)
+        .execute(env.client)
+    )
+
+    assert update_receipt.status == ResponseCode.SUCCESS
+    info = FileInfoQuery(file_id).execute(env.client)
+    assert len(info.keys) == 4
+
+    # Verify the stored keys authorize file deletion.
+    delete_receipt = (
+        FileDeleteTransaction()
+        .set_file_id(file_id)
+        .freeze_with(env.client)
+        .sign(file_private_key)
+        .sign(file_public_key_private)
+        .sign(key_list_private_key)
+        .sign(threshold_private_key_1)  # sign with one since threshold is set to one
+        .execute(env.client)
+    )
+
+    assert delete_receipt.status == ResponseCode.SUCCESS
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("file_memo", [None, "", "Updated memo"])
+def test_integration_file_update_from_bytes(env, file_memo):
+    """Execute a deserialized update transaction and verify contents and memo."""
+    public_key = env.operator_key.public_key()
+    created = FileCreateTransaction(
+        keys=[public_key],
+        contents=b"Initial",
+        file_memo="Original memo",
+    ).execute(env.client)
+
+    assert created.status == ResponseCode.SUCCESS
+    file_id = created.file_id
+    assert file_id is not None
+
+    try:
+        tx = FileUpdateTransaction(
+            file_id=file_id, keys=[public_key], contents=b"Updated", file_memo=file_memo
+        ).freeze_with(env.client)
+
+        original_bytes = tx.to_bytes()
+        restored = Transaction.from_bytes(original_bytes)
+
+        assert isinstance(restored, FileUpdateTransaction)
+        assert restored.file_id == file_id
+        assert restored.file_memo == file_memo
+        assert restored.contents == b"Updated"
+        assert restored.keys is not None
+        assert [key.to_proto_key() for key in restored.keys] == [public_key.to_proto_key()]
+        assert restored.to_bytes() == original_bytes
+
+        restored.sign(env.operator_key)
+        receipt = restored.execute(env.client)
+        assert receipt.status == ResponseCode.SUCCESS
+
+        info = FileInfoQuery(file_id=file_id).execute(env.client)
+        expected_memo = "Original memo" if file_memo is None else file_memo
+        assert info.file_memo == expected_memo
+
+        actual = FileContentsQuery(file_id=file_id).execute(env.client)
+        assert actual == b"Updated"
+    finally:
+        cleanup_receipt = FileDeleteTransaction(file_id=file_id).execute(env.client)
+        assert cleanup_receipt.status == ResponseCode.SUCCESS

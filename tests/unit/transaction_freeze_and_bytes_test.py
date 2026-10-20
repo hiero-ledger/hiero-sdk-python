@@ -10,11 +10,13 @@ from __future__ import annotations
 
 import pytest
 
+from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
@@ -45,12 +47,13 @@ def test_freeze_with_valid_parameters():
     operator_id = AccountId.from_string("0.0.1234")
     node_id = AccountId.from_string("0.0.3")
     receiver_id = AccountId.from_string("0.0.5678")
+    transaction_id = TransactionId.generate(operator_id)
 
     transaction = (
         TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
-    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.set_transaction_id(transaction_id)
     transaction.set_node_account_ids([node_id])
 
     # Should not raise any errors
@@ -61,7 +64,9 @@ def test_freeze_with_valid_parameters():
 
     # Should have transaction body bytes set
     assert len(transaction._transaction_body_bytes) > 0
-    assert node_id in transaction._transaction_body_bytes
+    assert set(transaction._transaction_body_bytes.keys()) == {transaction_id}
+
+    assert node_id in transaction._transaction_body_bytes[transaction_id]
 
 
 def test_freeze_is_idempotent():
@@ -84,14 +89,6 @@ def test_freeze_is_idempotent():
 
     # Should still work fine
     assert len(transaction._transaction_body_bytes) > 0
-
-
-def test_to_bytes_requires_frozen_transaction():
-    """Test that to_bytes() raises error if transaction is not frozen."""
-    transaction = TransferTransaction()
-
-    with pytest.raises(Exception, match="Transaction is not frozen"):
-        transaction.to_bytes()
 
 
 def test_to_bytes_returns_bytes():
@@ -464,13 +461,16 @@ def test_freeze_only_builds_for_single_node():
         TransferTransaction().add_hbar_transfer(operator_id, -100_000_000).add_hbar_transfer(receiver_id, 100_000_000)
     )
 
-    transaction.transaction_id = TransactionId.generate(operator_id)
+    transaction.set_transaction_id(TransactionId.generate(operator_id))
     transaction.set_node_account_ids([node_id])
     transaction.freeze()
 
     # Should only have one node in the transaction body bytes map
     assert len(transaction._transaction_body_bytes) == 1
-    assert node_id in transaction._transaction_body_bytes
+
+    trasaction_id = transaction._transaction_ids.current
+    assert trasaction_id in transaction._transaction_body_bytes
+    assert node_id in transaction._transaction_body_bytes[trasaction_id]
 
 
 def test_signed_and_unsigned_bytes_are_different():
@@ -538,8 +538,8 @@ def test_multiple_signatures_increase_size():
     assert len(bytes_3_sig) > len(bytes_2_sig)
 
 
-def test_changing_node_after_freeze_fails_for_to_bytes():
-    """Test that changing node_account_id after freeze causes to_bytes() to fail."""
+def test_changing_node_after_freeze_fails():
+    """Test that changing node_account_id after freeze causes error."""
     operator_id = AccountId.from_string("0.0.1234")
     node_id_1 = AccountId.from_string("0.0.3")
     node_id_2 = AccountId.from_string("0.0.4")
@@ -553,16 +553,9 @@ def test_changing_node_after_freeze_fails_for_to_bytes():
     transaction.set_node_account_ids([node_id_1])
     transaction.freeze()
 
-    # This should work
-    bytes_node_1 = transaction.to_bytes()
-    assert isinstance(bytes_node_1, bytes)
-
-    # Change to a different node that wasn't frozen
-    transaction.set_node_account_ids([node_id_2])
-
-    # This should fail - no transaction body for node_id_2
-    with pytest.raises(ValueError, match="No transaction body found for node"):
-        transaction.to_bytes()
+    # This should fail as node_account_ids list is locked
+    with pytest.raises(Exception, match="list is immutable"):
+        transaction.set_node_account_ids([node_id_2])
 
 
 def test_unsigned_transaction_can_be_signed_after_to_bytes():
@@ -596,7 +589,7 @@ def test_unsigned_transaction_can_be_signed_after_to_bytes():
 
 def test_transaction_freeze_with_node_ids(mock_client):
     """
-    Test freeze_with() correctly initializes transaction bytes using provided node_account_id(s).
+    Test freeze_with() correctly initializes transaction bytes using provided node_account_ids().
     """
     # Case 1 Single node_account_id
     single_node_id = AccountId(0, 0, 3)
@@ -606,9 +599,17 @@ def test_transaction_freeze_with_node_ids(mock_client):
     tx.freeze_with(mock_client)
 
     assert tx.node_account_ids == [single_node_id]
-    # Verify creates transaction_bytes for single node_id
     assert len(tx._transaction_body_bytes) == 1
-    assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
+
+    transaction_id = tx._transaction_ids.current
+    assert set(tx._transaction_body_bytes.keys()) == {transaction_id}
+
+    # Verify creates transaction_bytes for single node_id
+
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes
+    assert len(node_body_bytes) == 1
+    assert set(node_body_bytes.keys()) == {single_node_id}
 
     # Case 2 node_account_id list
     node_account_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
@@ -618,42 +619,60 @@ def test_transaction_freeze_with_node_ids(mock_client):
     tx.freeze_with(mock_client)
 
     assert tx.node_account_ids == node_account_ids
+    assert len(tx._transaction_body_bytes) == 1
+
+    transaction_id = tx._transaction_ids.current
+    assert set(tx._transaction_body_bytes.keys()) == {transaction_id}
     # Verify creates transaction_bytes for two node_ids
-    assert len(tx._transaction_body_bytes) == 2
-    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes
+    assert len(node_body_bytes) == 2
+    assert set(node_body_bytes.keys()) == set(node_account_ids)
 
 
 def test_transaction_freeze_with_node_ids_without_client():
     """
-    Test freeze() correctly initializes transaction bytes using provided node_account_id(s).
+    Test freeze() correctly initializes transaction bytes using provided node_account_ids().
     """
     operator_id = AccountId.from_string("0.0.1234")
+    transaction_id = TransactionId.generate(operator_id)
 
     # Case 1 Single node_account_id
     single_node_id = AccountId(0, 0, 3)
     tx = TransferTransaction()
-    tx.set_transaction_id(TransactionId.generate(operator_id))
+    tx.set_transaction_id(transaction_id)
     tx.set_node_account_ids([single_node_id])
 
     tx.freeze()
 
     assert tx.node_account_ids == [single_node_id]
+
     # Verify creates transaction_bytes for single node_id
     assert len(tx._transaction_body_bytes) == 1
-    assert set(tx._transaction_body_bytes.keys()) == {single_node_id}
+    assert set(tx._transaction_body_bytes.keys()) == {transaction_id}
+
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes
+    assert len(node_body_bytes) == 1
+    assert set(node_body_bytes.keys()) == {single_node_id}
 
     # Case 2 node_account_id list
     node_account_ids = [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+    transaction_id = TransactionId.generate(operator_id)
+
     tx = TransferTransaction()
-    tx.set_transaction_id(TransactionId.generate(operator_id))
-    tx.node_account_ids = node_account_ids
+    tx.set_transaction_id(transaction_id)
+    tx.set_node_account_ids(node_account_ids)
 
     tx.freeze()
 
     assert tx.node_account_ids == node_account_ids
     # Verify creates transaction_bytes for two node_ids
-    assert len(tx._transaction_body_bytes) == 2
-    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+    node_body_bytes = tx._transaction_body_bytes[transaction_id]
+    assert node_body_bytes
+    assert len(node_body_bytes) == 2
+    assert set(node_body_bytes.keys()) == set(node_account_ids)
 
 
 def test_transaction_freeze_without_node_ids(mock_client):
@@ -667,8 +686,11 @@ def test_transaction_freeze_without_node_ids(mock_client):
     assert tx.node_account_ids == [node._account_id for node in mock_client.network.nodes]
 
     # Verify creates transaction_bytes for client network nodes
-    assert len(tx._transaction_body_bytes) == len(mock_client.network.nodes)
-    assert set(tx._transaction_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
+    assert len(tx._transaction_body_bytes) == 1
+    node_body_bytes = tx._transaction_body_bytes[tx._transaction_ids.current]
+
+    assert len(node_body_bytes) == len(mock_client.network.nodes)
+    assert set(node_body_bytes.keys()) == set(node._account_id for node in mock_client.network.nodes)
 
 
 def test_map_response_raises_if_proto_request_is_not_transaction():
@@ -687,3 +709,236 @@ def test_map_response_raises_if_proto_request_is_not_transaction():
             node_id=mock_node_id,
             proto_request=invalid_proto_request,
         )
+
+
+def test_to_bytes_with_base_fields():
+    """Test serialization and deserialization of an unfrozen transaction with base fields"""
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_initial_balance(1)
+        .set_account_memo("test_account")
+    )
+
+    restored_tx = Transaction.from_bytes(tx.to_bytes())
+
+    assert restored_tx.key.to_bytes() == tx.key.to_bytes()
+    assert restored_tx.initial_balance == tx.initial_balance
+    assert restored_tx.account_memo == tx.account_memo
+    assert restored_tx.transaction_id is None
+    assert len(restored_tx.node_account_ids) == 0
+    assert not restored_tx._transaction_body_bytes
+
+
+def test_to_bytes_without_freeze_multiple_node_account_ids():
+    """Test serialization and deserialization of an unfrozen transaction with multiple node account IDs."""
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_initial_balance(1)
+        .set_account_memo("test_account")
+        .set_transaction_id(TransactionId.generate(AccountId(0, 0, 1)))
+        .set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
+    )
+
+    restored_tx = Transaction.from_bytes(tx.to_bytes())
+
+    assert restored_tx.key.to_bytes() == tx.key.to_bytes()
+    assert restored_tx.initial_balance == tx.initial_balance
+    assert restored_tx.account_memo == tx.account_memo
+    assert restored_tx.transaction_id == tx.transaction_id
+    assert restored_tx.node_account_ids == tx.node_account_ids
+    assert not restored_tx._transaction_body_bytes
+    assert restored_tx._transaction_ids._locked is False
+    assert restored_tx._node_account_ids._locked is False
+
+
+# Deprecated
+def test_to_bytes_without_freeze_single_node_account_id():
+    """Test serialization and deserialization of an unfrozen transaction with a single node account ID."""
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_initial_balance(1)
+        .set_account_memo("test_account")
+        .set_transaction_id(TransactionId.generate(AccountId(0, 0, 1)))
+        .set_node_account_id(AccountId(0, 0, 3))
+    )
+
+    restored_tx = Transaction.from_bytes(tx.to_bytes())
+
+    assert restored_tx.key.to_bytes() == tx.key.to_bytes()
+    assert restored_tx.initial_balance == tx.initial_balance
+    assert restored_tx.account_memo == tx.account_memo
+    assert restored_tx.transaction_id == tx.transaction_id
+    assert restored_tx.node_account_ids == tx.node_account_ids
+    assert not restored_tx._transaction_body_bytes
+    assert restored_tx._transaction_ids._locked is False
+    assert restored_tx._node_account_ids._locked is False
+
+
+def test_to_bytes_after_freeze_multiple_node_account_ids():
+    """Test serialization and deserialization of a frozen transaction with multiple node account IDs."""
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_initial_balance(1)
+        .set_account_memo("test_account")
+        .set_transaction_id(TransactionId.generate(AccountId(0, 0, 1)))
+        .set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
+        .freeze()
+    )
+
+    restored_tx = Transaction.from_bytes(tx.to_bytes())
+
+    assert restored_tx.key.to_bytes() == tx.key.to_bytes()
+    assert restored_tx.initial_balance == tx.initial_balance
+    assert restored_tx.account_memo == tx.account_memo
+    assert restored_tx.transaction_id == tx.transaction_id
+    assert restored_tx.node_account_ids == tx.node_account_ids
+
+    assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
+
+
+# Deprecated
+def test_to_bytes_after_freeze_single_node_account_id():
+    """Test serialization and deserialization of a frozen transaction with a single node account ID."""
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_initial_balance(1)
+        .set_account_memo("test_account")
+        .set_transaction_id(TransactionId.generate(AccountId(0, 0, 1)))
+        .set_node_account_id(AccountId(0, 0, 3))
+        .freeze()
+    )
+
+    restored_tx = Transaction.from_bytes(tx.to_bytes())
+
+    assert restored_tx.key.to_bytes() == tx.key.to_bytes()
+    assert restored_tx.initial_balance == tx.initial_balance
+    assert restored_tx.account_memo == tx.account_memo
+    assert restored_tx.transaction_id == tx.transaction_id
+    assert restored_tx.node_account_ids == tx.node_account_ids
+
+    assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
+
+
+def test_to_bytes_after_freeze_and_sign_multiple_node_account_ids():
+    """Test serialization and deserialization of a signed frozen transaction with multiple node account IDs."""
+    private_key = PrivateKey.generate_ecdsa()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(private_key.public_key())
+        .set_initial_balance(1)
+        .set_account_memo("test_account")
+        .set_transaction_id(TransactionId.generate(AccountId(0, 0, 1)))
+        .set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
+    )
+
+    tx.freeze()
+    tx.sign(private_key)
+
+    restored_tx = Transaction.from_bytes(tx.to_bytes())
+
+    assert restored_tx.key.to_bytes() == tx.key.to_bytes()
+    assert restored_tx.initial_balance == tx.initial_balance
+    assert restored_tx.account_memo == tx.account_memo
+    assert restored_tx.transaction_id == tx.transaction_id
+    assert restored_tx.node_account_ids == tx.node_account_ids
+
+    assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
+
+
+# Deprecated
+def test_to_bytes_after_freeze_and_sign_single_node_account_id():
+    """Test serialization and deserialization of a signed frozen transaction with a single node account ID."""
+    private_key = PrivateKey.generate_ecdsa()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(private_key.public_key())
+        .set_initial_balance(1)
+        .set_account_memo("test_account")
+        .set_transaction_id(TransactionId.generate(AccountId(0, 0, 1)))
+        .set_node_account_id(AccountId(0, 0, 3))
+    )
+
+    tx.freeze()
+    tx.sign(private_key)
+
+    restored_tx = Transaction.from_bytes(tx.to_bytes())
+
+    assert restored_tx.key.to_bytes() == tx.key.to_bytes()
+    assert restored_tx.initial_balance == tx.initial_balance
+    assert restored_tx.account_memo == tx.account_memo
+    assert restored_tx.transaction_id == tx.transaction_id
+    assert restored_tx.node_account_ids == tx.node_account_ids
+
+    assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
+
+
+def test_to_bytes_after_freeze_with_client(mock_client):
+    """Test serialization and deserialization of a transaction frozen with a client."""
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ecdsa())
+        .set_initial_balance(1)
+        .set_account_memo("test_account")
+    )
+
+    tx.freeze_with(mock_client)
+
+    restored_tx = Transaction.from_bytes(tx.to_bytes())
+
+    assert restored_tx.key.to_bytes() == tx.key.to_bytes()
+    assert restored_tx.initial_balance == tx.initial_balance
+    assert restored_tx.account_memo == tx.account_memo
+    assert restored_tx.transaction_id == tx.transaction_id
+    assert restored_tx.node_account_ids == tx.node_account_ids
+
+    assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True
+
+
+def test_to_bytes_after_freeze_with_client_and_sign_multiple_node_account_ids(mock_client):
+    """Test serialization and deserialization of a signed transaction frozen with a client."""
+    private_key = PrivateKey.generate_ecdsa()
+
+    tx = (
+        AccountCreateTransaction()
+        .set_key_without_alias(private_key.public_key())
+        .set_initial_balance(1)
+        .set_account_memo("test_account")
+    )
+
+    tx.freeze_with(mock_client)
+    tx.sign(private_key)
+
+    restored_tx = Transaction.from_bytes(tx.to_bytes())
+
+    assert restored_tx.key.to_bytes() == tx.key.to_bytes()
+    assert restored_tx.initial_balance == tx.initial_balance
+    assert restored_tx.account_memo == tx.account_memo
+    assert restored_tx.transaction_id == tx.transaction_id
+    assert restored_tx.node_account_ids == tx.node_account_ids
+
+    assert restored_tx._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored_tx._signature_map == tx._signature_map
+    assert restored_tx._transaction_ids._locked is True
+    assert restored_tx._node_account_ids._locked is True

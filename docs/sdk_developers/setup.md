@@ -13,7 +13,7 @@ This guide walks you through setting up your development environment for contrib
 - [Pre-Commit Tool Setup](#pre-commit-tool-setup)
 - [Generate Protocol Buffers](#generate-protocol-buffers)
 - [Environment Setup](#environment-setup)
-- [Setup Checklist](#examples)
+- [Verify Your Setup](#verify-your-setup)
 - [Troubleshooting](#troubleshooting)
 
 ---

@@ -56,18 +56,16 @@ class ScheduleInfoQuery(Query):
             Query: The protobuf query message.
 
         Raises:
-            ValueError: If the schedule ID is not set.
-            Exception: If any other error occurs during request construction.
+            Exception: If any error occurs during request construction.
         """
         try:
-            if not self.schedule_id:
-                raise ValueError("Schedule ID must be set before making the request.")
-
             query_header = self._make_request_header()
 
             schedule_info_query = schedule_get_info_pb2.ScheduleGetInfoQuery()
             schedule_info_query.header.CopyFrom(query_header)
-            schedule_info_query.scheduleID.CopyFrom(self.schedule_id._to_proto())
+
+            if self.schedule_id is not None:
+                schedule_info_query.scheduleID.CopyFrom(self.schedule_id._to_proto())
 
             query = query_pb2.Query()
             query.scheduleGetInfo.CopyFrom(schedule_info_query)

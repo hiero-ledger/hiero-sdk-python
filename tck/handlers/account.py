@@ -13,6 +13,7 @@ from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
+from hiero_sdk_python.query.mirror_node_account_balance_query import MirrorNodeAccountBalanceQuery
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
@@ -24,6 +25,7 @@ from tck.param.account import (
     DeleteAccountParams,
     GetAccountBalanceParams,
     GetAccountInfoParams,
+    GetMirrorNodeAccountBalanceParams,
     GetTransactionReceiptParams,
     UpdateAccountParams,
 )
@@ -33,6 +35,7 @@ from tck.response.account import (
     ExchangeRateResponse,
     GetAccountBalanceResponse,
     GetAccountInfoResponse,
+    GetMirrorNodeAccountBalanceResponse,
     GetTransactionReceiptResponse,
     StakingInfoResponse,
     TokenRelationshipResponse,
@@ -41,6 +44,7 @@ from tck.response.account import (
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string, key_to_string
+from tck.util.transaction_utils import execute_validated
 
 
 def _build_create_account_transaction(params: CreateAccountParams) -> AccountCreateTransaction:
@@ -89,17 +93,15 @@ def create_account(params: CreateAccountParams) -> CreateAccountResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     account_id = ""
-    if receipt.status == ResponseCode.SUCCESS:
-        account_id = str(receipt.account_id)
+    account_id = str(receipt.account_id)
 
     return CreateAccountResponse(
         account_id,
         ResponseCode(receipt.status).name,
-        str(response.transaction_id) if response.transaction_id is not None else None,
+        str(receipt.transaction_id) if receipt.transaction_id is not None else None,
     )
 
 
@@ -150,8 +152,7 @@ def update_account(params: UpdateAccountParams) -> UpdateAccountResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return UpdateAccountResponse(ResponseCode(receipt.status).name)
 
@@ -258,8 +259,7 @@ def delete_account(params: DeleteAccountParams) -> DeleteAccountResponse:
     if params.commonTransactionParams is not None:
         params.commonTransactionParams.apply_common_params(transaction, client)
 
-    response = transaction.execute(client, wait_for_receipt=False)
-    receipt: TransactionReceipt = response.get_receipt(client, validate_status=True)
+    receipt = execute_validated(transaction, client)
 
     return DeleteAccountResponse(status=ResponseCode(receipt.status).name)
 
@@ -278,6 +278,25 @@ def get_account_balance(params: GetAccountBalanceParams) -> GetAccountBalanceRes
 
     account_balance = query.execute(client)
     return map_account_balance_response(account_balance)
+
+
+@rpc_method("getMirrorNodeAccountBalance")
+def get_mirror_node_account_balance(params: GetMirrorNodeAccountBalanceParams) -> GetMirrorNodeAccountBalanceResponse:
+    """Read the HBAR balance of an account or contract from the mirror node.
+
+    The accountId may be an account or contract ID, an EVM address, or a public
+    key alias; the SDK resolves each to the form the mirror node accepts.
+    """
+    client = get_client(params.sessionId)
+
+    query = MirrorNodeAccountBalanceQuery()
+    if params.accountId is not None:
+        query.set_account_id(AccountId.from_string(params.accountId))
+
+    balance = query.execute(client)
+
+    # Serialise the exact tinybar integer; Hbar's display form rounds above 2^53.
+    return GetMirrorNodeAccountBalanceResponse(hbars=str(balance.hbars.to_tinybars()))
 
 
 def map_account_balance_response(account_balance: AccountBalance) -> GetAccountBalanceResponse:

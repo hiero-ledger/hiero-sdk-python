@@ -5,8 +5,11 @@
 from . import (
     account,
     allowance,
+    contract,
+    ethereum,
     file,
     key,
+    node,
     schedule,
     sdk,  # setup, reset
     token,

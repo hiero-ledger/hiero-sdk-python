@@ -168,12 +168,17 @@ def test_build_transaction_body_with_permanent_removal_only(mock_account_ids, de
     assert transaction_body.contractDeleteInstance.permanent_removal == delete_params["permanent_removal"]
 
 
-def test_build_transaction_body_missing_contract_id():
-    """Test that build_transaction_body raises ValueError when contract_id is missing."""
-    delete_tx = ContractDeleteTransaction()
+def test_build_transaction_body_missing_contract_id(mock_account_ids):
+    """Test building transaction body when contract_id is not set omits the field."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
 
-    with pytest.raises(ValueError, match="Missing required ContractID"):
-        delete_tx.build_transaction_body()
+    delete_tx = ContractDeleteTransaction()
+    delete_tx.operator_account_id = operator_id
+    delete_tx.set_node_account_ids([node_account_id])
+
+    transaction_body = delete_tx.build_transaction_body()
+
+    assert not transaction_body.contractDeleteInstance.HasField("contractID")
 
 
 def test_set_contract_id(delete_params):
@@ -296,7 +301,7 @@ def test_sign_transaction(mock_client, delete_params):
     delete_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = delete_tx._transaction_body_bytes[node_id]
+    body_bytes = delete_tx._transaction_body_bytes[delete_tx.transaction_id][node_id]
 
     assert len(delete_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = delete_tx._signature_map[body_bytes].sigPair[0]

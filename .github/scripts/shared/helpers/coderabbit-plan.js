@@ -1,7 +1,7 @@
 // Script to trigger CodeRabbit plan for all difficulty-labeled issues (including GFI)
 
 const CODERABBIT_MARKER = '<!-- CodeRabbit Plan Trigger -->';
-const { DIFFICULTY_LABELS } = require('./shared/labels.js');
+const { DIFFICULTY_LABELS } = require('../labels.js');
 
 async function triggerCodeRabbitPlan(github, owner, repo, issue, marker = CODERABBIT_MARKER) {
   const comment = `${marker} @coderabbitai plan`;
@@ -73,7 +73,7 @@ async function hasExistingCodeRabbitPlan(github, owner, repo, issueNumber) {
       issueNumber,
     });
     // Return false to allow plan trigger attempt (fail-open for better UX)
-    return false;
+    return null;
   }
 }
 
@@ -110,10 +110,18 @@ function logSummary(owner, repo, issue) {
 }
 
 // Main workflow handler (default export for workflow usage)
-async function main({ github, context }) {
+async function triggerCodeRabbitPlanForIssue({ github, context }) {
   try {
     const { owner, repo } = context.repo;
-    const { issue: eventIssue, label } = context.payload;
+
+    const payload = context?.payload;
+
+    if (!payload) {
+      console.log('No event payload');
+      return;
+    }
+
+    const { issue: eventIssue, label } = payload;
 
     // Validations
     if (!eventIssue?.number) return console.log('No issue in payload');
@@ -149,10 +157,9 @@ async function main({ github, context }) {
   }
 }
 
-// Default export for workflow usage: await script({ github, context })
-module.exports = main;
-
-// Named exports for reuse by other scripts (e.g., GFI assignment bot)
-module.exports.triggerCodeRabbitPlan = triggerCodeRabbitPlan;
-module.exports.hasExistingCodeRabbitPlan = hasExistingCodeRabbitPlan;
-module.exports.CODERABBIT_MARKER = CODERABBIT_MARKER;
+module.exports = {
+  triggerCodeRabbitPlan,
+  hasExistingCodeRabbitPlan,
+  CODERABBIT_MARKER,
+  triggerCodeRabbitPlanForIssue,
+};

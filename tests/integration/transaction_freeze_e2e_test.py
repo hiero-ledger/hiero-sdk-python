@@ -22,8 +22,11 @@ def test_transaction_executes_successfully(env):
     receipt = tx.execute(executor_client)
 
     # Verify that the transaction_bodys are generated for all nodes present in client network
-    assert len(tx._transaction_body_bytes) == len(env.client.network.nodes)
-    assert set(tx._transaction_body_bytes.keys()) == {node._account_id for node in env.client.network.nodes}
+    assert len(tx._transaction_body_bytes) == len(tx._transaction_ids)
+    transaction_id = tx.transaction_id
+    assert set(tx._transaction_body_bytes[transaction_id].keys()) == {
+        node._account_id for node in env.client.network.nodes
+    }
 
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
 
@@ -41,8 +44,10 @@ def test_transaction_executes_successfully_with_node_account_ids(env):
     tx.sign(executor_key)
 
     # Verify that the transaction_bodys are generated for the provided node_account_ids only
-    assert len(tx._transaction_body_bytes) == 2
-    assert set(tx._transaction_body_bytes.keys()) == set(node_account_ids)
+    assert len(tx._transaction_body_bytes) == 1
+    transaction_id = tx.transaction_id
+    assert set(tx._transaction_body_bytes.keys()) == {transaction_id}
+    assert set(tx._transaction_body_bytes[transaction_id].keys()) == set(node_account_ids)
 
     receipt = tx.execute(executor_client)
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"
@@ -61,8 +66,11 @@ def test_transaction_executes_successfully_with_single_node_account_id(env):
     tx.sign(executor_key)
 
     # Verify that the transaction_bodys are generated for the provided node_account_id only
+
     assert len(tx._transaction_body_bytes) == 1
-    assert set(tx._transaction_body_bytes.keys()) == {node_account_id}
+    transaction_id = tx.transaction_id
+    assert set(tx._transaction_body_bytes.keys()) == {transaction_id}
+    assert set(tx._transaction_body_bytes[transaction_id].keys()) == {node_account_id}
 
     receipt = tx.execute(executor_client)
     assert receipt.status == ResponseCode.SUCCESS, "Transaction must execute successfully"

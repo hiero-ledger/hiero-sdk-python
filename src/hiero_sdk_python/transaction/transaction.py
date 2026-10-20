@@ -6,12 +6,15 @@ from typing import TYPE_CHECKING, Literal, overload
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.crypto.signer import Signer, _sign_to_signature_pair
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
-from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_contents_pb2, transaction_pb2
+from hiero_sdk_python.hapi.sdk.transaction_list_pb2 import TransactionList
+from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2, transaction_contents_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import SchedulableTransactionBody
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.lockable_list import _LockableList
 from hiero_sdk_python.query.fee_estimate_query import FeeEstimateQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -22,6 +25,7 @@ from hiero_sdk_python.utils.key_utils import key_to_proto
 
 if TYPE_CHECKING:
     from hiero_sdk_python.crypto.private_key import PrivateKey
+    from hiero_sdk_python.crypto.public_key import PublicKey
     from hiero_sdk_python.schedule.schedule_create_transaction import (
         ScheduleCreateTransaction,
     )
@@ -46,24 +50,22 @@ class Transaction(_Executable):
         """Initializes a new Transaction instance with default values."""
         super().__init__()
 
-        self.transaction_id = None
+        self._transaction_ids = _LockableList[TransactionId]()
         self._transaction_fee: int | None = None
         self.transaction_valid_duration = 120
         self.generate_record = False
         self._high_volume = False
         self.memo = ""
         self.custom_fee_limits: list[CustomFeeLimit] = []
-        # Maps each node's AccountId to its corresponding transaction body bytes
-        # This allows us to maintain separate transaction bodies for each node
-        # which is necessary in case node is unhealthy and we have to switch it with other node.
-        # Each transaction body has the AccountId of the node it's being submitted to.
-        # If these do not match `INVALID_NODE_ACCOUNT` error will occur.
-        self._transaction_body_bytes: dict[AccountId, bytes] = {}
+        # Maps TransactionId -> {AccountId: body_bytes} to prevent INVALID_NODE_ACCOUNT during node retries.
+        self._transaction_body_bytes: dict[TransactionId, dict[AccountId, bytes]] = {}
 
         # Maps transaction body bytes to their associated signatures
         # This allows us to maintain the signatures for each unique transaction
         # and ensures that the correct signatures are used when submitting transactions
         self._signature_map: dict[bytes, basic_types_pb2.SignatureMap] = {}
+        # Signers registered through sign_with(), kept so rebuilt bodies can be re-signed
+        self._signers: list[tuple[PublicKey, Signer]] = []
         # changed from int: 2_000_000 to Hbar: 2
         self._default_transaction_fee = Hbar(2)
         self.operator_account_id = None
@@ -106,7 +108,7 @@ class Transaction(_Executable):
         hash_obj.update(proto_request.signedTransactionBytes)
         tx_hash = hash_obj.digest()
         transaction_response = TransactionResponse()
-        transaction_response.transaction_id = self.transaction_id
+        transaction_response.transaction_id = self._transaction_ids.current
         transaction_response.node_id = node_id
         transaction_response.hash = tx_hash
         transaction_response._transaction_node_ids = self._node_account_ids.get_list()
@@ -161,7 +163,7 @@ class Transaction(_Executable):
             PrecheckError: An exception containing the error code and transaction ID
         """
         error_code = response.nodeTransactionPrecheckCode
-        tx_id = self.transaction_id
+        tx_id = self._transaction_ids.current
 
         return PrecheckError(error_code, tx_id)
 
@@ -178,31 +180,107 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction body has not been built.
         """
+        return self.sign_with(private_key.public_key(), private_key.sign)
+
+    def sign_with(self, public_key: PublicKey, signer: Signer) -> Transaction:
+        """
+        Signs the transaction with a signer callback instead of a private key.
+
+        Use this when the key is held outside the process, e.g. in an HSM or KMS.
+        The signer is called once for every transaction body (every chunk and every node),
+        with the exact body bytes, and must return the raw signature.
+
+        Signing again with a key that already signed every body is a no-op.
+        If the signer raises, the transaction is left unchanged.
+
+        Args:
+            public_key (PublicKey): The public key matching the signer.
+            signer (Signer): The signing callback.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            Exception: If the transaction body has not been built.
+            TypeError: If the signer is not callable or does not return bytes.
+        """
         # We require the transaction to be frozen before signing
         self._require_frozen()
 
-        # We sign the bodies for each node in case we need to switch nodes during execution.
-        for body_bytes in self._transaction_body_bytes.values():
-            signature = private_key.sign(body_bytes)
+        if not callable(signer):
+            raise TypeError("signer must be callable")
 
-            public_key_bytes = private_key.public_key().to_bytes_raw()
+        public_key_bytes = public_key.to_bytes_raw()
+        if self._has_signer(public_key_bytes) or self.is_signed_by(public_key):
+            return self
 
-            if private_key.is_ed25519():
-                sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ed25519=signature)
-            else:
-                sig_pair = basic_types_pb2.SignaturePair(pubKeyPrefix=public_key_bytes, ECDSA_secp256k1=signature)
-
-            # We initialize the signature map for this body_bytes if it doesn't exist yet
-            self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap())
-
-            # deduplication check
-            already_signed = any(sp.pubKeyPrefix == public_key_bytes for sp in self._signature_map[body_bytes].sigPair)
-
-            # append only if not already signed
-            if not already_signed:
-                self._signature_map[body_bytes].sigPair.append(sig_pair)
+        self._write_signature_pairs(self._collect_signature_pairs(public_key, signer))
+        self._signers.append((public_key, signer))
 
         return self
+
+    def sign_with_operator(self, client: Client) -> Transaction:
+        """
+        Signs the transaction with the client's operator.
+
+        Freezes the transaction with the client first if it is not frozen yet.
+
+        Args:
+            client (Client): The client whose operator signs the transaction.
+
+        Returns:
+            Transaction: The current transaction instance for method chaining.
+
+        Raises:
+            ValueError: If the client has no operator.
+        """
+        operator = client.operator
+        if operator is None:
+            raise ValueError("Client must have an operator to sign with the operator.")
+
+        if not self._transaction_body_bytes:
+            self.freeze_with(client)
+
+        return self.sign_with(operator.public_key, operator.signer)
+
+    def _apply_signers(self) -> None:
+        """Re-signs every body that lacks a signature from a registered signer, e.g. after a rebuild."""
+        pending = []
+        for public_key, signer in self._signers:
+            pending.extend(self._collect_signature_pairs(public_key, signer))
+
+        self._write_signature_pairs(pending)
+
+    def _collect_signature_pairs(
+        self, public_key: PublicKey, signer: Signer
+    ) -> list[tuple[bytes, basic_types_pb2.SignaturePair]]:
+        """
+        Signs every body not yet signed by public_key, without touching the signature map.
+
+        We sign the bodies for each node in case we need to switch nodes during execution.
+        """
+        public_key_bytes = public_key.to_bytes_raw()
+
+        return [
+            (body_bytes, _sign_to_signature_pair(public_key, signer, body_bytes))
+            for node_bytes_map in self._transaction_body_bytes.values()
+            for body_bytes in node_bytes_map.values()
+            if not self._is_body_signed_by(body_bytes, public_key_bytes)
+        ]
+
+    def _write_signature_pairs(self, signature_pairs: list[tuple[bytes, basic_types_pb2.SignaturePair]]) -> None:
+        """Adds collected signature pairs to the signature map of their body."""
+        for body_bytes, sig_pair in signature_pairs:
+            self._signature_map.setdefault(body_bytes, basic_types_pb2.SignatureMap()).sigPair.append(sig_pair)
+
+    def _has_signer(self, public_key_bytes: bytes) -> bool:
+        """Checks if a signer for the given raw public key is registered."""
+        return any(public_key.to_bytes_raw() == public_key_bytes for public_key, _ in self._signers)
+
+    def _is_body_signed_by(self, body_bytes: bytes, public_key_bytes: bytes) -> bool:
+        """Checks if the signature map of a body contains a signature for the given raw public key."""
+        sig_map = self._signature_map.get(body_bytes)
+        return sig_map is not None and any(sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair)
 
     def _to_proto(self):
         """
@@ -216,10 +294,16 @@ class Transaction(_Executable):
         """
         # We require the transaction to be frozen before converting to protobuf
         self._require_frozen()
+        current_tx_id = self._transaction_ids.current
+        current_node_id = self._node_account_ids.current
 
-        body_bytes = self._transaction_body_bytes.get(self._node_account_ids.current)
+        node_bodies = self._transaction_body_bytes.get(current_tx_id)
+        if node_bodies is None:
+            raise ValueError(f"No transaction bodies built for Transaction ID {current_tx_id}")
+
+        body_bytes = node_bodies.get(current_node_id)
         if body_bytes is None:
-            raise ValueError(f"No transaction body found for node {self._node_account_ids.current}")
+            raise ValueError(f"No transaction body found for node {current_node_id}")
 
         # Get signature map, or create empty one if transaction is not signed
         sig_map = self._signature_map.get(body_bytes)
@@ -231,13 +315,13 @@ class Transaction(_Executable):
         return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
 
     def _resolve_transaction_id(self, client: Client):
-        if self.transaction_id is not None:
+        if not self._transaction_ids.is_empty:
             return
 
         if client is not None:
             operator_account_id = client.operator_account_id
             if operator_account_id is not None:
-                self.transaction_id = client.generate_transaction_id()
+                self._transaction_ids.set_list([client.generate_transaction_id()])
             else:
                 raise ValueError("Client must have an operator_account or transactionId must be set.")
         else:
@@ -292,27 +376,64 @@ class Transaction(_Executable):
         Raises:
             Exception: If required IDs are not set.
         """
-        if self._transaction_body_bytes:
+        if self._is_frozen:
             return self
 
         # Resolve transaction_id and node_accountids to be set when using freeze()
         self._resolve_transaction_id(client)
         self._resolve_node_ids(client)
 
+        required_chunks = self.get_required_chunks()
+        self._generate_transaction_ids(self._transaction_ids.get(0), required_chunks)
+
         # We iterate through every node in the node_account_id list and
         # For each node_account_id build the transaction body
         # This allows the transaction to be submitted to the given node in the network
+        self._node_account_ids.set_lock(True)
+        self._transaction_ids.set_lock(True)
 
-        # TODO: Should lock the node_account_ids once freeze
-        # self._node_account_ids.set_lock(True)
+        for index, transaction_id in enumerate(self._transaction_ids):
+            node_transaction_bodies = {}
 
-        for node_account_id in self._node_account_ids.get_list():
-            self._transaction_body_bytes[node_account_id] = self.build_transaction_body().SerializeToString()
-            self._node_account_ids.advance()
+            self._set_current_chunk_index(index)
+            transaction_body = self.build_transaction_body()
 
-        self._node_account_ids.set_index(0)
+            for node_account_id in self._node_account_ids.get_list():
+                transaction_body.transactionID.CopyFrom(transaction_id._to_proto())
+                transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
+                node_transaction_bodies[node_account_id] = transaction_body.SerializeToString()
+
+            self._transaction_body_bytes[transaction_id] = node_transaction_bodies
+
+        self._set_current_chunk_index(None)
 
         return self
+
+    def _generate_transaction_ids(self, initial_id: TransactionId, count: int) -> None:
+        """Generate all transaction_id for require chunks."""
+        self._transaction_ids.clear()
+
+        if count == 1:
+            self._transaction_ids.set_list([initial_id])
+            return
+
+        transaction_id = initial_id
+        for i in range(count):
+            self._transaction_ids.append(transaction_id)
+
+            next_nanos = initial_id.valid_start.nanos + (i + 1)
+            next_valid_start = timestamp_pb2.Timestamp(
+                seconds=initial_id.valid_start.seconds + next_nanos // 1_000_000_000,
+                nanos=next_nanos % 1_000_000_000,
+            )
+
+            transaction_id = TransactionId(
+                account_id=self._transaction_ids.get(0).account_id, valid_start=next_valid_start
+            )
+
+    def _set_current_chunk_index(self, index: int | None) -> None:
+        """Helper to set the current chunk index before building the transaction body."""
+        pass
 
     @overload
     def execute(
@@ -383,15 +504,17 @@ class Transaction(_Executable):
         if self.operator_account_id is None:
             self.operator_account_id = client.operator_account_id
 
-        if not self.is_signed_by(client.operator_private_key.public_key()):
-            self.sign(client.operator_private_key)
+        # Sign with the operator only when it pays for the transaction
+        operator = client.operator
+        if operator is not None and self._transaction_ids.get(0).account_id == operator.account_id:
+            self.sign_with(operator.public_key, operator.signer)
 
         # Call the _execute function from executable.py to handle the actual execution
         response: TransactionResponse = self._execute(client, timeout)
 
         response.validate_status = True
         response.transaction = self
-        response.transaction_id = self.transaction_id
+        response.transaction_id = self._transaction_ids.current
 
         if wait_for_receipt:
             return response.get_receipt(client, timeout=timeout, validate_status=validate_status)
@@ -410,12 +533,14 @@ class Transaction(_Executable):
         """
         public_key_bytes = public_key.to_bytes_raw()
 
-        sig_map = self._signature_map.get(self._transaction_body_bytes.get(self._node_account_ids.current))
-
-        if sig_map is None:
+        if not self._transaction_body_bytes:
             return False
 
-        return any(sig_pair.pubKeyPrefix == public_key_bytes for sig_pair in sig_map.sigPair)
+        return all(
+            self._is_body_signed_by(body_bytes, public_key_bytes)
+            for node_transaction_bodies in self._transaction_body_bytes.values()
+            for body_bytes in node_transaction_bodies.values()
+        )
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
@@ -457,21 +582,7 @@ class Transaction(_Executable):
         Raises:
             ValueError: If required IDs are not set.
         """
-        if self.transaction_id is None:
-            if self.operator_account_id is None:
-                raise ValueError("Operator account ID is not set.")
-            self.transaction_id = TransactionId.generate(self.operator_account_id)
-
-        transaction_id_proto = self.transaction_id._to_proto()
-
-        # This will move to freeze_with for the fix for the chunk tx to create bytes on freeze
-        selected_node = self._node_account_ids.current if not self._node_account_ids.is_empty else None
-        if selected_node is None:
-            raise ValueError("Node account ID is not set.")
-
         transaction_body = transaction_pb2.TransactionBody()
-        transaction_body.transactionID.CopyFrom(transaction_id_proto)
-        transaction_body.nodeAccountID.CopyFrom(selected_node._to_proto())
 
         fee = self._transaction_fee or self._default_transaction_fee
         if hasattr(fee, "to_tinybars"):
@@ -546,7 +657,7 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction has already been frozen.
         """
-        if self._transaction_body_bytes:
+        if self._is_frozen:
             raise Exception("Transaction is immutable; it has been frozen.")
 
     def _require_frozen(self) -> None:
@@ -559,7 +670,7 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction has not been frozen yet.
         """
-        if not self._transaction_body_bytes:
+        if not self._is_frozen:
             raise Exception("Transaction is not frozen")
 
     def set_transaction_memo(self, memo):
@@ -595,6 +706,17 @@ class Transaction(_Executable):
         self.transaction_valid_duration = duration
         return self
 
+    @property
+    def transaction_id(self) -> TransactionId | None:
+        if self._transaction_ids.is_empty:
+            return None
+
+        return self._transaction_ids.current
+
+    @transaction_id.setter
+    def transaction_id(self, transaction_id: TransactionId):
+        self.set_transaction_id(transaction_id)
+
     def set_transaction_id(self, transaction_id: TransactionId):
         """
         Sets the transaction ID for the transaction.
@@ -606,10 +728,19 @@ class Transaction(_Executable):
             Transaction: The current transaction instance for method chaining.
 
         Raises:
+            TypeError: If transaction_id is not a TransactionId instance.
+            ValueError: If transaction_id does not contain an account ID or valid start time.
             Exception: If the transaction has already been frozen.
         """
         self._require_not_frozen()
-        self.transaction_id = transaction_id
+
+        if transaction_id is None or not isinstance(transaction_id, TransactionId):
+            raise TypeError("transaction_id must be of type TransactionId")
+
+        if transaction_id.account_id is None or transaction_id.valid_start is None:
+            raise ValueError("transaction_id must have account_id and a valid_start period")
+
+        self._transaction_ids.set_list([transaction_id])
         return self
 
     # this will preserves original behavior
@@ -643,8 +774,7 @@ class Transaction(_Executable):
         """
         Serializes the frozen transaction into its protobuf-encoded byte representation.
 
-        This method is equivalent to the TypeScript SDK's transaction.toBytes() method.
-        The transaction must be frozen before calling this method.
+        This method is equivalent to the Javascript SDK's transaction.toBytes() method.
 
         The transaction can be serialized with or without signatures:
         - **Unsigned**: Can be sent to external signing services or HSMs
@@ -669,18 +799,60 @@ class Transaction(_Executable):
         ```
 
         Returns:
-            bytes: The serialized transaction as bytes.
-
-        Raises:
-            Exception: If the transaction has not been frozen yet.
+            bytes: The serialized TransactionList as bytes.
         """
-        self._require_frozen()
+        transaction_list = TransactionList()
 
-        # Get the transaction protobuf
-        transaction_proto = self._to_proto()
+        if self._is_frozen:
+            for node_body_bytes in self._transaction_body_bytes.values():
+                for body_bytes in node_body_bytes.values():
+                    transaction_list.transaction_list.append(self._build_transaction_from_body_bytes(body_bytes))
 
-        # Serialize to bytes
-        return transaction_proto.SerializeToString()
+            return transaction_list.SerializeToString()
+
+        transaction_body = self.build_transaction_body()
+
+        if not self._transaction_ids.is_empty:
+            transaction_body.transactionID.CopyFrom(self._transaction_ids.get(0)._to_proto())
+
+        node_account_ids = self._node_account_ids.get_list() if not self._node_account_ids.is_empty else [None]
+
+        for node_account_id in node_account_ids:
+            if node_account_id is not None:
+                transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
+
+            transaction_list.transaction_list.append(
+                self._build_transaction_from_body_bytes(transaction_body.SerializeToString())
+            )
+
+        return transaction_list.SerializeToString()
+
+    def _build_transaction_from_body_bytes(self, body_bytes: bytes) -> transaction_pb2.Transaction:
+        """
+        Build a protobuf Transaction from serialized transaction body bytes.
+        Unfrozen transactions contain the body directly in bodyBytes.
+        Frozen transactions contain a SignedTransaction with the body and signature map.
+        An empty signature map is included when the transaction has not been signed yet.
+
+        Args:
+            body_bytes: Serialized TransactionBody bytes.
+
+        Returns:
+            transaction_pb2.Transaction: The transaction protobuf.
+        """
+        if not self._is_frozen:
+            return transaction_pb2.Transaction(bodyBytes=body_bytes)
+
+        # for frozen transaction
+        signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes)
+        signature_map = self._signature_map.get(body_bytes)
+
+        if signature_map is not None:
+            signed_transaction.sigMap.CopyFrom(signature_map)
+        else:
+            signed_transaction.sigMap.CopyFrom(basic_types_pb2.SignatureMap(sigPair=[]))
+
+        return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
 
     @staticmethod
     def from_bytes(transaction_bytes: bytes):
@@ -741,25 +913,45 @@ class Transaction(_Executable):
             Transaction: A reconstructed transaction instance of the appropriate subclass.
 
         Raises:
-            ValueError: If the bytes cannot be parsed or transaction type is unknown.
+            ValueError: If the bytes are invalid, contain no transactions,
+                or contain an unknown transaction type.
         """
         if not isinstance(transaction_bytes, bytes):
             raise ValueError("transaction_bytes must be bytes")
-
-        if len(transaction_bytes) == 0:
+        if not transaction_bytes:
             raise ValueError("transaction_bytes cannot be empty")
 
         try:
-            transaction_proto = transaction_pb2.Transaction()
-            transaction_proto.ParseFromString(transaction_bytes)
-        except Exception as e:
-            raise ValueError(f"Failed to parse transaction bytes: {e}") from e
+            return Transaction._process_transaction_list_bytes(transaction_bytes)
+        except Exception:
+            try:
+                # Backward compatibility
+                return Transaction._process_single_transaction_bytes(transaction_bytes)
+            except Exception as e:
+                raise ValueError(f"Failed to parse transaction_bytes {e}") from e
 
-        try:
-            signed_transaction = transaction_contents_pb2.SignedTransaction()
-            signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
-        except Exception as e:
-            raise ValueError(f"Failed to parse signed transaction: {e}") from e
+    @staticmethod
+    def _process_base_transaction(
+        transaction_proto: transaction_pb2.Transaction,
+    ) -> tuple[type[Transaction], transaction_pb2.TransactionBody, transaction_contents_pb2.SignedTransaction]:
+        """Parses a serialized Transaction protobuf."""
+        if not isinstance(transaction_proto, transaction_pb2.Transaction):
+            raise TypeError("transaction_proto must be a transaction_pb2.Transaction")
+
+        if transaction_proto.bodyBytes:
+            signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=transaction_proto.bodyBytes)
+            if transaction_proto.HasField("sigMap"):
+                signed_transaction.sigMap.CopyFrom(transaction_proto.sigMap)
+
+        elif transaction_proto.signedTransactionBytes:
+            try:
+                signed_transaction = transaction_contents_pb2.SignedTransaction()
+                signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
+            except Exception as e:
+                raise ValueError(f"Failed to parse signed transaction: {e}") from e
+
+        else:
+            raise ValueError("Transaction does not contain bodyBytes or signedTransactionBytes")
 
         try:
             transaction_body = transaction_pb2.TransactionBody()
@@ -768,18 +960,303 @@ class Transaction(_Executable):
             raise ValueError(f"Failed to parse transaction body: {e}") from e
 
         transaction_type = transaction_body.WhichOneof("data")
-
         if transaction_type is None:
             raise ValueError("Transaction body does not contain any transaction data")
-
         transaction_class = Transaction._get_transaction_class(transaction_type)
 
         if transaction_class is None:
             raise ValueError(f"Unknown transaction type: {transaction_type}")
 
-        return transaction_class._from_protobuf(
-            transaction_body, signed_transaction.bodyBytes, signed_transaction.sigMap
+        return transaction_class, transaction_body, signed_transaction
+
+    # For backward compatiblity only
+    @staticmethod
+    def _process_single_transaction_bytes(transaction_bytes: bytes) -> Transaction:
+        """Deserializes a single Transaction protobuf."""
+        try:
+            transaction_proto = transaction_pb2.Transaction()
+            transaction_proto.ParseFromString(transaction_bytes)
+        except Exception as e:
+            raise ValueError(f"Failed to parse transaction bytes: {e}") from e
+
+        transaction_class, transaction_body, signed_transaction = Transaction._process_base_transaction(
+            transaction_proto
         )
+
+        transaction = transaction_class._from_protobuf(transaction_body)
+
+        Transaction._restore_signatures(
+            transaction,
+            transaction,
+            signed_transaction,
+        )
+
+        Transaction._lock_restored_transaction(transaction)
+        return transaction
+
+    @staticmethod
+    def _process_transaction_list_bytes(transaction_bytes: bytes) -> Transaction:
+        """Deserializes a TransactionList protobuf."""
+        try:
+            transaction_list = TransactionList()
+            transaction_list.ParseFromString(transaction_bytes)
+        except Exception as e:
+            raise ValueError(f"Failed to parse TransactionList: {e}") from e
+
+        if not transaction_list.transaction_list:
+            raise ValueError("TransactionList contains no transactions")
+
+        restored_transaction: Transaction | None = None
+        transaction_ids: list[Transaction] = []
+        node_account_ids: list[AccountId] = []
+        bodies: list[transaction_pb2.TransactionBody] = []
+
+        for transaction_proto in transaction_list.transaction_list:
+            transaction_class, transaction_body, signed_transaction = Transaction._process_base_transaction(
+                transaction_proto
+            )
+
+            transaction = transaction_class._from_protobuf(transaction_body)
+
+            if restored_transaction is None:
+                restored_transaction = transaction
+            elif type(transaction) is not type(restored_transaction):
+                raise ValueError("TransactionList contains different transaction types")
+
+            if transaction.transaction_id is not None:
+                transaction_id = transaction.transaction_id
+
+                if transaction_id not in transaction_ids:
+                    transaction_ids.append(transaction_id)
+
+            if not transaction._node_account_ids.is_empty:
+                node_account_id = transaction._node_account_ids.get(0)
+
+                if node_account_id not in node_account_ids:
+                    node_account_ids.append(node_account_id)
+
+            bodies.append(transaction_body)
+
+            Transaction._restore_signatures(
+                restored_transaction,
+                transaction,
+                signed_transaction,
+            )
+
+        if restored_transaction is None:
+            raise ValueError("TransactionList contains no valid transactions")
+
+        transaction_type = bodies[0].WhichOneof("data")
+
+        Transaction._validate_transaction_bodies(
+            transaction_type=transaction_type,
+            transaction_ids=transaction_ids,
+            node_ids=node_account_ids,
+            bodies=bodies,
+        )
+
+        if transaction_ids:
+            for transaction_id in transaction_ids:
+                if transaction_id not in restored_transaction._transaction_ids.get_list():
+                    restored_transaction._transaction_ids.append(transaction_id)
+
+        if node_account_ids:
+            restored_transaction._node_account_ids.clear()
+            restored_transaction.set_node_account_ids(node_account_ids)
+
+        Transaction._lock_restored_transaction(restored_transaction)
+        return restored_transaction
+
+    @staticmethod
+    def _restore_signatures(restored_transaction: Transaction, transaction: Transaction, signed_transaction) -> None:
+        """Restores signature maps and body bytes."""
+
+        if not signed_transaction.HasField("sigMap"):
+            return
+
+        if signed_transaction.sigMap.sigPair:
+            restored_transaction._signature_map[signed_transaction.bodyBytes] = signed_transaction.sigMap
+
+        if not transaction._transaction_ids.is_empty and not transaction._node_account_ids.is_empty:
+            tx_id = transaction._transaction_ids.get(0)
+
+            restored_transaction._transaction_body_bytes.setdefault(tx_id, {})
+            restored_transaction._transaction_body_bytes[tx_id][transaction._node_account_ids.get(0)] = (
+                signed_transaction.bodyBytes
+            )
+
+    @staticmethod
+    def _lock_restored_transaction(transaction: Transaction) -> None:
+        """Lock transaction identifiers and node IDs after deserialization."""
+        if not transaction._is_frozen:
+            return
+
+        transaction._transaction_ids.set_lock(True)
+        transaction._node_account_ids.set_lock(True)
+
+    @staticmethod
+    def _validate_transaction_pairs(
+        transaction_ids: list[TransactionId],
+        node_ids: list[AccountId],
+        bodies: list[transaction_pb2.TransactionBody],
+    ) -> None:
+        """
+        Validate that each transaction-node pair occurs exactly once and are ordered.
+
+        Raises:
+            ValueError: If a pair is duplicated, missing, or out of order.
+        """
+        if not transaction_ids or not node_ids:
+            return
+
+        expected_pairs = [
+            (
+                transaction_id._to_proto().SerializeToString(),
+                node_id._to_proto().SerializeToString(),
+            )
+            for transaction_id in transaction_ids
+            for node_id in node_ids
+        ]
+
+        actual_pairs = []
+
+        for body in bodies:
+            if not body.HasField("transactionID") or not body.HasField("nodeAccountID"):
+                raise ValueError("Failed to validate transaction bodies: transaction ID or node account ID is missing")
+
+            actual_pairs.append(
+                (
+                    body.transactionID.SerializeToString(),
+                    body.nodeAccountID.SerializeToString(),
+                )
+            )
+
+        if len(actual_pairs) != len(set(actual_pairs)):
+            raise ValueError("Failed to validate transaction bodies: duplicate transaction ID and node account ID pair")
+
+        if actual_pairs != expected_pairs:
+            raise ValueError(
+                "Failed to validate transaction bodies: missing or incorrectly ordered transaction-node pairs"
+            )
+
+    @staticmethod
+    def _validate_transaction_bodies(
+        transaction_type: str,
+        transaction_ids: list[TransactionId],
+        node_ids: list[AccountId],
+        bodies: list[transaction_pb2.TransactionBody],
+    ) -> None:
+        """
+        Validate transaction body shape and consistency for serialize TransactionList.
+
+        Raises:
+            ValueError: If the transaction bodies have an invalid shape or
+                inconsistent fields.
+        """
+        if not transaction_ids or not bodies:
+            return
+
+        transaction_count = len(transaction_ids)
+        node_count = len(node_ids)
+        group_size = node_count if node_count > 0 else 1
+
+        is_chunk_transaction = transaction_type == "fileAppend" or transaction_type == "consensusSubmitMessage"
+        has_invalid_transaction_count = not is_chunk_transaction and transaction_count != 1
+
+        if node_count == 0:
+            has_unexpected_body_count = len(bodies) != transaction_count
+
+            if has_unexpected_body_count or has_invalid_transaction_count:
+                raise ValueError("Failed to validate transaction bodies")
+
+            return
+
+        # `_transaction_body_bytes` maps each transaction ID to its node-specific body bytes: `transaction_id -> {node_id -> body_bytes}`.
+        #
+        # When serialized, these entries are flattened into a `TransactionList` ordered by transaction, then by node:
+        # [tx1/node1, tx1/node2, tx1/node3, tx2/node1, tx2/node2, tx2/node3, ...]
+        expected_body_count = transaction_count * group_size
+        if len(bodies) != expected_body_count or has_invalid_transaction_count:
+            raise ValueError("Failed to validate transaction bodies")
+
+        # check for unique pairs and pair order
+        Transaction._validate_transaction_pairs(transaction_ids, node_ids, bodies)
+
+        ignored_fields = {"nodeAccountID"}
+        for transaction_index in range(transaction_count):
+            row_start = transaction_index * node_count
+            reference_body = bodies[row_start]
+
+            for node_index in range(1, node_count):
+                if not Transaction._compare_transaction_bodies(
+                    reference_body,
+                    bodies[row_start + node_index],
+                    ignored_fields,
+                ):
+                    raise ValueError("Failed to validate transaction bodies")
+
+        if is_chunk_transaction:
+            Transaction._validate_chunked_transaction_bodies(
+                transaction_type,
+                bodies,
+                group_size,
+            )
+
+    @staticmethod
+    def _validate_chunked_transaction_bodies(
+        transaction_type: str, bodies: list[transaction_pb2.TransactionBody], group_size: int
+    ) -> None:
+        """
+        Validate invariant fields shared across chunk groups.
+
+        Raises:
+            ValueError: If invariant fields differ between chunk groups.
+        """
+        ignored_fields = {"nodeAccountID", "transactionID"}
+
+        if transaction_type == "fileAppend":
+            ignored_fields.add("contents")
+        elif transaction_type == "consensusSubmitMessage":
+            ignored_fields.update({"message", "chunkInfo"})
+
+        reference_body = bodies[0]
+
+        for body_index in range(group_size, len(bodies), group_size):
+            if not Transaction._compare_transaction_bodies(
+                reference_body,
+                bodies[body_index],
+                ignored_fields,
+            ):
+                raise ValueError("Failed to validate transaction bodies")
+
+    @staticmethod
+    def _compare_transaction_bodies(
+        first: transaction_pb2.TransactionBody,
+        second: transaction_pb2.TransactionBody,
+        ignored_fields: set[str],
+    ) -> bool:
+        """
+        Compare two transaction bodies while ignoring selected fields.
+
+        Returns:
+            bool: True if the remaining fields are equal.
+        """
+
+        def get_fields(message) -> dict:
+            fields = {}
+
+            for field, value in message.ListFields():
+                if field.name in ignored_fields:
+                    continue
+
+                if hasattr(value, "ListFields"):
+                    fields[field.name] = get_fields(value)
+                else:
+                    fields[field.name] = value
+
+            return fields
+
+        return get_fields(first) == get_fields(second)
 
     @staticmethod
     def _get_transaction_class(transaction_type: str):
@@ -810,9 +1287,9 @@ class Transaction(_Executable):
             "fileCreate": "hiero_sdk_python.file.file_create_transaction.FileCreateTransaction",
             "fileDelete": "hiero_sdk_python.file.file_delete_transaction.FileDeleteTransaction",
             "fileUpdate": "hiero_sdk_python.file.file_update_transaction.FileUpdateTransaction",
-            "systemDelete": None,  # Admin transaction
-            "systemUndelete": None,  # Admin transaction
-            "freeze": None,  # Admin transaction
+            "systemDelete": None,  # Admin transaction (Deprecated)
+            "systemUndelete": None,  # Admin transaction (Deprecated)
+            "freeze": "hiero_sdk_python.system.freeze_transaction.FreezeTransaction",
             "consensusCreateTopic": "hiero_sdk_python.consensus.topic_create_transaction.TopicCreateTransaction",
             "consensusUpdateTopic": "hiero_sdk_python.consensus.topic_update_transaction.TopicUpdateTransaction",
             "consensusDeleteTopic": "hiero_sdk_python.consensus.topic_delete_transaction.TopicDeleteTransaction",
@@ -829,23 +1306,24 @@ class Transaction(_Executable):
             "tokenWipe": "hiero_sdk_python.tokens.token_wipe_transaction.TokenWipeTransaction",
             "tokenAssociate": "hiero_sdk_python.tokens.token_associate_transaction.TokenAssociateTransaction",
             "tokenDissociate": "hiero_sdk_python.tokens.token_dissociate_transaction.TokenDissociateTransaction",
-            "tokenPause": "hiero_sdk_python.tokens.token_pause_transaction.TokenPauseTransaction",
-            "tokenUnpause": "hiero_sdk_python.tokens.token_pause_transaction.TokenUnpauseTransaction",
+            "token_pause": "hiero_sdk_python.tokens.token_pause_transaction.TokenPauseTransaction",
+            "token_unpause": "hiero_sdk_python.tokens.token_unpause_transaction.TokenUnpauseTransaction",
+            "token_update_nfts": "hiero_sdk_python.tokens.token_update_nfts_transaction.TokenUpdateNftsTransaction",
+            "util_prng": "hiero_sdk_python.prng_transaction.PrngTransaction",
             "scheduleCreate": "hiero_sdk_python.schedule.schedule_create_transaction.ScheduleCreateTransaction",
             "scheduleDelete": "hiero_sdk_python.schedule.schedule_delete_transaction.ScheduleDeleteTransaction",
             "scheduleSign": "hiero_sdk_python.schedule.schedule_sign_transaction.ScheduleSignTransaction",
-            "tokenFeeScheduleUpdate": None,  # Not commonly used
-            "tokenUpdateNfts": "hiero_sdk_python.tokens.token_update_nfts_transaction.TokenUpdateNftsTransaction",
+            "token_fee_schedule_update": "hiero_sdk_python.tokens.token_fee_schedule_update_transaction.TokenFeeScheduleUpdateTransaction",
             "nodeCreate": "hiero_sdk_python.nodes.node_create_transaction.NodeCreateTransaction",
             "nodeUpdate": "hiero_sdk_python.nodes.node_update_transaction.NodeUpdateTransaction",
             "nodeDelete": "hiero_sdk_python.nodes.node_delete_transaction.NodeDeleteTransaction",
             "registeredNodeCreate": "hiero_sdk_python.nodes.registered_node_create_transaction.RegisteredNodeCreateTransaction",
             "registeredNodeUpdate": "hiero_sdk_python.nodes.registered_node_update_transaction.RegisteredNodeUpdateTransaction",
             "registeredNodeDelete": "hiero_sdk_python.nodes.registered_node_delete_transaction.RegisteredNodeDeleteTransaction",
-            "utilPrng": "hiero_sdk_python.prng_transaction.PrngTransaction",
             "tokenReject": "hiero_sdk_python.tokens.token_reject_transaction.TokenRejectTransaction",
             "tokenAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction.TokenAirdropTransaction",
-            "tokenCancelAirdrop": "hiero_sdk_python.tokens.token_cancel_airdrop_transaction.TokenCancelAirdropTransaction",
+            "tokenClaimAirdrop": "hiero_sdk_python.tokens.token_airdrop_claim.TokenClaimAirdropTransaction",
+            "tokenCancelAirdrop": "hiero_sdk_python.tokens.token_airdrop_transaction_cancel.TokenCancelAirdropTransaction",
             "atomic_batch": "hiero_sdk_python.transaction.batch_transaction.BatchTransaction",
         }
 
@@ -862,7 +1340,7 @@ class Transaction(_Executable):
             raise ValueError(f"Failed to import transaction class for type '{transaction_type}': {e}") from e
 
     @classmethod
-    def _from_protobuf(cls, transaction_body, body_bytes: bytes, sig_map):
+    def _from_protobuf(cls, transaction_body):
         """
         Creates a transaction instance from protobuf components.
 
@@ -880,10 +1358,10 @@ class Transaction(_Executable):
         transaction = cls()
 
         if transaction_body.HasField("transactionID"):
-            transaction.transaction_id = TransactionId._from_proto(transaction_body.transactionID)
+            transaction.set_transaction_id(TransactionId._from_proto(transaction_body.transactionID))
 
         if transaction_body.HasField("nodeAccountID"):
-            transaction._node_account_ids.set_list([AccountId._from_proto(transaction_body.nodeAccountID)])
+            transaction.set_node_account_ids([AccountId._from_proto(transaction_body.nodeAccountID)])
 
         transaction.transaction_fee = transaction_body.transactionFee
         transaction.transaction_valid_duration = transaction_body.transactionValidDuration.seconds
@@ -897,15 +1375,6 @@ class Transaction(_Executable):
             transaction.custom_fee_limits = [
                 CustomFeeLimit._from_proto(fee) for fee in transaction_body.max_custom_fees
             ]
-
-        if not transaction._node_account_ids.is_empty:
-            # restore for the original frozen node
-            # TODO: This will change, Instead of node_account_id use the signature map to decide if we need to freeze
-            # node_account_ids will always contain single id in currrent impl
-            transaction._transaction_body_bytes[transaction._node_account_ids.current] = body_bytes
-
-        if sig_map and sig_map.sigPair:
-            transaction._signature_map[body_bytes] = sig_map
 
         return transaction
 
@@ -962,7 +1431,7 @@ class Transaction(_Executable):
         self._require_not_frozen()
         self.set_batch_key(batch_key)
         self.freeze_with(client)
-        self.sign(client.operator_private_key)
+        self.sign_with_operator(client)
         return self
 
     def estimate_fee(self) -> FeeEstimateQuery:
@@ -977,7 +1446,7 @@ class Transaction(_Executable):
         query.set_transaction(self)
         return query
 
-    def get_required_chunks(self):
+    def get_required_chunks(self) -> int:
         """
         Returns the number of chunks required for the current message.
 
@@ -996,7 +1465,11 @@ class Transaction(_Executable):
     def body_size(self) -> int:
         """Returns just the transaction body size in bytes after encoding"""
         self._require_frozen()
-        return self.build_transaction_body().ByteSize()
+        transaction_body = transaction_pb2.TransactionBody()
+        transaction_body.ParseFromString(
+            self._transaction_body_bytes.get(self._transaction_ids.current).get(self._node_account_ids.current)
+        )
+        return transaction_body.ByteSize()
 
     @property
     def high_volume(self) -> bool:
@@ -1007,3 +1480,13 @@ class Transaction(_Executable):
             bool: True if high-volume throttles are enabled.
         """
         return self._high_volume
+
+    @property
+    def _is_frozen(self) -> bool:
+        """
+        Check whether the transaction is frozen.
+
+        Returns:
+            bool: True if transaction has been frozen otherwise, False
+        """
+        return bool(self._transaction_body_bytes)

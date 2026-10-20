@@ -34,3 +34,35 @@ def key_to_proto(key: Key | None) -> basic_types_pb2.Key | None:
         return key.to_proto_key()
 
     raise TypeError("Key must be of type PrivateKey or PublicKey, or another SDK Key implementation")
+
+
+def normalize_keys(keys: Key | list[Key] | tuple[Key, ...] | None) -> list[Key] | None:
+    """
+    Normalize a keys argument to a list of Key objects, or None.
+
+    A single Key becomes a one-element list; a tuple of keys becomes a list.
+    None is returned unchanged so callers can distinguish "not set" from
+    "explicitly empty".
+
+    Args:
+        keys (Key | list[Key] | tuple[Key, ...] | None): The keys to normalize.
+
+    Returns:
+        Optional[list[Key]]: The normalized list of keys, or None.
+
+    Raises:
+        TypeError: If keys is not a Key, a list/tuple of Key objects, or None.
+    """
+    if keys is None:
+        return None
+
+    if isinstance(keys, Key):
+        return [keys]
+
+    if isinstance(keys, tuple):
+        keys = list(keys)
+
+    if not isinstance(keys, list) or not all(isinstance(key, Key) for key in keys):
+        raise TypeError("keys must be a Key, list of Key objects, or None")
+
+    return keys

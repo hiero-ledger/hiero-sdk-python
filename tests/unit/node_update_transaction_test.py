@@ -328,7 +328,7 @@ def test_sign_transaction(mock_client):
     node_tx.sign(private_key)
 
     node_id = mock_client.network.current_node._account_id
-    body_bytes = node_tx._transaction_body_bytes[node_id]
+    body_bytes = node_tx._transaction_body_bytes[node_tx.transaction_id][node_id]
 
     assert len(node_tx._signature_map[body_bytes].sigPair) == 1
     sig_pair = node_tx._signature_map[body_bytes].sigPair[0]
@@ -377,11 +377,7 @@ def test_node_update_transaction_from_protobuf_with_admin_key():
     transaction_body = TransactionBody()
     transaction_body.nodeUpdate.CopyFrom(body)
 
-    parsed_transaction = NodeUpdateTransaction._from_protobuf(
-        transaction_body,
-        b"",
-        None,
-    )
+    parsed_transaction = NodeUpdateTransaction._from_protobuf(transaction_body)
 
     assert parsed_transaction.admin_key is not None
     assert parsed_transaction.admin_key.to_proto_key() == body.admin_key
