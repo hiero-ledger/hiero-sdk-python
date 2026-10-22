@@ -28,10 +28,12 @@ def test_address_book_query_can_be_executed(env):
 @pytest.mark.integration
 def test_address_book_query_with_client_operator_not_set(env):
     """Test that the AddressBookQuery return the NodeAddressBook when client operator not set."""
+    client = Client(network=env.client.network)
+
     address_book = (
         AddressBookQuery()
         .set_file_id(FileId.from_string("0.0.102"))  # address book query work with only "0.0.102" and "0.0.101" file_id
-        .execute(Client.for_testnet())
+        .execute(client)
     )
     assert address_book is not None
     assert isinstance(address_book, NodeAddressBook)

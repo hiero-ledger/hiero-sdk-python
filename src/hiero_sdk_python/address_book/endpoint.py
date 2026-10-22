@@ -136,6 +136,7 @@ class Endpoint:
             ServiceEndpoint: A protobuf ServiceEndpoint object.
         """
         service_endpoint = ServiceEndpoint(port=self._port, domain_name=self._domain_name)
+
         if self._address:
             service_endpoint.ipAddressV4 = ipaddress.ip_address(self._address.decode("utf-8")).packed
 

@@ -205,6 +205,7 @@ class AddressBookQuery:
         if timeout <= 0:
             raise ValueError("timeout must be greater than zero")
 
+        last_exception = None
         logger = client.logger
 
         network_stub = NetworkServiceStub(client.mirror_channel)
@@ -218,9 +219,12 @@ class AddressBookQuery:
                 break
 
             try:
-                nodes = network_stub.getNodes(request)
+                nodes = network_stub.getNodes(request, timeout=remaining)
                 return NodeAddressBook([NodeAddress._from_proto(node) for node in nodes])
             except Exception as e:
+                if isinstance(e, grpc.RpcError) and e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
+                    raise MaxAttemptsError("Exceeded max query timeout") from e
+
                 if not self._should_retry(e):
                     logger.error("Error attempting to get address book", "file_id", self.file_id, "error", e)
                     raise e
@@ -228,9 +232,10 @@ class AddressBookQuery:
                 if attempt >= self._max_attempts:
                     raise MaxAttemptsError("Exceeded maximum attempts") from e
 
+                last_exception = e
                 self._delay_for_attempt(attempt, deadline - time.monotonic())
 
-        raise MaxAttemptsError("Exceeded maximum attempts or request timeout")
+        raise MaxAttemptsError("Exceeded maximum attempts or request timeout", last_error=last_exception)
 
     def _delay_for_attempt(self, attempt: int, max_delay: float) -> None:
         """

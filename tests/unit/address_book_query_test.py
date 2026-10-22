@@ -238,9 +238,6 @@ def test_should_retry_for_internal_error_with_rst_stream():
     assert result is True
 
 
-# execute()
-
-
 @pytest.mark.parametrize(
     "error",
     [
@@ -255,6 +252,9 @@ def test_should_retry_with_non_retryable_error(error):
     result = AddressBookQuery()._should_retry(error)
     assert result is not None
     assert result is False
+
+
+# execute()
 
 
 def test_execute_query(file_id, mock_client):
@@ -278,10 +278,14 @@ def test_execute_query(file_id, mock_client):
 
     query = AddressBookQuery().set_file_id(file_id).set_limit(1)
 
-    with patch("hiero_sdk_python.address_book.address_book_query.NetworkServiceStub") as mock_stub:
+    with (
+        patch("hiero_sdk_python.address_book.address_book_query.NetworkServiceStub") as mock_stub,
+        patch("hiero_sdk_python.address_book.address_book_query.time.sleep") as mock_sleep,
+    ):
         mock_stub.return_value.getNodes.return_value = [node1._to_proto(), node2._to_proto()]
         result = query.execute(mock_client)
 
+        mock_sleep.assert_not_called()
         assert result is not None
         assert isinstance(result, NodeAddressBook)
         assert len(result.node_addresses) == 2
@@ -303,12 +307,16 @@ def test_execute_non_retryable_error(mock_client, error):
     """Test execute raises immediately for a non-retryable error."""
     query = AddressBookQuery()
 
-    with patch("hiero_sdk_python.address_book.address_book_query.NetworkServiceStub") as mock_stub:
+    with (
+        patch("hiero_sdk_python.address_book.address_book_query.NetworkServiceStub") as mock_stub,
+        patch("hiero_sdk_python.address_book.address_book_query.time.sleep") as mock_sleep,
+    ):
         mock_stub.return_value.getNodes.side_effect = error
         with pytest.raises(type(error)):
             query.execute(mock_client)
 
         mock_stub.return_value.getNodes.assert_called_once()
+        mock_sleep.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -331,12 +339,16 @@ def test_execute_retryable_error(mock_client, error):
         description="Test Node",
     )
 
-    with patch("hiero_sdk_python.address_book.address_book_query.NetworkServiceStub") as mock_stub:
+    with (
+        patch("hiero_sdk_python.address_book.address_book_query.NetworkServiceStub") as mock_stub,
+        patch("hiero_sdk_python.address_book.address_book_query.time.sleep") as mock_sleep,
+    ):
         mock_stub.return_value.getNodes.side_effect = [error, [node._to_proto()]]
 
         result = query.execute(mock_client)
 
     assert mock_stub.return_value.getNodes.call_count == 2
+    assert mock_sleep.call_count == 1
     assert result is not None
     assert isinstance(result, NodeAddressBook)
     assert len(result.node_addresses) == 1
@@ -364,7 +376,10 @@ def test_execute_retry_fails_when_reach_max_attempt(mock_client, error):
         description="Test Node",
     )
 
-    with patch("hiero_sdk_python.address_book.address_book_query.NetworkServiceStub") as mock_stub:
+    with (
+        patch("hiero_sdk_python.address_book.address_book_query.NetworkServiceStub") as mock_stub,
+        patch("hiero_sdk_python.address_book.address_book_query.time.sleep") as mock_sleep,
+    ):
         mock_stub.return_value.getNodes.side_effect = [
             error,
             error,
@@ -375,6 +390,29 @@ def test_execute_retry_fails_when_reach_max_attempt(mock_client, error):
             query.set_max_attempts(2).execute(mock_client)
 
     assert mock_stub.return_value.getNodes.call_count == 2
+    assert mock_sleep.call_count == 1
+
+
+def test_execute_raises_on_grpc_deadline_exceeded(mock_client):
+    """Test DEADLINE_EXCEEDED is raised as MaxAttemptsError immediately, with no retry."""
+    query = AddressBookQuery()
+    error = RealRpcError(grpc.StatusCode.DEADLINE_EXCEEDED, "deadline exceeded")
+
+    with (
+        patch("hiero_sdk_python.address_book.address_book_query.NetworkServiceStub") as mock_stub,
+        patch("hiero_sdk_python.address_book.address_book_query.time.sleep") as mock_sleep,
+    ):
+        mock_stub.return_value.getNodes.side_effect = [
+            error,
+            [],  # addition success if the error was retried
+        ]
+
+        with pytest.raises(MaxAttemptsError, match="Exceeded max query timeout") as exc_info:
+            query.execute(mock_client, timeout=5)
+
+    assert exc_info.value.__cause__ is error
+    assert mock_stub.return_value.getNodes.call_count == 1
+    mock_sleep.assert_not_called()
 
 
 @pytest.mark.parametrize("client", ("client", True, 1, 0.1, {}, []))
