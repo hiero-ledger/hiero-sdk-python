@@ -9,6 +9,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
 from hiero_sdk_python.tokens.token_unpause_transaction import TokenUnpauseTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import create_fungible_token
 
 
@@ -42,9 +43,17 @@ def test_unpause_token(env, pausable_token):
     assert pause_receipt.status == ResponseCode.SUCCESS
     assert get_pause_status(env, pausable_token) == "PAUSED"
 
-    unpause_tx = TokenUnpauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
+    unpause_transaction = TokenUnpauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
 
-    unpause_receipt = unpause_tx.execute(env.client)
+    original_bytes = unpause_transaction.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenUnpauseTransaction)
+    assert restored.token_id == pausable_token
+    assert restored.is_signed_by(pause_key.public_key())
+    assert restored.to_bytes() == original_bytes
+
+    unpause_receipt = restored.execute(env.client)
     assert unpause_receipt.status == ResponseCode.SUCCESS
     assert get_pause_status(env, pausable_token) == "UNPAUSED"
 

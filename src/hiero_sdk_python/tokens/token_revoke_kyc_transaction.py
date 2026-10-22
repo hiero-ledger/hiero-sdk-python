@@ -98,6 +98,34 @@ class TokenRevokeKycTransaction(Transaction):
         transaction_body.tokenRevokeKyc.CopyFrom(token_revoke_kyc_body)
         return transaction_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TokenRevokeKycTransaction:
+        """
+        Restore common fields and token revoke kyc fields from protobuf.
+
+        Args:
+            transaction_body: A parsed TransactionBody from protobuf.
+
+        Returns:
+            TokenRevokeKycTransaction: A transaction with common and token
+            revoke kyc fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenRevokeKyc"):
+            token_revoke_kyc_body = transaction_body.tokenRevokeKyc
+
+            transaction.token_id = (
+                TokenId._from_proto(token_revoke_kyc_body.token) if token_revoke_kyc_body.HasField("token") else None
+            )
+            transaction.account_id = (
+                AccountId._from_proto(token_revoke_kyc_body.account)
+                if token_revoke_kyc_body.HasField("account")
+                else None
+            )
+
+        return transaction
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token revoke KYC transaction.
