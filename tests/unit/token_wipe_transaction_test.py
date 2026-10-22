@@ -268,6 +268,31 @@ def test_token_wipe_transaction_from_protobuf_nft(mock_account_ids):
     assert parsed.amount is None
 
 
+def test_token_wipe_transaction_from_protobuf_mixed_payload(mock_account_ids):
+    """TokenWipeTransaction should deserialize both amount and serials when both are present."""
+    _, wipe_account_id, _, token_id, _ = mock_account_ids
+    serial_numbers = [1, 2]
+
+    transaction = (
+        TokenWipeTransaction()
+        .set_token_id(token_id)
+        .set_account_id(wipe_account_id)
+        .set_amount(10)
+        .set_serial(serial_numbers)
+    )
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenWipe.CopyFrom(body)
+
+    parsed = TokenWipeTransaction._from_protobuf(transaction_body)
+
+    assert parsed.token_id == token_id
+    assert parsed.account_id == wipe_account_id
+    assert parsed.amount == 10
+    assert parsed.serial == serial_numbers
+
+
 def test_from_bytes_round_trip_fungible(mock_account_ids, amount):
     """Test serialization round-trip via Transaction.from_bytes() for fungible tokens."""
     account_id, wipe_account_id, node_account_id, token_id, _ = mock_account_ids

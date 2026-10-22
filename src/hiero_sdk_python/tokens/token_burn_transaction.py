@@ -177,7 +177,7 @@ class TokenBurnTransaction(Transaction):
         return self
 
     @classmethod
-    def _from_protobuf(cls, transaction_body):
+    def _from_protobuf(cls, transaction_body) -> TokenBurnTransaction:
         """
         Creates a TokenBurnTransaction instance from protobuf components.
 
@@ -197,16 +197,7 @@ class TokenBurnTransaction(Transaction):
             else:
                 transaction.token_id = None
 
-            if token_burn_body.serialNumbers:
-                transaction.serials = list(token_burn_body.serialNumbers)
-                transaction.amount = None
-            elif token_burn_body.amount > 0:
-                transaction.amount = token_burn_body.amount
-                transaction.serials = []
-            else:
-                # In proto3, uint64 lacks presence information. When serialNumbers is empty
-                # and amount is 0, restore amount as None to preserve the unconfigured state.
-                transaction.amount = None
-                transaction.serials = []
+            transaction.amount = token_burn_body.amount or None
+            transaction.serials = list(token_burn_body.serialNumbers)
 
         return transaction

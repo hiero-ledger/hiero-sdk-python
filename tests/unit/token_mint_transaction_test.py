@@ -305,6 +305,24 @@ def test_token_mint_transaction_from_protobuf_nft(mock_account_ids, metadata):
     assert parsed.amount is None
 
 
+def test_token_mint_transaction_from_protobuf_mixed_payload(mock_account_ids):
+    """TokenMintTransaction should deserialize both amount and metadata when both are present."""
+    _, _, _, token_id, _ = mock_account_ids
+    metadata = [b"meta-1", b"meta-2"]
+
+    transaction = TokenMintTransaction().set_token_id(token_id).set_amount(10).set_metadata(metadata)
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenMint.CopyFrom(body)
+
+    parsed = TokenMintTransaction._from_protobuf(transaction_body)
+
+    assert parsed.token_id == token_id
+    assert parsed.amount == 10
+    assert parsed.metadata == metadata
+
+
 def test_from_bytes_round_trip_fungible(mock_account_ids, amount):
     """Test serialization round-trip via Transaction.from_bytes() for fungible tokens."""
     payer_account, _, node_account_id, token_id, _ = mock_account_ids

@@ -221,6 +221,23 @@ def test_token_burn_transaction_from_protobuf_nft(mock_account_ids):
     assert parsed.amount is None
 
 
+def test_token_burn_transaction_from_protobuf_mixed_payload(mock_account_ids):
+    """TokenBurnTransaction should deserialize both amount and serials when both are present."""
+    _, _, _, token_id, _ = mock_account_ids
+    serials = [1, 2]
+
+    body = TokenBurnTransactionBody(token=token_id._to_proto(), amount=10, serialNumbers=serials)
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenBurn.CopyFrom(body)
+
+    parsed = TokenBurnTransaction._from_protobuf(transaction_body)
+
+    assert parsed.token_id == token_id
+    assert parsed.amount == 10
+    assert parsed.serials == serials
+
+
 def test_from_bytes_round_trip_fungible(mock_account_ids, amount):
     """Test serialization round-trip via Transaction.from_bytes() for fungible tokens."""
     operator_id, _, node_account_id, token_id, _ = mock_account_ids

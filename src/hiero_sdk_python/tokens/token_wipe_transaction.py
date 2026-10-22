@@ -166,7 +166,7 @@ class TokenWipeTransaction(Transaction):
         return self
 
     @classmethod
-    def _from_protobuf(cls, transaction_body):
+    def _from_protobuf(cls, transaction_body) -> TokenWipeTransaction:
         """
         Creates a TokenWipeTransaction instance from protobuf components.
 
@@ -191,16 +191,7 @@ class TokenWipeTransaction(Transaction):
             else:
                 transaction.account_id = None
 
-            if token_wipe_body.serialNumbers:
-                transaction.serial = list(token_wipe_body.serialNumbers)
-                transaction.amount = None
-            elif token_wipe_body.amount > 0:
-                transaction.amount = token_wipe_body.amount
-                transaction.serial = []
-            else:
-                # In proto3, uint64 lacks presence information. When serialNumbers is empty
-                # and amount is 0, restore amount as None to preserve the unconfigured state.
-                transaction.amount = None
-                transaction.serial = []
+            transaction.amount = token_wipe_body.amount or None
+            transaction.serial = list(token_wipe_body.serialNumbers)
 
         return transaction

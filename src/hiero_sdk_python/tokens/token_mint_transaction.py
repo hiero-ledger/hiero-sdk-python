@@ -138,7 +138,7 @@ class TokenMintTransaction(Transaction):
         return _Method(transaction_func=channel.token.mintToken, query_func=None)
 
     @classmethod
-    def _from_protobuf(cls, transaction_body):
+    def _from_protobuf(cls, transaction_body) -> TokenMintTransaction:
         """
         Creates a TokenMintTransaction instance from protobuf components.
 
@@ -158,16 +158,7 @@ class TokenMintTransaction(Transaction):
             else:
                 transaction.token_id = None
 
-            if token_mint_body.metadata:
-                transaction.metadata = list(token_mint_body.metadata)
-                transaction.amount = None
-            elif token_mint_body.amount > 0:
-                transaction.amount = token_mint_body.amount
-                transaction.metadata = None
-            else:
-                # In proto3, uint64 lacks presence information. When metadata is empty
-                # and amount is 0, restore amount as None to preserve the unconfigured state.
-                transaction.amount = None
-                transaction.metadata = None
+            transaction.amount = token_mint_body.amount or None
+            transaction.metadata = list(token_mint_body.metadata) or None
 
         return transaction
