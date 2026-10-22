@@ -257,7 +257,7 @@ def test_should_retry_with_non_retryable_error(error):
     assert result is False
 
 
-def test_execute_quey(file_id, mock_client):
+def test_execute_query(file_id, mock_client):
     """Test successful address book query execution."""
     node1 = NodeAddress(
         public_key="0" * 32,
@@ -377,17 +377,30 @@ def test_execute_retry_fails_when_reach_max_attempt(mock_client, error):
     assert mock_stub.return_value.getNodes.call_count == 2
 
 
-@pytest.mark.parametrize("client", (None, "client", True, 1, 0.1, {}, []))
-def test_execute_with_none_client(file_id, client):
+@pytest.mark.parametrize("client", ("client", True, 1, 0.1, {}, []))
+def test_execute_with_invalid_client_type(file_id, client):
     """Test execute with invalid client parameter."""
-    with pytest.raises(TypeError, match="client must be an instance of Client"):
+    with pytest.raises(TypeError, match="client must be of type Client"):
         AddressBookQuery().set_file_id(file_id).set_limit(1).execute(client)
+
+
+def test_execute_with_none_client(file_id):
+    """Test execute with none client parameter."""
+    with pytest.raises(ValueError, match="client must not be None"):
+        AddressBookQuery().set_file_id(file_id).set_limit(1).execute(None)
 
 
 @pytest.mark.parametrize("timeout", ("1", True, {}, []))
 def test_execute_with_invalid_timeout(mock_client, file_id, timeout):
     """Test execute with invalid timeout parameter."""
-    with pytest.raises(TypeError, match="timeout must be a int or float"):
+    with pytest.raises(TypeError, match="timeout must be a number"):
+        AddressBookQuery().set_file_id(file_id).set_limit(1).execute(mock_client, timeout)
+
+
+@pytest.mark.parametrize("timeout", (-1, 0))
+def test_execute_with_timeout_less_than_equal_zero(mock_client, file_id, timeout):
+    """Test execute with timeout parameter less equal than 0."""
+    with pytest.raises(ValueError, match="timeout must be greater than zero"):
         AddressBookQuery().set_file_id(file_id).set_limit(1).execute(mock_client, timeout)
 
 
@@ -408,7 +421,7 @@ def test_delay_for_attempt(attempt, expected_delay):
     query = AddressBookQuery()
 
     with patch("hiero_sdk_python.address_book.address_book_query.time.sleep") as sleep:
-        query._delay_for_attempt(attempt)
+        query._delay_for_attempt(attempt, max_delay=100)
         sleep.assert_called_once_with(expected_delay)
 
 
@@ -419,5 +432,32 @@ def test_delay_for_attempt_cap_to_max_backoff():
     attempt = 5  # calculated backoff = 0.5 * 2^5 = 0.5 * 32 = 16
     expected = query.max_backoff  # 8 default
     with patch("hiero_sdk_python.address_book.address_book_query.time.sleep") as sleep:
-        query._delay_for_attempt(attempt)
+        query._delay_for_attempt(attempt, max_delay=100)
+        sleep.assert_called_once_with(expected)
+
+
+def test_delay_for_attempt_cap_to_max_delay():
+    """Test retry delay is capped by max_delay."""
+    query = AddressBookQuery()
+    max_delay = 1
+
+    attempt = 4  # calculated backoff = 0.5 * 2^4 = 0.5 * 16 = 8
+    expected = max_delay
+
+    with patch("hiero_sdk_python.address_book.address_book_query.time.sleep") as sleep:
+        query._delay_for_attempt(attempt, max_delay)
+        sleep.assert_called_once_with(expected)
+
+
+def test_delay_for_attempt_cap_to_max_delay_when_backoff_greater():
+    """Test retry delay is capped by max_delay when less when backoff is also greater."""
+    query = AddressBookQuery()
+    max_delay = 1
+
+    attempt = 5  # calculated backoff = 0.5 * 2^4 = 0.5 * 32 = 16
+    # greater than backoff 8 & backoff > max_delay
+    expected = max_delay
+
+    with patch("hiero_sdk_python.address_book.address_book_query.time.sleep") as sleep:
+        query._delay_for_attempt(attempt, max_delay)
         sleep.assert_called_once_with(expected)

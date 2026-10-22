@@ -14,6 +14,11 @@ from hiero_sdk_python.hapi.mirror import mirror_network_service_pb2
 from hiero_sdk_python.hapi.mirror.mirror_network_service_pb2_grpc import NetworkServiceStub
 
 
+_DEFAULT_MAX_ATTEMPTS = 10
+_DEFAULT_MAX_BACKOFF = 8.0  # 8 seconds
+_MIN_BACKOFF = 0.5
+
+
 class AddressBookQuery:
     def __init__(self, file_id: FileId | None = None, limit: int | None = None):
         """
@@ -32,8 +37,8 @@ class AddressBookQuery:
         if limit is not None:
             self.set_limit(limit)
 
-        self._max_attempts: int = 10
-        self._max_backoff: float = 8  # 8 seconds
+        self._max_attempts: int = _DEFAULT_MAX_ATTEMPTS
+        self._max_backoff: float = _DEFAULT_MAX_BACKOFF
 
     @property
     def file_id(self) -> FileId | None:
@@ -139,8 +144,8 @@ class AddressBookQuery:
         if isinstance(max_backoff, bool) or not isinstance(max_backoff, (int, float)):
             raise TypeError("max_backoff must be of type int or float")
 
-        if max_backoff < 0.5:
-            raise ValueError("max_backoff must be at least 0.5s")
+        if max_backoff < _MIN_BACKOFF:
+            raise ValueError(f"max_backoff must be at least {_MIN_BACKOFF}s")
 
         self._max_backoff = max_backoff
         return self
@@ -182,26 +187,34 @@ class AddressBookQuery:
             NodeAddressBook: The instance of NodeAddressBook.
 
         Raises:
-            MaxAttemptsError: If the query fails after the maximum number of attempts or timeout
-        """
-        if not isinstance(client, Client):
-            raise TypeError("client must be an instance of Client")
+            TypeError: If client is not a Client or timeout is not a number.
+            ValueError: If client is None or timeout is not greater than zero.
+            MaxAttemptsError: If the query fails after the maximum number of attempts
+                or the timeout elapses.
 
-        if timeout is not None and (isinstance(timeout, bool) or not isinstance(timeout, (int, float))):
-            raise TypeError("timeout must be a int or float")
+        """
+        if client is None:
+            raise ValueError("client must not be None")
+        if not isinstance(client, Client):
+            raise TypeError("client must be of type Client")
+
+        if timeout is None:
+            timeout = client._request_timeout
+        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
+            raise TypeError("timeout must be a number")
+        if timeout <= 0:
+            raise ValueError("timeout must be greater than zero")
 
         logger = client.logger
 
         network_stub = NetworkServiceStub(client.mirror_channel)
         request = self._make_request()
 
-        if timeout is None:
-            timeout = client._request_timeout
-
-        start = time.monotonic()
+        deadline = time.monotonic() + timeout
 
         for attempt in range(1, self._max_attempts + 1):
-            if time.monotonic() - start >= timeout:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
                 break
 
             try:
@@ -215,17 +228,18 @@ class AddressBookQuery:
                 if attempt >= self._max_attempts:
                     raise MaxAttemptsError("Exceeded maximum attempts") from e
 
-                self._delay_for_attempt(attempt)
+                self._delay_for_attempt(attempt, deadline - time.monotonic())
 
         raise MaxAttemptsError("Exceeded maximum attempts or request timeout")
 
-    def _delay_for_attempt(self, attempt: int) -> None:
+    def _delay_for_attempt(self, attempt: int, max_delay: float) -> None:
         """
         Delay for the specified backoff period before retrying.
 
         Args:
             attempt (int): The current attempt number (0-based)
-            backoff (float): The current backoff period in seconds
+            max_delay (float): Upper bound on the sleep, in seconds.
         """
-        backoff = min(self._max_backoff, 0.5 * (2**attempt))
-        time.sleep(backoff)
+        backoff = min(self._max_backoff, _MIN_BACKOFF * (2**attempt), max_delay)
+        if backoff > 0:
+            time.sleep(backoff)

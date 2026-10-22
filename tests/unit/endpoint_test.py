@@ -190,3 +190,17 @@ def test_validate_no_ip_and_domain_containing_both_ip_and_domain():
     endpoint = Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211)
     with pytest.raises(ValueError, match="Endpoint must not contain both ipAddressV4 and domainName"):
         Endpoint._validate_no_ip_and_domain(endpoint)
+
+
+def test_str_representation_with_ipaddress():
+    """Test the endpoint include ip address if present."""
+    endpoint = Endpoint(address=b"127.0.0.1", port=8080, domain_name=None)
+    result = endpoint.__str__()
+    assert result == "127.0.0.1:8080"
+
+
+def test_str_representation_with_domain():
+    """Test the endpoint include domain if present."""
+    endpoint = Endpoint(address=None, port=8080, domain_name="testnet.com")
+    result = endpoint.__str__()
+    assert result == "testnet.com:8080"
