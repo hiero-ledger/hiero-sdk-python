@@ -565,7 +565,7 @@ def test_transaction_fee_rejects_bool():
     """Test transaction_fee rejects boolean values."""
     tx = AccountCreateTransaction()
 
-    with pytest.raises(TypeError, match="fee must be of type Hbar or int"):
+    with pytest.raises(TypeError, match="transaction_fee must be int, float, Decimal, or Hbar, got bool"):
         tx.transaction_fee = True
 
 
@@ -573,7 +573,7 @@ def test_transaction_fee_rejects_invalid_type():
     """Test transaction_fee rejects invalid types."""
     tx = AccountCreateTransaction()
 
-    with pytest.raises(TypeError, match="fee must be of type Hbar or int"):
+    with pytest.raises(TypeError, match="transaction_fee must be int, float, Decimal, or Hbar, got str"):
         tx.transaction_fee = "100"
 
 
@@ -581,7 +581,7 @@ def test_transaction_fee_rejects_negative_int():
     """Test transaction_fee rejects negative integer values."""
     tx = AccountCreateTransaction()
 
-    with pytest.raises(ValueError, match="fee must be greater than or equal to 0"):
+    with pytest.raises(ValueError, match="transaction_fee must be non-negative"):
         tx.transaction_fee = -1
 
 
