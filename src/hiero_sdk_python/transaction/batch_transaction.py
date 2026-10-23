@@ -78,6 +78,10 @@ class BatchTransaction(Transaction):
         """
         return [transaction.transaction_id for transaction in self.inner_transactions]
 
+    def _supports_transaction_id_regeneration(self) -> bool:
+        """A BatchTransaction is never regenerated on TRANSACTION_EXPIRED."""
+        return False
+
     def _verify_inner_transaction(self, transaction: Transaction) -> None:
         """
         Validate that a transaction can be included as an inner batch transaction.
