@@ -136,3 +136,29 @@ class TokenMintTransaction(Transaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(transaction_func=channel.token.mintToken, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TokenMintTransaction:
+        """
+        Creates a TokenMintTransaction instance from protobuf components.
+
+        Args:
+            transaction_body: The parsed TransactionBody protobuf
+
+        Returns:
+            TokenMintTransaction: A new transaction instance with all fields restored
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenMint"):
+            token_mint_body = transaction_body.tokenMint
+
+            if token_mint_body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(token_mint_body.token)
+            else:
+                transaction.token_id = None
+
+            transaction.amount = token_mint_body.amount or None
+            transaction.metadata = list(token_mint_body.metadata) or None
+
+        return transaction
