@@ -9,6 +9,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransaction
 from hiero_sdk_python.tokens.token_unfreeze_transaction import TokenUnfreezeTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import IntegrationTestEnv, create_fungible_token
 
 
@@ -62,7 +63,16 @@ def test_integration_token_unfreeze_transaction_can_execute():
         unfreeze_transaction = TokenUnfreezeTransaction(token_id=token_id, account_id=account_id)
 
         unfreeze_transaction.freeze_with(env.client)
-        receipt = unfreeze_transaction.execute(env.client)
+
+        original_bytes = unfreeze_transaction.to_bytes()
+        restored = Transaction.from_bytes(original_bytes)
+
+        assert isinstance(restored, TokenUnfreezeTransaction)
+        assert restored.token_id == token_id
+        assert restored.account_id == account_id
+        assert restored.to_bytes() == original_bytes
+
+        receipt = restored.execute(env.client)
 
         assert receipt.status == ResponseCode.SUCCESS, (
             f"Token unfreeze failed with status: {ResponseCode(receipt.status).name}"

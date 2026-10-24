@@ -9,6 +9,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_grant_kyc_transaction import TokenGrantKycTransaction
 from hiero_sdk_python.tokens.token_revoke_kyc_transaction import TokenRevokeKycTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import IntegrationTestEnv, create_fungible_token
 
 
@@ -55,7 +56,22 @@ def test_token_revoke_kyc_transaction_can_execute():
         )
 
         # Revoke KYC from the new account
-        receipt = TokenRevokeKycTransaction().set_account_id(account_id).set_token_id(token_id).execute(env.client)
+        revoke_kyc_transaction = TokenRevokeKycTransaction(
+            token_id=token_id,
+            account_id=account_id,
+        )
+        revoke_kyc_transaction.freeze_with(env.client)
+
+        original_bytes = revoke_kyc_transaction.to_bytes()
+        restored = Transaction.from_bytes(original_bytes)
+
+        assert isinstance(restored, TokenRevokeKycTransaction)
+        assert restored.token_id == token_id
+        assert restored.account_id == account_id
+        assert restored.to_bytes() == original_bytes
+
+        receipt = restored.execute(env.client)
+
         assert receipt.status == ResponseCode.SUCCESS, (
             f"Token revoke KYC failed with status: {ResponseCode(receipt.status).name}"
         )

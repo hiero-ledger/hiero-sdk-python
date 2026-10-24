@@ -106,6 +106,28 @@ class TokenUnpauseTransaction(Transaction):
         transaction_body.token_unpause.CopyFrom(token_unpause_body)
         return transaction_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TokenUnpauseTransaction:
+        """
+        Restores common fields and token unpause fields from protobuf.
+
+        Args:
+            transaction_body: A parsed TransactionBody from protobuf.
+
+        Returns:
+            TokenUnpauseTransaction: A transaction with common and token unpause
+            fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("token_unpause"):
+            token_unpause_body = transaction_body.token_unpause
+            transaction.token_id = (
+                TokenId._from_proto(token_unpause_body.token) if token_unpause_body.HasField("token") else None
+            )
+
+        return transaction
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token unpause transaction.
