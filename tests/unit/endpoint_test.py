@@ -204,3 +204,15 @@ def test_str_representation_with_domain():
     endpoint = Endpoint(address=None, port=8080, domain_name="testnet.com")
     result = endpoint.__str__()
     assert result == "testnet.com:8080"
+
+
+def test_proto_roundtrip_with_unpack_address():
+    """Test protbuf roundtip with unpack address."""
+    ep = Endpoint(address=b"127.0.0.1", port=50211)
+    assert Endpoint._from_proto(ep._to_proto()).get_address() == b"127.0.0.1"
+
+
+def test_proto_roundtrip_with_pack_address():
+    """Test protbuf roundtip with pack address."""
+    ep = Endpoint(address=b"\x7f\x00\x00\x01", port=50211)
+    assert Endpoint._from_proto(ep._to_proto()).get_address() == b"127.0.0.1"

@@ -138,7 +138,12 @@ class Endpoint:
         service_endpoint = ServiceEndpoint(port=self._port, domain_name=self._domain_name)
 
         if self._address:
-            service_endpoint.ipAddressV4 = ipaddress.ip_address(self._address.decode("utf-8")).packed
+            try:
+                # when address get from mirror-node e.g. b"127.0.0.1"
+                service_endpoint.ipAddressV4 = ipaddress.ip_address(self._address.decode("utf-8")).packed
+            except (UnicodeDecodeError, ValueError):
+                # Already-packed bytes, set manually, avoid check cause tck reequires to handle by node when invalid address.
+                service_endpoint.ipAddressV4 = self._address
 
         return service_endpoint
 
