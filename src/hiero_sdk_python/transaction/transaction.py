@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import hashlib
+from itertools import pairwise
 from typing import TYPE_CHECKING, Literal, overload
+
+from google.protobuf.message import DecodeError
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
@@ -914,21 +917,47 @@ class Transaction(_Executable):
 
         Raises:
             ValueError: If the bytes are invalid, contain no transactions,
-                or contain an unknown transaction type.
+                contain an unknown transaction type, or contain chunks that are
+                incomplete, out of order, or from different chunked transactions.
         """
         if not isinstance(transaction_bytes, bytes):
             raise ValueError("transaction_bytes must be bytes")
         if not transaction_bytes:
             raise ValueError("transaction_bytes cannot be empty")
 
-        try:
-            return Transaction._process_transaction_list_bytes(transaction_bytes)
-        except Exception:
+        transaction_list = Transaction._parse_transaction_list(transaction_bytes)
+
+        if transaction_list is None:
             try:
                 # Backward compatibility
                 return Transaction._process_single_transaction_bytes(transaction_bytes)
             except Exception as e:
                 raise ValueError(f"Failed to parse transaction_bytes {e}") from e
+
+        # The bytes are a TransactionList, so surface its validation errors instead of
+        # retrying them as a single Transaction, which would hide the real cause.
+        try:
+            return Transaction._process_transaction_list(transaction_list)
+        except ValueError:
+            raise
+        except Exception as e:
+            raise ValueError(f"Failed to parse transaction_bytes {e}") from e
+
+    @staticmethod
+    def _parse_transaction_list(transaction_bytes: bytes) -> TransactionList | None:
+        """
+        Decodes bytes as a TransactionList.
+
+        Returns:
+            TransactionList | None: The decoded list, or None if the bytes do not decode
+                to a non-empty TransactionList (e.g. a single serialized Transaction).
+        """
+        try:
+            transaction_list = TransactionList.FromString(transaction_bytes)
+        except DecodeError:
+            return None
+
+        return transaction_list if transaction_list.transaction_list else None
 
     @staticmethod
     def _process_base_transaction(
@@ -995,19 +1024,10 @@ class Transaction(_Executable):
         return transaction
 
     @staticmethod
-    def _process_transaction_list_bytes(transaction_bytes: bytes) -> Transaction:
-        """Deserializes a TransactionList protobuf."""
-        try:
-            transaction_list = TransactionList()
-            transaction_list.ParseFromString(transaction_bytes)
-        except Exception as e:
-            raise ValueError(f"Failed to parse TransactionList: {e}") from e
-
-        if not transaction_list.transaction_list:
-            raise ValueError("TransactionList contains no transactions")
-
+    def _process_transaction_list(transaction_list: TransactionList) -> Transaction:
+        """Restores a transaction from a decoded, non-empty TransactionList protobuf."""
         restored_transaction: Transaction | None = None
-        transaction_ids: list[Transaction] = []
+        transaction_ids: list[TransactionId] = []
         node_account_ids: list[AccountId] = []
         bodies: list[transaction_pb2.TransactionBody] = []
 
@@ -1169,6 +1189,13 @@ class Transaction(_Executable):
             if has_unexpected_body_count or has_invalid_transaction_count:
                 raise ValueError("Failed to validate transaction bodies")
 
+            if is_chunk_transaction:
+                Transaction._validate_chunked_transaction_bodies(
+                    transaction_type,
+                    bodies,
+                    group_size,
+                )
+
             return
 
         # `_transaction_body_bytes` maps each transaction ID to its node-specific body bytes: `transaction_id -> {node_id -> body_bytes}`.
@@ -1207,10 +1234,11 @@ class Transaction(_Executable):
         transaction_type: str, bodies: list[transaction_pb2.TransactionBody], group_size: int
     ) -> None:
         """
-        Validate invariant fields shared across chunk groups.
+        Validate that the chunk groups form a single chunked transaction, in sequence.
 
         Raises:
-            ValueError: If invariant fields differ between chunk groups.
+            ValueError: If invariant fields differ between chunk groups, or the chunk
+                groups are out of order or belong to different chunked transactions.
         """
         ignored_fields = {"nodeAccountID", "transactionID"}
 
@@ -1228,6 +1256,84 @@ class Transaction(_Executable):
                 ignored_fields,
             ):
                 raise ValueError("Failed to validate transaction bodies")
+
+        # The transaction IDs are collected in first-seen order, so they always match the input order.
+        # Chunk order is therefore checked against each chunk group's own body instead.
+        chunk_bodies = bodies[::group_size]
+
+        Transaction._validate_chunk_transaction_ids(chunk_bodies)
+
+        if transaction_type == "consensusSubmitMessage":
+            Transaction._validate_topic_message_chunk_info(chunk_bodies)
+
+    @staticmethod
+    def _validate_chunk_transaction_ids(chunk_bodies: list[transaction_pb2.TransactionBody]) -> None:
+        """
+        Validate that chunk transaction IDs share one payer and have strictly increasing valid starts.
+
+        Only the order is enforced, not the step between chunks: other SDKs space chunk
+        valid starts differently (the JS SDK's FileAppendTransaction defaults to 10ns).
+
+        Raises:
+            ValueError: If a chunk has a different payer or does not start after the previous chunk.
+        """
+        payer_account_id = chunk_bodies[0].transactionID.accountID
+
+        for chunk_number, (previous_body, body) in enumerate(pairwise(chunk_bodies), start=2):
+            if body.transactionID.accountID != payer_account_id:
+                raise ValueError(
+                    f"Failed to validate transaction bodies: chunk {chunk_number} has a different payer account than chunk 1"
+                )
+
+            previous_start = previous_body.transactionID.transactionValidStart
+            valid_start = body.transactionID.transactionValidStart
+
+            if (valid_start.seconds, valid_start.nanos) <= (previous_start.seconds, previous_start.nanos):
+                raise ValueError(
+                    "Failed to validate transaction bodies: chunks are out of order, "
+                    f"chunk {chunk_number} does not start after chunk {chunk_number - 1}"
+                )
+
+    @staticmethod
+    def _validate_topic_message_chunk_info(chunk_bodies: list[transaction_pb2.TransactionBody]) -> None:
+        """
+        Validate topic message chunk info against the chunk sequence.
+
+        A single-chunk message may omit chunk info. Otherwise every chunk must carry its
+        1-based position, the total chunk count, and the first chunk's transaction ID.
+
+        Raises:
+            ValueError: If chunk info is missing or does not match the chunk sequence.
+        """
+        total = len(chunk_bodies)
+
+        if total == 1 and not chunk_bodies[0].consensusSubmitMessage.HasField("chunkInfo"):
+            return
+
+        initial_transaction_id = chunk_bodies[0].transactionID
+
+        for number, body in enumerate(chunk_bodies, start=1):
+            if not body.consensusSubmitMessage.HasField("chunkInfo"):
+                raise ValueError(f"Failed to validate transaction bodies: chunk {number} is missing chunk info")
+
+            chunk_info = body.consensusSubmitMessage.chunkInfo
+
+            if chunk_info.number != number:
+                raise ValueError(
+                    f"Failed to validate transaction bodies: chunk {number} has chunk number {chunk_info.number}"
+                )
+
+            if chunk_info.total != total:
+                raise ValueError(
+                    f"Failed to validate transaction bodies: chunk {number} has chunk total {chunk_info.total}, "
+                    f"expected {total}"
+                )
+
+            if chunk_info.initialTransactionID != initial_transaction_id:
+                raise ValueError(
+                    f"Failed to validate transaction bodies: chunk {number} initial transaction ID "
+                    "does not match the transaction ID of chunk 1"
+                )
 
     @staticmethod
     def _compare_transaction_bodies(
