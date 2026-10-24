@@ -4,13 +4,15 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from hiero_sdk_python.hapi.services import timestamp_pb2
+from hiero_sdk_python.hapi.services import timestamp_pb2, token_cancel_airdrop_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.tokens.token_airdrop_transaction_cancel import TokenCancelAirdropTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -289,3 +291,83 @@ def test_build_scheduled_body(mock_account_ids):
     assert proto_pending_airdrop.non_fungible_token.token_ID == token_id_2._to_proto()
     assert proto_pending_airdrop.non_fungible_token.serial_number == 10
     assert proto_pending_airdrop.HasField("fungible_token_type") == False
+
+
+def test_token_cancel_airdrop_transaction_from_protobuf(mock_account_ids):
+    """TokenCancelAirdropTransaction should deserialize fields from protobuf correctly."""
+    sender_id, receiver_id, _, token_id, token_id_2 = mock_account_ids
+    token_pending_airdrop = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, token_id=token_id)
+    nft_pending_airdrop = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, nft_id=NftId(token_id_2, 10))
+
+    transaction = TokenCancelAirdropTransaction().set_pending_airdrops([token_pending_airdrop, nft_pending_airdrop])
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenCancelAirdrop.CopyFrom(body)
+
+    parsed = TokenCancelAirdropTransaction._from_protobuf(transaction_body)
+
+    assert len(parsed.pending_airdrops) == 2
+    assert parsed.pending_airdrops[0] == token_pending_airdrop
+    assert parsed.pending_airdrops[1] == nft_pending_airdrop
+
+
+def test_token_cancel_airdrop_from_protobuf_empty_body():
+    """Test _from_protobuf correctly restores empty body with empty list."""
+    tx_body = TransactionBody()
+    tx_body.tokenCancelAirdrop.CopyFrom(token_cancel_airdrop_pb2.TokenCancelAirdropTransactionBody())
+
+    restored = TokenCancelAirdropTransaction._from_protobuf(tx_body)
+    assert restored.pending_airdrops == []
+
+
+def test_token_cancel_airdrop_from_protobuf_without_token_cancel_airdrop():
+    """Test _from_protobuf correctly handles transaction_body without tokenCancelAirdrop."""
+    tx_body = TransactionBody()
+
+    restored = TokenCancelAirdropTransaction._from_protobuf(tx_body)
+    assert restored.pending_airdrops == []
+
+
+def test_token_cancel_airdrop_from_protobuf_accepts_extra_args(mock_account_ids):
+    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
+    sender_id, receiver_id, _, token_id, _ = mock_account_ids
+    token_pending_airdrop = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, token_id=token_id)
+
+    transaction = TokenCancelAirdropTransaction().set_pending_airdrops([token_pending_airdrop])
+    tx_body = TransactionBody()
+    tx_body.tokenCancelAirdrop.CopyFrom(transaction._build_proto_body())
+
+    restored = TokenCancelAirdropTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
+    assert len(restored.pending_airdrops) == 1
+    assert restored.pending_airdrops[0] == token_pending_airdrop
+
+
+def test_token_cancel_airdrop_from_bytes_round_trip(mock_account_ids, token_id, nft_id, mock_client):
+    """Test serialization round-trip via Transaction.from_bytes()."""
+    sender_id, receiver_id, _, _, _ = mock_account_ids
+    token_pending = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, token_id=token_id)
+    nft_pending = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, nft_id=nft_id)
+
+    tx1 = TokenCancelAirdropTransaction().set_pending_airdrops([token_pending, nft_pending])
+    tx1.freeze_with(mock_client)
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenCancelAirdropTransaction)
+    assert len(tx2.pending_airdrops) == 2
+    assert tx2.pending_airdrops[0] == token_pending
+    assert tx2.pending_airdrops[1] == nft_pending
+    assert tx2.to_bytes() == data
+
+
+def test_token_cancel_airdrop_from_bytes_round_trip_unconfigured(mock_client):
+    """Test round-trip preserves unconfigured cancel airdrop transaction with optional fields unset."""
+    tx1 = TokenCancelAirdropTransaction()
+    tx1.freeze_with(mock_client)
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenCancelAirdropTransaction)
+    assert tx2.pending_airdrops == []
+    assert tx2.to_bytes() == data

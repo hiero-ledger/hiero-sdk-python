@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from hiero_sdk_python.executable import _Method
-from hiero_sdk_python.hapi.services import basic_types_pb2, token_cancel_airdrop_pb2
+from hiero_sdk_python.hapi.services import basic_types_pb2, token_cancel_airdrop_pb2, transaction_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
@@ -74,6 +74,52 @@ class TokenCancelAirdropTransaction(Transaction):
         ]
 
         return token_cancel_airdrop_pb2.TokenCancelAirdropTransactionBody(pending_airdrops=pending_airdrops_proto)
+
+    @classmethod
+    def _from_proto(
+        cls, proto: token_cancel_airdrop_pb2.TokenCancelAirdropTransactionBody
+    ) -> TokenCancelAirdropTransaction:
+        """
+        Construct a TokenCancelAirdropTransaction from a TokenCancelAirdropTransactionBody.
+
+        Args:
+            proto: The protobuf message to read from.
+
+        Returns:
+            TokenCancelAirdropTransaction: A new transaction instance loaded from the protobuf.
+        """
+        pending_airdrops = [PendingAirdropId._from_proto(pending_airdrop) for pending_airdrop in proto.pending_airdrops]
+        return cls(pending_airdrops=pending_airdrops)
+
+    @classmethod
+    def _from_protobuf(
+        cls,
+        transaction_body: transaction_pb2.TransactionBody,
+        body_bytes: bytes | None = None,
+        sig_map=None,
+    ) -> TokenCancelAirdropTransaction:
+        """
+        Creates a TokenCancelAirdropTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+            body_bytes (bytes, optional): The raw bytes of the transaction body.
+            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
+
+        Returns:
+            TokenCancelAirdropTransaction: A new transaction instance with all fields restored.
+        """
+        try:
+            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        except TypeError:
+            transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenCancelAirdrop"):
+            token_cancel_airdrop_body = transaction_body.tokenCancelAirdrop
+            proto_tx = cls._from_proto(token_cancel_airdrop_body)
+            transaction.pending_airdrops = proto_tx.pending_airdrops
+
+        return transaction
 
     def build_transaction_body(self):
         """Builds and returns the protobuf transaction body for canceling a token airdrop."""

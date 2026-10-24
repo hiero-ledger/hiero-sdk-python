@@ -76,6 +76,47 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
 
         return cls(token_transfers=token_transfers, nft_transfers=nft_transfers)
 
+    @classmethod
+    def _from_protobuf(
+        cls,
+        transaction_body: transaction_pb2.TransactionBody,
+        body_bytes: bytes | None = None,
+        sig_map=None,
+    ) -> TokenAirdropTransaction:
+        """
+        Creates a TokenAirdropTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+            body_bytes (bytes, optional): The raw bytes of the transaction body.
+            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
+
+        Returns:
+            TokenAirdropTransaction: A new transaction instance with all fields restored.
+        """
+        try:
+            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        except TypeError:
+            transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenAirdrop"):
+            token_airdrop_body = transaction_body.tokenAirdrop
+            fungible_transfers: list[TokenTransfer] = []
+            nft_transfers: list[TokenNftTransfer] = []
+
+            for entry in token_airdrop_body.token_transfers:
+                if entry.transfers:
+                    fungible_transfers.extend(TokenTransfer._from_proto(entry))
+                if entry.nftTransfers:
+                    nft_transfers.extend(TokenNftTransfer._from_proto(entry))
+
+            if fungible_transfers:
+                transaction._init_token_transfers(fungible_transfers)
+            if nft_transfers:
+                transaction._init_nft_transfers(nft_transfers)
+
+        return transaction
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
         Builds and returns the protobuf transaction body for token airdrop.

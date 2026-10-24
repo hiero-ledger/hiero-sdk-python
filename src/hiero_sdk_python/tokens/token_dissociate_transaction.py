@@ -87,10 +87,45 @@ class TokenDissociateTransaction(Transaction):
             proto (TokenDissociateTransactionBody): The protobuf
             representation of the token dissociate transaction.
         """
-        account_id = AccountId._from_proto(proto.account)
+        account_id = AccountId._from_proto(proto.account) if proto.HasField("account") else None
         token_ids = [TokenId._from_proto(token_proto) for token_proto in proto.tokens]
 
         return cls(account_id=account_id, token_ids=token_ids)
+
+    @classmethod
+    def _from_protobuf(
+        cls,
+        transaction_body: transaction_pb2.TransactionBody,
+        body_bytes: bytes | None = None,
+        sig_map=None,
+    ) -> TokenDissociateTransaction:
+        """
+        Creates a TokenDissociateTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+            body_bytes (bytes, optional): The raw bytes of the transaction body.
+            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
+
+        Returns:
+            TokenDissociateTransaction: A new transaction instance with all fields restored.
+        """
+        try:
+            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        except TypeError:
+            transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenDissociate"):
+            token_dissociate_body = transaction_body.tokenDissociate
+
+            if token_dissociate_body.HasField("account"):
+                transaction.account_id = AccountId._from_proto(token_dissociate_body.account)
+            else:
+                transaction.account_id = None
+
+            transaction.token_ids = [TokenId._from_proto(token_proto) for token_proto in token_dissociate_body.tokens]
+
+        return transaction
 
     def _build_proto_body(self) -> token_dissociate_pb2.TokenDissociateTransactionBody:
         """
