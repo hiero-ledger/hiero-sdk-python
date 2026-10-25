@@ -21,6 +21,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying Account Records](#querying-account-records)
   - [Querying Account HBAR Balance Using Mirror Node](#querying-account-hbar-balance-using-mirror-node)
   - [Querying Account Token Balance Using Mirror Node](#querying-account-token-balance-using-mirror-node)
+- [Address Book](#address-book)
+  - [Querying Address Book](#querying-address-book)
 - [Token Transactions](#token-transactions)
   - [Creating a Token](#creating-a-token)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -421,6 +423,29 @@ print(token_balance)
 ```
 
 
+
+
+## Address Book
+
+### Querying Address Book
+
+#### Pythonic Syntax:
+```python
+# Note address book query only work with `0.0.102` or `0.0.101`
+address_book = AddressBookQuery(file_id=file_id, limit=2).execute(client)
+
+for node_address in address_book.node_addresses:
+    print(node_address)
+```
+
+#### Method Chaining:
+```python
+# Note address book query only work with `0.0.102` or `0.0.101`
+address_book = AddressBookQuery().set_file_id(file_id).set_limit(limit).execute(client)
+
+for node_address in address_book.node_addresses:
+    print(node_address)
+```
 
 ## Token Transactions
 
