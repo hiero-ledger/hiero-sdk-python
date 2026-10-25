@@ -13,6 +13,7 @@ import pytest
 from hiero_sdk_python.account.account_create_transaction import AccountCreateTransaction
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.hapi.sdk.transaction_list_pb2 import TransactionList
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import (
     TransactionResponse as TransactionResponseProto,
 )
@@ -179,6 +180,51 @@ def test_from_bytes_invalid_input():
     # Test with invalid protobuf bytes
     with pytest.raises(ValueError, match="Failed to parse"):
         TransferTransaction.from_bytes(b"invalid protobuf data")
+
+
+def test_from_bytes_accepts_single_transaction_bytes():
+    """Test that from_bytes() still restores a single serialized Transaction (not a TransactionList)."""
+    node_id = AccountId.from_string("0.0.3")
+    transaction = (
+        TransferTransaction()
+        .add_hbar_transfer(AccountId.from_string("0.0.1234"), -100_000_000)
+        .add_hbar_transfer(AccountId.from_string("0.0.5678"), 100_000_000)
+        .set_transaction_id(TransactionId.generate(AccountId.from_string("0.0.1234")))
+        .set_node_account_ids([node_id])
+        .freeze()
+    )
+    single_transaction_bytes = (
+        TransactionList.FromString(transaction.to_bytes()).transaction_list[0].SerializeToString()
+    )
+
+    restored_transaction = Transaction.from_bytes(single_transaction_bytes)
+
+    assert isinstance(restored_transaction, TransferTransaction)
+    assert restored_transaction.transaction_id == transaction.transaction_id
+    assert restored_transaction.node_account_ids == [node_id]
+
+
+def test_from_bytes_surfaces_transaction_list_validation_error():
+    """Test that from_bytes() reports why a TransactionList is invalid instead of a fallback parse error."""
+    transaction_id = TransactionId.generate(AccountId.from_string("0.0.1234"))
+    node_ids = [AccountId.from_string("0.0.3")]
+    transfer = TransferTransaction().set_transaction_id(transaction_id).set_node_account_ids(node_ids).freeze()
+    account_create = (
+        AccountCreateTransaction()
+        .set_key_without_alias(PrivateKey.generate_ed25519())
+        .set_transaction_id(transaction_id)
+        .set_node_account_ids(node_ids)
+        .freeze()
+    )
+    mixed_list = TransactionList(
+        transaction_list=[
+            *TransactionList.FromString(transfer.to_bytes()).transaction_list,
+            *TransactionList.FromString(account_create.to_bytes()).transaction_list,
+        ]
+    )
+
+    with pytest.raises(ValueError, match="TransactionList contains different transaction types"):
+        Transaction.from_bytes(mixed_list.SerializeToString())
 
 
 def test_freeze_and_sign_workflow():

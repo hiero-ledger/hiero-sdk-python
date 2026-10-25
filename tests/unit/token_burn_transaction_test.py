@@ -7,11 +7,14 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services.token_burn_pb2 import TokenBurnTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -181,3 +184,146 @@ def test_build_scheduled_body_nft(mock_account_ids):
     assert schedulable_body.tokenBurn.token == token_id._to_proto()
     assert schedulable_body.tokenBurn.amount == 0
     assert schedulable_body.tokenBurn.serialNumbers == serials
+
+
+def test_token_burn_transaction_from_protobuf_fungible(mock_account_ids, amount):
+    """TokenBurnTransaction should deserialize fungible burn fields from protobuf correctly."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    transaction = TokenBurnTransaction().set_token_id(token_id).set_amount(amount)
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenBurn.CopyFrom(body)
+
+    parsed = TokenBurnTransaction._from_protobuf(transaction_body)
+
+    assert parsed.token_id == token_id
+    assert parsed.amount == amount
+    assert parsed.serials == []
+
+
+def test_token_burn_transaction_from_protobuf_nft(mock_account_ids):
+    """TokenBurnTransaction should deserialize NFT burn fields from protobuf correctly."""
+    _, _, _, token_id, _ = mock_account_ids
+    serials = [1, 2, 3]
+
+    transaction = TokenBurnTransaction().set_token_id(token_id).set_serials(serials)
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenBurn.CopyFrom(body)
+
+    parsed = TokenBurnTransaction._from_protobuf(transaction_body)
+
+    assert parsed.token_id == token_id
+    assert parsed.serials == serials
+    assert parsed.amount is None
+
+
+def test_token_burn_transaction_from_protobuf_mixed_payload(mock_account_ids):
+    """TokenBurnTransaction should deserialize both amount and serials when both are present."""
+    _, _, _, token_id, _ = mock_account_ids
+    serials = [1, 2]
+
+    body = TokenBurnTransactionBody(token=token_id._to_proto(), amount=10, serialNumbers=serials)
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenBurn.CopyFrom(body)
+
+    parsed = TokenBurnTransaction._from_protobuf(transaction_body)
+
+    assert parsed.token_id == token_id
+    assert parsed.amount == 10
+    assert parsed.serials == serials
+
+
+def test_from_bytes_round_trip_fungible(mock_account_ids, amount):
+    """Test serialization round-trip via Transaction.from_bytes() for fungible tokens."""
+    operator_id, _, node_account_id, token_id, _ = mock_account_ids
+
+    tx1 = (
+        TokenBurnTransaction()
+        .set_token_id(token_id)
+        .set_amount(amount)
+        .set_transaction_id(TransactionId.generate(operator_id))
+        .set_node_account_ids([node_account_id])
+    )
+    tx1.freeze()
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenBurnTransaction)
+    assert tx2.token_id == token_id
+    assert tx2.amount == amount
+    assert tx2.serials == []
+    assert tx2.to_bytes() == data
+
+
+def test_from_bytes_round_trip_nft(mock_account_ids):
+    """Test serialization round-trip via Transaction.from_bytes() for NFT tokens."""
+    operator_id, _, node_account_id, token_id, _ = mock_account_ids
+    serials = [10, 20, 30]
+
+    tx1 = (
+        TokenBurnTransaction()
+        .set_token_id(token_id)
+        .set_serials(serials)
+        .set_transaction_id(TransactionId.generate(operator_id))
+        .set_node_account_ids([node_account_id])
+    )
+    tx1.freeze()
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenBurnTransaction)
+    assert tx2.token_id == token_id
+    assert tx2.serials == serials
+    assert tx2.amount is None
+    assert tx2.to_bytes() == data
+
+
+def test_from_protobuf_without_token():
+    """Test _from_protobuf correctly handles absent token field."""
+    from hiero_sdk_python.hapi.services import token_burn_pb2
+
+    tx_body = TransactionBody()
+    tx_body.tokenBurn.CopyFrom(token_burn_pb2.TokenBurnTransactionBody(amount=300))
+
+    restored = TokenBurnTransaction._from_protobuf(tx_body)
+    assert restored.token_id is None
+    assert restored.amount == 300
+    assert restored.serials == []
+
+
+def test_from_protobuf_empty_body():
+    """Test _from_protobuf correctly restores amount as None for an empty body."""
+    from hiero_sdk_python.hapi.services import token_burn_pb2
+
+    tx_body = TransactionBody()
+    tx_body.tokenBurn.CopyFrom(token_burn_pb2.TokenBurnTransactionBody())
+
+    restored = TokenBurnTransaction._from_protobuf(tx_body)
+    assert restored.token_id is None
+    assert restored.amount is None
+    assert restored.serials == []
+
+
+def test_from_bytes_round_trip_unconfigured(mock_account_ids):
+    """Test round-trip preserves amount is None for an unconfigured burn transaction."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    tx1 = (
+        TokenBurnTransaction()
+        .set_transaction_id(TransactionId.generate(operator_id))
+        .set_node_account_ids([node_account_id])
+    )
+    tx1.freeze()
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenBurnTransaction)
+    assert tx2.token_id is None
+    assert tx2.amount is None
+    assert tx2.serials == []
+    assert tx2.to_bytes() == data
