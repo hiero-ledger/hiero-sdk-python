@@ -1315,3 +1315,55 @@ def test_transaction_record_query_with_single_node_does_not_advance():
         assert mock_delay.call_count > 0
         assert query._node_account_ids.index == initial_index
         assert query._node_account_ids.current == node_id
+
+
+def test_transaction_record_query_with_multiple_node_advance_to_next():
+    """Test that a record query advances to the next node when the current node is unhealthy."""
+    record = transaction_record_pb2.TransactionRecord(
+        receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
+        memo="test_Record",
+        transactionFee=100000,
+    )
+
+    response_sequences = [
+        [],
+        [
+            response_pb2.Response(
+                transactionGetRecord=TransactionGetRecordResponse(
+                    header=response_header_pb2.ResponseHeader(
+                        nodeTransactionPrecheckCode=ResponseCode.OK, responseType=ResponseType.COST_ANSWER, cost=2
+                    )
+                )
+            ),
+            response_pb2.Response(
+                transactionGetRecord=TransactionGetRecordResponse(
+                    header=response_header_pb2.ResponseHeader(
+                        nodeTransactionPrecheckCode=ResponseCode.OK,
+                        responseType=ResponseType.ANSWER_ONLY,
+                    ),
+                    transactionRecord=record,
+                )
+            ),
+        ],
+    ]
+
+    node_ids = [AccountId.from_string("0.0.3"), AccountId.from_string("0.0.4")]
+    query = (
+        TransactionRecordQuery()
+        .set_transaction_id(TransactionId.from_string("0.0.3@1769674705.770340600"))
+        .set_node_account_ids(node_ids)
+    )
+
+    initial_index = query._node_account_ids.index
+
+    with (
+        mock_hedera_servers(response_sequences) as client,
+        patch("hiero_sdk_python.node._Node.is_healthy", side_effect=[False, True, True]),
+    ):
+        record_response = query.execute(client)
+
+        assert record_response.receipt.status == record.receipt.status
+        assert record_response.transaction_fee == record.transactionFee
+        assert record_response.transaction_memo == record.memo
+        assert query._node_account_ids.index == initial_index + 1
+        assert query._node_account_ids.current == node_ids[1]
