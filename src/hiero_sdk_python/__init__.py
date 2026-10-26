@@ -11,6 +11,7 @@ from .account.account_update_transaction import AccountUpdateTransaction
 from .account.mirror_node_token_balance import MirrorNodeTokenBalance
 
 # Address book
+from .address_book.address_book_query import AddressBookQuery, NodeAddressBook
 from .address_book.block_node_api import BlockNodeApi
 from .address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
 from .address_book.endpoint import Endpoint
@@ -278,6 +279,8 @@ __all__ = [
     "RegisteredNodeAddressBookQuery",
     "RegisteredServiceEndpoint",
     "RpcRelayServiceEndpoint",
+    "AddressBookQuery",
+    "NodeAddressBook",
     # Logger
     "Logger",
     "LogLevel",
