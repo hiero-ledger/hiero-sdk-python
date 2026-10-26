@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: deps-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   min-deps:
     runs-on: ${{ (github.repository_owner != 'hiero-ledger' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork)) && 'ubuntu-latest' || 'hl-sdk-py-lin-md' }}
@@ -77,4 +81,4 @@ jobs:
 
       - name: Run unit tests (min deps)
         run: |
-          uv run --resolution=lowest-direct pytest tests/unit
+          uv run --resolution=lowest-direct pytest tests/unit -v
