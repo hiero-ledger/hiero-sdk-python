@@ -45,7 +45,7 @@ tck = ["flask>=3.0.0,<4"]
 
 [dependency-groups]
 dev = [
-    "grpcio-tools>=1.85.0,<2",
+    "grpcio-tools>=1.84.0,<2",
     "pytest>=8.3.4,<10",
     "pytest-cov>=7.0.0,<8",
     "hypothesis>=6.137.2",
