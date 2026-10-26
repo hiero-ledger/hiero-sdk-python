@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import copy
 from unittest.mock import patch
 
 import pytest
@@ -13,8 +12,8 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
+from hiero_sdk_python.crypto.signer import _sign_to_signature_pair
 from hiero_sdk_python.exceptions import MaxAttemptsError, PrecheckError
-from hiero_sdk_python.executable import _ExecutionState
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.hapi.services import (
@@ -150,19 +149,34 @@ def test_transaction_id_read_after_execute_matches_response(no_sleep):
         assert tx.transaction_id != old_id
 
 
-def test_second_expiry_raises_precheck_error_after_one_regeneration(no_sleep, request_spy):
-    """Test that a second expiry in the same execute() raises instead of regenerating again."""
-    with mock_hedera_servers([[_expired(), _expired(), _expired(), _expired()]]) as client:
+def test_every_expiry_regenerates_the_id_again(no_sleep, request_spy):
+    """Test that each expiry in the same execute() gets a fresh ID, as in the Java and JS SDKs."""
+    with mock_hedera_servers([[_expired(), _expired(), _ok()]]) as client:
         tx = _transfer().freeze_with(client)
-        old_id = tx._current_transaction_id
 
-        with pytest.raises(PrecheckError) as exc_info:
+        response = tx.execute(client, wait_for_receipt=False)
+
+        submitted_ids = _submitted_transaction_ids(request_spy)
+        assert len(set(submitted_ids)) == 3
+        assert response.transaction_id == submitted_ids[-1] == tx._current_transaction_id
+        assert list(tx._transaction_body_bytes) == [submitted_ids[-1]]
+        assert len(tx._signature_map) == len(tx._transaction_body_bytes[submitted_ids[-1]])
+
+
+def test_repeated_expiry_ends_in_max_attempts_error(no_sleep, request_spy):
+    """Test that expiring on every attempt stops at max_attempts, with the expiry as the cause."""
+    with mock_hedera_servers([[_expired()] * 4]) as client:
+        tx = _transfer().freeze_with(client)
+
+        with pytest.raises(MaxAttemptsError) as exc_info:
             tx.execute(client, wait_for_receipt=False)
 
-        new_id = tx._current_transaction_id
-        assert exc_info.value.status == ResponseCode.TRANSACTION_EXPIRED
-        assert exc_info.value.transaction_id == new_id
-        assert _submitted_transaction_ids(request_spy) == [old_id, new_id]
+        submitted_ids = _submitted_transaction_ids(request_spy)
+        assert len(submitted_ids) == client.max_attempts
+        assert len(set(submitted_ids)) == client.max_attempts
+        last_error = exc_info.value.last_error
+        assert isinstance(last_error, PrecheckError)
+        assert last_error.status == ResponseCode.TRANSACTION_EXPIRED
 
 
 def test_reading_transaction_id_before_freeze_does_not_pin(no_sleep, request_spy):
@@ -307,26 +321,101 @@ def test_user_set_transaction_id_is_not_regenerated_for_chunked_transaction(no_s
         assert tx._initial_transaction_id == user_transaction_id
 
 
-# Payer, signer and type guards
+# Signers, payer and type guards
 
 
-def test_payer_other_than_executing_operator_is_not_regenerated(no_sleep, request_spy, mock_client):
-    """Test that an ID paid for by an account other than the executing operator is kept."""
+def _assert_signed_only_by(tx, transaction_id, public_keys):
+    """Every body of transaction_id carries one valid signature per key, and no others."""
+    for body_bytes in tx._transaction_body_bytes[transaction_id].values():
+        sig_pairs = tx._signature_map[body_bytes].sigPair
+        assert sorted(sig_pair.pubKeyPrefix for sig_pair in sig_pairs) == sorted(
+            public_key.to_bytes_raw() for public_key in public_keys
+        )
+        for public_key in public_keys:
+            sig_pair = next(p for p in sig_pairs if p.pubKeyPrefix == public_key.to_bytes_raw())
+            public_key.verify(sig_pair.ed25519, body_bytes)
+
+
+def test_every_registered_signer_signs_the_regenerated_bodies(no_sleep, request_spy):
+    """Test that keys added with sign() and sign_with() sign the rebuilt bodies again."""
     with mock_hedera_servers([[_expired(), _ok()]]) as client:
-        tx = _transfer().freeze_with(mock_client)
-        assert tx._current_transaction_id.account_id != client.operator_account_id
+        sign_key = PrivateKey.generate()
+        sign_with_key = PrivateKey.generate()
+        tx = _transfer().freeze_with(client).sign(sign_key).sign_with(sign_with_key.public_key(), sign_with_key.sign)
+        old_id = tx._current_transaction_id
 
-        _assert_not_regenerated(tx, client, tx._current_transaction_id, request_spy)
+        tx.execute(client, wait_for_receipt=False)
+
+        new_id = tx._current_transaction_id
+        assert _submitted_transaction_ids(request_spy) == [old_id, new_id]
+        assert set(tx._signature_map) == set(tx._transaction_body_bytes[new_id].values())
+        _assert_signed_only_by(
+            tx,
+            new_id,
+            [client.operator_private_key.public_key(), sign_key.public_key(), sign_with_key.public_key()],
+        )
 
 
-def test_non_operator_signature_blocks_regeneration(no_sleep, request_spy):
-    """Test that a signature the SDK cannot reproduce keeps the ID."""
+def test_payer_other_than_executing_operator_is_kept(no_sleep, request_spy, mock_client):
+    """Test that a payer other than the executing operator stays the payer and signs again."""
+    with mock_hedera_servers([[_expired(), _ok()]]) as client:
+        payer_key = mock_client.operator_private_key
+        tx = _transfer().freeze_with(mock_client).sign(payer_key)
+        old_id = tx._current_transaction_id
+        assert old_id.account_id != client.operator_account_id
+
+        tx.execute(client, wait_for_receipt=False)
+
+        new_id = tx._current_transaction_id
+        assert _submitted_transaction_ids(request_spy) == [old_id, new_id]
+        assert new_id.account_id == old_id.account_id
+        _assert_signed_only_by(tx, new_id, [payer_key.public_key()])
+
+
+def test_signature_without_a_signer_blocks_regeneration(no_sleep, request_spy):
+    """Test that a signature the SDK has no signer for, as from_bytes() restores, keeps the ID."""
     with mock_hedera_servers([[_expired(), _ok()]]) as client:
         other_key = PrivateKey.generate()
-        tx = _transfer().freeze_with(client).sign(other_key)
+        tx = _transfer().freeze_with(client)
+        tx._write_signature_pairs(
+            [
+                (body_bytes, _sign_to_signature_pair(other_key.public_key(), other_key.sign, body_bytes))
+                for body_bytes in tx._transaction_body_bytes[tx._current_transaction_id].values()
+            ]
+        )
 
         _assert_not_regenerated(tx, client, tx._current_transaction_id, request_spy)
         assert tx.is_signed_by(other_key.public_key())
+
+
+def test_failing_signer_leaves_the_transaction_unchanged(no_sleep, topic_id):
+    """Test that a signer raising during regeneration restores the IDs, bodies and signatures."""
+    with mock_hedera_servers([[_expired(), _ok(), _ok()]]) as client:
+        signer_key = PrivateKey.generate()
+        signer_available = True
+
+        def signer(body_bytes):
+            if not signer_available:
+                raise RuntimeError("signer unavailable")
+            return signer_key.sign(body_bytes)
+
+        tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_message("AB").set_chunk_size(1)
+        tx.freeze_with(client).sign_with(signer_key.public_key(), signer)
+        tx.sign_with_operator(client)
+
+        transaction_ids = list(tx._transaction_ids)
+        initial_id = tx._initial_transaction_id
+        bodies = {transaction_id: dict(bodies) for transaction_id, bodies in tx._transaction_body_bytes.items()}
+        signatures = {body: sig_map.SerializeToString() for body, sig_map in tx._signature_map.items()}
+
+        signer_available = False
+        with pytest.raises(RuntimeError, match="signer unavailable"):
+            tx.execute_all(client, wait_for_receipt=False)
+
+        assert list(tx._transaction_ids) == transaction_ids
+        assert tx._initial_transaction_id == initial_id
+        assert tx._transaction_body_bytes == bodies
+        assert {body: sig_map.SerializeToString() for body, sig_map in tx._signature_map.items()} == signatures
 
 
 @pytest.mark.parametrize("batch_key_is_operator", [True, False])
@@ -345,43 +434,6 @@ def test_batch_transaction_is_never_regenerated(no_sleep, request_spy, batch_key
 
         _assert_not_regenerated(batch, client, batch._current_transaction_id, request_spy)
         assert inner._current_transaction_id == inner_id
-
-
-# Execution-scoped operator state
-
-
-def test_should_retry_returns_expired_outside_execute(mock_client):
-    """Test that TRANSACTION_EXPIRED is not retried when no execute() regeneration context is active."""
-    tx = _transfer().freeze_with(mock_client).sign(mock_client.operator_private_key)
-
-    assert tx._should_retry(_expired()) == _ExecutionState.EXPIRED
-
-
-@pytest.mark.parametrize("responses", [[_expired(), _ok()], [_expired(), _expired()]], ids=["success", "failure"])
-def test_no_operator_state_remains_after_execute(no_sleep, responses):
-    """Test that the operator key is only held while execute() runs."""
-    with mock_hedera_servers([responses]) as client:
-        tx = _transfer().freeze_with(client)
-
-        contexts = []
-        original_can_regenerate = Transaction._can_regenerate_transaction_id
-
-        def record_context(self):
-            contexts.append(self._regeneration_context)
-            return original_can_regenerate(self)
-
-        with patch.object(Transaction, "_can_regenerate_transaction_id", record_context):
-            try:
-                tx.execute(client, wait_for_receipt=False)
-            except PrecheckError:
-                pass
-
-        assert contexts[0].operator == client.operator
-        assert tx._regeneration_context is None
-        assert not hasattr(tx, "operator_private_key")
-        assert not any(isinstance(value, PrivateKey) for value in vars(tx).values())
-
-        assert copy.deepcopy(tx)._current_transaction_id == tx._current_transaction_id
 
 
 # Chunked transactions
@@ -501,14 +553,3 @@ def test_consecutive_transaction_ids_small_counts(count):
     initial_id = TransactionId(AccountId(0, 0, 1800), timestamp_pb2.Timestamp(seconds=100, nanos=5))
 
     assert Transaction._consecutive_transaction_ids(initial_id, count) == [initial_id][:count]
-
-
-def test_max_attempts_is_not_reached_by_repeated_expiry(no_sleep):
-    """Test that repeated expiry surfaces as PrecheckError rather than MaxAttemptsError."""
-    with mock_hedera_servers([[_expired()] * 4]) as client:
-        tx = _transfer().freeze_with(client)
-
-        with pytest.raises(PrecheckError) as exc_info:
-            tx.execute(client, wait_for_receipt=False)
-
-        assert not isinstance(exc_info.value, MaxAttemptsError)

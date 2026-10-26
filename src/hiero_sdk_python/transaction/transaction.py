@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
 from itertools import pairwise
 from typing import TYPE_CHECKING, Literal, overload
 
 from google.protobuf.message import DecodeError
 
 from hiero_sdk_python.account.account_id import AccountId
-from hiero_sdk_python.client.client import Client, Operator
+from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.signer import Signer, _sign_to_signature_pair
 from hiero_sdk_python.exceptions import PrecheckError
@@ -34,20 +33,6 @@ if TYPE_CHECKING:
         ScheduleCreateTransaction,
     )
     from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
-
-
-@dataclass
-class _RegenerationContext:
-    """
-    Execution-scoped state for regenerating the transaction ID on TRANSACTION_EXPIRED.
-
-    Lives only for the duration of a single `Transaction.execute()` call. The operator may be
-    set with a private key or with a signer callback, so it is held as an `Operator`.
-    """
-
-    operator: Operator | None
-    enabled: bool
-    regenerated: bool = False
 
 
 class Transaction(_Executable):
@@ -94,8 +79,6 @@ class Transaction(_Executable):
         # restored with from_bytes(). A pinned ID is never replaced on TRANSACTION_EXPIRED.
         # This is independent of the freeze lock on `_transaction_ids`.
         self._transaction_id_pinned: bool = False
-        # Only set while execute() is running; see _RegenerationContext.
-        self._regeneration_context: _RegenerationContext | None = None
 
     def _make_request(self):
         """
@@ -211,7 +194,8 @@ class Transaction(_Executable):
     def _on_transaction_ids_regenerated(self, start_index: int) -> None:
         """
         Hook called after the transaction IDs from `start_index` onwards have been replaced,
-        and before their bodies are rebuilt.
+        and before their bodies are rebuilt. Also called when a failed regeneration puts the
+        old IDs back, so subclass state derived from the IDs must be computed from them.
         """
         pass
 
@@ -219,28 +203,25 @@ class Transaction(_Executable):
         """
         Whether the current transaction ID may be replaced after TRANSACTION_EXPIRED.
 
-        Only an ID the SDK generated itself, that nobody outside the SDK has seen, and that
-        the executing operator alone pays for and signs may be replaced, and at most once
-        per execute() call.
+        Only an ID the SDK generated itself and that nobody outside the SDK has seen may be
+        replaced, and only when every signature on the bodies to rebuild can be made again.
         """
-        context = self._regeneration_context
-        if context is None or context.operator is None or not context.enabled or context.regenerated:
+        # Resolved in freeze_with(). A transaction frozen with freeze() leaves it unset, but its
+        # caller-set ID is pinned and could never be regenerated anyway.
+        if self._regenerate_transaction_id is not True:
             return False
 
         if self._transaction_id_pinned or not self._supports_transaction_id_regeneration():
             return False
 
-        # The new ID keeps the current payer, so it must be the executing operator.
-        if self._transaction_ids.current.account_id != context.operator.account_id:
-            return False
-
-        # Only the operator's signature can be reproduced over the rebuilt bodies.
-        operator_public_key_bytes = context.operator.public_key.to_bytes_raw()
+        # Only a registered signer can sign the rebuilt bodies again; a signature restored
+        # without one cannot be reproduced.
+        signer_public_keys = {public_key.to_bytes_raw() for public_key, _ in self._signers}
         for transaction_id in self._transaction_ids.get_list()[self._transaction_ids.index :]:
             for body_bytes in self._transaction_body_bytes.get(transaction_id, {}).values():
                 sig_map = self._signature_map.get(body_bytes)
                 if sig_map is not None and any(
-                    sig_pair.pubKeyPrefix != operator_public_key_bytes for sig_pair in sig_map.sigPair
+                    sig_pair.pubKeyPrefix not in signer_public_keys for sig_pair in sig_map.sigPair
                 ):
                     return False
 
@@ -248,42 +229,46 @@ class Transaction(_Executable):
 
     def _regenerate_transaction_ids(self) -> None:
         """
-        Replace the current transaction ID and every later one, then rebuild and re-sign
-        only those bodies with the operator's key.
+        Replace the current transaction ID and every later one, then rebuild those bodies and
+        re-sign them with every registered signer.
 
         IDs before the current index belong to chunks that were already submitted and are
         left untouched. The new IDs keep the current payer and are spaced 1ns apart, as at
-        freeze time.
+        freeze time. If building or signing fails, the transaction is left as it was.
         """
-        context = self._regeneration_context
         start_index = self._transaction_ids.index
         old_transaction_ids = self._transaction_ids.get_list()[start_index:]
         new_transaction_ids = self._consecutive_transaction_ids(
             TransactionId.generate(self._transaction_ids.current.account_id), len(old_transaction_ids)
         )
 
-        self._transaction_ids.set_lock(False)
-        for offset, transaction_id in enumerate(new_transaction_ids):
-            self._transaction_ids.set(start_index + offset, transaction_id)
-        self._transaction_ids.set_lock(True)
+        self._replace_transaction_ids(start_index, new_transaction_ids)
+        try:
+            for offset, transaction_id in enumerate(new_transaction_ids):
+                self._set_current_chunk_index(start_index + offset)
+                self._transaction_body_bytes[transaction_id] = self._build_node_transaction_bodies(transaction_id)
 
-        self._on_transaction_ids_regenerated(start_index)
+            self._apply_signers()
+        except Exception:
+            for transaction_id in new_transaction_ids:
+                self._transaction_body_bytes.pop(transaction_id, None)
+            self._replace_transaction_ids(start_index, old_transaction_ids)
+            raise
+        finally:
+            self._set_current_chunk_index(None)
 
         for transaction_id in old_transaction_ids:
             for body_bytes in self._transaction_body_bytes.pop(transaction_id, {}).values():
                 self._signature_map.pop(body_bytes, None)
 
-        try:
-            for offset, transaction_id in enumerate(new_transaction_ids):
-                self._set_current_chunk_index(start_index + offset)
-                self._transaction_body_bytes[transaction_id] = self._build_node_transaction_bodies(transaction_id)
-        finally:
-            self._set_current_chunk_index(None)
+    def _replace_transaction_ids(self, start_index: int, transaction_ids: list[TransactionId]) -> None:
+        """Overwrites the locked transaction IDs from `start_index` onwards and notifies subclasses."""
+        self._transaction_ids.set_lock(False)
+        for offset, transaction_id in enumerate(transaction_ids):
+            self._transaction_ids.set(start_index + offset, transaction_id)
+        self._transaction_ids.set_lock(True)
 
-        # Every other body is already signed by the operator, so only the rebuilt ones are signed.
-        operator = context.operator
-        self._write_signature_pairs(self._collect_signature_pairs(operator.public_key, operator.signer))
-        context.regenerated = True
+        self._on_transaction_ids_regenerated(start_index)
 
     def sign(self, private_key: PrivateKey) -> Transaction:
         """
@@ -646,17 +631,8 @@ class Transaction(_Executable):
         if operator is not None and self._transaction_ids.get(0).account_id == operator.account_id:
             self.sign_with(operator.public_key, operator.signer)
 
-        # Resolved in freeze_with(). A transaction frozen with freeze() leaves it unset, but its
-        # caller-set ID is pinned and could never be regenerated anyway.
-        self._regeneration_context = _RegenerationContext(
-            operator=operator,
-            enabled=self._regenerate_transaction_id is True,
-        )
-        try:
-            # Call the _execute function from executable.py to handle the actual execution
-            response: TransactionResponse = self._execute(client, timeout)
-        finally:
-            self._regeneration_context = None
+        # Call the _execute function from executable.py to handle the actual execution
+        response: TransactionResponse = self._execute(client, timeout)
 
         response.validate_status = True
         response.transaction = self
@@ -931,15 +907,19 @@ class Transaction(_Executable):
         This transaction-level setting takes precedence over
         `Client.default_regenerate_transaction_id`.
 
-        Even when enabled, the ID is only regenerated (at most once per execute() call) if:
+        Even when enabled, the ID is only regenerated if:
         - it was generated by the SDK and is not pinned. Setting it with set_transaction_id(),
           reading the `transaction_id` property, calling to_bytes(), or loading the transaction
           with from_bytes() pins it. Reading the ID before execute() therefore disables
           regeneration, matching the Java and JavaScript SDKs;
-        - its payer is the executing client's operator account, which stays the payer;
-        - every signature on the bodies to be rebuilt is the operator's;
+        - every signature on the bodies to be rebuilt was made with sign(), sign_with() or the
+          operator, so it can be made again;
         - the transaction is not a BatchTransaction.
         Otherwise execute() raises PrecheckError(TRANSACTION_EXPIRED) as before.
+
+        The new ID keeps the current payer, and every registered signer is called again to sign
+        the rebuilt bodies. This happens on each TRANSACTION_EXPIRED until the max attempts or
+        request timeout run out, as in the Java and JavaScript SDKs.
 
         Args:
             regenerate_transaction_id (bool): Whether to regenerate the transaction ID on

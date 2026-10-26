@@ -398,8 +398,8 @@ class Client:
         Only transaction IDs that are not pinned are regenerated. Setting the ID, reading the
         `transaction_id` property, calling `to_bytes()` or loading the transaction with
         `from_bytes()` pins it, so reading the ID before `execute()` disables regeneration,
-        matching the Java and JavaScript SDKs. The ID is also kept when its payer is not this
-        client's operator, when it carries signatures from other keys, or for a
+        matching the Java and JavaScript SDKs. The ID is also kept when it carries a signature
+        that was not made with `sign()`, `sign_with()` or the operator, or for a
         `BatchTransaction`.
 
         Args:

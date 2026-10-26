@@ -137,7 +137,7 @@ receipt = final_tx.execute(client)
 
 ## Transaction ID Pinning
 
-If the network rejects a transaction with `TRANSACTION_EXPIRED`, `execute()` can replace its transaction ID and retry once. This is on by default; turn it off with `Transaction.set_regenerate_transaction_id(False)` or `Client.set_default_regenerate_transaction_id(False)`.
+If the network rejects a transaction with `TRANSACTION_EXPIRED`, `execute()` can replace its transaction ID, sign the new body again with every key the transaction was signed with, and retry. It does this on each `TRANSACTION_EXPIRED` until the client's max attempts or request timeout run out. This is on by default; turn it off with `Transaction.set_regenerate_transaction_id(False)` or `Client.set_default_regenerate_transaction_id(False)`.
 
 The SDK only replaces an ID that nobody outside the SDK can have seen. Any of these **pins** the ID, so it is never replaced:
 
