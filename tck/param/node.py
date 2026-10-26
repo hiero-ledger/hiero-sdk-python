@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from hiero_sdk_python.address_book.endpoint import Endpoint
-from tck.param.base import BaseTransactionParams
+from tck.param.base import BaseParams, BaseTransactionParams
 from tck.util.param_utils import decode_hex, parse_common_transaction_params, parse_session_id, to_bool, to_int
 
 
@@ -155,3 +155,16 @@ class DeleteNodeParams(BaseTransactionParams):
             sessionId=parse_session_id(params),
             commonTransactionParams=parse_common_transaction_params(params),
         )
+
+
+@dataclass
+class GetAddressBookParams(BaseParams):
+    """Request parameters for the getAddressBook endpoint."""
+
+    fileId: str | None = None
+    limit: int | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GetAddressBookParams:
+        """Parse JSON-RPC params into a GetAddressBookParams instance."""
+        return cls(fileId=params.get("fileId"), limit=to_int(params.get("limit")), sessionId=parse_session_id(params))

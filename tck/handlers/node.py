@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.address_book.address_book_query import AddressBookQuery
+from hiero_sdk_python.address_book.node_address import NodeAddress
+from hiero_sdk_python.file.file_id import FileId
 from hiero_sdk_python.nodes.node_create_transaction import NodeCreateTransaction
 from hiero_sdk_python.nodes.node_delete_transaction import NodeDeleteTransaction
 from hiero_sdk_python.nodes.node_update_transaction import NodeUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from tck.handlers.registry import rpc_method
-from tck.param.node import CreateNodeParams, DeleteNodeParams, UpdateNodeParams
+from tck.param.node import CreateNodeParams, DeleteNodeParams, UpdateNodeParams, GetAddressBookParams
 from tck.response.base import StatusOnlyResponse
-from tck.response.node import NodeResponse
+from tck.response.node import (
+    EndpointResponse,
+    GetAddressBookResponse,
+    NodeAddressResponse,
+    NodeResponse,
+)
 from tck.util.client_utils import get_client
 from tck.util.constants import DEFAULT_GRPC_TIMEOUT
 from tck.util.key_utils import get_key_from_string
@@ -122,3 +130,42 @@ def delete_node(params: DeleteNodeParams) -> NodeResponse:
         node_id = str(receipt.node_id)
 
     return NodeResponse(node_id, ResponseCode(receipt.status).name)
+
+
+def _map_to_node_address_response(address: NodeAddress) -> NodeAddressResponse:
+    """Helper to map the SDK NodeAddress to JSON-RPC NodeAddressResponse."""
+    endpoints = [
+        EndpointResponse(
+            address=bytes.hex(endpoint._address) if endpoint._address is not None else None,
+            port=endpoint._port,
+            domainName=endpoint._domain_name,
+        )
+        for endpoint in address._addresses
+    ]
+
+    return NodeAddressResponse(
+        publicKey=address._public_key,
+        accountId=str(address._account_id) if address._account_id is not None else None,
+        nodeId=address._node_id,
+        certHash=bytes.hex(address._cert_hash) if address._cert_hash is not None else None,
+        serviceEndpoints=endpoints,
+        description=address._description,
+        stake=address._stake,
+    )
+
+
+@rpc_method("getAddressBook")
+def get_address_book(params: GetAddressBookParams) -> GetAddressBookResponse:
+    """Get address book query."""
+    client = get_client(params.sessionId)
+
+    query = AddressBookQuery()
+    if params.fileId is not None:
+        query.set_file_id(FileId.from_string(params.fileId))
+    if params.limit is not None:
+        query.set_limit(params.limit)
+
+    address_book = query.execute(client)
+    return GetAddressBookResponse(
+        nodeAddresses=[_map_to_node_address_response(address) for address in address_book.node_addresses]
+    )

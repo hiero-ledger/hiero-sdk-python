@@ -18,6 +18,7 @@ class NodeDict(TypedDict):
         node_cert_hash (str): The node certificate hash in hexadecimal format.
         service_endpoints (list[EndpointDict]): List of service endpoints for the node.
         description (str): Description of the node.
+        stake (int): The amount of tinybars staked to the node.
     """
 
     public_key: str
@@ -26,6 +27,7 @@ class NodeDict(TypedDict):
     node_cert_hash: str
     service_endpoints: list[EndpointDict]
     description: str
+    stake: int
 
 
 class NodeAddress:
@@ -39,6 +41,7 @@ class NodeAddress:
         cert_hash: bytes = None,
         addresses: list[Endpoint] = None,
         description: str = None,
+        stake: int = None,
     ):
         """
         Initialize a new NodeAddress instance.
@@ -50,6 +53,7 @@ class NodeAddress:
             cert_hash (bytes, optional): The node certificate hash.
             addresses (list[Endpoint], optional): List of endpoints for the node.
             description (str, optional): Description of the node.
+            stake (str, optional): The amount of tinybars staked to the node.
         """
         self._public_key: str = public_key
         self._account_id: AccountId = account_id
@@ -57,6 +61,7 @@ class NodeAddress:
         self._cert_hash: bytes | None = cert_hash
         self._addresses: list[Endpoint] = addresses
         self._description: str = description
+        self._stake: int = stake
 
     @property
     def cert_hash(self) -> bytes | None:
@@ -89,6 +94,7 @@ class NodeAddress:
             cert_hash=node_address_proto.nodeCertHash,
             addresses=addresses,
             description=node_address_proto.description,
+            stake=node_address_proto.stake,
         )
 
     def _to_proto(self):
@@ -110,6 +116,9 @@ class NodeAddress:
 
         for endpoint in self._addresses:
             node_address_proto.serviceEndpoint.append(endpoint._to_proto())
+
+        if self._stake:
+            node_address_proto.stake = self._stake
 
         return node_address_proto
 
@@ -146,6 +155,7 @@ class NodeAddress:
         description: str = node.get("description")
 
         endpoints: list[Endpoint] = [Endpoint.from_dict(endpoint) for endpoint in service_endpoints]
+        stake: int = node.get("stake")
 
         return cls(
             public_key=public_key,
@@ -154,4 +164,5 @@ class NodeAddress:
             cert_hash=cert_hash,
             description=description,
             addresses=endpoints,
+            stake=stake,
         )
