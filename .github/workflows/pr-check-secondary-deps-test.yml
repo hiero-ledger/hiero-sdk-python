@@ -48,7 +48,7 @@ jobs:
       - name: Install minimum dependencies and tooling
         run: |
          # Minimum-deps compatibility check: use a non-editable install for stable packaging behavior.
-          uv sync --all-extras --resolution=lowest-direct --no-editable -v
+          uv sync --all-extras --resolution=lowest-direct --no-editable
 
       - name: Show resolved core dependency versions
         run: |
