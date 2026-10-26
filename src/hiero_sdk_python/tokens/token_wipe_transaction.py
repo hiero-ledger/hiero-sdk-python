@@ -164,3 +164,34 @@ class TokenWipeTransaction(Transaction):
         self.amount = proto.amount
         self.serial = list(proto.serialNumbers)
         return self
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TokenWipeTransaction:
+        """
+        Creates a TokenWipeTransaction instance from protobuf components.
+
+        Args:
+            transaction_body: The parsed TransactionBody protobuf
+
+        Returns:
+            TokenWipeTransaction: A new transaction instance with all fields restored
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenWipe"):
+            token_wipe_body = transaction_body.tokenWipe
+
+            if token_wipe_body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(token_wipe_body.token)
+            else:
+                transaction.token_id = None
+
+            if token_wipe_body.HasField("account"):
+                transaction.account_id = AccountId._from_proto(token_wipe_body.account)
+            else:
+                transaction.account_id = None
+
+            transaction.amount = token_wipe_body.amount or None
+            transaction.serial = list(token_wipe_body.serialNumbers)
+
+        return transaction
