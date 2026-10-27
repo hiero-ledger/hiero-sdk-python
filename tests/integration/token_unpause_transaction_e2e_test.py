@@ -43,17 +43,8 @@ def test_unpause_token(env, pausable_token):
     assert pause_receipt.status == ResponseCode.SUCCESS
     assert get_pause_status(env, pausable_token) == "PAUSED"
 
-    unpause_transaction = TokenUnpauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
-
-    original_bytes = unpause_transaction.to_bytes()
-    restored = Transaction.from_bytes(original_bytes)
-
-    assert isinstance(restored, TokenUnpauseTransaction)
-    assert restored.token_id == pausable_token
-    assert restored.is_signed_by(pause_key.public_key())
-    assert restored.to_bytes() == original_bytes
-
-    unpause_receipt = restored.execute(env.client)
+    unpause_tx = TokenUnpauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
+    unpause_receipt = unpause_tx.execute(env.client)
     assert unpause_receipt.status == ResponseCode.SUCCESS
     assert get_pause_status(env, pausable_token) == "UNPAUSED"
 
@@ -106,3 +97,26 @@ def test_unpause_token_with_invalid_token_id(env):
 
     unpause_receipt = unpause_tx.execute(env.client)
     assert unpause_receipt.status == ResponseCode.INVALID_TOKEN_ID
+
+
+@pytest.mark.integration
+def test_serialize_token_unpause_transaction_can_execute(env, pausable_token):
+    """Verify a signed unpause transaction survives serialization and unpauses the token."""
+    pause_receipt = pause_token(env, pausable_token)
+
+    assert pause_receipt.status == ResponseCode.SUCCESS
+    assert get_pause_status(env, pausable_token) == "PAUSED"
+
+    unpause_transaction = TokenUnpauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
+
+    original_bytes = unpause_transaction.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenUnpauseTransaction)
+    assert restored.token_id == pausable_token
+    assert restored.is_signed_by(pause_key.public_key())
+    assert restored.to_bytes() == original_bytes
+
+    unpause_receipt = restored.execute(env.client)
+    assert unpause_receipt.status == ResponseCode.SUCCESS
+    assert get_pause_status(env, pausable_token) == "UNPAUSED"

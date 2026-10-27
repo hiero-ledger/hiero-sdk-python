@@ -118,7 +118,8 @@ def test_transfer_before_pause(env, account: Account, pausable_token):
 @mark.integration
 def test_pause_sets_pause_status_to_paused(env, pausable_token):
     """
-    Restore a signed pause transaction and verify that it pauses the token.
+    Take a pausable token (UNPAUSED), submit a pause transaction signed
+    with its pause key, then verify it ends up PAUSED.
     """
     # 1) pre-pause sanity check
     info = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
@@ -126,23 +127,14 @@ def test_pause_sets_pause_status_to_paused(env, pausable_token):
     assert info.pause_status.name == "UNPAUSED"
 
     # 2) build, freeze, sign & execute the pause tx
-    pause_transaction = TokenPauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
-
-    original_bytes = pause_transaction.to_bytes()
-    restored = Transaction.from_bytes(original_bytes)
-
-    assert isinstance(restored, TokenPauseTransaction)
-    assert restored.token_id == pausable_token
-    assert restored.is_signed_by(pause_key.public_key())
-    assert restored.to_bytes() == original_bytes
-
-    receipt = restored.execute(env.client)
+    tx = TokenPauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
+    receipt = tx.execute(env.client)
     assert receipt.status == ResponseCode.SUCCESS
 
     # 3) post-pause verify
-    info = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
+    info2 = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
 
-    assert info.pause_status.name == "PAUSED"
+    assert info2.pause_status.name == "PAUSED"
 
 
 @mark.integration
@@ -179,3 +171,33 @@ def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
     assert transfer_receipt.status == ResponseCode.TOKEN_IS_PAUSED, (
         f"Expected TOKEN_IS_PAUSED but got {ResponseCode(transfer_receipt.status).name}"
     )
+
+
+@mark.integration
+def test_serialize_token_pause_transaction_can_execute(env, pausable_token):
+    """
+    Verify a signed pause transaction survives serialization and pauses the token.
+    """
+    # 1) pre-pause sanity check
+    info = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
+
+    assert info.pause_status.name == "UNPAUSED"
+
+    # 2) build, freeze, sign & execute the pause tx
+    pause_transaction = TokenPauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
+
+    original_bytes = pause_transaction.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenPauseTransaction)
+    assert restored.token_id == pausable_token
+    assert restored.is_signed_by(pause_key.public_key())
+    assert restored.to_bytes() == original_bytes
+
+    receipt = restored.execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS
+
+    # 3) post-pause verify
+    info = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
+
+    assert info.pause_status.name == "PAUSED"
