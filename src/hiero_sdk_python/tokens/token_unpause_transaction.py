@@ -112,7 +112,7 @@ class TokenUnpauseTransaction(Transaction):
         Restores common fields and token unpause fields from protobuf.
 
         Args:
-            transaction_body: A parsed TransactionBody from protobuf.
+            transaction_body: The parsed TransactionBody from protobuf.
 
         Returns:
             TokenUnpauseTransaction: A transaction with common and token unpause

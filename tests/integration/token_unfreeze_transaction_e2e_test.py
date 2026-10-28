@@ -61,6 +61,7 @@ def test_integration_token_unfreeze_transaction_can_execute():
         )
 
         unfreeze_transaction = TokenUnfreezeTransaction(token_id=token_id, account_id=account_id)
+
         unfreeze_transaction.freeze_with(env.client)
         receipt = unfreeze_transaction.execute(env.client)
 

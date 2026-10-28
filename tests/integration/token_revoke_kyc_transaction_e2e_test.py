@@ -57,7 +57,6 @@ def test_token_revoke_kyc_transaction_can_execute():
 
         # Revoke KYC from the new account
         receipt = TokenRevokeKycTransaction().set_account_id(account_id).set_token_id(token_id).execute(env.client)
-
         assert receipt.status == ResponseCode.SUCCESS, (
             f"Token revoke KYC failed with status: {ResponseCode(receipt.status).name}"
         )

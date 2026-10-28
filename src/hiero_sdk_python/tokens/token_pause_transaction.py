@@ -96,7 +96,7 @@ class TokenPauseTransaction(Transaction):
         Restore common and token pause fields from protobuf.
 
         Args:
-            transaction_body: A parsed TransactionBody from protobuf.
+            transaction_body: The parsed TransactionBody from protobuf.
 
         Returns:
             TokenPauseTransaction: A transaction with common and token pause

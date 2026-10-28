@@ -44,6 +44,7 @@ def test_unpause_token(env, pausable_token):
     assert get_pause_status(env, pausable_token) == "PAUSED"
 
     unpause_tx = TokenUnpauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
+
     unpause_receipt = unpause_tx.execute(env.client)
     assert unpause_receipt.status == ResponseCode.SUCCESS
     assert get_pause_status(env, pausable_token) == "UNPAUSED"

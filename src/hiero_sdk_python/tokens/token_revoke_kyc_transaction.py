@@ -104,7 +104,7 @@ class TokenRevokeKycTransaction(Transaction):
         Restore common fields and token revoke kyc fields from protobuf.
 
         Args:
-            transaction_body: A parsed TransactionBody from protobuf.
+            transaction_body: The parsed TransactionBody from protobuf.
 
         Returns:
             TokenRevokeKycTransaction: A transaction with common and token
