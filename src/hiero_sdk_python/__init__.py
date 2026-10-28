@@ -5,10 +5,13 @@ from .account.account_create_transaction import AccountCreateTransaction
 from .account.account_delete_transaction import AccountDeleteTransaction
 from .account.account_id import AccountId
 from .account.account_info import AccountInfo
+from .account.account_mirror_node_balance import MirrorNodeAccountBalance
 from .account.account_records_query import AccountRecordsQuery
 from .account.account_update_transaction import AccountUpdateTransaction
+from .account.mirror_node_token_balance import MirrorNodeTokenBalance
 
 # Address book
+from .address_book.address_book_query import AddressBookQuery, NodeAddressBook
 from .address_book.block_node_api import BlockNodeApi
 from .address_book.block_node_service_endpoint import BlockNodeServiceEndpoint
 from .address_book.endpoint import Endpoint
@@ -50,6 +53,7 @@ from .contract.ethereum_transaction import EthereumTransaction
 from .crypto.evm_address import EvmAddress
 from .crypto.private_key import PrivateKey
 from .crypto.public_key import PublicKey
+from .crypto.signer import Signer
 
 # Duration
 from .Duration import Duration
@@ -97,6 +101,8 @@ from .prng_transaction import PrngTransaction
 from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.account_info_query import AccountInfoQuery
 from .query.fee_estimate_query import FeeEstimateQuery
+from .query.mirror_node_account_balance_query import MirrorNodeAccountBalanceQuery
+from .query.mirror_node_token_balance_query import MirrorNodeTokenBalanceQuery
 from .query.token_info_query import TokenInfoQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
 from .query.topic_info_query import TopicInfoQuery
@@ -190,9 +196,12 @@ __all__ = [
     "AccountAllowanceApproveTransaction",
     "AccountAllowanceDeleteTransaction",
     "AccountRecordsQuery",
+    "MirrorNodeAccountBalance",
+    "MirrorNodeTokenBalance",
     # Crypto
     "PrivateKey",
     "PublicKey",
+    "Signer",
     "EvmAddress",
     # Tokens
     "TokenCreateTransaction",
@@ -256,6 +265,8 @@ __all__ = [
     "TokenNftInfoQuery",
     "TokenInfoQuery",
     "AccountInfoQuery",
+    "MirrorNodeAccountBalanceQuery",
+    "MirrorNodeTokenBalanceQuery",
     # Address book
     "BlockNodeApi",
     "BlockNodeServiceEndpoint",
@@ -268,6 +279,8 @@ __all__ = [
     "RegisteredNodeAddressBookQuery",
     "RegisteredServiceEndpoint",
     "RpcRelayServiceEndpoint",
+    "AddressBookQuery",
+    "NodeAddressBook",
     # Logger
     "Logger",
     "LogLevel",

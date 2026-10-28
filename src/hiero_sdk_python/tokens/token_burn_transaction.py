@@ -175,3 +175,29 @@ class TokenBurnTransaction(Transaction):
         self.amount = proto.amount
         self.serials = list(proto.serialNumbers)
         return self
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TokenBurnTransaction:
+        """
+        Creates a TokenBurnTransaction instance from protobuf components.
+
+        Args:
+            transaction_body: The parsed TransactionBody protobuf
+
+        Returns:
+            TokenBurnTransaction: A new transaction instance with all fields restored
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenBurn"):
+            token_burn_body = transaction_body.tokenBurn
+
+            if token_burn_body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(token_burn_body.token)
+            else:
+                transaction.token_id = None
+
+            transaction.amount = token_burn_body.amount or None
+            transaction.serials = list(token_burn_body.serialNumbers)
+
+        return transaction

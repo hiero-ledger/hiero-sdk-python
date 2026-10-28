@@ -19,6 +19,10 @@ You can choose either syntax or even mix both styles in your projects.
   - [Allowance Approve Transaction](#allowance-approve-transaction)
   - [Allowance Delete Transaction](#allowance-delete-transaction)
   - [Querying Account Records](#querying-account-records)
+  - [Querying Account HBAR Balance Using Mirror Node](#querying-account-hbar-balance-using-mirror-node)
+  - [Querying Account Token Balance Using Mirror Node](#querying-account-token-balance-using-mirror-node)
+- [Address Book](#address-book)
+  - [Querying Address Book](#querying-address-book)
 - [Token Transactions](#token-transactions)
   - [Creating a Token](#creating-a-token)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -91,6 +95,10 @@ You can choose either syntax or even mix both styles in your projects.
 ## Account Transactions
 
 ### Querying Account Balance
+
+`CryptoGetAccountBalanceQuery` asks a consensus node and needs a configured client. For free,
+operator-less reads of a committed balance, use the mirror node queries below instead; they lag
+the network by a few seconds.
 
 #### Pythonic Syntax:
 ```
@@ -365,6 +373,78 @@ records = AccountRecordsQuery().set_account_id(account_id).execute(client)
 
 for record in records:
     print(record)
+```
+
+### Querying Account HBAR Balance Using Mirror Node
+
+Free and operator-less. The account may be given as `shard.realm.num`, an EVM address or a
+public key alias. An unknown account raises `PrecheckError` with `INVALID_ACCOUNT_ID`.
+
+#### Pythonic Syntax:
+```python
+balance = MirrorNodeAccountBalanceQuery(account_id).execute(client)
+print(f"Account balance: {balance.hbars}")
+```
+
+#### Method Chaining:
+```python
+balance = (
+    MirrorNodeAccountBalanceQuery()
+    .set_account_id(account_id)
+    .execute(client)
+)
+print(f"Account balance: {balance.hbars}")
+```
+
+### Querying Account Token Balance Using Mirror Node
+
+Free and operator-less. `balance` is in the token's smallest unit with `decimals` alongside it,
+and `associated` is `False` when the account has no relationship with the token. An unknown
+account raises `PrecheckError` with `INVALID_ACCOUNT_ID`.
+
+#### Pythonic Syntax:
+```python
+token_balance = (
+    MirrorNodeTokenBalanceQuery(account_id, token_id)
+    .execute(client)
+)
+print(token_balance)
+```
+
+#### Method Chaining:
+```python
+token_balance = (
+    MirrorNodeTokenBalanceQuery()
+    .set_account_id(account_id)
+    .set_token_id(token_id)
+    .execute(client)
+)
+print(token_balance)
+```
+
+
+
+
+## Address Book
+
+### Querying Address Book
+
+#### Pythonic Syntax:
+```python
+# Note address book query only work with `0.0.102` or `0.0.101`
+address_book = AddressBookQuery(file_id=file_id, limit=2).execute(client)
+
+for node_address in address_book.node_addresses:
+    print(node_address)
+```
+
+#### Method Chaining:
+```python
+# Note address book query only work with `0.0.102` or `0.0.101`
+address_book = AddressBookQuery().set_file_id(file_id).set_limit(limit).execute(client)
+
+for node_address in address_book.node_addresses:
+    print(node_address)
 ```
 
 ## Token Transactions

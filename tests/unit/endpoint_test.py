@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ipaddress
 from unittest.mock import MagicMock
 
 import pytest
@@ -77,7 +78,7 @@ def test_from_proto_port_mapping(input_port, expected_port):
     """
     mock_proto = MagicMock()
     mock_proto.port = input_port
-    mock_proto.ipAddressV4 = b"127.0.1.1"
+    mock_proto.ipAddressV4 = ipaddress.ip_address("127.0.1.1").packed
     mock_proto.domain_name = "redpanda.com"
 
     endpoint = Endpoint._from_proto(mock_proto)
@@ -126,7 +127,7 @@ def test_to_proto():
     """
     endpoint = Endpoint(address=b"127.0.1.1", port=77777, domain_name="redpanda.com")
     proto = endpoint._to_proto()
-    assert proto.ipAddressV4 == b"127.0.1.1"
+    assert proto.ipAddressV4 == ipaddress.ip_address("127.0.1.1").packed
     assert proto.port == 77777
     assert proto.domain_name == "redpanda.com"
 
@@ -139,13 +140,6 @@ def test_str():
     # Verify return type
     assert isinstance(result, str), "String representation should return a string"
     assert result == "127.0.1.1:77777"
-
-
-def test_str_with_none_values():
-    """Test string representation when address or port is None."""
-    endpoint = Endpoint(address=None, port=None, domain_name="example.com")
-    with pytest.raises(AttributeError):
-        str(endpoint)
 
 
 @pytest.mark.parametrize(
@@ -170,3 +164,55 @@ def test_from_dict_success():
     assert endpoint.get_address() == b"127.0.0.1"
     assert endpoint.get_port() == 77777
     assert endpoint.get_domain_name() == "redpanda.com"
+
+
+@pytest.mark.parametrize(
+    "endpoint",
+    (
+        Endpoint(address=b"", domain_name="test.com", port=50211),
+        Endpoint(address=b"127.0.0.1", domain_name="", port=50211),
+        Endpoint(address=None, domain_name="test.com", port=50211),
+        Endpoint(address=b"127.0.0.1", domain_name=None, port=50211),
+    ),
+)
+def test_validate_no_ip_and_domain(endpoint):
+    """Test validate_no_ip_and_domain with endpoint containing either ip or domain."""
+    Endpoint._validate_no_ip_and_domain(endpoint)
+
+
+def test_validate_no_ip_and_domain_with_none_param():
+    """Test validate_no_ip_and_domain with endpoint as none."""
+    Endpoint._validate_no_ip_and_domain(None)
+
+
+def test_validate_no_ip_and_domain_containing_both_ip_and_domain():
+    """Test validate_no_ip_and_domain with endpoint containing both ip and domain."""
+    endpoint = Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211)
+    with pytest.raises(ValueError, match="Endpoint must not contain both ipAddressV4 and domainName"):
+        Endpoint._validate_no_ip_and_domain(endpoint)
+
+
+def test_str_representation_with_ipaddress():
+    """Test the endpoint include ip address if present."""
+    endpoint = Endpoint(address=b"127.0.0.1", port=8080, domain_name=None)
+    result = endpoint.__str__()
+    assert result == "127.0.0.1:8080"
+
+
+def test_str_representation_with_domain():
+    """Test the endpoint include domain if present."""
+    endpoint = Endpoint(address=None, port=8080, domain_name="testnet.com")
+    result = endpoint.__str__()
+    assert result == "testnet.com:8080"
+
+
+def test_proto_roundtrip_with_unpack_address():
+    """Test protbuf roundtip with unpack address."""
+    ep = Endpoint(address=b"127.0.0.1", port=50211)
+    assert Endpoint._from_proto(ep._to_proto()).get_address() == b"127.0.0.1"
+
+
+def test_proto_roundtrip_with_pack_address():
+    """Test protbuf roundtip with pack address."""
+    ep = Endpoint(address=b"\x7f\x00\x00\x01", port=50211)
+    assert Endpoint._from_proto(ep._to_proto()).get_address() == b"127.0.0.1"

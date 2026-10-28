@@ -10,7 +10,9 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -267,3 +269,145 @@ def test_build_scheduled_body_nft(mock_account_ids, metadata):
     assert schedulable_body.tokenMint.token == token_id._to_proto()
     assert schedulable_body.tokenMint.amount == 0
     assert schedulable_body.tokenMint.metadata == metadata
+
+
+def test_token_mint_transaction_from_protobuf_fungible(mock_account_ids, amount):
+    """TokenMintTransaction should deserialize fungible mint fields from protobuf correctly."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    transaction = TokenMintTransaction().set_token_id(token_id).set_amount(amount)
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenMint.CopyFrom(body)
+
+    parsed = TokenMintTransaction._from_protobuf(transaction_body)
+
+    assert parsed.token_id == token_id
+    assert parsed.amount == amount
+    assert parsed.metadata is None
+
+
+def test_token_mint_transaction_from_protobuf_nft(mock_account_ids, metadata):
+    """TokenMintTransaction should deserialize NFT mint fields from protobuf correctly."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    transaction = TokenMintTransaction().set_token_id(token_id).set_metadata(metadata)
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenMint.CopyFrom(body)
+
+    parsed = TokenMintTransaction._from_protobuf(transaction_body)
+
+    assert parsed.token_id == token_id
+    assert parsed.metadata == metadata
+    assert parsed.amount is None
+
+
+def test_token_mint_transaction_from_protobuf_mixed_payload(mock_account_ids):
+    """TokenMintTransaction should deserialize both amount and metadata when both are present."""
+    _, _, _, token_id, _ = mock_account_ids
+    metadata = [b"meta-1", b"meta-2"]
+
+    transaction = TokenMintTransaction().set_token_id(token_id).set_amount(10).set_metadata(metadata)
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenMint.CopyFrom(body)
+
+    parsed = TokenMintTransaction._from_protobuf(transaction_body)
+
+    assert parsed.token_id == token_id
+    assert parsed.amount == 10
+    assert parsed.metadata == metadata
+
+
+def test_from_bytes_round_trip_fungible(mock_account_ids, amount):
+    """Test serialization round-trip via Transaction.from_bytes() for fungible tokens."""
+    payer_account, _, node_account_id, token_id, _ = mock_account_ids
+
+    tx1 = (
+        TokenMintTransaction()
+        .set_token_id(token_id)
+        .set_amount(amount)
+        .set_transaction_id(generate_transaction_id(payer_account))
+        .set_node_account_ids([node_account_id])
+    )
+    tx1.freeze()
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenMintTransaction)
+    assert tx2.token_id == token_id
+    assert tx2.amount == amount
+    assert tx2.metadata is None
+    assert tx2.to_bytes() == data
+
+
+def test_from_bytes_round_trip_nft(mock_account_ids, metadata):
+    """Test serialization round-trip via Transaction.from_bytes() for NFT tokens."""
+    payer_account, _, node_account_id, token_id, _ = mock_account_ids
+
+    tx1 = (
+        TokenMintTransaction()
+        .set_token_id(token_id)
+        .set_metadata(metadata)
+        .set_transaction_id(generate_transaction_id(payer_account))
+        .set_node_account_ids([node_account_id])
+    )
+    tx1.freeze()
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenMintTransaction)
+    assert tx2.token_id == token_id
+    assert tx2.metadata == metadata
+    assert tx2.amount is None
+    assert tx2.to_bytes() == data
+
+
+def test_from_protobuf_without_token():
+    """Test _from_protobuf correctly handles absent token field."""
+    from hiero_sdk_python.hapi.services import token_mint_pb2
+
+    tx_body = TransactionBody()
+    tx_body.tokenMint.CopyFrom(token_mint_pb2.TokenMintTransactionBody(amount=500))
+
+    restored = TokenMintTransaction._from_protobuf(tx_body)
+    assert restored.token_id is None
+    assert restored.amount == 500
+    assert restored.metadata is None
+
+
+def test_from_protobuf_empty_body():
+    """Test _from_protobuf correctly restores amount as None for an empty body."""
+    from hiero_sdk_python.hapi.services import token_mint_pb2
+
+    tx_body = TransactionBody()
+    tx_body.tokenMint.CopyFrom(token_mint_pb2.TokenMintTransactionBody())
+
+    restored = TokenMintTransaction._from_protobuf(tx_body)
+    assert restored.token_id is None
+    assert restored.amount is None
+    assert restored.metadata is None
+
+
+def test_from_bytes_round_trip_unconfigured(mock_account_ids):
+    """Test round-trip preserves amount is None for an unconfigured mint transaction."""
+    payer_account, _, node_account_id, _, _ = mock_account_ids
+
+    tx1 = (
+        TokenMintTransaction()
+        .set_transaction_id(generate_transaction_id(payer_account))
+        .set_node_account_ids([node_account_id])
+    )
+    tx1.freeze()
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenMintTransaction)
+    assert tx2.token_id is None
+    assert tx2.amount is None
+    assert tx2.metadata is None
+    assert tx2.to_bytes() == data
