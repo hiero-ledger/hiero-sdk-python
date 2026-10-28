@@ -208,7 +208,7 @@ def test_node_validate_tls_certificate_hash_mismatch(mock_node_with_address_book
     node._verify_certificates = True
 
     pem_cert = b"-----BEGIN CERTIFICATE-----\nTEST\n-----END CERTIFICATE-----\n"
-    wrong_hash = b"wrong_hash"
+    wrong_hash = hashlib.sha384(b"some other certificate").hexdigest().encode("utf-8")
     node._address_book._cert_hash = wrong_hash
     node._node_pem_cert = pem_cert
 
