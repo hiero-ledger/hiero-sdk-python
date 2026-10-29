@@ -3,14 +3,14 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/hiero-ledger/hiero-sdk-python/badge)](https://scorecard.dev/viewer/?uri=github.com/hiero-ledger/hiero-sdk-python)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/10697/badge)](https://bestpractices.coreinfrastructure.org/projects/10697)
 [![License](https://img.shields.io/badge/license-apache2-blue.svg)](https://github.com/hiero-ledger/hiero-sdk-python/blob/main/LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 
 A Python SDK for interacting with the Hedera Hashgraph platform.
 
 > [!NOTE]
 >**Python compatibility**
 >
-> The SDK supports Python ≥ 3.10 and is tested on Python 3.10–3.14. Newer Python versions may work but have not yet been validated.
+> The SDK supports Python ≥ 3.11 and is tested on Python 3.11–3.15. Newer Python versions may work but have not yet been validated.
 
 ## Quick Start
 
