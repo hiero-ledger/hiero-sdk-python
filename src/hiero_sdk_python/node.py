@@ -96,15 +96,12 @@ class _HederaTrustManager:
 
         self.verify_certificate: bool = verify_certificate
         if normalized_hash is not None and len(normalized_hash) != _SHA384_DIGEST_LENGTH * 2:
-            if verify_certificate:
-                raise ValueError(
-                    "Invalid certificate hash format: expected exactly "
-                    f"{_SHA384_DIGEST_LENGTH * 2} lowercase hexadecimal characters "
-                    f"(SHA-384), got {len(normalized_hash)}"
-                )
-            self.cert_hash: str | None = None
-        else:
-            self.cert_hash: str | None = normalized_hash
+            raise ValueError(
+                "Invalid certificate hash format: expected exactly "
+                f"{_SHA384_DIGEST_LENGTH * 2} lowercase hexadecimal characters "
+                f"(SHA-384), got {len(normalized_hash)}"
+            )
+        self.cert_hash: str | None = normalized_hash
         if self.cert_hash is None and verify_certificate:
             raise ValueError(_NO_TRUST_ANCHOR_MESSAGE)
 
