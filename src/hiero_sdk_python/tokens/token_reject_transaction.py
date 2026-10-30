@@ -166,7 +166,8 @@ class TokenRejectTransaction(Transaction):
         """
         return _Method(transaction_func=channel.token.rejectToken, query_func=None)
 
-    def _from_proto(self, proto: TokenRejectTransactionBody) -> TokenRejectTransaction:
+    @classmethod
+    def _from_proto(cls, proto: TokenRejectTransactionBody) -> TokenRejectTransaction:
         """
         Deserializes a TokenRejectTransactionBody from a protobuf object.
 
@@ -174,16 +175,49 @@ class TokenRejectTransaction(Transaction):
             proto (TokenRejectTransactionBody): The protobuf object to deserialize.
 
         Returns:
-            TokenRejectTransaction: Returns self for method chaining.
+            TokenRejectTransaction: A new transaction instance with fields restored.
         """
-        self.owner_id = AccountId._from_proto(proto.owner)
+        owner_id = AccountId._from_proto(proto.owner) if proto.HasField("owner") else None
 
-        # Extract fungible token IDs
-        self.token_ids = [
-            TokenId._from_proto(entry.fungible_token) for entry in proto.rejections if entry.HasField("fungible_token")
-        ]
+        token_ids: list[TokenId] = []
+        nft_ids: list[NftId] = []
 
-        # Extract NFT IDs
-        self.nft_ids = [NftId._from_proto(entry.nft) for entry in proto.rejections if entry.HasField("nft")]
+        for entry in proto.rejections:
+            if entry.HasField("fungible_token"):
+                token_ids.append(TokenId._from_proto(entry.fungible_token))
+            elif entry.HasField("nft"):
+                nft_ids.append(NftId._from_proto(entry.nft))
 
-        return self
+        return cls(owner_id=owner_id, token_ids=token_ids, nft_ids=nft_ids)
+
+    @classmethod
+    def _from_protobuf(
+        cls,
+        transaction_body: transaction_pb2.TransactionBody,
+        body_bytes: bytes | None = None,
+        sig_map=None,
+    ) -> TokenRejectTransaction:
+        """
+        Creates a TokenRejectTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+            body_bytes (bytes, optional): The raw bytes of the transaction body.
+            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
+
+        Returns:
+            TokenRejectTransaction: A new transaction instance with all fields restored.
+        """
+        try:
+            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        except TypeError:
+            transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenReject"):
+            token_reject_body = transaction_body.tokenReject
+            proto_tx = cls._from_proto(token_reject_body)
+            transaction.owner_id = proto_tx.owner_id
+            transaction.token_ids = proto_tx.token_ids
+            transaction.nft_ids = proto_tx.nft_ids
+
+        return transaction

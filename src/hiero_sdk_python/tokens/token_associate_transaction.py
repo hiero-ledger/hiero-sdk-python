@@ -105,7 +105,7 @@ class TokenAssociateTransaction(Transaction):
     @classmethod
     def _from_proto(cls, body: token_associate_pb2.TokenAssociateTransactionBody) -> TokenAssociateTransaction:
         """Construct a TokenAssociateTransaction from its protobuf."""
-        account_id = AccountId._from_proto(body.account)
+        account_id = AccountId._from_proto(body.account) if body.HasField("account") else None
         token_ids: list[TokenId] = []
 
         for proto_token in body.tokens:
@@ -116,6 +116,41 @@ class TokenAssociateTransaction(Transaction):
             account_id=account_id,
             token_ids=token_ids,
         )
+
+    @classmethod
+    def _from_protobuf(
+        cls,
+        transaction_body: transaction_pb2.TransactionBody,
+        body_bytes: bytes | None = None,
+        sig_map=None,
+    ) -> TokenAssociateTransaction:
+        """
+        Creates a TokenAssociateTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+            body_bytes (bytes, optional): The raw bytes of the transaction body.
+            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
+
+        Returns:
+            TokenAssociateTransaction: A new transaction instance with all fields restored.
+        """
+        try:
+            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
+        except TypeError:
+            transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenAssociate"):
+            body = transaction_body.tokenAssociate
+
+            if body.HasField("account"):
+                transaction.account_id = AccountId._from_proto(body.account)
+            else:
+                transaction.account_id = None
+
+            transaction.token_ids = [TokenId._from_proto(proto_token) for proto_token in body.tokens]
+
+        return transaction
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """

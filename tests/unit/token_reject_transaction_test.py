@@ -2,17 +2,18 @@ from __future__ import annotations
 
 import pytest
 
-from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, timestamp_pb2, transaction_get_receipt_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services.token_reject_pb2 import TokenReference, TokenRejectTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -314,7 +315,7 @@ def test_reject_transaction_from_proto(mock_account_ids):
     _from_proto = TokenRejectTransaction()._from_proto(TokenRejectTransactionBody())
 
     # Verify empty protobuf deserializes to empty/default values
-    assert _from_proto.owner_id == AccountId()
+    assert _from_proto.owner_id is None
     assert _from_proto.token_ids == []
     assert _from_proto.nft_ids == []
 
@@ -358,3 +359,106 @@ def test_build_scheduled_body_with_nft_ids(mock_account_ids):
     assert schedulable_body.tokenReject.rejections[0].HasField("nft")
     assert schedulable_body.tokenReject.rejections[0].nft.token_ID == token_id._to_proto()
     assert schedulable_body.tokenReject.rejections[0].nft.serial_number == 1
+
+
+def test_token_reject_transaction_from_protobuf(mock_account_ids):
+    """TokenRejectTransaction should deserialize fields from protobuf correctly."""
+    _, owner_account_id, _, token_id, _ = mock_account_ids
+    token_ids = [token_id]
+    nft_ids = [NftId(token_id=token_id, serial_number=1)]
+
+    transaction = TokenRejectTransaction().set_owner_id(owner_account_id).set_token_ids(token_ids).set_nft_ids(nft_ids)
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenReject.CopyFrom(body)
+
+    parsed = TokenRejectTransaction._from_protobuf(transaction_body)
+
+    assert parsed.owner_id == owner_account_id
+    assert parsed.token_ids == token_ids
+    assert parsed.nft_ids == nft_ids
+
+
+def test_token_reject_from_protobuf_without_owner(mock_account_ids):
+    """Test _from_protobuf correctly handles absent owner field."""
+    _, _, _, token_id, _ = mock_account_ids
+
+    tx_body = TransactionBody()
+    tx_body.tokenReject.CopyFrom(
+        TokenRejectTransactionBody(rejections=[TokenReference(fungible_token=token_id._to_proto())])
+    )
+
+    restored = TokenRejectTransaction._from_protobuf(tx_body)
+    assert restored.owner_id is None
+    assert restored.token_ids == [token_id]
+    assert restored.nft_ids == []
+
+
+def test_token_reject_from_protobuf_empty_body():
+    """Test _from_protobuf correctly restores empty body with None owner and empty lists."""
+    tx_body = TransactionBody()
+    tx_body.tokenReject.CopyFrom(TokenRejectTransactionBody())
+
+    restored = TokenRejectTransaction._from_protobuf(tx_body)
+    assert restored.owner_id is None
+    assert restored.token_ids == []
+    assert restored.nft_ids == []
+
+
+def test_token_reject_from_protobuf_without_token_reject():
+    """Test _from_protobuf correctly handles transaction_body without tokenReject."""
+    tx_body = TransactionBody()
+
+    restored = TokenRejectTransaction._from_protobuf(tx_body)
+    assert restored.owner_id is None
+    assert restored.token_ids == []
+    assert restored.nft_ids == []
+
+
+def test_token_reject_from_protobuf_accepts_extra_args(mock_account_ids):
+    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
+    _, owner_account_id, _, token_id, _ = mock_account_ids
+
+    tx_body = TransactionBody()
+    tx_body.tokenReject.CopyFrom(
+        TokenRejectTransactionBody(
+            owner=owner_account_id._to_proto(),
+            rejections=[TokenReference(fungible_token=token_id._to_proto())],
+        )
+    )
+
+    restored = TokenRejectTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
+    assert restored.owner_id == owner_account_id
+    assert restored.token_ids == [token_id]
+
+
+def test_token_reject_from_bytes_round_trip(mock_account_ids, token_id, nft_id, mock_client):
+    """Test serialization round-trip via Transaction.from_bytes()."""
+    _, owner_account_id, _, _, _ = mock_account_ids
+    nft_ids = [nft_id]
+
+    tx1 = TokenRejectTransaction().set_owner_id(owner_account_id).set_token_ids([token_id]).set_nft_ids(nft_ids)
+    tx1.freeze_with(mock_client)
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenRejectTransaction)
+    assert tx2.owner_id == owner_account_id
+    assert tx2.token_ids == [token_id]
+    assert tx2.nft_ids == nft_ids
+    assert tx2.to_bytes() == data
+
+
+def test_token_reject_from_bytes_round_trip_unconfigured(mock_client):
+    """Test round-trip preserves unconfigured reject transaction with optional fields unset."""
+    tx1 = TokenRejectTransaction()
+    tx1.freeze_with(mock_client)
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenRejectTransaction)
+    assert tx2.owner_id is None
+    assert tx2.token_ids == []
+    assert tx2.nft_ids == []
+    assert tx2.to_bytes() == data

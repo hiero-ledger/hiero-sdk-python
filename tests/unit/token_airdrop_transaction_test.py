@@ -9,8 +9,10 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services.token_airdrop_pb2 import TokenAirdropTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 pytestmark = pytest.mark.unit
@@ -385,3 +387,104 @@ def test_from_proto_without_token_transfer(mock_account_ids):
     assert nft_transfer[0].is_approved == True
 
     assert not airdrop_tx.token_transfers
+
+
+def test_token_airdrop_transaction_from_protobuf(mock_account_ids):
+    """TokenAirdropTransaction should deserialize fields from protobuf correctly."""
+    sender_id, receiver_id, _, token_id_1, token_id_2 = mock_account_ids
+
+    airdrop_tx = TokenAirdropTransaction()
+    airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=sender_id, amount=-10)
+    airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver_id, amount=10)
+    airdrop_tx.add_nft_transfer(NftId(token_id_2, 1), sender_id, receiver_id)
+
+    body = airdrop_tx._build_proto_body()
+    transaction_body = TransactionBody()
+    transaction_body.tokenAirdrop.CopyFrom(body)
+
+    parsed = TokenAirdropTransaction._from_protobuf(transaction_body)
+
+    assert len(parsed.token_transfers[token_id_1]) == 2
+    assert parsed.token_transfers[token_id_1][0].account_id == sender_id
+    assert parsed.token_transfers[token_id_1][0].amount == -10
+    assert parsed.token_transfers[token_id_1][1].account_id == receiver_id
+    assert parsed.token_transfers[token_id_1][1].amount == 10
+
+    assert len(parsed.nft_transfers[token_id_2]) == 1
+    assert parsed.nft_transfers[token_id_2][0].sender_id == sender_id
+    assert parsed.nft_transfers[token_id_2][0].receiver_id == receiver_id
+    assert parsed.nft_transfers[token_id_2][0].serial_number == 1
+
+
+def test_token_airdrop_from_protobuf_empty_body():
+    """Test _from_protobuf correctly restores empty body with empty transfer maps."""
+    tx_body = TransactionBody()
+    tx_body.tokenAirdrop.CopyFrom(TokenAirdropTransactionBody())
+
+    restored = TokenAirdropTransaction._from_protobuf(tx_body)
+    assert not restored.token_transfers
+    assert not restored.nft_transfers
+
+
+def test_token_airdrop_from_protobuf_without_token_airdrop():
+    """Test _from_protobuf correctly handles transaction_body without tokenAirdrop."""
+    tx_body = TransactionBody()
+
+    restored = TokenAirdropTransaction._from_protobuf(tx_body)
+    assert not restored.token_transfers
+    assert not restored.nft_transfers
+
+
+def test_token_airdrop_from_protobuf_accepts_extra_args(mock_account_ids):
+    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
+    sender_id, receiver_id, _, token_id_1, _ = mock_account_ids
+
+    airdrop_tx = TokenAirdropTransaction()
+    airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=sender_id, amount=-5)
+    airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver_id, amount=5)
+
+    tx_body = TransactionBody()
+    tx_body.tokenAirdrop.CopyFrom(airdrop_tx._build_proto_body())
+
+    restored = TokenAirdropTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
+    assert len(restored.token_transfers[token_id_1]) == 2
+
+
+def test_token_airdrop_from_bytes_round_trip(mock_account_ids, token_id, nft_id, mock_client):
+    """Test serialization round-trip via Transaction.from_bytes()."""
+    sender_id, receiver_id, _, _, _ = mock_account_ids
+
+    tx1 = (
+        TokenAirdropTransaction()
+        .add_token_transfer(token_id=token_id, account_id=sender_id, amount=-10)
+        .add_token_transfer(token_id=token_id, account_id=receiver_id, amount=10)
+        .add_nft_transfer(nft_id, sender_id, receiver_id)
+    )
+    tx1.freeze_with(mock_client)
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenAirdropTransaction)
+    assert len(tx2.token_transfers[token_id]) == 2
+    assert tx2.token_transfers[token_id][0].account_id == sender_id
+    assert tx2.token_transfers[token_id][0].amount == -10
+    assert tx2.token_transfers[token_id][1].account_id == receiver_id
+    assert tx2.token_transfers[token_id][1].amount == 10
+    assert len(tx2.nft_transfers[nft_id.token_id]) == 1
+    assert tx2.nft_transfers[nft_id.token_id][0].sender_id == sender_id
+    assert tx2.nft_transfers[nft_id.token_id][0].receiver_id == receiver_id
+    assert tx2.nft_transfers[nft_id.token_id][0].serial_number == nft_id.serial_number
+    assert tx2.to_bytes() == data
+
+
+def test_token_airdrop_from_bytes_round_trip_unconfigured(mock_client):
+    """Test round-trip preserves unconfigured airdrop transaction with optional fields unset."""
+    tx1 = TokenAirdropTransaction()
+    tx1.freeze_with(mock_client)
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenAirdropTransaction)
+    assert not tx2.token_transfers
+    assert not tx2.nft_transfers
+    assert tx2.to_bytes() == data

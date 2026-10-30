@@ -11,6 +11,7 @@ from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_airdrop_claim import TokenClaimAirdropTransaction
 from hiero_sdk_python.tokens.token_airdrop_pending_id import PendingAirdropId
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -313,3 +314,112 @@ def test_str_and_repr():
     tx.add_pending_airdrop_id(PendingAirdropId(sender, receiver, TokenId(0, 0, 10), None))
     assert "Pending Airdrops to claim:" in str(tx)
     assert repr(tx).startswith("TokenClaimAirdropTransaction(")
+
+
+def test_token_claim_airdrop_transaction_from_protobuf():
+    """TokenClaimAirdropTransaction should deserialize fields from protobuf correctly."""
+    sender = AccountId(0, 0, 9201)
+    receiver = AccountId(0, 0, 9202)
+    p1 = _make_fungible_pending(sender, receiver, 9210)
+    p2 = _make_nft_pending(sender, receiver, 9220, 1)
+
+    tx = TokenClaimAirdropTransaction().add_pending_airdrop_ids([p1, p2])
+    tx.transaction_id = TransactionId.generate(sender)
+    tx.set_node_account_ids([AccountId(0, 0, 3)])
+
+    body = tx.build_transaction_body()
+    parsed = TokenClaimAirdropTransaction._from_protobuf(body)
+
+    assert parsed.get_pending_airdrop_ids() == [p1, p2]
+
+
+def test_token_claim_airdrop_from_protobuf_empty_body():
+    """Test _from_protobuf correctly restores empty body with empty list."""
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.tokenClaimAirdrop.CopyFrom(TokenClaimAirdropTransactionBody())
+
+    restored = TokenClaimAirdropTransaction._from_protobuf(tx_body)
+    assert restored.get_pending_airdrop_ids() == []
+
+
+def test_token_claim_airdrop_from_protobuf_without_token_claim_airdrop():
+    """Test _from_protobuf correctly handles transaction_body without tokenClaimAirdrop."""
+    tx_body = transaction_pb2.TransactionBody()
+
+    restored = TokenClaimAirdropTransaction._from_protobuf(tx_body)
+    assert restored.get_pending_airdrop_ids() == []
+
+
+def test_token_claim_airdrop_from_protobuf_accepts_extra_args():
+    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
+    sender = AccountId(0, 0, 9201)
+    receiver = AccountId(0, 0, 9202)
+    p1 = _make_fungible_pending(sender, receiver, 9210)
+
+    proto_body = TokenClaimAirdropTransactionBody(pending_airdrops=[p1._to_proto()])
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.tokenClaimAirdrop.CopyFrom(proto_body)
+
+    restored = TokenClaimAirdropTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
+    assert restored.get_pending_airdrop_ids() == [p1]
+
+
+def test_token_claim_airdrop_from_protobuf_rejects_duplicates():
+    """Test _from_protobuf enforces duplicate validation rule."""
+    sender = AccountId(0, 0, 9201)
+    receiver = AccountId(0, 0, 9202)
+    duplicate = _make_fungible_pending(sender, receiver, 9210)
+
+    proto_body = TokenClaimAirdropTransactionBody(pending_airdrops=[duplicate._to_proto(), duplicate._to_proto()])
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.tokenClaimAirdrop.CopyFrom(proto_body)
+
+    with pytest.raises(ValueError, match="Duplicate airdrop IDs are not allowed"):
+        TokenClaimAirdropTransaction._from_protobuf(tx_body)
+
+
+def test_token_claim_airdrop_from_protobuf_rejects_too_many():
+    """Test _from_protobuf enforces MAX_IDS validation rule."""
+    sender = AccountId(0, 0, 9201)
+    receiver = AccountId(0, 0, 9202)
+    too_many = [
+        _make_fungible_pending(sender, receiver, 9200 + i) for i in range(TokenClaimAirdropTransaction.MAX_IDS + 1)
+    ]
+
+    proto_body = TokenClaimAirdropTransactionBody(pending_airdrops=[x._to_proto() for x in too_many])
+    tx_body = transaction_pb2.TransactionBody()
+    tx_body.tokenClaimAirdrop.CopyFrom(proto_body)
+
+    with pytest.raises(ValueError, match="Up to 10 airdrops can be claimed"):
+        TokenClaimAirdropTransaction._from_protobuf(tx_body)
+
+
+def test_token_claim_airdrop_from_bytes_round_trip(mock_account_ids, token_id, nft_id, mock_client):
+    """Test serialization round-trip via Transaction.from_bytes()."""
+    sender, receiver, _, _, _ = mock_account_ids
+
+    p1 = PendingAirdropId(sender, receiver, token_id, None)
+    p2 = PendingAirdropId(sender, receiver, None, nft_id)
+
+    tx1 = TokenClaimAirdropTransaction().add_pending_airdrop_ids([p1, p2])
+    tx1.freeze_with(mock_client)
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenClaimAirdropTransaction)
+    assert tx2.get_pending_airdrop_ids() == [p1, p2]
+    assert tx2.to_bytes() == data
+
+
+def test_token_claim_airdrop_unconfigured_freeze_raises():
+    """An unconfigured TokenClaimAirdropTransaction cannot freeze without at least 1 pending airdrop."""
+    sender = AccountId(0, 0, 9301)
+    node_account = AccountId(0, 0, 3)
+
+    tx1 = (
+        TokenClaimAirdropTransaction()
+        .set_transaction_id(TransactionId.generate(sender))
+        .set_node_account_ids([node_account])
+    )
+    with pytest.raises(ValueError, match="You must claim at least 1 airdrop"):
+        tx1.freeze()

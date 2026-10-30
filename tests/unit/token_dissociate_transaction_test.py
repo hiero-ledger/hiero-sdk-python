@@ -4,11 +4,13 @@ from unittest.mock import MagicMock, call
 
 import pytest
 
-from hiero_sdk_python.hapi.services import timestamp_pb2
+from hiero_sdk_python.hapi.services import timestamp_pb2, token_dissociate_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -267,3 +269,97 @@ def test_build_protobuf_body_missing_both_account_and_token_ids():
     assert body is not None
     assert not body.HasField("account")
     assert len(body.tokens) == 0
+
+
+def test_token_dissociate_transaction_from_protobuf(mock_account_ids):
+    """TokenDissociateTransaction should deserialize fields from protobuf correctly."""
+    account_id, _, _, token_id_1, token_id_2 = mock_account_ids
+
+    transaction = TokenDissociateTransaction().set_account_id(account_id).set_token_ids([token_id_1, token_id_2])
+    body = transaction._build_proto_body()
+
+    transaction_body = TransactionBody()
+    transaction_body.tokenDissociate.CopyFrom(body)
+
+    parsed = TokenDissociateTransaction._from_protobuf(transaction_body)
+
+    assert parsed.account_id == account_id
+    assert parsed.token_ids == [token_id_1, token_id_2]
+
+
+def test_token_dissociate_from_protobuf_without_account(mock_account_ids):
+    """Test _from_protobuf correctly handles absent account field."""
+    _, _, _, token_id_1, _ = mock_account_ids
+
+    tx_body = TransactionBody()
+    tx_body.tokenDissociate.CopyFrom(
+        token_dissociate_pb2.TokenDissociateTransactionBody(tokens=[token_id_1._to_proto()])
+    )
+
+    restored = TokenDissociateTransaction._from_protobuf(tx_body)
+    assert restored.account_id is None
+    assert restored.token_ids == [token_id_1]
+
+
+def test_token_dissociate_from_protobuf_empty_body():
+    """Test _from_protobuf correctly restores empty body with None account and empty token_ids."""
+    tx_body = TransactionBody()
+    tx_body.tokenDissociate.CopyFrom(token_dissociate_pb2.TokenDissociateTransactionBody())
+
+    restored = TokenDissociateTransaction._from_protobuf(tx_body)
+    assert restored.account_id is None
+    assert restored.token_ids == []
+
+
+def test_token_dissociate_from_protobuf_without_token_dissociate():
+    """Test _from_protobuf correctly handles transaction_body without tokenDissociate."""
+    tx_body = TransactionBody()
+
+    restored = TokenDissociateTransaction._from_protobuf(tx_body)
+    assert restored.account_id is None
+    assert restored.token_ids == []
+
+
+def test_token_dissociate_from_protobuf_accepts_extra_args(mock_account_ids):
+    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
+    account_id, _, _, token_id_1, _ = mock_account_ids
+
+    tx_body = TransactionBody()
+    tx_body.tokenDissociate.CopyFrom(
+        token_dissociate_pb2.TokenDissociateTransactionBody(
+            account=account_id._to_proto(),
+            tokens=[token_id_1._to_proto()],
+        )
+    )
+
+    restored = TokenDissociateTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
+    assert restored.account_id == account_id
+    assert restored.token_ids == [token_id_1]
+
+
+def test_token_dissociate_from_bytes_round_trip(mock_account_ids, token_id, mock_client):
+    """Test serialization round-trip via Transaction.from_bytes()."""
+    account_id, _, _, _, token_id_2 = mock_account_ids
+
+    tx1 = TokenDissociateTransaction().set_account_id(account_id).set_token_ids([token_id, token_id_2])
+    tx1.freeze_with(mock_client)
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenDissociateTransaction)
+    assert tx2.account_id == account_id
+    assert tx2.token_ids == [token_id, token_id_2]
+    assert tx2.to_bytes() == data
+
+
+def test_token_dissociate_from_bytes_round_trip_unconfigured(mock_client):
+    """Test round-trip preserves unconfigured dissociate transaction with optional fields unset."""
+    tx1 = TokenDissociateTransaction()
+    tx1.freeze_with(mock_client)
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenDissociateTransaction)
+    assert tx2.account_id is None
+    assert tx2.token_ids == []
+    assert tx2.to_bytes() == data
