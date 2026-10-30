@@ -1078,6 +1078,51 @@ def test_execution_raises_if_all_nodes_unhealthy(mock_client):
         tx.execute(mock_client)
 
 
+def test_execution_raises_if_all_nodes_unhealthy_multiple_nodes():
+    """RuntimeError should only be raised after every configured node was skipped as unhealthy."""
+    tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
+
+    response_sequences = [[], []]  # two mock nodes, none used because all are unhealthy
+    with (
+        mock_hedera_servers(response_sequences) as client,
+        patch("hiero_sdk_python.node._Node.is_healthy", side_effect=repeat(False)),
+        pytest.raises(RuntimeError, match="All nodes are unhealthy"),
+    ):
+        tx.execute(client)
+
+
+def test_execution_retries_next_node_when_channel_creation_fails():
+    """Channel creation errors should mark the node unhealthy and fall over to the next node."""
+    ok_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.OK)
+    receipt_response = response_pb2.Response(
+        transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
+            header=response_header_pb2.ResponseHeader(nodeTransactionPrecheckCode=ResponseCode.OK),
+            receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
+        )
+    )
+
+    response_sequences = [
+        [ok_response],  # first node is never reached (channel creation fails)
+        [ok_response, receipt_response],  # second node completes the transaction
+    ]
+
+    with mock_hedera_servers(response_sequences) as client:
+        first_node = next(node for node in client.network.nodes if node._account_id == AccountId(0, 0, 3))
+
+        def failing_channel():
+            raise ConnectionRefusedError("connection refused")
+
+        first_node._get_channel = failing_channel
+
+        tx = AccountCreateTransaction().set_key_without_alias(PrivateKey.generate().public_key()).set_initial_balance(1)
+
+        receipt = tx.execute(client)
+
+        assert receipt.status == ResponseCode.SUCCESS
+        # The transaction was submitted to the second node
+        assert tx._node_account_ids.current == AccountId(0, 0, 4)
+
+
 @pytest.mark.parametrize(
     "tx",
     [
@@ -1185,7 +1230,7 @@ def test_transaction_receipt_query_with_single_node_does_not_advance():
         assert query._node_account_ids.current == node_id
 
 
-def test_transaction_receipt_query_with_mutiple_node_advance_to_next():
+def test_transaction_receipt_query_with_multiple_node_advance_to_next():
     """Test that a receipt query advances to the next node when the current node is unhealthy."""
     receipt_response = response_pb2.Response(
         transactionGetReceipt=transaction_get_receipt_pb2.TransactionGetReceiptResponse(
@@ -1272,7 +1317,7 @@ def test_transaction_record_query_with_single_node_does_not_advance():
         assert query._node_account_ids.current == node_id
 
 
-def test_transaction_record_query_with_mutiple_node_advance_to_next():
+def test_transaction_record_query_with_multiple_node_advance_to_next():
     """Test that a record query advances to the next node when the current node is unhealthy."""
     record = transaction_record_pb2.TransactionRecord(
         receipt=transaction_receipt_pb2.TransactionReceipt(status=ResponseCode.SUCCESS),
