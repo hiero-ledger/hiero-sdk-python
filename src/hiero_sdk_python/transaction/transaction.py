@@ -9,7 +9,7 @@ from google.protobuf.message import DecodeError
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.client.client import Client
 from hiero_sdk_python.crypto.key import Key
-from hiero_sdk_python.crypto.signer import Signer, _sign_to_signature_pair
+from hiero_sdk_python.crypto.signer import Signer, _sign_to_signature_pair, _signature_pair_to_key_and_signature
 from hiero_sdk_python.exceptions import PrecheckError
 from hiero_sdk_python.executable import _Executable, _ExecutionState
 from hiero_sdk_python.hapi.sdk.transaction_list_pb2 import TransactionList
@@ -20,6 +20,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.lockable_list import _LockableList
 from hiero_sdk_python.query.fee_estimate_query import FeeEstimateQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.signable_node_transaction_body_bytes import SignableNodeTransactionBodyBytes
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from hiero_sdk_python.transaction.transaction_response import TransactionResponse
@@ -297,25 +298,38 @@ class Transaction(_Executable):
         """
         # We require the transaction to be frozen before converting to protobuf
         self._require_frozen()
+
+        return self._build_transaction_from_body_bytes(self._current_body_bytes())
+
+    def _current_node_bodies(self) -> dict[AccountId, bytes]:
+        """
+        Returns the node -> body bytes map for the current transaction ID.
+
+        Raises:
+            ValueError: If no bodies were built for the current transaction ID.
+        """
         current_tx_id = self._transaction_ids.current
-        current_node_id = self._node_account_ids.current
 
         node_bodies = self._transaction_body_bytes.get(current_tx_id)
         if node_bodies is None:
             raise ValueError(f"No transaction bodies built for Transaction ID {current_tx_id}")
 
-        body_bytes = node_bodies.get(current_node_id)
+        return node_bodies
+
+    def _current_body_bytes(self) -> bytes:
+        """
+        Returns the body bytes for the current transaction ID and current node.
+
+        Raises:
+            ValueError: If no body was built for the current transaction ID or node.
+        """
+        current_node_id = self._node_account_ids.current
+
+        body_bytes = self._current_node_bodies().get(current_node_id)
         if body_bytes is None:
             raise ValueError(f"No transaction body found for node {current_node_id}")
 
-        # Get signature map, or create empty one if transaction is not signed
-        sig_map = self._signature_map.get(body_bytes)
-        if sig_map is None:
-            sig_map = basic_types_pb2.SignatureMap()
-
-        signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=body_bytes, sigMap=sig_map)
-
-        return transaction_pb2.Transaction(signedTransactionBytes=signed_transaction.SerializeToString())
+        return body_bytes
 
     def _resolve_transaction_id(self, client: Client):
         if not self._transaction_ids.is_empty:
@@ -544,6 +558,120 @@ class Transaction(_Executable):
             for node_transaction_bodies in self._transaction_body_bytes.values()
             for body_bytes in node_transaction_bodies.values()
         )
+
+    @property
+    def signable_node_body_bytes_list(self) -> list[SignableNodeTransactionBodyBytes]:
+        """
+        Returns the exact body bytes to sign, one entry per transaction ID and node.
+
+        Entries are grouped by transaction ID first, then by node. A plain transaction
+        has one entry per node; a chunked transaction has one entry per chunk and node.
+        Sign each entry's bytes to produce a signature for that node, e.g. in an HSM.
+
+        Returns:
+            list[SignableNodeTransactionBodyBytes]: The signable body bytes.
+
+        Raises:
+            Exception: If the transaction is not frozen.
+        """
+        self._require_frozen()
+
+        return [
+            SignableNodeTransactionBodyBytes(node_account_id, transaction_id, body_bytes)
+            for transaction_id, node_bodies in self._transaction_body_bytes.items()
+            for node_account_id, body_bytes in node_bodies.items()
+        ]
+
+    def get_signatures(self, transaction_id: TransactionId | None = None) -> dict[AccountId, dict[PublicKey, bytes]]:
+        """
+        Returns the signatures on the transaction, per node and public key.
+
+        Every node appears in the result; a node without signatures maps to an empty dict.
+        The result is a copy, so changing it does not change the transaction.
+
+        Args:
+            transaction_id (TransactionId, optional): The transaction ID (chunk) to read.
+                Defaults to the first transaction ID.
+
+        Returns:
+            dict[AccountId, dict[PublicKey, bytes]]: node -> {public key: raw signature}.
+
+        Raises:
+            Exception: If the transaction is not frozen.
+            TypeError: If transaction_id is not a TransactionId.
+            ValueError: If the transaction has no bodies for transaction_id, or a signature
+                cannot be read (unsupported type or shortened public key prefix).
+        """
+        self._require_frozen()
+
+        if transaction_id is None:
+            transaction_id = self._transaction_ids.get(0)
+        elif not isinstance(transaction_id, TransactionId):
+            raise TypeError("transaction_id must be of type TransactionId")
+
+        node_bodies = self._transaction_body_bytes.get(transaction_id)
+        if node_bodies is None:
+            raise ValueError(f"No transaction bodies built for Transaction ID {transaction_id}")
+
+        signatures: dict[AccountId, dict[PublicKey, bytes]] = {}
+        for node_account_id, body_bytes in node_bodies.items():
+            sig_map = self._signature_map.get(body_bytes)
+            sig_pairs = sig_map.sigPair if sig_map is not None else []
+            signatures[node_account_id] = dict(_signature_pair_to_key_and_signature(pair) for pair in sig_pairs)
+
+        return signatures
+
+    def get_transaction_hash(self) -> bytes:
+        """
+        Returns the SHA-384 hash of the transaction for the current transaction ID and node.
+
+        Before execution this is the first chunk and the first node. It equals the
+        TransactionResponse.hash returned when that node receives the transaction.
+
+        The hash covers the signatures, so it changes whenever a signature is added.
+        Compute it after the final signature. execute() adds the operator signature when
+        the operator pays for the transaction; call sign_with_operator(client) first to
+        include it.
+
+        Returns:
+            bytes: The 48-byte transaction hash.
+
+        Raises:
+            Exception: If the transaction is not frozen.
+        """
+        self._require_frozen()
+
+        return self._transaction_hash(self._current_body_bytes())
+
+    def get_transaction_hash_per_node(self) -> dict[AccountId, bytes]:
+        """
+        Returns the SHA-384 hash of the transaction for every node, for the current transaction ID.
+
+        Each node gets a different body, so each node has a different hash. The hash for
+        the node that receives the transaction equals the returned TransactionResponse.hash.
+
+        The hash covers the signatures, so it changes whenever a signature is added.
+        Compute it after the final signature. execute() adds the operator signature when
+        the operator pays for the transaction; call sign_with_operator(client) first to
+        include it.
+
+        Returns:
+            dict[AccountId, bytes]: node -> 48-byte transaction hash.
+
+        Raises:
+            Exception: If the transaction is not frozen.
+        """
+        self._require_frozen()
+
+        return {
+            node_account_id: self._transaction_hash(body_bytes)
+            for node_account_id, body_bytes in self._current_node_bodies().items()
+        }
+
+    def _transaction_hash(self, body_bytes: bytes) -> bytes:
+        """Hashes the signed transaction bytes for body_bytes, as they are sent to the node."""
+        signed_transaction_bytes = self._build_transaction_from_body_bytes(body_bytes).signedTransactionBytes
+        return hashlib.sha384(signed_transaction_bytes).digest()
 
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:
         """
