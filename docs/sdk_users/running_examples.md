@@ -388,11 +388,7 @@ print(f"Account balance: {balance.hbars}")
 
 #### Method Chaining:
 ```python
-balance = (
-    MirrorNodeAccountBalanceQuery()
-    .set_account_id(account_id)
-    .execute(client)
-)
+balance = MirrorNodeAccountBalanceQuery().set_account_id(account_id).execute(client)
 print(f"Account balance: {balance.hbars}")
 ```
 
@@ -404,21 +400,13 @@ account raises `PrecheckError` with `INVALID_ACCOUNT_ID`.
 
 #### Pythonic Syntax:
 ```python
-token_balance = (
-    MirrorNodeTokenBalanceQuery(account_id, token_id)
-    .execute(client)
-)
+token_balance = MirrorNodeTokenBalanceQuery(account_id, token_id).execute(client)
 print(token_balance)
 ```
 
 #### Method Chaining:
 ```python
-token_balance = (
-    MirrorNodeTokenBalanceQuery()
-    .set_account_id(account_id)
-    .set_token_id(token_id)
-    .execute(client)
-)
+token_balance = MirrorNodeTokenBalanceQuery().set_account_id(account_id).set_token_id(token_id).execute(client)
 print(token_balance)
 ```
 
@@ -2060,16 +2048,16 @@ transaction = NodeUpdateTransaction(
         description="Updated node description",
         gossip_endpoints=[
             Endpoint(domain_name="updated-gossip1.example.com", port=50311),
-            Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+            Endpoint(domain_name="updated-gossip2.example.com", port=50312),
         ],
         service_endpoints=[
             Endpoint(domain_name="updated-service1.example.com", port=50311),
-            Endpoint(domain_name="updated-service2.example.com", port=50312)
+            Endpoint(domain_name="updated-service2.example.com", port=50312),
         ],
         gossip_ca_certificate=updated_gossip_ca_cert,
         admin_key=admin_key.public_key(),
         decline_reward=False,
-        grpc_web_proxy_endpoint=Endpoint(domain_name="updated-grpc.example.com", port=50313)
+        grpc_web_proxy_endpoint=Endpoint(domain_name="updated-grpc.example.com", port=50313),
     )
 ).freeze_with(client)
 
@@ -2082,9 +2070,7 @@ transaction.sign(admin_key)  # Sign with admin key
 
 #### Pythonic Syntax:
 ```python
-transaction = NodeDeleteTransaction(
-    node_id=node_id
-)
+transaction = NodeDeleteTransaction(node_id=node_id)
 
 receipt = transaction.execute(client)
 ```

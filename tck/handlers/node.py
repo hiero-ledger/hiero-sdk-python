@@ -11,7 +11,7 @@ from hiero_sdk_python.nodes.node_delete_transaction import NodeDeleteTransaction
 from hiero_sdk_python.nodes.node_update_transaction import NodeUpdateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 from tck.handlers.registry import rpc_method
-from tck.param.node import CreateNodeParams, DeleteNodeParams, UpdateNodeParams, GetAddressBookParams
+from tck.param.node import CreateNodeParams, DeleteNodeParams, GetAddressBookParams, UpdateNodeParams
 from tck.response.base import StatusOnlyResponse
 from tck.response.node import (
     EndpointResponse,
