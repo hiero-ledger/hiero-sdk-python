@@ -31,6 +31,7 @@ def test_init():
         cert_hash=cert_hash,
         addresses=addresses,
         description="Sample Node",
+        stake=1,
     )
 
     # Assert properties are set correctly
@@ -40,6 +41,7 @@ def test_init():
     assert node_address._cert_hash == cert_hash
     assert node_address._addresses == addresses
     assert node_address._description == "Sample Node"
+    assert node_address._stake == 1
 
 
 def test_string_representation():
@@ -58,6 +60,7 @@ def test_string_representation():
         cert_hash=b"sample-cert-hash",
         addresses=[endpoint],
         description="Sample Node",
+        stake=1,
     )
 
     # Get string representation
@@ -85,6 +88,7 @@ def test_to_proto():
         cert_hash=b"sample-cert-hash",
         addresses=endpoints,
         description="Sample Node",
+        stake=1,
     )
 
     node_address_proto = node_address._to_proto()
@@ -95,6 +99,7 @@ def test_to_proto():
     assert node_address_proto.nodeId == 1234
     assert node_address_proto.nodeCertHash == b"sample-cert-hash"
     assert node_address_proto.description == "Sample Node"
+    assert node_address._stake == 1
 
     # AccountId
     assert node_address_proto.nodeAccountId.shardNum == 0
@@ -119,6 +124,7 @@ def test_from_dict():
         "node_cert_hash": binascii.hexlify(b"sample-cert-hash").decode("utf-8"),
         "description": "Sample Node",
         "service_endpoints": [{"ip_address_v4": "192.168.1.1", "port": 8080, "domain_name": "example.com"}],
+        "stake": 1,
     }
 
     # Create NodeAddress from dict
@@ -133,6 +139,7 @@ def test_from_dict():
     assert node_address._cert_hash == b"sample-cert-hash"
     assert node_address._description == "Sample Node"
     assert len(node_address._addresses) == 1
+    assert node_address._stake == 1
 
 
 def test_from_dict_with_0x_prefix():
@@ -144,6 +151,7 @@ def test_from_dict_with_0x_prefix():
         "node_cert_hash": "0x" + binascii.hexlify(b"sample-cert-hash").decode("utf-8"),
         "description": "Sample Node",
         "service_endpoints": [],
+        "stake": 1,
     }
 
     node_address = NodeAddress._from_dict(node_dict)
@@ -163,6 +171,7 @@ def test_from_proto():
         nodeId=1234,
         nodeCertHash=b"sample-cert-hash",
         description="Sample Node",
+        stake=1,
     )
     node_address_proto.serviceEndpoint.append(endpoint_proto)
 
@@ -177,6 +186,7 @@ def test_from_proto():
     assert node_address._cert_hash == b"sample-cert-hash"
     assert node_address._description == "Sample Node"
     assert len(node_address._addresses) == 1
+    assert node_address._stake == 1
 
 
 def test_round_trip():
@@ -192,6 +202,7 @@ def test_round_trip():
         cert_hash=b"sample-cert-hash",
         addresses=[endpoint],
         description="Sample Node",
+        stake=1,
     )
 
     # Convert to proto
@@ -205,6 +216,7 @@ def test_round_trip():
     assert node_address._node_id == node_address2._node_id
     assert node_address._cert_hash == node_address2._cert_hash
     assert node_address._description == node_address2._description
+    assert node_address._stake == node_address2._stake
     # Verify addresses match
     assert len(node_address._addresses) == len(node_address2._addresses)
     for i, endpoint in enumerate(node_address._addresses):
