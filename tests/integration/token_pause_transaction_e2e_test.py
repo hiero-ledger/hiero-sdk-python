@@ -9,6 +9,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_pause_transaction import TokenPauseTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from tests.integration.utils import Account, create_fungible_token
 
@@ -170,3 +171,33 @@ def test_transfers_blocked_when_paused(env, account: Account, pausable_token):
     assert transfer_receipt.status == ResponseCode.TOKEN_IS_PAUSED, (
         f"Expected TOKEN_IS_PAUSED but got {ResponseCode(transfer_receipt.status).name}"
     )
+
+
+@mark.integration
+def test_serialize_token_pause_transaction_can_execute(env, pausable_token):
+    """
+    Verify a signed pause transaction survives serialization and pauses the token.
+    """
+    # 1) pre-pause sanity check
+    info = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
+
+    assert info.pause_status.name == "UNPAUSED"
+
+    # 2) build, freeze, sign & execute the pause tx
+    pause_transaction = TokenPauseTransaction().set_token_id(pausable_token).freeze_with(env.client).sign(pause_key)
+
+    original_bytes = pause_transaction.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenPauseTransaction)
+    assert restored.token_id == pausable_token
+    assert restored.is_signed_by(pause_key.public_key())
+    assert restored.to_bytes() == original_bytes
+
+    receipt = restored.execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS
+
+    # 3) post-pause verify
+    info = TokenInfoQuery().set_token_id(pausable_token).execute(env.client)
+
+    assert info.pause_status.name == "PAUSED"
