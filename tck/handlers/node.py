@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ipaddress
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.address_book.address_book_query import AddressBookQuery
 from hiero_sdk_python.address_book.node_address import NodeAddress
@@ -135,8 +137,11 @@ def delete_node(params: DeleteNodeParams) -> NodeResponse:
 def _map_to_node_address_response(address: NodeAddress) -> NodeAddressResponse:
     """Helper to map the SDK NodeAddress to JSON-RPC NodeAddressResponse."""
     endpoints = [
+        # from_dict and from_proto store the address int b"127.0.0.1" format.
         EndpointResponse(
-            address=bytes.hex(endpoint._address) if endpoint._address is not None else None,
+            ipAddressV4=(
+                ipaddress.ip_address(endpoint._address.decode("utf-8")).packed.hex() if endpoint._address else None
+            ),
             port=endpoint._port,
             domainName=endpoint._domain_name,
         )
@@ -144,10 +149,10 @@ def _map_to_node_address_response(address: NodeAddress) -> NodeAddressResponse:
     ]
 
     return NodeAddressResponse(
-        publicKey=address._public_key,
+        rsaPublicKey=address._public_key,
         accountId=str(address._account_id) if address._account_id is not None else None,
         nodeId=address._node_id,
-        certHash=bytes.hex(address._cert_hash) if address._cert_hash is not None else None,
+        nodeCertHash=bytes.hex(address._cert_hash) if address._cert_hash is not None else None,
         serviceEndpoints=endpoints,
         description=address._description,
         stake=address._stake,

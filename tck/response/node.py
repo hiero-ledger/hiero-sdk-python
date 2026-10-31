@@ -17,7 +17,7 @@ class NodeResponse:
 class EndpointResponse:
     """Represent the Endpoint JSON-RPC response."""
 
-    address: str | None = None
+    ipAddressV4: str | None = None
     port: int | None = None
     domainName: str | None = None
 
@@ -26,10 +26,10 @@ class EndpointResponse:
 class NodeAddressResponse:
     """Represent the NodeAddress JSON-RPC response."""
 
-    publicKey: str | None = None
+    rsaPublicKey: str | None = None
     accountId: str | None = None
     nodeId: int | None = None
-    certHash: str | None = None
+    nodeCertHash: str | None = None
     serviceEndpoints: list[EndpointResponse] | None = None
     description: str | None = None
     stake: int | None = None
