@@ -129,6 +129,9 @@ class NodeUpdateTransaction(Transaction):
             NodeUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if description is not None and len(description.encode("utf-8")) > 100:
+            raise ValueError("description must not exceed 100 bytes when UTF-8 encoded")
+
         self.description = description
         return self
 
@@ -144,6 +147,15 @@ class NodeUpdateTransaction(Transaction):
             NodeUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if gossip_endpoints is not None and len(gossip_endpoints) == 0:
+            raise ValueError("gossipEndpoints must not be empty")
+
+        if gossip_endpoints is not None and len(gossip_endpoints) > 10:
+            raise ValueError("gossipEndpoints must not contain more than 10 entries")
+
+        for endpoint in gossip_endpoints or []:
+            Endpoint._validate_no_ip_and_domain(endpoint)
+
         self.gossip_endpoints = gossip_endpoints
         return self
 
@@ -159,6 +171,15 @@ class NodeUpdateTransaction(Transaction):
             NodeUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if service_endpoints is not None and len(service_endpoints) == 0:
+            raise ValueError("serviceEndpoints must not be empty")
+
+        if service_endpoints is not None and len(service_endpoints) > 8:
+            raise ValueError("serviceEndpoints must not contain more than 8 entries")
+
+        for endpoint in service_endpoints or []:
+            Endpoint._validate_no_ip_and_domain(endpoint)
+
         self.service_endpoints = service_endpoints
         return self
 
@@ -174,6 +195,9 @@ class NodeUpdateTransaction(Transaction):
             NodeUpdateTransaction: This transaction instance.
         """
         self._require_not_frozen()
+        if gossip_ca_certificate is not None and len(gossip_ca_certificate) == 0:
+            raise ValueError("gossipCaCertificate must not be empty")
+
         self.gossip_ca_certificate = gossip_ca_certificate
         return self
 
@@ -293,7 +317,13 @@ class NodeUpdateTransaction(Transaction):
 
         Returns:
             NodeUpdateTransactionBody: The protobuf body for this transaction.
+
+        Raises:
+            ValueError: If node_id is not set.
         """
+        if self.node_id is None:
+            raise ValueError("Missing required NodeID")
+
         body = NodeUpdateTransactionBody(
             node_id=self.node_id,
             account_id=self._convert_to_proto(self.account_id),
@@ -326,6 +356,9 @@ class NodeUpdateTransaction(Transaction):
 
         Returns:
             TransactionBody: The built transaction body.
+
+        Raises:
+            ValueError: If node_id is not set.
         """
         node_update_body = self._build_proto_body()
         transaction_body = self.build_base_transaction_body()
@@ -338,6 +371,9 @@ class NodeUpdateTransaction(Transaction):
 
         Returns:
             SchedulableTransactionBody: The built scheduled transaction body.
+
+        Raises:
+            ValueError: If node_id is not set.
         """
         node_update_body = self._build_proto_body()
         scheduled_body = self.build_base_scheduled_body()
