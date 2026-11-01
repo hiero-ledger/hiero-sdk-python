@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import logging
 import time
+from http.client import IncompleteRead
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -230,7 +231,7 @@ class MirrorNodeAccountBalanceQuery:
         except HTTPError as exc:
             return exc.code, None, None
 
-        except (URLError, TimeoutError, OSError) as exc:
+        except (URLError, TimeoutError, OSError, IncompleteRead) as exc:
             return 0, None, exc
 
     def _fetch_body(
@@ -259,7 +260,20 @@ class MirrorNodeAccountBalanceQuery:
 
             if status_code == 200:
                 try:
-                    return json.loads(response.read().decode("utf-8"))
+                    response_body = response.read()
+                except (URLError, TimeoutError, OSError, IncompleteRead) as exc:
+                    response.close()
+                    last_exception = exc
+
+                    if attempt >= self._max_attempts:
+                        raise RuntimeError(f"Failed to fetch account balance after {attempt} attempts") from exc
+
+                    self._warn_and_delay(attempt, exc)
+                    continue
+                response.close()
+
+                try:
+                    return json.loads(response_body.decode("utf-8"))
                 except ValueError as exc:
                     raise ValueError("Mirror Node returned a malformed JSON response") from exc
 

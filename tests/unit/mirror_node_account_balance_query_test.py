@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import base64
 import json
+from http.client import IncompleteRead
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError, URLError
 
@@ -377,6 +378,93 @@ def test_fetch_body_stops_retrying_after_max_attempts():
 
     assert request.call_count == 3
     assert warn_and_delay.call_count == 2
+
+
+def test_fetch_body_retries_incomplete_response_read():
+    """Test that an incomplete HTTP response body is retried."""
+    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005")).set_max_attempts(2)
+
+    first_response = MagicMock()
+    first_response.read.side_effect = IncompleteRead(b'{"balances":')
+
+    second_response = MagicMock()
+    second_response.read.return_value = json.dumps({"balances": [{"balance": 100}]}).encode("utf-8")
+
+    with (
+        patch.object(
+            query,
+            "_request",
+            side_effect=[
+                (200, first_response, None),
+                (200, second_response, None),
+            ],
+        ) as mock_request,
+        patch.object(query, "_warn_and_delay") as mock_delay,
+    ):
+        result = query._fetch_body("https://example.com/balances", 30.0)
+
+    assert result == {"balances": [{"balance": 100}]}
+    assert mock_request.call_count == 2
+    mock_delay.assert_called_once()
+
+
+def test_fetch_body_retries_transient_response_read_error():
+    """Test that a transient response body read error is retried."""
+    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005")).set_max_attempts(2)
+
+    first_response = MagicMock()
+    first_response.read.side_effect = OSError("Connection reset while reading response")
+
+    second_response = MagicMock()
+    second_response.read.return_value = json.dumps({"balances": [{"balance": 100}]}).encode("utf-8")
+
+    with (
+        patch.object(
+            query,
+            "_request",
+            side_effect=[
+                (200, first_response, None),
+                (200, second_response, None),
+            ],
+        ) as mock_request,
+        patch.object(query, "_warn_and_delay") as mock_delay,
+    ):
+        result = query._fetch_body(
+            "https://example.com/balances",
+            30.0,
+        )
+
+    assert result == {"balances": [{"balance": 100}]}
+    assert mock_request.call_count == 2
+    first_response.close.assert_called_once()
+    second_response.close.assert_called_once()
+    mock_delay.assert_called_once()
+
+
+def test_fetch_body_raises_when_response_read_retries_are_exhausted():
+    """Test that response body read errors stop after max attempts."""
+    query = MirrorNodeAccountBalanceQuery(AccountId.from_string("0.0.5005")).set_max_attempts(2)
+
+    response = MagicMock()
+    response.read.side_effect = OSError("Connection reset")
+
+    with (
+        patch.object(
+            query,
+            "_request",
+            return_value=(200, response, None),
+        ) as mock_request,
+        patch.object(query, "_warn_and_delay") as mock_delay,
+        pytest.raises(
+            RuntimeError,
+            match="Failed to fetch account balance after 2 attempts",
+        ) as exc_info,
+    ):
+        query._fetch_body("https://example.com/balances", 30.0)
+
+    assert isinstance(exc_info.value.__cause__, OSError)
+    assert mock_request.call_count == 2
+    assert mock_delay.call_count == 1
 
 
 def test_request_returns_response_for_success():
