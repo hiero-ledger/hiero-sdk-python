@@ -35,9 +35,9 @@ def setup_client() -> Client:
 
 
 def create_account(client: Client, key: PrivateKey) -> AccountId:
-    """Create an account controlled by key, funded with 2 HBAR."""
+    """Create an account controlled by key, funded with the 1 HBAR the transfer moves out, so it ends empty."""
     receipt = (
-        AccountCreateTransaction().set_key_without_alias(key.public_key()).set_initial_balance(Hbar(2)).execute(client)
+        AccountCreateTransaction().set_key_without_alias(key.public_key()).set_initial_balance(Hbar(1)).execute(client)
     )
     if receipt.status != ResponseCode.SUCCESS:
         raise RuntimeError(f"Account creation failed with status: {ResponseCode(receipt.status).name}")
