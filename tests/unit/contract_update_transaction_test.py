@@ -5,6 +5,7 @@ Unit tests for the ContractUpdateTransaction class.
 from __future__ import annotations
 
 import pytest
+from google.protobuf import wrappers_pb2
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.contract.contract_update_transaction import (
@@ -14,10 +15,13 @@ from hiero_sdk_python.contract.contract_update_transaction import (
 from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
+from hiero_sdk_python.hapi.services.contract_update_pb2 import ContractUpdateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.timestamp import Timestamp
 
 
 pytestmark = pytest.mark.unit
@@ -34,7 +38,9 @@ def update_params(contract_id):
         "max_automatic_token_associations": 100,
         "auto_renew_account_id": AccountId(0, 0, 999),
         "staked_node_id": 5,
+        "staked_account_id": AccountId(0, 0, 101),
         "decline_reward": True,
+        "expiration_time": Timestamp(10, 1),
     }
 
 
@@ -544,3 +550,125 @@ def test_decline_reward_false(contract_id):
     tx = ContractUpdateTransaction().set_contract_id(contract_id).set_decline_reward(False)
 
     assert tx.decline_reward is False
+
+
+def test_from_protobuf_without_contract_update_instance():
+    """Test update contract from the transaction body protobuf message not containing contractUpdateInstance."""
+    tx = ContractUpdateTransaction._from_protobuf(TransactionBody())
+
+    assert tx is not None
+    assert isinstance(tx, ContractUpdateTransaction)
+    assert tx.contract_id is None
+    assert tx.contract_memo is None
+    assert tx.expiration_time is None
+    assert tx.admin_key is None
+    assert tx.max_automatic_token_associations is None
+    assert tx.auto_renew_period is None
+    assert tx.auto_renew_account_id is None
+    assert tx.staked_account_id is None
+    assert tx.staked_node_id is None
+    assert tx.decline_reward is None
+
+
+def test_from_transaction_body_protobuf_preserve_defaults():
+    """Test update contract from the transaction body protobuf message preserve defaults."""
+    tx_proto = ContractUpdateTransactionBody()
+    tx = ContractUpdateTransaction._from_protobuf(TransactionBody(contractUpdateInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractUpdateTransaction)
+    assert tx.contract_id is None
+    assert tx.contract_memo is None
+    assert tx.expiration_time is None
+    assert tx.admin_key is None
+    assert tx.max_automatic_token_associations is None
+    assert tx.auto_renew_period is None
+    assert tx.auto_renew_account_id is None
+    assert tx.staked_account_id is None
+    assert tx.staked_node_id == 0  # int64 plain proto field default to 0
+    assert tx.decline_reward is None
+
+
+def test_can_create_update_contract_from_transaction_body_protobuf(update_params):
+    """Test update contract can be created from the transaction body protobuf message."""
+    # skip stake_node_id cause it override the stake_node_id due to (one_of)
+    tx_proto = ContractUpdateTransactionBody(
+        contractID=update_params["contract_id"]._to_proto(),
+        memoWrapper=wrappers_pb2.StringValue(value=update_params["memo"]),
+        expirationTime=update_params["expiration_time"]._to_protobuf(),
+        adminKey=update_params["admin_key"].to_proto_key(),
+        max_automatic_token_associations=wrappers_pb2.Int32Value(
+            value=update_params["max_automatic_token_associations"]
+        ),
+        autoRenewPeriod=update_params["auto_renew_period"]._to_proto(),
+        auto_renew_account_id=update_params["auto_renew_account_id"]._to_proto(),
+        staked_account_id=update_params["staked_account_id"]._to_proto(),
+        decline_reward=wrappers_pb2.BoolValue(value=update_params["decline_reward"]),
+    )
+    tx = ContractUpdateTransaction._from_protobuf(TransactionBody(contractUpdateInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractUpdateTransaction)
+    assert tx.contract_id == update_params["contract_id"]
+    assert tx.contract_memo == update_params["memo"]
+    assert tx.expiration_time == update_params["expiration_time"]
+    assert tx.admin_key == update_params["admin_key"]
+    assert tx.max_automatic_token_associations == update_params["max_automatic_token_associations"]
+    assert tx.auto_renew_period == update_params["auto_renew_period"]
+    assert tx.auto_renew_account_id == update_params["auto_renew_account_id"]
+    assert tx.staked_account_id == update_params["staked_account_id"]
+    assert tx.staked_node_id == 0  # default
+    assert tx.decline_reward == update_params["decline_reward"]
+
+
+def test_from_transaction_body_protobuf_with_staked_node_id(update_params):
+    """Test contract update transaction can be created from protobuf using staked_node_id."""
+    tx_proto = ContractUpdateTransactionBody(staked_node_id=update_params["staked_node_id"])
+    tx = ContractUpdateTransaction._from_protobuf(TransactionBody(contractUpdateInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractUpdateTransaction)
+    assert tx.staked_account_id is None
+    assert tx.staked_node_id == update_params["staked_node_id"]
+
+
+def test_byte_serialization_round_trip(update_params):
+    """Test serialization roundtrip for the to/from bytes."""
+    prams = ContractUpdateParams(
+        contract_id=update_params["contract_id"],
+        contract_memo=update_params["memo"],
+        expiration_time=update_params["expiration_time"],
+        admin_key=update_params["admin_key"],
+        max_automatic_token_associations=update_params["max_automatic_token_associations"],
+        auto_renew_period=update_params["auto_renew_period"],
+        auto_renew_account_id=update_params["auto_renew_account_id"],
+        staked_account_id=update_params["staked_account_id"],
+        decline_reward=update_params["decline_reward"],
+    )
+
+    original_tx = ContractUpdateTransaction(prams)
+    copy_tx = ContractUpdateTransaction.from_bytes(original_tx.to_bytes())
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, ContractUpdateTransaction)
+    assert copy_tx.contract_id == original_tx.contract_id
+    assert copy_tx.contract_memo == original_tx.contract_memo
+    assert copy_tx.expiration_time == original_tx.expiration_time
+    assert copy_tx.admin_key == original_tx.admin_key
+    assert copy_tx.max_automatic_token_associations == original_tx.max_automatic_token_associations
+    assert copy_tx.auto_renew_period == original_tx.auto_renew_period
+    assert copy_tx.auto_renew_account_id == original_tx.auto_renew_account_id
+    assert copy_tx.staked_account_id == original_tx.staked_account_id
+    assert copy_tx.staked_node_id == 0  # default
+    assert copy_tx.decline_reward == original_tx.decline_reward
+
+
+def test_byte_serialization_round_trip_with_stake_node_id(update_params):
+    """Test serialization roundtrip preserves staked_node_id."""
+    original_tx = ContractUpdateTransaction().set_staked_node_id(update_params["staked_node_id"])
+    copy_tx = ContractUpdateTransaction.from_bytes(original_tx.to_bytes())
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, ContractUpdateTransaction)
+    assert copy_tx.staked_node_id == original_tx.staked_node_id
+    assert copy_tx.staked_account_id is None

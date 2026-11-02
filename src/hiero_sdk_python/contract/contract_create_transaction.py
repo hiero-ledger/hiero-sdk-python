@@ -431,8 +431,6 @@ class ContractCreateTransaction(Transaction):
         """Create contract create transaction from protobuf message."""
         transaction = super()._from_protobuf(transaction_body)
 
-        print(transaction_body)
-
         if transaction_body.HasField("contractCreateInstance"):
             proto_body = transaction_body.contractCreateInstance
 
@@ -442,6 +440,7 @@ class ContractCreateTransaction(Transaction):
             transaction.contract_memo = proto_body.memo
             transaction.max_automatic_token_associations = proto_body.max_automatic_token_associations
             transaction.decline_reward = proto_body.decline_reward
+            transaction.bytecode = proto_body.initcode
 
             if proto_body.HasField("auto_renew_account_id"):
                 transaction.auto_renew_account_id = AccountId._from_proto(proto_body.auto_renew_account_id)
@@ -462,7 +461,5 @@ class ContractCreateTransaction(Transaction):
 
             if proto_body.HasField("fileID"):
                 transaction.bytecode_file_id = FileId._from_proto(proto_body.fileID)
-
-            transaction.bytecode = proto_body.initcode
 
         return transaction

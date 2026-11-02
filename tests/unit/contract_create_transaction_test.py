@@ -563,7 +563,7 @@ def test_from_transaction_body_protobuf_preserve_defaults():
     assert tx.admin_key is None
     assert tx.gas == 0
     assert tx.initial_balance == 0
-    assert tx.auto_renew_period == Duration(90 * 24 * 60 * 60)  # 90 days
+    assert tx.auto_renew_period == Duration(DEFAULT_AUTO_RENEW_PERIOD)  # 90 days
     assert tx.parameters == b""
     assert tx.contract_memo == ""
     assert tx.auto_renew_account_id is None
@@ -633,6 +633,28 @@ def test_from_transaction_body_protobuf_with_staked_node_id(contract_params):
     assert isinstance(tx, ContractCreateTransaction)
     assert tx.staked_account_id is None
     assert tx.staked_node_id == contract_params["staked_node_id"]
+
+
+def test_from_protobuf_without_contract_create_instance():
+    """Test created contract from the transaction body protobuf message not containing contractCreateInstance."""
+    tx = ContractCreateTransaction._from_protobuf(TransactionBody())
+
+    assert tx is not None
+    assert isinstance(tx, ContractCreateTransaction)
+    assert tx.bytecode_file_id is None
+    assert tx.bytecode is None
+    assert tx.proxy_account_id is None
+    assert tx.admin_key is None
+    assert tx.gas is None
+    assert tx.initial_balance is None
+    assert tx.auto_renew_period == Duration(DEFAULT_AUTO_RENEW_PERIOD)  # 90 days
+    assert tx.parameters is None
+    assert tx.contract_memo is None
+    assert tx.auto_renew_account_id is None
+    assert tx.max_automatic_token_associations is None
+    assert tx.staked_account_id is None
+    assert tx.staked_node_id is None
+    assert tx.decline_reward is None
 
 
 def test_byte_serialization_round_trip(contract_params):
