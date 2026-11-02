@@ -156,3 +156,32 @@ class FreezeTransaction(Transaction):
             _Method: An object containing the transaction function to freeze the network.
         """
         return _Method(transaction_func=channel.freeze.freeze, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> FreezeTransaction:
+        """
+        Creates a FreezeTransaction from a protobuf TransactionBody.
+
+        Inverse of build_transaction_body(). Optional fields that were not set
+        are restored as None.
+
+        Args:
+            transaction_body (TransactionBody): The parsed transaction body.
+
+        Returns:
+            FreezeTransaction: A new instance with the freeze fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("freeze"):
+            pb = transaction_body.freeze
+            if pb.HasField("start_time"):
+                transaction.start_time = Timestamp._from_protobuf(pb.start_time)
+            if pb.HasField("update_file"):
+                transaction.file_id = FileId._from_proto(pb.update_file)
+            # file_hash and freeze_type are plain proto3 fields: empty / 0 means unset
+            transaction.file_hash = pb.file_hash or None
+            if pb.freeze_type:
+                transaction.freeze_type = FreezeType._from_proto(pb.freeze_type)
+
+        return transaction
