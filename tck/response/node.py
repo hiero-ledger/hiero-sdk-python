@@ -32,7 +32,6 @@ class NodeAddressResponse:
     nodeCertHash: str | None = None
     serviceEndpoints: list[EndpointResponse] | None = None
     description: str | None = None
-    stake: int | None = None
 
 
 @dataclass

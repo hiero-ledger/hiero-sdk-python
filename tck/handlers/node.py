@@ -155,7 +155,6 @@ def _map_to_node_address_response(address: NodeAddress) -> NodeAddressResponse:
         nodeCertHash=bytes.hex(address._cert_hash) if address._cert_hash is not None else None,
         serviceEndpoints=endpoints,
         description=address._description,
-        stake=address._stake,
     )
 
 
