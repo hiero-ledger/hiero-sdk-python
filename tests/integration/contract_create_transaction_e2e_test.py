@@ -115,3 +115,26 @@ def test_integration_contract_create_transaction_set_bytecode(env):
 
     contract_id = receipt.contract_id
     assert contract_id is not None, "Contract ID should not be None"
+
+
+@pytest.mark.integration
+def test_integration_contract_create_transaction_from_bytes(env):
+    """Test that a contract creation transaction can be deserialized and executed successfully."""
+    bytecode = bytes.fromhex(SIMPLE_CONTRACT_BYTECODE)
+    original_tx = (
+        ContractCreateTransaction()
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_contract_memo("Test contract")
+        .set_bytecode(bytecode)
+    )
+
+    copy_tx = ContractCreateTransaction.from_bytes(original_tx.to_bytes())
+    receipt = copy_tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    contract_id = receipt.contract_id
+    assert contract_id is not None, "Contract ID should not be None"

@@ -25,9 +25,11 @@ from hiero_sdk_python.hapi.services import (
     response_pb2,
     transaction_get_receipt_pb2,
 )
+from hiero_sdk_python.hapi.services.contract_create_pb2 import ContractCreateTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import (
     TransactionReceipt as TransactionReceiptProto,
 )
@@ -546,3 +548,148 @@ def test_contract_create_params_dataclass():
     assert params_default.staked_account_id is None
     assert params_default.staked_node_id is None
     assert params_default.decline_reward is None
+
+
+def test_from_transaction_body_protobuf_preserve_defaults():
+    """Test created contract from the transaction body protobuf message preserve defaults."""
+    tx_proto = ContractCreateTransactionBody()
+    tx = ContractCreateTransaction._from_protobuf(TransactionBody(contractCreateInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractCreateTransaction)
+    assert tx.bytecode_file_id is None
+    assert tx.bytecode == b""
+    assert tx.proxy_account_id is None
+    assert tx.admin_key is None
+    assert tx.gas == 0
+    assert tx.initial_balance == 0
+    assert tx.auto_renew_period == Duration(90 * 24 * 60 * 60)  # 90 days
+    assert tx.parameters == b""
+    assert tx.contract_memo == ""
+    assert tx.auto_renew_account_id is None
+    assert tx.max_automatic_token_associations == 0
+    assert tx.staked_account_id is None
+    assert tx.staked_node_id == 0
+    assert tx.decline_reward == False
+
+
+def test_can_create_create_contract_from_transaction_body_protobuf(contract_params):
+    """Test contract create transaction can be created from the transaction body protobuf message."""
+    # skip initcode and stake_node_id cause they override the fileID and stake_node_account_id (due to oneof)
+    tx_proto = ContractCreateTransactionBody(
+        fileID=contract_params["bytecode_file_id"]._to_proto(),
+        proxyAccountID=contract_params["proxy_account_id"]._to_proto(),
+        adminKey=contract_params["admin_key"].to_proto_key(),
+        gas=contract_params["gas"],
+        initialBalance=contract_params["initial_balance"],
+        autoRenewPeriod=contract_params["auto_renew_period"]._to_proto(),
+        constructorParameters=contract_params["parameters"],
+        memo=contract_params["contract_memo"],
+        auto_renew_account_id=contract_params["auto_renew_account_id"]._to_proto(),
+        max_automatic_token_associations=contract_params["max_automatic_token_associations"],
+        staked_account_id=contract_params["staked_account_id"]._to_proto(),
+        decline_reward=contract_params["decline_reward"],
+    )
+
+    tx = ContractCreateTransaction._from_protobuf(TransactionBody(contractCreateInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractCreateTransaction)
+    assert tx.bytecode_file_id == contract_params["bytecode_file_id"]
+    assert tx.bytecode == b""
+    assert tx.proxy_account_id == contract_params["proxy_account_id"]
+    assert tx.admin_key == contract_params["admin_key"]
+    assert tx.gas == contract_params["gas"]
+    assert tx.initial_balance == contract_params["initial_balance"]
+    assert tx.auto_renew_period == contract_params["auto_renew_period"]
+    assert tx.parameters == contract_params["parameters"]
+    assert tx.contract_memo == contract_params["contract_memo"]
+    assert tx.auto_renew_account_id == contract_params["auto_renew_account_id"]
+    assert tx.max_automatic_token_associations == contract_params["max_automatic_token_associations"]
+    assert tx.staked_account_id == contract_params["staked_account_id"]
+    assert tx.staked_node_id == 0
+    assert tx.decline_reward == contract_params["decline_reward"]
+
+
+def test_from_transaction_body_protobuf_with_initcode(contract_params):
+    """Test contract create transaction can be created from protobuf using initcode."""
+    tx_proto = ContractCreateTransactionBody(
+        initcode=contract_params["bytecode"],
+    )
+    tx = ContractCreateTransaction._from_protobuf(TransactionBody(contractCreateInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractCreateTransaction)
+    assert tx.bytecode_file_id is None
+    assert tx.bytecode == contract_params["bytecode"]
+
+
+def test_from_transaction_body_protobuf_with_staked_node_id(contract_params):
+    """Test contract create transaction can be created from protobuf using staked_node_id."""
+    tx_proto = ContractCreateTransactionBody(staked_node_id=contract_params["staked_node_id"])
+    tx = ContractCreateTransaction._from_protobuf(TransactionBody(contractCreateInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractCreateTransaction)
+    assert tx.staked_account_id is None
+    assert tx.staked_node_id == contract_params["staked_node_id"]
+
+
+def test_byte_serialization_round_trip(contract_params):
+    """Test serialization roundtrip for the to/from bytes."""
+    params = ContractCreateParams(
+        bytecode_file_id=contract_params["bytecode_file_id"],
+        proxy_account_id=contract_params["proxy_account_id"],
+        admin_key=contract_params["admin_key"],
+        gas=contract_params["gas"],
+        initial_balance=contract_params["initial_balance"],
+        auto_renew_period=contract_params["auto_renew_period"],
+        parameters=contract_params["parameters"],
+        contract_memo=contract_params["contract_memo"],
+        auto_renew_account_id=contract_params["auto_renew_account_id"],
+        max_automatic_token_associations=contract_params["max_automatic_token_associations"],
+        staked_account_id=contract_params["staked_account_id"],
+        decline_reward=contract_params["decline_reward"],
+    )
+
+    original_tx = ContractCreateTransaction(contract_params=params)
+    copy_tx = ContractCreateTransaction.from_bytes(original_tx.to_bytes())
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, ContractCreateTransaction)
+    assert copy_tx.bytecode_file_id == original_tx.bytecode_file_id
+    assert copy_tx.bytecode == b""  # protobuf it is bytes so when not set is b""
+    assert copy_tx.proxy_account_id == original_tx.proxy_account_id
+    assert copy_tx.admin_key == original_tx.admin_key
+    assert copy_tx.gas == original_tx.gas
+    assert copy_tx.initial_balance == original_tx.initial_balance
+    assert copy_tx.auto_renew_period == original_tx.auto_renew_period
+    assert copy_tx.parameters == original_tx.parameters
+    assert copy_tx.contract_memo == original_tx.contract_memo
+    assert copy_tx.auto_renew_account_id == original_tx.auto_renew_account_id
+    assert copy_tx.max_automatic_token_associations == original_tx.max_automatic_token_associations
+    assert copy_tx.staked_account_id == original_tx.staked_account_id
+    assert copy_tx.staked_node_id == 0  # protobuf it is int64 so when not set is 0
+    assert copy_tx.decline_reward == original_tx.decline_reward
+
+
+def test_byte_serialization_round_trip_with_initcode(contract_params):
+    """Test serialization roundtrip preserves initcode."""
+    original_tx = ContractCreateTransaction().set_bytecode(contract_params["bytecode"])
+    copy_tx = ContractCreateTransaction.from_bytes(original_tx.to_bytes())
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, ContractCreateTransaction)
+    assert copy_tx.bytecode == original_tx.bytecode
+    assert copy_tx.bytecode_file_id is None
+
+
+def test_byte_serialization_round_trip_with_stake_node_id(contract_params):
+    """Test serialization roundtrip preserves staked_node_id."""
+    original_tx = ContractCreateTransaction().set_staked_node_id(contract_params["staked_node_id"])
+    copy_tx = ContractCreateTransaction.from_bytes(original_tx.to_bytes())
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, ContractCreateTransaction)
+    assert copy_tx.staked_node_id == original_tx.staked_node_id
+    assert copy_tx.staked_account_id is None

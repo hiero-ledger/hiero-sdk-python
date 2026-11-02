@@ -20,6 +20,7 @@ from hiero_sdk_python.hapi.services.contract_create_pb2 import (
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -424,3 +425,44 @@ class ContractCreateTransaction(Transaction):
                 create contracts.
         """
         return _Method(transaction_func=channel.smart_contract.createContract, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody):
+        """Create contract create transaction from protobuf message."""
+        transaction = super()._from_protobuf(transaction_body)
+
+        print(transaction_body)
+
+        if transaction_body.HasField("contractCreateInstance"):
+            proto_body = transaction_body.contractCreateInstance
+
+            transaction.gas = proto_body.gas
+            transaction.initial_balance = proto_body.initialBalance
+            transaction.parameters = proto_body.constructorParameters
+            transaction.contract_memo = proto_body.memo
+            transaction.max_automatic_token_associations = proto_body.max_automatic_token_associations
+            transaction.decline_reward = proto_body.decline_reward
+
+            if proto_body.HasField("auto_renew_account_id"):
+                transaction.auto_renew_account_id = AccountId._from_proto(proto_body.auto_renew_account_id)
+
+            if proto_body.HasField("staked_account_id"):
+                transaction.staked_account_id = AccountId._from_proto(proto_body.staked_account_id)
+
+            transaction.staked_node_id = proto_body.staked_node_id
+
+            if proto_body.HasField("autoRenewPeriod"):
+                transaction.auto_renew_period = Duration._from_proto(proto_body.autoRenewPeriod)
+
+            if proto_body.HasField("proxyAccountID"):
+                transaction.proxy_account_id = AccountId._from_proto(proto_body.proxyAccountID)
+
+            if proto_body.HasField("adminKey"):
+                transaction.admin_key = Key.from_proto_key(proto_body.adminKey)
+
+            if proto_body.HasField("fileID"):
+                transaction.bytecode_file_id = FileId._from_proto(proto_body.fileID)
+
+            transaction.bytecode = proto_body.initcode
+
+        return transaction
