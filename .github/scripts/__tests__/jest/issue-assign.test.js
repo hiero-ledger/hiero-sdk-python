@@ -92,7 +92,11 @@ beforeEach(() => {
   githubApi.fetchAllComments.mockResolvedValue([]);
   githubApi.postIssueComment.mockResolvedValue();
   githubApi.assignIssue.mockResolvedValue();
-  githubApi.getIssue.mockResolvedValue({ assignees: [] });
+  githubApi.getIssue.mockResolvedValue({
+    state: 'open',
+    assignees: [],
+    labels: [{ name: 'skill: beginner' }],
+  });
 
   spam.isSpamUser.mockReturnValue(false);
   spam.isSpamBlockedLevel.mockReturnValue(false);
@@ -423,6 +427,12 @@ describe('runAssignmentFlow - prerequisites', () => {
 
   test('continues when prerequisite lookup fails open', async () => {
     githubApi.countCompletedIssuesWithLabel.mockResolvedValue(null);
+
+    githubApi.getIssue.mockResolvedValue({
+      state: 'open',
+      assignees: [],
+      labels: [{ name: 'skill: intermediate' }],
+    });
 
     const github = createGithub();
 
@@ -757,20 +767,65 @@ describe('runAssignmentFlow - error handling', () => {
   });
 });
 
-test('does not assign when stale webhook payload says unassigned but issue is already assigned', async () => {
-  githubApi.getIssue.mockResolvedValue({
-    assignees: [{ login: 'another-user' }],
+describe('runAssignmentFlow - fresh issue validation', () => {
+  test('does not assign when the fresh issue is already assigned', async () => {
+    const freshIssue = {
+      number: 10,
+      state: 'open',
+      assignees: [{ login: 'another-user' }],
+      labels: [{ name: 'skill: beginner' }],
+    };
+    githubApi.getIssue.mockResolvedValue(freshIssue);
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.getIssue).toHaveBeenCalled();
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).toHaveBeenCalledWith(
+      expect.objectContaining({ body: 'already assigned' }),
+      'already-assigned notice'
+    );
+    expect(
+      require('../../shared/helpers/comment').buildAlreadyAssignedComment
+    ).toHaveBeenCalledWith('parv', freshIssue, {
+      owner: 'hiero-ledger',
+      repo: 'hiero-sdk-python',
+      label: 'skill: beginner',
+    });
   });
 
-  const github = createGithub();
-  const context = createContext();
+  test('does not assign when the fresh issue is closed', async () => {
+    githubApi.getIssue.mockResolvedValue({
+      state: 'closed',
+      assignees: [],
+      labels: [{ name: 'skill: beginner' }],
+    });
 
-  await runAssignmentFlow({
-    github,
-    context,
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 
-  expect(githubApi.getIssue).toHaveBeenCalled();
-  expect(githubApi.assignIssue).not.toHaveBeenCalled();
-  expect(githubApi.postIssueComment).toHaveBeenCalled();
+  test('does not assign when the fresh issue skill label has changed', async () => {
+    githubApi.getIssue.mockResolvedValue({
+      state: 'open',
+      assignees: [],
+      labels: [{ name: 'skill: intermediate' }],
+    });
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
+  });
 });

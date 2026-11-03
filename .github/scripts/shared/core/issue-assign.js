@@ -306,13 +306,27 @@ async function runAssignmentFlow({ github, context }) {
       issueNumber,
     });
 
+    if (freshIssue.state !== 'open') {
+      console.log(`[assign-bot] Issue #${issueNumber} is no longer open. Skipping assignment.`);
+      return;
+    }
+
+    const freshLevelKey = resolveLevelKey(freshIssue, repoConfig);
+    if (freshLevelKey !== levelKey) {
+      console.log(`[assign-bot] Issue #${issueNumber} skill label changed. Skipping assignment.`);
+      return;
+    }
+
     if (freshIssue.assignees?.length > 0) {
-      const assignee = freshIssue.assignees[0]?.login;
-      const body = buildAlreadyAssignedComment(assignee);
+      const body = buildAlreadyAssignedComment(commenter, freshIssue, {
+        owner,
+        repo: repoName,
+        label,
+      });
 
       await postIssueComment(
         { github, owner, repo: repoName, issueNumber, body },
-        'already assigned'
+        'already-assigned notice'
       );
       return;
     }
