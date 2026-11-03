@@ -435,21 +435,6 @@ def test_token_airdrop_from_protobuf_without_token_airdrop():
     assert not restored.nft_transfers
 
 
-def test_token_airdrop_from_protobuf_accepts_extra_args(mock_account_ids):
-    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
-    sender_id, receiver_id, _, token_id_1, _ = mock_account_ids
-
-    airdrop_tx = TokenAirdropTransaction()
-    airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=sender_id, amount=-5)
-    airdrop_tx.add_token_transfer(token_id=token_id_1, account_id=receiver_id, amount=5)
-
-    tx_body = TransactionBody()
-    tx_body.tokenAirdrop.CopyFrom(airdrop_tx._build_proto_body())
-
-    restored = TokenAirdropTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
-    assert len(restored.token_transfers[token_id_1]) == 2
-
-
 def test_token_airdrop_from_bytes_round_trip(mock_account_ids, token_id, nft_id, mock_client):
     """Test serialization round-trip via Transaction.from_bytes()."""
     sender_id, receiver_id, _, _, _ = mock_account_ids

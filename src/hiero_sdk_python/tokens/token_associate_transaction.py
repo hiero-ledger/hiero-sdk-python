@@ -118,27 +118,17 @@ class TokenAssociateTransaction(Transaction):
         )
 
     @classmethod
-    def _from_protobuf(
-        cls,
-        transaction_body: transaction_pb2.TransactionBody,
-        body_bytes: bytes | None = None,
-        sig_map=None,
-    ) -> TokenAssociateTransaction:
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenAssociateTransaction:
         """
         Creates a TokenAssociateTransaction instance from protobuf components.
 
         Args:
             transaction_body (TransactionBody): The parsed TransactionBody protobuf.
-            body_bytes (bytes, optional): The raw bytes of the transaction body.
-            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
 
         Returns:
             TokenAssociateTransaction: A new transaction instance with all fields restored.
         """
-        try:
-            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
-        except TypeError:
-            transaction = super()._from_protobuf(transaction_body)
+        transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("tokenAssociate"):
             body = transaction_body.tokenAssociate

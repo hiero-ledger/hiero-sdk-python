@@ -350,20 +350,6 @@ def test_token_claim_airdrop_from_protobuf_without_token_claim_airdrop():
     assert restored.get_pending_airdrop_ids() == []
 
 
-def test_token_claim_airdrop_from_protobuf_accepts_extra_args():
-    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
-    sender = AccountId(0, 0, 9201)
-    receiver = AccountId(0, 0, 9202)
-    p1 = _make_fungible_pending(sender, receiver, 9210)
-
-    proto_body = TokenClaimAirdropTransactionBody(pending_airdrops=[p1._to_proto()])
-    tx_body = transaction_pb2.TransactionBody()
-    tx_body.tokenClaimAirdrop.CopyFrom(proto_body)
-
-    restored = TokenClaimAirdropTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
-    assert restored.get_pending_airdrop_ids() == [p1]
-
-
 def test_token_claim_airdrop_from_protobuf_rejects_duplicates():
     """Test _from_protobuf enforces duplicate validation rule."""
     sender = AccountId(0, 0, 9201)

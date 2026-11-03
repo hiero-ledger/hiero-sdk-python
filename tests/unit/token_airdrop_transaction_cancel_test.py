@@ -329,20 +329,6 @@ def test_token_cancel_airdrop_from_protobuf_without_token_cancel_airdrop():
     assert restored.pending_airdrops == []
 
 
-def test_token_cancel_airdrop_from_protobuf_accepts_extra_args(mock_account_ids):
-    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
-    sender_id, receiver_id, _, token_id, _ = mock_account_ids
-    token_pending_airdrop = PendingAirdropId(sender_id=sender_id, receiver_id=receiver_id, token_id=token_id)
-
-    transaction = TokenCancelAirdropTransaction().set_pending_airdrops([token_pending_airdrop])
-    tx_body = TransactionBody()
-    tx_body.tokenCancelAirdrop.CopyFrom(transaction._build_proto_body())
-
-    restored = TokenCancelAirdropTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
-    assert len(restored.pending_airdrops) == 1
-    assert restored.pending_airdrops[0] == token_pending_airdrop
-
-
 def test_token_cancel_airdrop_from_bytes_round_trip(mock_account_ids, token_id, nft_id, mock_client):
     """Test serialization round-trip via Transaction.from_bytes()."""
     sender_id, receiver_id, _, _, _ = mock_account_ids

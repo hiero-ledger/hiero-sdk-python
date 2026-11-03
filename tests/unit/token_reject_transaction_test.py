@@ -416,23 +416,6 @@ def test_token_reject_from_protobuf_without_token_reject():
     assert restored.nft_ids == []
 
 
-def test_token_reject_from_protobuf_accepts_extra_args(mock_account_ids):
-    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
-    _, owner_account_id, _, token_id, _ = mock_account_ids
-
-    tx_body = TransactionBody()
-    tx_body.tokenReject.CopyFrom(
-        TokenRejectTransactionBody(
-            owner=owner_account_id._to_proto(),
-            rejections=[TokenReference(fungible_token=token_id._to_proto())],
-        )
-    )
-
-    restored = TokenRejectTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
-    assert restored.owner_id == owner_account_id
-    assert restored.token_ids == [token_id]
-
-
 def test_token_reject_from_bytes_round_trip(mock_account_ids, token_id, nft_id, mock_client):
     """Test serialization round-trip via Transaction.from_bytes()."""
     _, owner_account_id, _, _, _ = mock_account_ids

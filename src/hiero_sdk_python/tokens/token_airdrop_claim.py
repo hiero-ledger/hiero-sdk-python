@@ -138,27 +138,17 @@ class TokenClaimAirdropTransaction(Transaction):
         return inst
 
     @classmethod
-    def _from_protobuf(
-        cls,
-        transaction_body: transaction_pb2.TransactionBody,
-        body_bytes: bytes | None = None,
-        sig_map: Any = None,
-    ) -> TokenClaimAirdropTransaction:
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenClaimAirdropTransaction:
         """
         Creates a TokenClaimAirdropTransaction instance from protobuf components.
 
         Args:
             transaction_body (TransactionBody): The parsed TransactionBody protobuf.
-            body_bytes (bytes, optional): The raw bytes of the transaction body.
-            sig_map (SignatureMap, optional): The SignatureMap protobuf containing signatures.
 
         Returns:
             TokenClaimAirdropTransaction: A new transaction instance with all fields restored.
         """
-        try:
-            transaction = super()._from_protobuf(transaction_body, body_bytes, sig_map)
-        except TypeError:
-            transaction = super()._from_protobuf(transaction_body)
+        transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("tokenClaimAirdrop"):
             token_claim_airdrop_body = transaction_body.tokenClaimAirdrop

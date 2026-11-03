@@ -269,23 +269,6 @@ def test_token_associate_from_protobuf_without_token_associate():
     assert restored.token_ids == []
 
 
-def test_token_associate_from_protobuf_accepts_extra_args(mock_account_ids):
-    """Test _from_protobuf accepts optional body_bytes and sig_map arguments."""
-    account_id, _, _, token_id_1, _ = mock_account_ids
-
-    tx_body = TransactionBody()
-    tx_body.tokenAssociate.CopyFrom(
-        token_associate_pb2.TokenAssociateTransactionBody(
-            account=account_id._to_proto(),
-            tokens=[token_id_1._to_proto()],
-        )
-    )
-
-    restored = TokenAssociateTransaction._from_protobuf(tx_body, body_bytes=b"raw_bytes", sig_map=None)
-    assert restored.account_id == account_id
-    assert restored.token_ids == [token_id_1]
-
-
 def test_token_associate_from_bytes_round_trip(mock_account_ids, token_id, mock_client):
     """Test serialization round-trip via Transaction.from_bytes()."""
     account_id, _, _, _, token_id_2 = mock_account_ids
