@@ -18,6 +18,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.system.freeze_transaction import FreezeTransaction
 from hiero_sdk_python.system.freeze_type import FreezeType
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 pytestmark = pytest.mark.unit
@@ -289,3 +290,52 @@ def test_build_proto_body_with_none_fields():
     assert not proto_body.HasField("update_file")
     assert proto_body.file_hash == b""
     assert proto_body.freeze_type == proto_FreezeType.UNKNOWN_FREEZE_TYPE
+
+
+def test_from_bytes_round_trip(mock_client, freeze_params):
+    """Test that from_bytes restores every freeze field and keeps the bytes identical."""
+    original = FreezeTransaction(**freeze_params).freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, FreezeTransaction)
+    assert restored.start_time == freeze_params["start_time"]
+    assert restored.file_id == freeze_params["file_id"]
+    assert restored.file_hash == freeze_params["file_hash"]
+    assert restored.freeze_type == freeze_params["freeze_type"]
+    assert restored.to_bytes() == original_bytes
+
+
+@pytest.mark.parametrize(
+    "freeze_type",
+    [
+        FreezeType.FREEZE_ONLY,
+        FreezeType.PREPARE_UPGRADE,
+        FreezeType.FREEZE_UPGRADE,
+        FreezeType.FREEZE_ABORT,
+        FreezeType.TELEMETRY_UPGRADE,
+    ],
+)
+def test_from_bytes_round_trip_each_freeze_type(mock_client, freeze_type):
+    """Test that every freeze type survives the round trip."""
+    original = FreezeTransaction(freeze_type=freeze_type).freeze_with(mock_client)
+
+    restored = Transaction.from_bytes(original.to_bytes())
+
+    assert restored.freeze_type == freeze_type
+
+
+def test_from_bytes_round_trip_unset_fields(mock_client):
+    """Test that unset optional fields come back as None, not proto defaults."""
+    original = FreezeTransaction().freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, FreezeTransaction)
+    assert restored.start_time is None
+    assert restored.file_id is None
+    assert restored.file_hash is None
+    assert restored.freeze_type is None
+    assert restored.to_bytes() == original_bytes
