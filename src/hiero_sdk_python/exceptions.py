@@ -57,7 +57,7 @@ class MaxAttemptsError(Exception):
         last_error (BaseException): The last error that occurred during the final attempt
     """
 
-    def __init__(self, message: str, node_id: str, last_error: BaseException | None = None) -> None:
+    def __init__(self, message: str, node_id: str | None = None, last_error: BaseException | None = None) -> None:
         self.node_id = node_id
         self.last_error = last_error
 
@@ -73,7 +73,7 @@ class MaxAttemptsError(Exception):
         return self.message
 
     def __repr__(self) -> str:
-        return f"MaxAttemptsError(message='{self.message}', node_id='{self.node_id}')"
+        return f"MaxAttemptsError(message='{self.message}', node_id={self.node_id!r})"
 
 
 class ReceiptStatusError(Exception):

@@ -21,6 +21,8 @@ You can choose either syntax or even mix both styles in your projects.
   - [Querying Account Records](#querying-account-records)
   - [Querying Account HBAR Balance Using Mirror Node](#querying-account-hbar-balance-using-mirror-node)
   - [Querying Account Token Balance Using Mirror Node](#querying-account-token-balance-using-mirror-node)
+- [Address Book](#address-book)
+  - [Querying Address Book](#querying-address-book)
 - [Token Transactions](#token-transactions)
   - [Creating a Token](#creating-a-token)
   - [Minting a Fungible Token](#minting-a-fungible-token)
@@ -386,11 +388,7 @@ print(f"Account balance: {balance.hbars}")
 
 #### Method Chaining:
 ```python
-balance = (
-    MirrorNodeAccountBalanceQuery()
-    .set_account_id(account_id)
-    .execute(client)
-)
+balance = MirrorNodeAccountBalanceQuery().set_account_id(account_id).execute(client)
 print(f"Account balance: {balance.hbars}")
 ```
 
@@ -402,25 +400,40 @@ account raises `PrecheckError` with `INVALID_ACCOUNT_ID`.
 
 #### Pythonic Syntax:
 ```python
-token_balance = (
-    MirrorNodeTokenBalanceQuery(account_id, token_id)
-    .execute(client)
-)
+token_balance = MirrorNodeTokenBalanceQuery(account_id, token_id).execute(client)
 print(token_balance)
 ```
 
 #### Method Chaining:
 ```python
-token_balance = (
-    MirrorNodeTokenBalanceQuery()
-    .set_account_id(account_id)
-    .set_token_id(token_id)
-    .execute(client)
-)
+token_balance = MirrorNodeTokenBalanceQuery().set_account_id(account_id).set_token_id(token_id).execute(client)
 print(token_balance)
 ```
 
 
+
+
+## Address Book
+
+### Querying Address Book
+
+#### Pythonic Syntax:
+```python
+# Note address book query only work with `0.0.102` or `0.0.101`
+address_book = AddressBookQuery(file_id=file_id, limit=2).execute(client)
+
+for node_address in address_book.node_addresses:
+    print(node_address)
+```
+
+#### Method Chaining:
+```python
+# Note address book query only work with `0.0.102` or `0.0.101`
+address_book = AddressBookQuery().set_file_id(file_id).set_limit(limit).execute(client)
+
+for node_address in address_book.node_addresses:
+    print(node_address)
+```
 
 ## Token Transactions
 
@@ -2035,16 +2048,16 @@ transaction = NodeUpdateTransaction(
         description="Updated node description",
         gossip_endpoints=[
             Endpoint(domain_name="updated-gossip1.example.com", port=50311),
-            Endpoint(domain_name="updated-gossip2.example.com", port=50312)
+            Endpoint(domain_name="updated-gossip2.example.com", port=50312),
         ],
         service_endpoints=[
             Endpoint(domain_name="updated-service1.example.com", port=50311),
-            Endpoint(domain_name="updated-service2.example.com", port=50312)
+            Endpoint(domain_name="updated-service2.example.com", port=50312),
         ],
         gossip_ca_certificate=updated_gossip_ca_cert,
         admin_key=admin_key.public_key(),
         decline_reward=False,
-        grpc_web_proxy_endpoint=Endpoint(domain_name="updated-grpc.example.com", port=50313)
+        grpc_web_proxy_endpoint=Endpoint(domain_name="updated-grpc.example.com", port=50313),
     )
 ).freeze_with(client)
 
@@ -2057,9 +2070,7 @@ transaction.sign(admin_key)  # Sign with admin key
 
 #### Pythonic Syntax:
 ```python
-transaction = NodeDeleteTransaction(
-    node_id=node_id
-)
+transaction = NodeDeleteTransaction(node_id=node_id)
 
 receipt = transaction.execute(client)
 ```

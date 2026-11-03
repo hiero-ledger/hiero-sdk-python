@@ -54,10 +54,13 @@ class Network:
             ("35.236.2.27:50211", AccountId(0, 0, 14)),
         ],
         "testnet": [
-            ("0.testnet.hedera.com:50211", AccountId(0, 0, 3)),
-            ("1.testnet.hedera.com:50211", AccountId(0, 0, 4)),
-            ("2.testnet.hedera.com:50211", AccountId(0, 0, 5)),
-            ("3.testnet.hedera.com:50211", AccountId(0, 0, 6)),
+            ("34.94.106.61:50211", AccountId(0, 0, 3)),
+            ("3.212.6.13:50211", AccountId(0, 0, 4)),
+            ("35.245.27.193:50211", AccountId(0, 0, 5)),
+            ("34.83.112.116:50211", AccountId(0, 0, 6)),
+            ("34.94.160.4:50211", AccountId(0, 0, 7)),
+            ("34.106.102.218:50211", AccountId(0, 0, 8)),
+            ("34.133.197.230:50211", AccountId(0, 0, 9)),
         ],
         "previewnet": [
             ("0.previewnet.hedera.com:50211", AccountId(0, 0, 3)),

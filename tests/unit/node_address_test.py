@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import binascii
+import ipaddress
 
 import pytest
 
@@ -104,7 +105,7 @@ def test_to_proto():
     # Verify all endpoints are serialized
     assert len(node_address_proto.serviceEndpoint) == 3
     for i, ep_proto in enumerate(node_address_proto.serviceEndpoint):
-        assert ep_proto.ipAddressV4 == endpoints[i]._address
+        assert ep_proto.ipAddressV4 == ipaddress.ip_address(endpoints[i]._address.decode("utf-8")).packed
         assert ep_proto.port == endpoints[i]._port
         assert ep_proto.domain_name == endpoints[i]._domain_name
 

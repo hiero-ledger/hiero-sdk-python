@@ -17,7 +17,7 @@ pytestmark = pytest.mark.unit
 def mock_address_book():
     """Create a mock address book with certificate hash."""
     cert_hash = b"test_cert_hash_12345"
-    endpoint = Endpoint(address=b"node.example.com", port=50211, domain_name="node.example.com")
+    endpoint = Endpoint(address=b"127.0.0.1", port=50211, domain_name="node.example.com")
     return NodeAddress(account_id=AccountId(0, 0, 3), cert_hash=cert_hash, addresses=[endpoint])
 
 
