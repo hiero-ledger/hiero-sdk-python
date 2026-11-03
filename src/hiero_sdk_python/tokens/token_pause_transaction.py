@@ -90,6 +90,28 @@ class TokenPauseTransaction(Transaction):
         schedulable_body.token_pause.CopyFrom(token_pause_body)
         return schedulable_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TokenPauseTransaction:
+        """
+        Restore common and token pause fields from protobuf.
+
+        Args:
+            transaction_body: The parsed TransactionBody from protobuf.
+
+        Returns:
+            TokenPauseTransaction: A transaction with common and token pause
+            fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("token_pause"):
+            token_pause_body = transaction_body.token_pause
+            transaction.token_id = (
+                TokenId._from_proto(token_pause_body.token) if token_pause_body.HasField("token") else None
+            )
+
+        return transaction
+
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(transaction_func=channel.token.pauseToken, query_func=None)
 
