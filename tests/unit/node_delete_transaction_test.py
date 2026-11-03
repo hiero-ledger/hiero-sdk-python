@@ -12,6 +12,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.nodes.node_delete_transaction import NodeDeleteTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 pytestmark = pytest.mark.unit
@@ -190,3 +191,24 @@ def test_build_proto_body_missing_node_id():
 
     with pytest.raises(ValueError, match="Missing required NodeID"):
         node_tx._build_proto_body()
+
+
+def test_from_bytes_round_trip(mock_client, node_id):
+    """Test that from_bytes restores the node id and keeps the bytes identical."""
+    original = NodeDeleteTransaction(node_id=node_id).freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, NodeDeleteTransaction)
+    assert restored.node_id == node_id
+    assert restored.to_bytes() == original_bytes
+
+
+def test_from_bytes_round_trip_node_id_zero(mock_client):
+    """Test that node id 0, a valid id, is restored rather than treated as unset."""
+    original = NodeDeleteTransaction(node_id=0).freeze_with(mock_client)
+
+    restored = Transaction.from_bytes(original.to_bytes())
+
+    assert restored.node_id == 0
