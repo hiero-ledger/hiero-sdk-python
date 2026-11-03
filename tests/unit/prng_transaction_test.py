@@ -17,6 +17,7 @@ from hiero_sdk_python.hapi.services import (
 )
 from hiero_sdk_python.prng_transaction import PrngTransaction
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -162,3 +163,27 @@ def test_prng_transaction_can_execute():
         receipt = transaction.execute(client)
 
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+
+def test_from_bytes_round_trip(mock_client, prng_params):
+    """Test that from_bytes restores the range and keeps the bytes identical."""
+    original = PrngTransaction(range=prng_params["range"]).freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, PrngTransaction)
+    assert restored.range == prng_params["range"]
+    assert restored.to_bytes() == original_bytes
+
+
+def test_from_bytes_round_trip_unset_range(mock_client):
+    """Test that an unset range comes back as None, not the proto default."""
+    original = PrngTransaction().freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, PrngTransaction)
+    assert restored.range is None
+    assert restored.to_bytes() == original_bytes

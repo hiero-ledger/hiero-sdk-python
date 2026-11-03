@@ -106,3 +106,23 @@ class NodeDeleteTransaction(Transaction):
             _Method: An object containing the transaction function to delete a node.
         """
         return _Method(transaction_func=channel.address_book.deleteNode, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> NodeDeleteTransaction:
+        """
+        Creates a NodeDeleteTransaction from a protobuf TransactionBody.
+
+        Inverse of build_transaction_body().
+
+        Args:
+            transaction_body (TransactionBody): The parsed transaction body.
+
+        Returns:
+            NodeDeleteTransaction: A new instance with the node id restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("nodeDelete"):
+            transaction.node_id = transaction_body.nodeDelete.node_id
+
+        return transaction
