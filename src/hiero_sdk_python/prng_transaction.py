@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from hiero_sdk_python.channels import _Channel
 from hiero_sdk_python.executable import _Method
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hapi.services.util_prng_pb2 import UtilPrngTransactionBody
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -88,3 +89,24 @@ class PrngTransaction(Transaction):
             _Method: The method wrapper containing the transaction function
         """
         return _Method(transaction_func=channel.util.prng, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> PrngTransaction:
+        """
+        Creates a PrngTransaction from a protobuf TransactionBody.
+
+        Inverse of build_transaction_body(). A range of 0 is the proto3 default
+        and means "no range", so it is restored as None.
+
+        Args:
+            transaction_body (TransactionBody): The parsed transaction body.
+
+        Returns:
+            PrngTransaction: A new instance with the range restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("util_prng"):
+            transaction.range = transaction_body.util_prng.range or None
+
+        return transaction

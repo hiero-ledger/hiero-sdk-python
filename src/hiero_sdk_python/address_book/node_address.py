@@ -54,9 +54,14 @@ class NodeAddress:
         self._public_key: str = public_key
         self._account_id: AccountId = account_id
         self._node_id: int = node_id
-        self._cert_hash: bytes = cert_hash
+        self._cert_hash: bytes | None = cert_hash
         self._addresses: list[Endpoint] = addresses
         self._description: str = description
+
+    @property
+    def cert_hash(self) -> bytes | None:
+        """Get the node certificate hash."""
+        return self._cert_hash
 
     @classmethod
     def _from_proto(cls, node_address_proto: NodeAddressProto) -> NodeAddress:

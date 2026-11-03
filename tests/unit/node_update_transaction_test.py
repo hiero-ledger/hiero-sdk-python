@@ -147,6 +147,42 @@ def test_build_scheduled_body(node_params):
     assert node_update.grpc_proxy_endpoint == node_params["grpc_web_proxy_endpoint"]._to_proto()
 
 
+def test_build_transaction_body_without_node_id(mock_account_ids):
+    """Test building a node update transaction body without node_id raises."""
+    operator_id, _, node_account_id, _, _ = mock_account_ids
+
+    node_tx = NodeUpdateTransaction().set_description("test node")
+    node_tx.operator_account_id = operator_id
+    node_tx.set_node_account_ids([node_account_id])
+
+    with pytest.raises(ValueError, match="Missing required NodeID"):
+        node_tx.build_transaction_body()
+
+
+def test_build_scheduled_body_without_node_id():
+    """Test building a schedulable node update transaction body without node_id raises."""
+    node_tx = NodeUpdateTransaction().set_description("test node")
+
+    with pytest.raises(ValueError, match="Missing required NodeID"):
+        node_tx.build_scheduled_body()
+
+
+def test_build_proto_body_leaves_unset_fields_absent():
+    """Test that only the fields that were set are present in the protobuf body."""
+    body = NodeUpdateTransaction().set_node_id(5).set_description("test node")._build_proto_body()
+
+    assert body.node_id == 5
+    assert body.description.value == "test node"
+    assert not body.HasField("account_id")
+    assert not body.HasField("gossip_ca_certificate")
+    assert not body.HasField("grpc_certificate_hash")
+    assert not body.HasField("admin_key")
+    assert not body.HasField("decline_reward")
+    assert not body.HasField("grpc_proxy_endpoint")
+    assert len(body.gossip_endpoint) == 0
+    assert len(body.service_endpoint) == 0
+
+
 def test_set_node_id(node_params):
     """Test setting node_id using the setter method."""
     node_tx = NodeUpdateTransaction()
@@ -177,6 +213,42 @@ def test_set_description(node_params):
     assert result is node_tx  # Should return self for method chaining
 
 
+def test_set_description_as_none():
+    """Test setting description as None leaves it unset."""
+    node_tx = NodeUpdateTransaction()
+
+    result = node_tx.set_description(None)
+
+    assert node_tx.description is None
+    assert result is node_tx  # Should return self for method chaining
+
+
+def test_set_description_with_100_utf8_bytes():
+    """Test setting a description of exactly 100 UTF-8 bytes."""
+    description = "🚀" * 25
+    node_tx = NodeUpdateTransaction()
+
+    node_tx.set_description(description)
+
+    assert node_tx.description == description
+
+
+def test_set_description_with_bytes_greater_than_100():
+    """Test setting description bytes size more than 100."""
+    description = "a" * 101
+
+    with pytest.raises(ValueError, match="description must not exceed 100 bytes when UTF-8 encoded"):
+        NodeUpdateTransaction().set_description(description)
+
+
+def test_set_description_counts_utf8_bytes_not_characters():
+    """Test the description limit counts UTF-8 bytes, not characters."""
+    description = "🚀" * 26
+
+    with pytest.raises(ValueError, match="description must not exceed 100 bytes"):
+        NodeUpdateTransaction().set_description(description)
+
+
 def test_set_gossip_endpoints(node_params):
     """Test setting gossip_endpoints using the setter method."""
     node_tx = NodeUpdateTransaction()
@@ -185,6 +257,46 @@ def test_set_gossip_endpoints(node_params):
 
     assert node_tx.gossip_endpoints == node_params["gossip_endpoints"]
     assert result is node_tx  # Should return self for method chaining
+
+
+def test_set_gossip_endpoints_with_none():
+    """Test setting gossip_endpoints as None using the setter method."""
+    node_tx = NodeUpdateTransaction()
+
+    result = node_tx.set_gossip_endpoints(None)
+
+    assert node_tx.gossip_endpoints is None
+    assert result is node_tx  # Should return self for method chaining
+
+
+def test_set_empty_gossip_endpoints():
+    """Test setting an empty gossip_endpoints list."""
+    with pytest.raises(ValueError, match="gossipEndpoints must not be empty"):
+        NodeUpdateTransaction().set_gossip_endpoints([])
+
+
+def test_set_gossip_endpoints_greater_than_10(node_params):
+    """Test setting more than 10 gossip_endpoints."""
+    endpoints = node_params["gossip_endpoints"] * 11
+
+    with pytest.raises(ValueError, match="gossipEndpoints must not contain more than 10 entries"):
+        NodeUpdateTransaction().set_gossip_endpoints(endpoints)
+
+
+@pytest.mark.parametrize(
+    "endpoints",
+    (
+        [Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211)],
+        [
+            Endpoint(domain_name="test.com", port=50211),
+            Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211),
+        ],
+    ),
+)
+def test_set_gossip_endpoints_containing_both_ip_and_domain(endpoints):
+    """Test setting gossip_endpoints containing both ip and domain."""
+    with pytest.raises(ValueError, match="Endpoint must not contain both ipAddressV4 and domainName"):
+        NodeUpdateTransaction().set_gossip_endpoints(endpoints)
 
 
 def test_set_service_endpoints(node_params):
@@ -197,6 +309,46 @@ def test_set_service_endpoints(node_params):
     assert result is node_tx  # Should return self for method chaining
 
 
+def test_set_service_endpoints_with_none():
+    """Test setting service_endpoints as None using the setter method."""
+    node_tx = NodeUpdateTransaction()
+
+    result = node_tx.set_service_endpoints(None)
+
+    assert node_tx.service_endpoints is None
+    assert result is node_tx  # Should return self for method chaining
+
+
+def test_set_empty_service_endpoints():
+    """Test setting an empty service_endpoints list."""
+    with pytest.raises(ValueError, match="serviceEndpoints must not be empty"):
+        NodeUpdateTransaction().set_service_endpoints([])
+
+
+def test_set_service_endpoints_greater_than_8(node_params):
+    """Test setting more than 8 service_endpoints."""
+    endpoints = node_params["service_endpoints"] * 9
+
+    with pytest.raises(ValueError, match="serviceEndpoints must not contain more than 8 entries"):
+        NodeUpdateTransaction().set_service_endpoints(endpoints)
+
+
+@pytest.mark.parametrize(
+    "endpoints",
+    (
+        [Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211)],
+        [
+            Endpoint(domain_name="test.com", port=50211),
+            Endpoint(address=b"127.0.0.1", domain_name="test.com", port=50211),
+        ],
+    ),
+)
+def test_set_service_endpoints_containing_both_ip_and_domain(endpoints):
+    """Test setting service_endpoints containing both ip and domain."""
+    with pytest.raises(ValueError, match="Endpoint must not contain both ipAddressV4 and domainName"):
+        NodeUpdateTransaction().set_service_endpoints(endpoints)
+
+
 def test_set_gossip_ca_certificate(node_params):
     """Test setting gossip_ca_certificate using the setter method."""
     node_tx = NodeUpdateTransaction()
@@ -205,6 +357,12 @@ def test_set_gossip_ca_certificate(node_params):
 
     assert node_tx.gossip_ca_certificate == node_params["gossip_ca_certificate"]
     assert result is node_tx  # Should return self for method chaining
+
+
+def test_set_empty_gossip_ca_certificate():
+    """Test setting empty gossip_ca_certificate using the setter method."""
+    with pytest.raises(ValueError, match="gossipCaCertificate must not be empty"):
+        NodeUpdateTransaction().set_gossip_ca_certificate(b"")
 
 
 def test_set_grpc_certificate_hash(node_params):
@@ -247,6 +405,14 @@ def test_set_grpc_web_proxy_endpoint(node_params):
     assert result is node_tx  # Should return self for method chaining
 
 
+def test_set_empty_grpc_web_proxy_endpoint_is_serialized():
+    """Test an empty grpc_web_proxy_endpoint is sent, which deletes the proxy on the network."""
+    body = NodeUpdateTransaction().set_node_id(5).set_grpc_web_proxy_endpoint(Endpoint())._build_proto_body()
+
+    assert body.HasField("grpc_proxy_endpoint")
+    assert body.grpc_proxy_endpoint.ByteSize() == 0
+
+
 def test_method_chaining_with_all_setters(node_params):
     """Test that all setter methods support method chaining."""
     node_tx = NodeUpdateTransaction()
@@ -279,7 +445,7 @@ def test_method_chaining_with_all_setters(node_params):
 
 def test_set_methods_require_not_frozen(mock_client, node_params):
     """Test that setter methods raise exception when transaction is frozen."""
-    node_tx = NodeUpdateTransaction()
+    node_tx = NodeUpdateTransaction().set_node_id(node_params["node_id"])
     node_tx.freeze_with(mock_client)
 
     test_cases = [
@@ -359,7 +525,7 @@ def test_node_update_transaction_build_with_private_key():
     private_key = PrivateKey.generate()
     public_key = private_key.public_key()
 
-    tx = NodeUpdateTransaction().set_admin_key(private_key)
+    tx = NodeUpdateTransaction().set_node_id(5).set_admin_key(private_key)
 
     body = tx._build_proto_body()
 
@@ -371,7 +537,7 @@ def test_node_update_transaction_from_protobuf_with_admin_key():
     """NodeUpdateTransaction should deserialize the admin_key from the proto correctly."""
     private_key = PrivateKey.generate()
 
-    transaction = NodeUpdateTransaction().set_admin_key(private_key)
+    transaction = NodeUpdateTransaction().set_node_id(5).set_admin_key(private_key)
     body = transaction._build_proto_body()
 
     transaction_body = TransactionBody()

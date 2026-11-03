@@ -99,6 +99,31 @@ class TokenUnfreezeTransaction(Transaction):
         transaction_body.tokenUnfreeze.CopyFrom(token_unfreeze_body)
         return transaction_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TokenUnfreezeTransaction:
+        """
+        Restore common fields and token unfreeze fields from protobuf.
+
+        Args:
+            transaction_body: The parsed TransactionBody protobuf.
+
+        Returns:
+            TokenUnfreezeTransaction: A transaction with its common and token
+            unfreeze fields restored
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenUnfreeze"):
+            token_unfreeze_body = transaction_body.tokenUnfreeze
+            transaction.token_id = (
+                TokenId._from_proto(token_unfreeze_body.token) if token_unfreeze_body.HasField("token") else None
+            )
+            transaction.account_id = (
+                AccountId._from_proto(token_unfreeze_body.account) if token_unfreeze_body.HasField("account") else None
+            )
+
+        return transaction
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token unfreeze transaction.
