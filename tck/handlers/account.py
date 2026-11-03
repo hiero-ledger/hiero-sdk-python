@@ -14,9 +14,11 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.query.mirror_node_account_balance_query import MirrorNodeAccountBalanceQuery
+from hiero_sdk_python.query.mirror_node_token_balance_query import MirrorNodeTokenBalanceQuery
 from hiero_sdk_python.query.transaction_get_receipt_query import TransactionGetReceiptQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from hiero_sdk_python.transaction.transaction_receipt import TransactionReceipt
 from tck.handlers.registry import rpc_method
@@ -26,6 +28,7 @@ from tck.param.account import (
     GetAccountBalanceParams,
     GetAccountInfoParams,
     GetMirrorNodeAccountBalanceParams,
+    GetMirrorNodeTokenBalanceParams,
     GetTransactionReceiptParams,
     UpdateAccountParams,
 )
@@ -36,6 +39,7 @@ from tck.response.account import (
     GetAccountBalanceResponse,
     GetAccountInfoResponse,
     GetMirrorNodeAccountBalanceResponse,
+    GetMirrorNodeTokenBalanceResponse,
     GetTransactionReceiptResponse,
     StakingInfoResponse,
     TokenRelationshipResponse,
@@ -297,6 +301,30 @@ def get_mirror_node_account_balance(params: GetMirrorNodeAccountBalanceParams) -
 
     # Serialise the exact tinybar integer; Hbar's display form rounds above 2^53.
     return GetMirrorNodeAccountBalanceResponse(hbars=str(balance.hbars.to_tinybars()))
+
+
+@rpc_method("getMirrorNodeTokenBalance")
+def get_mirror_node_token_balance(params: GetMirrorNodeTokenBalanceParams) -> GetMirrorNodeTokenBalanceResponse:
+    """Read the balance of a specific token held by an account from the mirror node.
+
+    The accountId may be an account or contract ID, an EVM address, or a public
+    key alias; the SDK resolves each to the form the mirror node accepts.
+    """
+    client = get_client(params.sessionId)
+
+    query = MirrorNodeTokenBalanceQuery()
+    if params.accountId is not None:
+        query.set_account_id(AccountId.from_string(params.accountId))
+    if params.tokenId is not None:
+        query.set_token_id(TokenId.from_string(params.tokenId))
+
+    result = query.execute(client)
+
+    return GetMirrorNodeTokenBalanceResponse(
+        tokenId=str(result.token_id),
+        balance=str(result.balance),
+        decimals=result.decimals,
+    )
 
 
 def map_account_balance_response(account_balance: AccountBalance) -> GetAccountBalanceResponse:

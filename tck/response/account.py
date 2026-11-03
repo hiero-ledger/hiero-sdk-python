@@ -100,6 +100,15 @@ class GetMirrorNodeAccountBalanceResponse:
 
 
 @dataclass
+class GetMirrorNodeTokenBalanceResponse:
+    """Response payload for getMirrorNodeTokenBalance."""
+
+    tokenId: str | None = None
+    balance: str | None = None
+    decimals: int | None = None
+
+
+@dataclass
 class ExchangeRateResponse:
     """Exchange rate details included in a transaction receipt."""
 
