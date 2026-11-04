@@ -143,6 +143,23 @@ class GetMirrorNodeAccountBalanceParams(BaseParams):
 
 
 @dataclass
+class GetMirrorNodeTokenBalanceParams(BaseParams):
+    """Request parameters for the getMirrorNodeTokenBalance endpoint."""
+
+    accountId: str | None = None
+    tokenId: str | None = None
+
+    @classmethod
+    def parse_json_params(cls, params: dict) -> GetMirrorNodeTokenBalanceParams:
+        """Parse JSON-RPC params into a GetMirrorNodeTokenBalanceParams instance."""
+        return cls(
+            accountId=params.get("accountId"),
+            tokenId=params.get("tokenId"),
+            sessionId=parse_session_id(params),
+        )
+
+
+@dataclass
 class GetTransactionReceiptParams(BaseParams):
     """Request parameters for the getTransactionReceipt endpoint."""
 
