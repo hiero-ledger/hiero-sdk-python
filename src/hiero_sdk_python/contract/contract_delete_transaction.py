@@ -9,6 +9,7 @@ from hiero_sdk_python.executable import _Method
 from hiero_sdk_python.hapi.services.contract_delete_pb2 import (
     ContractDeleteTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -159,3 +160,24 @@ class ContractDeleteTransaction(Transaction):
                 delete contracts.
         """
         return _Method(transaction_func=channel.smart_contract.deleteContract, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody):
+        """Create contract delete transaction from protobuf message."""
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("contractDeleteInstance"):
+            proto_body = transaction_body.contractDeleteInstance
+
+            transaction.permanent_removal = proto_body.permanent_removal
+
+            if proto_body.HasField("contractID"):
+                transaction.contract_id = ContractId._from_proto(proto_body.contractID)
+
+            if proto_body.HasField("transferAccountID"):
+                transaction.transfer_account_id = AccountId._from_proto(proto_body.transferAccountID)
+
+            if proto_body.HasField("transferContractID"):
+                transaction.transfer_contract_id = ContractId._from_proto(proto_body.transferContractID)
+
+        return transaction

@@ -636,7 +636,7 @@ def test_from_transaction_body_protobuf_with_staked_node_id(contract_params):
 
 
 def test_from_protobuf_without_contract_create_instance():
-    """Test created contract from the transaction body protobuf message not containing contractCreateInstance."""
+    """Test create contract from the transaction body protobuf message not containing contractCreateInstance."""
     tx = ContractCreateTransaction._from_protobuf(TransactionBody())
 
     assert tx is not None
