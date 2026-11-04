@@ -13,7 +13,12 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.signer import _signature_pair_to_key_and_signature
 from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
-from hiero_sdk_python.hapi.services import basic_types_pb2, transaction_pb2, transaction_response_pb2
+from hiero_sdk_python.hapi.services import (
+    basic_types_pb2,
+    transaction_contents_pb2,
+    transaction_pb2,
+    transaction_response_pb2,
+)
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -173,6 +178,22 @@ def test_get_signatures_rejects_non_transaction_id():
         tx.get_signatures(str(tx.transaction_id))
 
 
+@pytest.mark.parametrize(
+    ("make_transaction_id", "message"),
+    [
+        (lambda tx: TransactionId(account_id=tx.transaction_id.account_id), "transaction_id must have a valid_start"),
+        (lambda tx: TransactionId(valid_start=tx.transaction_id.valid_start), "No transaction bodies built"),
+    ],
+    ids=["no_valid_start", "no_account_id"],
+)
+def test_get_signatures_incomplete_transaction_id_raises_value_error(make_transaction_id, message):
+    """Test that a TransactionId missing a field raises ValueError rather than AttributeError."""
+    tx = _transfer().freeze()
+
+    with pytest.raises(ValueError, match=message):
+        tx.get_signatures(make_transaction_id(tx))
+
+
 def test_get_signatures_unsigned_transaction_maps_every_node_to_empty_dict():
     """Test that an unsigned frozen transaction lists every node with no signatures."""
     tx = _transfer().freeze()
@@ -275,6 +296,24 @@ def test_transaction_hash_is_stable_until_a_signature_is_added():
 
     assert tx.get_transaction_hash() != transaction_hash
     assert all(tx.get_transaction_hash_per_node()[node] != per_node[node] for node in NODE_IDS)
+
+
+def test_transaction_hash_covers_every_signature():
+    """Test that the hashed bytes carry every signer's signature, checked without going through the builder."""
+    keys = [PrivateKey.generate_ed25519(), PrivateKey.generate_ecdsa()]
+    tx = _transfer().freeze().sign(keys[0])
+    single_signer_hash = tx.get_transaction_hash()
+
+    tx.sign(keys[1])
+    signed_transaction_bytes = tx._make_request().signedTransactionBytes
+    signed_transaction = transaction_contents_pb2.SignedTransaction.FromString(signed_transaction_bytes)
+    signatures = dict(_signature_pair_to_key_and_signature(pair) for pair in signed_transaction.sigMap.sigPair)
+
+    assert set(signatures) == {key.public_key() for key in keys}
+    for public_key, signature in signatures.items():
+        public_key.verify(signature, signed_transaction.bodyBytes)
+    assert tx.get_transaction_hash() == hashlib.sha384(signed_transaction_bytes).digest()
+    assert tx.get_transaction_hash() != single_signer_hash
 
 
 def test_transaction_hash_per_node_differs_between_nodes():

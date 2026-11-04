@@ -568,6 +568,9 @@ class Transaction(_Executable):
         has one entry per node; a chunked transaction has one entry per chunk and node.
         Sign each entry's bytes to produce a signature for that node, e.g. in an HSM.
 
+        The AccountId and TransactionId in each entry are the ones the transaction uses
+        internally; do not mutate them.
+
         Returns:
             list[SignableNodeTransactionBodyBytes]: The signable body bytes.
 
@@ -587,7 +590,8 @@ class Transaction(_Executable):
         Returns the signatures on the transaction, per node and public key.
 
         Every node appears in the result; a node without signatures maps to an empty dict.
-        The result is a copy, so changing it does not change the transaction.
+        The dicts are copies, so changing them does not change the transaction. The
+        AccountId keys are the ones the transaction uses internally; do not mutate them.
 
         Args:
             transaction_id (TransactionId, optional): The transaction ID (chunk) to read.
@@ -599,8 +603,9 @@ class Transaction(_Executable):
         Raises:
             Exception: If the transaction is not frozen.
             TypeError: If transaction_id is not a TransactionId.
-            ValueError: If the transaction has no bodies for transaction_id, or a signature
-                cannot be read (unsupported type or shortened public key prefix).
+            ValueError: If transaction_id has no valid_start, the transaction has no bodies
+                for transaction_id, or a signature cannot be read (unsupported type or
+                shortened public key prefix).
         """
         self._require_frozen()
 
@@ -608,6 +613,9 @@ class Transaction(_Executable):
             transaction_id = self._transaction_ids.get(0)
         elif not isinstance(transaction_id, TransactionId):
             raise TypeError("transaction_id must be of type TransactionId")
+        elif transaction_id.valid_start is None:
+            # TransactionId cannot be hashed without a valid_start, so the lookup below would fail
+            raise ValueError("transaction_id must have a valid_start")
 
         node_bodies = self._transaction_body_bytes.get(transaction_id)
         if node_bodies is None:
@@ -649,6 +657,7 @@ class Transaction(_Executable):
 
         Each node gets a different body, so each node has a different hash. The hash for
         the node that receives the transaction equals the returned TransactionResponse.hash.
+        The AccountId keys are the ones the transaction uses internally; do not mutate them.
 
         The hash covers the signatures, so it changes whenever a signature is added.
         Compute it after the final signature. execute() adds the operator signature when
