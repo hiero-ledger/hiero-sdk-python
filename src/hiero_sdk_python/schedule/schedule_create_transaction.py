@@ -238,7 +238,8 @@ class ScheduleCreateTransaction(Transaction):
 
         Inverse of build_transaction_body(). The scheduled transaction is already stored
         as a SchedulableTransactionBody, so it is restored as is and not turned back
-        into a Transaction. Optional fields that were not set are restored as None.
+        into a Transaction. Message fields that were not set are restored as None;
+        memo and wait_for_expiry are plain proto3 fields, so they keep their proto values.
 
         Args:
             transaction_body (TransactionBody): The parsed transaction body.
@@ -258,8 +259,7 @@ class ScheduleCreateTransaction(Transaction):
                 transaction.admin_key = Key.from_proto_key(pb.adminKey)
             if pb.HasField("expiration_time"):
                 transaction.expiration_time = Timestamp._from_protobuf(pb.expiration_time)
-            # memo and wait_for_expiry are plain proto3 fields: empty / False means unset
-            transaction.schedule_memo = pb.memo or None
-            transaction.wait_for_expiry = pb.wait_for_expiry or None
+            transaction.schedule_memo = pb.memo
+            transaction.wait_for_expiry = pb.wait_for_expiry
 
         return transaction

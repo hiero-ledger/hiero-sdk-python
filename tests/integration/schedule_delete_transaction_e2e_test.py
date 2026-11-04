@@ -15,6 +15,7 @@ from hiero_sdk_python.schedule.schedule_delete_transaction import (
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 
@@ -221,3 +222,40 @@ def test_integration_schedule_delete_transaction_fails_schedule_already_deleted(
     assert receipt.status == ResponseCode.SCHEDULE_ALREADY_DELETED, (
         f"Schedule delete transaction failed with status: {ResponseCode(receipt.status).name}"
     )
+
+
+@pytest.mark.integration
+def test_integration_schedule_delete_transaction_from_bytes(env):
+    """Execute a deserialized ScheduleDeleteTransaction and verify the schedule is deleted."""
+    account = env.create_account()
+
+    receipt = (
+        TransferTransaction()
+        .add_hbar_transfer(account.id, -1000)  # 1000 tinybars
+        .add_hbar_transfer(env.operator_id, 1000)
+        .schedule()
+        .set_payer_account_id(account.id)
+        .set_admin_key(env.operator_key.public_key())
+        .set_schedule_memo("test schedule delete from bytes")
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS
+    schedule_id = receipt.schedule_id
+    assert schedule_id is not None
+
+    tx = ScheduleDeleteTransaction().set_schedule_id(schedule_id).freeze_with(env.client)
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleDeleteTransaction)
+    assert restored.schedule_id == schedule_id
+    assert restored.to_bytes() == original_bytes
+
+    receipt = restored.execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Restored schedule delete failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
+    assert schedule_info.deleted_at is not None, "Schedule should be deleted"

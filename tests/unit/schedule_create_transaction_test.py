@@ -350,7 +350,7 @@ def test_from_bytes_round_trip_admin_key(mock_client, schedule_params, admin_key
 
 
 def test_from_bytes_round_trip_unset_fields(mock_client):
-    """Test that unset optional fields come back as None, not proto defaults."""
+    """Test that unset message fields come back as None and plain fields keep their proto defaults."""
     original = ScheduleCreateTransaction().freeze_with(mock_client)
     original_bytes = original.to_bytes()
 
@@ -360,14 +360,14 @@ def test_from_bytes_round_trip_unset_fields(mock_client):
     assert restored.payer_account_id is None
     assert restored.admin_key is None
     assert restored.schedulable_body is None
-    assert restored.schedule_memo is None
     assert restored.expiration_time is None
-    assert restored.wait_for_expiry is None
+    assert restored.schedule_memo == ""
+    assert restored.wait_for_expiry is False
     assert restored.to_bytes() == original_bytes
 
 
-def test_from_bytes_round_trip_default_valued_fields_come_back_unset(mock_client, schedule_params):
-    """Test that an empty memo and wait_for_expiry=False, identical on the wire to unset, come back as None."""
+def test_from_bytes_round_trip_explicit_default_values(mock_client, schedule_params):
+    """Test that an explicitly empty memo and wait_for_expiry=False are restored as set."""
     schedule_params["schedule_memo"] = ""
     schedule_params["wait_for_expiry"] = False
     original = _freeze(schedule_params, mock_client)
@@ -375,8 +375,8 @@ def test_from_bytes_round_trip_default_valued_fields_come_back_unset(mock_client
 
     restored = Transaction.from_bytes(original_bytes)
 
-    assert restored.schedule_memo is None
-    assert restored.wait_for_expiry is None
+    assert restored.schedule_memo == ""
+    assert restored.wait_for_expiry is False
     assert restored.to_bytes() == original_bytes
 
 

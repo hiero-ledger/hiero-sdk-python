@@ -11,6 +11,7 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
 from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 
@@ -233,3 +234,41 @@ def test_integration_schedule_sign_transaction_fails_with_already_executed(env):
         f"SCHEDULE_ALREADY_EXECUTED status but got: "
         f"{ResponseCode(receipt.status).name}"
     )
+
+
+@pytest.mark.integration
+def test_integration_schedule_sign_transaction_from_bytes(env):
+    """Execute a deserialized ScheduleSignTransaction and verify the schedule executed."""
+    account = env.create_account()
+
+    receipt = (
+        TransferTransaction()
+        .add_hbar_transfer(account.id, -1000)  # 1000 tinybars
+        .add_hbar_transfer(env.operator_id, 1000)
+        .schedule()
+        .set_payer_account_id(account.id)
+        .set_schedule_memo("test schedule sign from bytes")
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS
+    schedule_id = receipt.schedule_id
+    assert schedule_id is not None
+
+    tx = ScheduleSignTransaction().set_schedule_id(schedule_id).freeze_with(env.client)
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleSignTransaction)
+    assert restored.schedule_id == schedule_id
+    assert restored.to_bytes() == original_bytes
+
+    receipt = restored.sign(account.key).execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Restored schedule sign failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    schedule_info = ScheduleInfoQuery().set_schedule_id(schedule_id).execute(env.client)
+    assert len(schedule_info.signers) == 1
+    assert schedule_info.signers[0].to_bytes_raw() == account.key.public_key().to_bytes_raw()
+    assert schedule_info.executed_at is not None
