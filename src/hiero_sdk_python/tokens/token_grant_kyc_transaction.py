@@ -97,6 +97,33 @@ class TokenGrantKycTransaction(Transaction):
         transaction_body.tokenGrantKyc.CopyFrom(token_grant_kyc_body)
         return transaction_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TokenGrantKycTransaction:
+        """
+        Restore common fields and token grant KYC fields from protobuf.
+
+        Args:
+            transaction_body: The parsed TransactionBody protobuf.
+
+        Returns:
+            TokenGrantKycTransaction: A transaction with its common and token
+            grant kyc fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenGrantKyc"):
+            token_grant_kyc_body = transaction_body.tokenGrantKyc
+            transaction.token_id = (
+                TokenId._from_proto(token_grant_kyc_body.token) if token_grant_kyc_body.HasField("token") else None
+            )
+            transaction.account_id = (
+                AccountId._from_proto(token_grant_kyc_body.account)
+                if token_grant_kyc_body.HasField("account")
+                else None
+            )
+
+        return transaction
+
     def build_scheduled_body(self) -> SchedulableTransactionBody:
         """
         Builds the scheduled transaction body for this token grant KYC transaction.
