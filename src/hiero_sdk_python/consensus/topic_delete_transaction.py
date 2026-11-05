@@ -83,6 +83,19 @@ class TopicDeleteTransaction(Transaction):
         schedulable_body.consensusDeleteTopic.CopyFrom(consensus_delete_body)
         return schedulable_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TopicDeleteTransaction:
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("consensusDeleteTopic"):
+            topic_delete_body = transaction_body.consensusDeleteTopic
+
+            transaction.topic_id = (
+                TopicId._from_proto(topic_delete_body.topicID) if topic_delete_body.HasField("topicID") else None
+            )
+
+        return transaction
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the method for executing the topic delete transaction.
