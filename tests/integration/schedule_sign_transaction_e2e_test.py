@@ -7,6 +7,7 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python.exceptions import PrecheckError
+from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
@@ -238,13 +239,15 @@ def test_integration_schedule_sign_transaction_fails_with_already_executed(env):
 
 @pytest.mark.integration
 def test_integration_schedule_sign_transaction_from_bytes(env):
-    """Execute a deserialized ScheduleSignTransaction and verify the schedule executed."""
+    """Execute a deserialized ScheduleSignTransaction and verify the schedule and its scheduled transfer."""
     account = env.create_account()
+    recipient = env.create_account()
+    balance_before = CryptoGetAccountBalanceQuery(account_id=recipient.id).execute(env.client).hbars.to_tinybars()
 
     receipt = (
         TransferTransaction()
         .add_hbar_transfer(account.id, -1000)  # 1000 tinybars
-        .add_hbar_transfer(env.operator_id, 1000)
+        .add_hbar_transfer(recipient.id, 1000)
         .schedule()
         .set_payer_account_id(account.id)
         .set_schedule_memo("test schedule sign from bytes")
@@ -272,3 +275,6 @@ def test_integration_schedule_sign_transaction_from_bytes(env):
     assert len(schedule_info.signers) == 1
     assert schedule_info.signers[0].to_bytes_raw() == account.key.public_key().to_bytes_raw()
     assert schedule_info.executed_at is not None
+
+    balance_after = CryptoGetAccountBalanceQuery(account_id=recipient.id).execute(env.client).hbars.to_tinybars()
+    assert balance_after - balance_before == 1000, "The scheduled transfer did not move the funds"

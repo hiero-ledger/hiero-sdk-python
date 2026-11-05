@@ -265,7 +265,7 @@ def test_integration_schedule_create_transaction_from_bytes(env):
         .add_hbar_transfer(env.operator_id, 1000)
         .schedule()
     )
-    future_expiration = Timestamp.from_date(datetime.datetime.now() + datetime.timedelta(seconds=30))
+    future_expiration = Timestamp.from_date(datetime.datetime.now() + datetime.timedelta(minutes=5))
 
     tx = (
         schedule_create_tx.set_payer_account_id(account.id)
