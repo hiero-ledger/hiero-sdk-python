@@ -12,6 +12,7 @@ from hiero_sdk_python.hapi.services.contract_call_pb2 import ContractCallTransac
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -186,3 +187,20 @@ class ContractExecuteTransaction(Transaction):
             transaction_func=channel.smart_contract.contractCallMethod,
             query_func=None,
         )
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody):
+        """Create contract execute transaction from protobuf message."""
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("contractCall"):
+            proto_body = transaction_body.contractCall
+
+            transaction.gas = proto_body.gas
+            transaction.amount = proto_body.amount
+            transaction.function_parameters = proto_body.functionParameters
+
+            if proto_body.HasField("contractID"):
+                transaction.contract_id = ContractId._from_proto(proto_body.contractID)
+
+        return transaction
