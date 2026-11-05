@@ -85,6 +85,16 @@ class TopicDeleteTransaction(Transaction):
 
     @classmethod
     def _from_protobuf(cls, transaction_body) -> TopicDeleteTransaction:
+        """
+        Restore common and topic delete fields from transaction.
+
+        Args:
+            transaction_body: The parsed TransactionBody from protobuf.
+
+        Returns:
+            TopicDeleteTransaction: A transaction with common and topic delete
+            fields restored.
+        """
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("consensusDeleteTopic"):

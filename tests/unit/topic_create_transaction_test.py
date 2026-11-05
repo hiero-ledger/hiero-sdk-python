@@ -107,6 +107,7 @@ def verify_key_in_proto(proto_key, expected_public_key, key_type):
 
 
 def _round_trip(tx, signed=False):
+    """Return a restored transaction after checking common fields, signatures, and byte identity."""
     tx.set_transaction_id(TransactionId.from_string("0.0.2@1700000000.123"))
     tx.set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
     tx.set_transaction_memo("Outer transaction memo")
@@ -660,6 +661,7 @@ def test_topic_memo_reflected_in_protobuf_independent_of_transaction_memo(mock_c
 
 @pytest.mark.parametrize("signed", [False, True])
 def test_from_bytes_restores_all_fields(custom_fixed_fee, signed):
+    """Verify every topic-create field survives signed and unsigned serialization."""
     admin = PrivateKey.generate_ed25519()
     submit = PrivateKey.generate_ecdsa().public_key()
     fee_key = KeyList([admin.public_key(), submit], threshold=1)
@@ -689,6 +691,7 @@ def test_from_bytes_restores_all_fields(custom_fixed_fee, signed):
 
 
 def test_from_bytes_preserves_unset_optionals():
+    """Verify absent create fields remain None or empty after deserialization."""
     tx = TopicCreateTransaction()
     # The constructor supplies a duration, remove it expicitly
     tx.auto_renew_period = None
@@ -706,6 +709,7 @@ def test_from_bytes_preserves_unset_optionals():
 
 
 def test_from_bytes_preserves_default_auto_renew_period():
+    """Verify the constructor's default auto-renew period survives a round trip."""
     tx = TopicCreateTransaction()
     restored = _round_trip(tx)
 
@@ -714,6 +718,7 @@ def test_from_bytes_preserves_default_auto_renew_period():
 
 @pytest.mark.parametrize("key_field", ["adminKey", "submitKey", "fee_schedule_key"])
 def test_from_protobuf_rejects_keys_without_key_type(key_field):
+    """Verify a present key without a protobuf key type raises ValueError."""
     body = transaction_pb2.TransactionBody()
     getattr(body.consensusCreateTopic, key_field).SetInParent()
 

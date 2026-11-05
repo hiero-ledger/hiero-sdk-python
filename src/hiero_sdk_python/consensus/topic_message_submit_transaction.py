@@ -230,6 +230,16 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
     @classmethod
     def _from_protobuf(cls, transaction_body):
+        """
+        Restore common and topic submit message fields from transaction.
+
+        Args:
+            transaction_body: The parsed TransactionBody from protobuf.
+
+        Returns:
+            TopicMessageSubmitTransaction: A transaction with common and topic message
+            submit fields restored.
+        """
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("consensusSubmitMessage"):
