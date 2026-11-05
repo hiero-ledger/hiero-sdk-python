@@ -5,8 +5,10 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
+from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_update_transaction import TopicUpdateTransaction
 from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
@@ -14,6 +16,7 @@ from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
@@ -21,7 +24,10 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -71,6 +77,29 @@ def verify_key_in_proto(proto_key, expected_public_key: PublicKey, key_type: str
         assert proto_key.ECDSA_secp256k1 == expected_public_key.to_bytes_raw()
     else:
         raise ValueError(f"Unsupported key_type: {key_type!r}")
+
+
+def _round_trip(tx, signed=False):
+    tx.set_transaction_id(TransactionId.from_string("0.0.2@1700000000.123"))
+    tx.set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
+    tx.set_transaction_memo("Outer transaction memo")
+    tx.transaction_fee = 12345678
+    tx.freeze()
+
+    if signed:
+        tx.sign(PrivateKey.generate_ed25519())
+
+    encoded = tx.to_bytes()
+    restored = Transaction.from_bytes(encoded)
+
+    assert type(restored) is type(tx)
+    assert restored.memo == tx.memo
+    assert restored.transaction_id == tx.transaction_id
+    assert restored.transaction_fee == tx.transaction_fee
+    assert restored._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored._signature_map == tx._signature_map
+    assert restored.to_bytes() == encoded
+    return restored
 
 
 @pytest.mark.parametrize(
@@ -535,3 +564,104 @@ def test_add_fee_exempt_key_type_error():
     with pytest.raises(TypeError, match="key must be a Key"):
         tx.add_fee_exempt_key(None)  # type: ignore
     assert tx.fee_exempt_keys is None, "Invalid input must not change fee_exempt_keys"
+
+
+@pytest.mark.parametrize("signed", [False, True])
+def test_from_bytes_restores_all_fields(signed):
+    admin = PrivateKey.generate_ed25519()
+    submit = PrivateKey.generate_ecdsa().public_key()
+    fee_key = KeyList([admin.public_key(), submit], threshold=1)
+    exempt_keys = [KeyList([admin.public_key()]), submit]
+    fees = [
+        CustomFixedFee(amount=11, fee_collector_account_id=AccountId(1, 2, 100)),
+        CustomFixedFee(
+            amount=23, denominating_token_id=TokenId(2, 3, 200), fee_collector_account_id=AccountId(3, 4, 300)
+        ),
+    ]
+
+    tx = TopicUpdateTransaction(
+        topic_id=TopicId(4, 5, 400),
+        memo="Updated topic memo",
+        admin_key=admin,
+        submit_key=submit,
+        auto_renew_period=Duration(8000000),
+        auto_renew_account=AccountId(5, 6, 500),
+        expiration_time=Timestamp(1800000000, 123456789),
+        custom_fees=fees,
+        fee_schedule_key=fee_key,
+        fee_exempt_keys=exempt_keys,
+    )
+    restored = _round_trip(tx, signed)
+
+    assert restored.topic_id == TopicId(4, 5, 400)
+    assert restored.topic_memo == "Updated topic memo"
+    assert restored.admin_key.to_proto_key() == admin.to_proto_key()
+    assert restored.submit_key.to_proto_key() == submit.to_proto_key()
+    assert restored.auto_renew_period == Duration(8000000)
+    assert restored.auto_renew_account == AccountId(5, 6, 500)
+    assert restored.expiration_time.seconds == 1800000000
+    assert restored.expiration_time.nanos == 123456789
+    assert restored.custom_fees == fees
+    assert restored.fee_schedule_key.to_proto_key() == fee_key.to_proto_key()
+    assert [key.to_proto_key() for key in restored.fee_exempt_keys] == [key.to_proto_key() for key in exempt_keys]
+
+
+def test_from_bytes_preserves_unset_optionals():
+    restored = _round_trip(TopicUpdateTransaction())
+
+    for name in (
+        "topic_id",
+        "topic_memo",
+        "admin_key",
+        "submit_key",
+        "auto_renew_period",
+        "auto_renew_account",
+        "expiration_time",
+        "custom_fees",
+        "fee_schedule_key",
+        "fee_exempt_keys",
+    ):
+        assert getattr(restored, name) is None, name
+
+
+def test_bytes_preserves_explicit_clears_and_zero_values():
+    tx = TopicUpdateTransaction(
+        topic_id=TopicId(0, 0, 123),
+        memo="",
+        admin_key=KeyList(),
+        submit_key=KeyList(),
+        fee_schedule_key=KeyList(),
+        custom_fees=[],
+        fee_exempt_keys=[],
+        auto_renew_account=AccountId(0, 0, 0),
+        auto_renew_period=Duration(0),
+        expiration_time=Timestamp(
+            0,
+            0,
+        ),
+    )
+    restored = _round_trip(tx)
+
+    assert restored.topic_memo == ""
+    assert restored.custom_fees == []
+    assert restored.fee_exempt_keys == []
+
+    for name in ("admin_key", "submit_key", "fee_schedule_key"):
+        key = getattr(restored, name)
+        assert isinstance(key, KeyList)
+        assert key.keys == []
+
+    assert restored.auto_renew_account == AccountId(0, 0, 0)
+    assert restored.auto_renew_period == Duration(0)
+    assert restored.expiration_time.seconds == 0
+    assert restored.expiration_time.nanos == 0
+    assert restored.build_transaction_body().consensusUpdateTopic == tx.build_transaction_body().consensusUpdateTopic
+
+
+@pytest.mark.parametrize("key_field", ["adminKey", "submitKey", "fee_schedule_key"])
+def test_from_protobuf_rejects_key_without_key_type(key_field):
+    body = transaction_pb2.TransactionBody()
+    getattr(body.consensusUpdateTopic, key_field).SetInParent()
+
+    with pytest.raises(ValueError, match="Unknown key type"):
+        TopicUpdateTransaction._from_protobuf(body)

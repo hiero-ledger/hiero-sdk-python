@@ -233,12 +233,13 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("consensusSubmitMessage"):
-            body = transaction_body.consensusSubmitMessage
+            submit_message_body = transaction_body.consensusSubmitMessage
 
-            if body.HasField("topicID"):
-                transaction.topic_id = TopicId._from_proto(body.topicID)
+            transaction.topic_id = (
+                TopicId._from_proto(submit_message_body.topicID) if submit_message_body.HasField("topicID") else None
+            )
 
-            transaction.message = body.message
+            transaction.message = submit_message_body.message
             transaction._total_chunks = transaction.get_required_chunks()
 
         return transaction

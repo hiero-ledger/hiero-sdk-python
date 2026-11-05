@@ -7,13 +7,16 @@ import pytest
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTransaction
 from hiero_sdk_python.consensus.topic_id import TopicId
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services import (
     basic_types_pb2,
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
@@ -23,6 +26,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -100,6 +104,29 @@ def verify_key_in_proto(proto_key, expected_public_key, key_type):
     else:  # ecdsa
         assert proto_key.HasField("ECDSA_secp256k1")
         assert proto_key.ECDSA_secp256k1 == expected_public_key.to_bytes_raw()
+
+
+def _round_trip(tx, signed=False):
+    tx.set_transaction_id(TransactionId.from_string("0.0.2@1700000000.123"))
+    tx.set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
+    tx.set_transaction_memo("Outer transaction memo")
+    tx.transaction_fee = 12345678
+    tx.freeze()
+
+    if signed:
+        tx.sign(PrivateKey.generate_ed25519())
+
+    encoded = tx.to_bytes()
+    restored = Transaction.from_bytes(encoded)
+
+    assert type(restored) is type(tx)
+    assert restored.memo == tx.memo
+    assert restored.transaction_id == tx.transaction_id
+    assert restored.transaction_fee == tx.transaction_fee
+    assert restored._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored._signature_map == tx._signature_map
+    assert restored.to_bytes() == encoded
+    return restored
 
 
 # This test uses fixture mock_account_ids as parameter
@@ -629,3 +656,66 @@ def test_topic_memo_reflected_in_protobuf_independent_of_transaction_memo(mock_c
 
     assert body.consensusCreateTopic.memo == "my topic memo"
     assert body.memo == "some unrelated audit note"
+
+
+@pytest.mark.parametrize("signed", [False, True])
+def test_from_bytes_restores_all_fields(custom_fixed_fee, signed):
+    admin = PrivateKey.generate_ed25519()
+    submit = PrivateKey.generate_ecdsa().public_key()
+    fee_key = KeyList([admin.public_key(), submit], threshold=1)
+    exempt_keys = [KeyList([admin.public_key()]), submit]
+    fees = [custom_fixed_fee, CustomFixedFee(amount=23, fee_collector_account_id=AccountId(1, 2, 600))]
+
+    tx = TopicCreateTransaction(
+        memo="Topic memo",
+        admin_key=admin,
+        submit_key=submit,
+        auto_renew_period=Duration(8000000),
+        auto_renew_account=AccountId(5, 6, 500),
+        custom_fees=fees,
+        fee_schedule_key=fee_key,
+        fee_exempt_keys=exempt_keys,
+    )
+    restored = _round_trip(tx, signed)
+
+    assert restored.topic_memo == "Topic memo"
+    assert restored.admin_key.to_proto_key() == admin.to_proto_key()
+    assert restored.submit_key.to_proto_key() == submit.to_proto_key()
+    assert restored.auto_renew_period == Duration(8000000)
+    assert restored.auto_renew_account == AccountId(5, 6, 500)
+    assert restored.custom_fees == fees
+    assert restored.fee_schedule_key.to_proto_key() == fee_key.to_proto_key()
+    assert [key.to_proto_key() for key in restored.fee_exempt_keys] == [key.to_proto_key() for key in exempt_keys]
+
+
+def test_from_bytes_preserves_unset_optionals():
+    tx = TopicCreateTransaction()
+    # The constructor supplies a duration, remove it expicitly
+    tx.auto_renew_period = None
+
+    restored = _round_trip(tx)
+
+    assert restored.topic_memo == ""
+    assert restored.admin_key is None
+    assert restored.submit_key is None
+    assert restored.auto_renew_period is None
+    assert restored.auto_renew_account is None
+    assert restored.fee_schedule_key is None
+    assert restored.custom_fees == []
+    assert restored.fee_exempt_keys == []
+
+
+def test_from_bytes_preserves_default_auto_renew_period():
+    tx = TopicCreateTransaction()
+    restored = _round_trip(tx)
+
+    assert restored.auto_renew_period == tx.auto_renew_period
+
+
+@pytest.mark.parametrize("key_field", ["adminKey", "submitKey", "fee_schedule_key"])
+def test_from_protobuf_rejects_keys_without_key_type(key_field):
+    body = transaction_pb2.TransactionBody()
+    getattr(body.consensusCreateTopic, key_field).SetInParent()
+
+    with pytest.raises(ValueError, match="Unknown key type"):
+        TopicCreateTransaction._from_protobuf(body)
