@@ -80,6 +80,7 @@ def verify_key_in_proto(proto_key, expected_public_key: PublicKey, key_type: str
 
 
 def _round_trip(tx, signed=False):
+    """Return a restored transaction after checking common fields, signatures, and byte identity."""
     tx.set_transaction_id(TransactionId.from_string("0.0.2@1700000000.123"))
     tx.set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
     tx.set_transaction_memo("Outer transaction memo")
@@ -568,6 +569,7 @@ def test_add_fee_exempt_key_type_error():
 
 @pytest.mark.parametrize("signed", [False, True])
 def test_from_bytes_restores_all_fields(signed):
+    """Verify every topic-update field survives signed and unsigned serialization."""
     admin = PrivateKey.generate_ed25519()
     submit = PrivateKey.generate_ecdsa().public_key()
     fee_key = KeyList([admin.public_key(), submit], threshold=1)
@@ -607,6 +609,7 @@ def test_from_bytes_restores_all_fields(signed):
 
 
 def test_from_bytes_preserves_unset_optionals():
+    """Verify omitted update fields remain None after deserialization."""
     restored = _round_trip(TopicUpdateTransaction())
 
     for name in (
@@ -625,6 +628,7 @@ def test_from_bytes_preserves_unset_optionals():
 
 
 def test_bytes_preserves_explicit_clears_and_zero_values():
+    """Verify explicit clears and zero values remain distinguishable from omitted fields."""
     tx = TopicUpdateTransaction(
         topic_id=TopicId(0, 0, 123),
         memo="",
@@ -660,6 +664,7 @@ def test_bytes_preserves_explicit_clears_and_zero_values():
 
 @pytest.mark.parametrize("key_field", ["adminKey", "submitKey", "fee_schedule_key"])
 def test_from_protobuf_rejects_key_without_key_type(key_field):
+    """Verify a present key without a protobuf key type raises ValueError."""
     body = transaction_pb2.TransactionBody()
     getattr(body.consensusUpdateTopic, key_field).SetInParent()
 

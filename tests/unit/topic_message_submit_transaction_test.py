@@ -51,6 +51,7 @@ def custom_fee_limit():
 
 
 def _round_trip(tx, signed=False):
+    """Return a restored transaction after checking common fields, signatures, and byte identity."""
     tx.set_transaction_id(TransactionId.from_string("0.0.2@1700000000.123"))
     tx.set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
     tx.set_transaction_memo("Outer transaction memo")
@@ -1035,6 +1036,7 @@ def test_invalid_transaction_bodies_for_chunk_message_submit_tx():
 @pytest.mark.parametrize("message", [b"\x00\xffbinary", "Hello 🌍"])
 @pytest.mark.parametrize("signed", [False, True])
 def test_from_bytes_restores_single_chunk_fields(message, signed):
+    """Verify binary and UTF-8 messages, topic IDs, and custom fee limits survive a round trip."""
     limits = [CustomFeeLimit(payer_id=AccountId(0, 0, 77), custom_fees=[CustomFixedFee(amount=13)])]
     tx = TopicMessageSubmitTransaction(topic_id=TopicId(0, 0, 123), message=message).set_custom_fee_limits(limits)
 
@@ -1047,6 +1049,7 @@ def test_from_bytes_restores_single_chunk_fields(message, signed):
 
 
 def test_from_bytes_preserves_absent_topic_id():
+    """Verify a missing topic ID remains None while the message is preserved."""
     tx = TopicMessageSubmitTransaction(message=b"Message without topic ID")
     restored = _round_trip(tx)
 
@@ -1056,6 +1059,7 @@ def test_from_bytes_preserves_absent_topic_id():
 
 
 def test_from_protobuf_preserves_empty_fields():
+    """Verify an empty submit body restores empty message bytes and unset optional fields."""
     body = transaction_pb2.TransactionBody()
     body.consensusSubmitMessage.SetInParent()
 

@@ -29,6 +29,7 @@ pytestmark = pytest.mark.unit
 
 
 def _round_trip(tx, signed=False):
+    """Return a restored transaction after checking common fields, signatures, and byte identity."""
     tx.set_transaction_id(TransactionId.from_string("0.0.2@1700000000.123"))
     tx.set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
     tx.set_transaction_memo("Outer transaction memo")
@@ -149,6 +150,7 @@ def test_execute_topic_delete_transaction(topic_id):
 @pytest.mark.parametrize("topic_id", [TopicId(), TopicId(7, 8, 900)])
 @pytest.mark.parametrize("signed", [False, True])
 def test_from_bytes_restores_topic_id(topic_id, signed):
+    """Verify signed and unsigned transactions preserve zero and nonzero topic IDs."""
     tx = TopicDeleteTransaction(topic_id=topic_id)
     restored = _round_trip(tx, signed)
 
@@ -156,6 +158,7 @@ def test_from_bytes_restores_topic_id(topic_id, signed):
 
 
 def test_from_protobuf_preserves_absent_topic_id():
+    """Verify an absent protobuf topic ID is restored as None."""
     body = transaction_pb2.TransactionBody()
     body.consensusDeleteTopic.SetInParent()
 
