@@ -553,7 +553,7 @@ def test_decline_reward_false(contract_id):
 
 
 def test_from_protobuf_without_contract_update_instance():
-    """Test update contract from the transaction body protobuf message not containing contractUpdateInstance."""
+    """Test creating a transaction from protobuf without a contract update instance."""
     tx = ContractUpdateTransaction._from_protobuf(TransactionBody())
 
     assert tx is not None
@@ -570,8 +570,8 @@ def test_from_protobuf_without_contract_update_instance():
     assert tx.decline_reward is None
 
 
-def test_from_transaction_body_protobuf_preserve_defaults():
-    """Test update contract from the transaction body protobuf message preserve defaults."""
+def test_from_protobuf_preserves_defaults():
+    """Test that default values are preserved when creating a transaction from protobuf."""
     tx_proto = ContractUpdateTransactionBody()
     tx = ContractUpdateTransaction._from_protobuf(TransactionBody(contractUpdateInstance=tx_proto))
 
@@ -589,8 +589,8 @@ def test_from_transaction_body_protobuf_preserve_defaults():
     assert tx.decline_reward is None
 
 
-def test_can_create_update_contract_from_transaction_body_protobuf(update_params):
-    """Test update contract can be created from the transaction body protobuf message."""
+def test_from_protobuf_with_all_fields(update_params):
+    """Test creating a transaction from protobuf with all fields set."""
     # skip stake_node_id cause it override the stake_node_id due to (one_of)
     tx_proto = ContractUpdateTransactionBody(
         contractID=update_params["contract_id"]._to_proto(),
@@ -621,8 +621,8 @@ def test_can_create_update_contract_from_transaction_body_protobuf(update_params
     assert tx.decline_reward == update_params["decline_reward"]
 
 
-def test_from_transaction_body_protobuf_with_staked_node_id(update_params):
-    """Test contract update transaction can be created from protobuf using staked_node_id."""
+def test_from_protobuf_with_staked_node_id(update_params):
+    """Test creating a transaction from protobuf with a staked node ID."""
     tx_proto = ContractUpdateTransactionBody(staked_node_id=update_params["staked_node_id"])
     tx = ContractUpdateTransaction._from_protobuf(TransactionBody(contractUpdateInstance=tx_proto))
 
@@ -632,8 +632,8 @@ def test_from_transaction_body_protobuf_with_staked_node_id(update_params):
     assert tx.staked_node_id == update_params["staked_node_id"]
 
 
-def test_byte_serialization_round_trip(update_params):
-    """Test serialization roundtrip for the to/from bytes."""
+def test_bytes_round_trip(update_params):
+    """Test contract update transaction byte serialization round trip."""
     prams = ContractUpdateParams(
         contract_id=update_params["contract_id"],
         contract_memo=update_params["memo"],
@@ -663,8 +663,8 @@ def test_byte_serialization_round_trip(update_params):
     assert copy_tx.decline_reward == original_tx.decline_reward
 
 
-def test_byte_serialization_round_trip_with_stake_node_id(update_params):
-    """Test serialization roundtrip preserves staked_node_id."""
+def test_bytes_round_trip_with_staked_node_id(update_params):
+    """Test byte serialization round trip with a staked node ID."""
     original_tx = ContractUpdateTransaction().set_staked_node_id(update_params["staked_node_id"])
     copy_tx = ContractUpdateTransaction.from_bytes(original_tx.to_bytes())
 

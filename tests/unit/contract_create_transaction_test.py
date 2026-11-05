@@ -550,8 +550,8 @@ def test_contract_create_params_dataclass():
     assert params_default.decline_reward is None
 
 
-def test_from_transaction_body_protobuf_preserve_defaults():
-    """Test created contract from the transaction body protobuf message preserve defaults."""
+def test_from_protobuf_preserves_defaults():
+    """Test that default values are preserved when creating a transaction from protobuf."""
     tx_proto = ContractCreateTransactionBody()
     tx = ContractCreateTransaction._from_protobuf(TransactionBody(contractCreateInstance=tx_proto))
 
@@ -573,8 +573,8 @@ def test_from_transaction_body_protobuf_preserve_defaults():
     assert tx.decline_reward == False
 
 
-def test_can_create_create_contract_from_transaction_body_protobuf(contract_params):
-    """Test contract create transaction can be created from the transaction body protobuf message."""
+def test_from_protobuf_with_all_fields(contract_params):
+    """Test creating a transaction from protobuf with all fields set."""
     # skip initcode and stake_node_id cause they override the fileID and stake_node_account_id (due to oneof)
     tx_proto = ContractCreateTransactionBody(
         fileID=contract_params["bytecode_file_id"]._to_proto(),
@@ -611,8 +611,8 @@ def test_can_create_create_contract_from_transaction_body_protobuf(contract_para
     assert tx.decline_reward == contract_params["decline_reward"]
 
 
-def test_from_transaction_body_protobuf_with_initcode(contract_params):
-    """Test contract create transaction can be created from protobuf using initcode."""
+def test_from_protobuf_with_initcode(contract_params):
+    """Test creating a transaction from protobuf with initcode."""
     tx_proto = ContractCreateTransactionBody(
         initcode=contract_params["bytecode"],
     )
@@ -624,8 +624,8 @@ def test_from_transaction_body_protobuf_with_initcode(contract_params):
     assert tx.bytecode == contract_params["bytecode"]
 
 
-def test_from_transaction_body_protobuf_with_staked_node_id(contract_params):
-    """Test contract create transaction can be created from protobuf using staked_node_id."""
+def test_from_protobuf_with_staked_node_id(contract_params):
+    """Test creating a transaction from protobuf with a staked node ID."""
     tx_proto = ContractCreateTransactionBody(staked_node_id=contract_params["staked_node_id"])
     tx = ContractCreateTransaction._from_protobuf(TransactionBody(contractCreateInstance=tx_proto))
 
@@ -636,7 +636,7 @@ def test_from_transaction_body_protobuf_with_staked_node_id(contract_params):
 
 
 def test_from_protobuf_without_contract_create_instance():
-    """Test create contract from the transaction body protobuf message not containing contractCreateInstance."""
+    """Test creating a transaction from protobuf without a contract create instance."""
     tx = ContractCreateTransaction._from_protobuf(TransactionBody())
 
     assert tx is not None
@@ -657,8 +657,8 @@ def test_from_protobuf_without_contract_create_instance():
     assert tx.decline_reward is None
 
 
-def test_byte_serialization_round_trip(contract_params):
-    """Test serialization roundtrip for the to/from bytes."""
+def test_bytes_round_trip(contract_params):
+    """Test contract create transaction byte serialization round trip."""
     params = ContractCreateParams(
         bytecode_file_id=contract_params["bytecode_file_id"],
         proxy_account_id=contract_params["proxy_account_id"],
@@ -695,8 +695,8 @@ def test_byte_serialization_round_trip(contract_params):
     assert copy_tx.decline_reward == original_tx.decline_reward
 
 
-def test_byte_serialization_round_trip_with_initcode(contract_params):
-    """Test serialization roundtrip preserves initcode."""
+def test_bytes_round_trip_with_initcode(contract_params):
+    """Test byte serialization round trip with initcode."""
     original_tx = ContractCreateTransaction().set_bytecode(contract_params["bytecode"])
     copy_tx = ContractCreateTransaction.from_bytes(original_tx.to_bytes())
 
@@ -706,8 +706,8 @@ def test_byte_serialization_round_trip_with_initcode(contract_params):
     assert copy_tx.bytecode_file_id is None
 
 
-def test_byte_serialization_round_trip_with_stake_node_id(contract_params):
-    """Test serialization roundtrip preserves staked_node_id."""
+def test_bytes_round_trip_with_staked_node_id(contract_params):
+    """Test byte serialization round trip with a staked node ID."""
     original_tx = ContractCreateTransaction().set_staked_node_id(contract_params["staked_node_id"])
     copy_tx = ContractCreateTransaction.from_bytes(original_tx.to_bytes())
 

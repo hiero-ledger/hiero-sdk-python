@@ -419,8 +419,8 @@ def test_constructor_parameter_combinations():
     assert delete_tx.permanent_removal is True
 
 
-def test_from_transaction_body_protobuf_preserve_defaults():
-    """Test delete contract from the transaction body protobuf message preserve defaults."""
+def test_from_protobuf_preserves_defaults():
+    """Test that default values are preserved when creating a transaction from protobuf."""
     tx_proto = ContractDeleteTransactionBody()
     tx = ContractDeleteTransaction._from_protobuf(TransactionBody(contractDeleteInstance=tx_proto))
 
@@ -433,7 +433,7 @@ def test_from_transaction_body_protobuf_preserve_defaults():
 
 
 def test_from_protobuf_without_contract_delete_instance():
-    """Test delete contract from the transaction body protobuf message not containing contractDeleteInstance."""
+    """Test creating a transaction from protobuf without a contract delete instance."""
     tx = ContractDeleteTransaction._from_protobuf(TransactionBody())
 
     assert tx is not None
@@ -444,8 +444,8 @@ def test_from_protobuf_without_contract_delete_instance():
     assert tx.permanent_removal is None
 
 
-def test_can_create_delete_contract_from_transaction_body_protobuf(delete_params):
-    """Test delete contract can be created from the transaction body protobuf message."""
+def test_from_protobuf_with_all_fields(delete_params):
+    """Test creating a transaction from protobuf with all fields set."""
     tx_proto = ContractDeleteTransactionBody(
         contractID=delete_params["contract_id"]._to_proto(),
         transferAccountID=delete_params["transfer_account_id"]._to_proto(),
@@ -462,8 +462,8 @@ def test_can_create_delete_contract_from_transaction_body_protobuf(delete_params
     assert tx.permanent_removal == delete_params["permanent_removal"]
 
 
-def test_from_transaction_body_protobuf_with_transfer_contract_id(delete_params):
-    """Test delete contract can be created from the transaction body protobuf message with transfer contractId."""
+def test_from_protobuf_with_transfer_contract_id(delete_params):
+    """Test creating a transaction from protobuf with transfer_contract_id."""
     tx_proto = ContractDeleteTransactionBody(
         contractID=delete_params["contract_id"]._to_proto(),
         transferContractID=delete_params["transfer_contract_id"]._to_proto(),
@@ -480,8 +480,8 @@ def test_from_transaction_body_protobuf_with_transfer_contract_id(delete_params)
     assert tx.permanent_removal == delete_params["permanent_removal"]
 
 
-def test_byte_serialization_round_trip(delete_params):
-    """Test serialization roundtrip for the to/from bytes."""
+def test_bytes_round_trip(delete_params):
+    """Test contract delete transaction byte serialization round trip."""
     original_tx = ContractDeleteTransaction(
         contract_id=delete_params["contract_id"],
         transfer_account_id=delete_params["transfer_account_id"],
@@ -497,8 +497,8 @@ def test_byte_serialization_round_trip(delete_params):
     assert copy_tx.permanent_removal == original_tx.permanent_removal
 
 
-def test_byte_serialization_round_trip_with_transfer_contract_id(delete_params):
-    """Test serialization roundtrip preserves transfer_contract_id."""
+def test_bytes_round_trip_with_transfer_contract_id(delete_params):
+    """Test byte serialization round trip with transfer_contract_id."""
     original_tx = ContractDeleteTransaction().set_transfer_contract_id(delete_params["transfer_contract_id"])
     copy_tx = ContractDeleteTransaction.from_bytes(original_tx.to_bytes())
 
