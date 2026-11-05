@@ -233,6 +233,12 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
         """
         Restore common and topic submit message fields from transaction.
 
+        Note:
+            chunkInfo is intentionally not restored into chunking state. For chunked input,
+            from_bytes exposes only the first chunk in message and recalculates _total_chunks
+            from that payload using the default chunk size. All original bodies including chunkInfo,
+            are retained for serialization and execution.
+
         Args:
             transaction_body: The parsed TransactionBody from protobuf.
 
