@@ -175,6 +175,7 @@ from .transaction.batch_transaction import BatchTransaction
 
 # Transaction
 from .transaction.custom_fee_limit import CustomFeeLimit
+from .transaction.signable_node_transaction_body_bytes import SignableNodeTransactionBodyBytes
 from .transaction.transaction import Transaction
 from .transaction.transaction_id import TransactionId
 from .transaction.transaction_receipt import TransactionReceipt
@@ -243,6 +244,7 @@ __all__ = [
     "Transaction",
     "TransferTransaction",
     "TransactionId",
+    "SignableNodeTransactionBodyBytes",
     "TransactionReceipt",
     "TransactionResponse",
     "TransactionRecord",
