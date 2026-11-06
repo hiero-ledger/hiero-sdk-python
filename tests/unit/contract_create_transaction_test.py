@@ -558,7 +558,7 @@ def test_from_protobuf_preserves_defaults():
     assert tx is not None
     assert isinstance(tx, ContractCreateTransaction)
     assert tx.bytecode_file_id is None
-    assert tx.bytecode == b""
+    assert tx.bytecode is None
     assert tx.proxy_account_id is None
     assert tx.admin_key is None
     assert tx.gas == 0
@@ -569,7 +569,7 @@ def test_from_protobuf_preserves_defaults():
     assert tx.auto_renew_account_id is None
     assert tx.max_automatic_token_associations == 0
     assert tx.staked_account_id is None
-    assert tx.staked_node_id == 0
+    assert tx.staked_node_id is None
     assert tx.decline_reward == False
 
 

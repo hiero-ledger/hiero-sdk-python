@@ -585,7 +585,7 @@ def test_from_protobuf_preserves_defaults():
     assert tx.auto_renew_period is None
     assert tx.auto_renew_account_id is None
     assert tx.staked_account_id is None
-    assert tx.staked_node_id == 0  # int64 plain proto field default to 0
+    assert tx.staked_node_id is None
     assert tx.decline_reward is None
 
 

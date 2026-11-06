@@ -389,9 +389,10 @@ class ContractUpdateTransaction(Transaction):
             if proto_body.HasField("auto_renew_account_id"):
                 transaction.auto_renew_account_id = AccountId._from_proto(proto_body.auto_renew_account_id)
 
-            # using setter to handle oneof case
-            transaction.set_staked_node_id(proto_body.staked_node_id)
-            if proto_body.HasField("staked_account_id"):
+            stake_id = proto_body.WhichOneof("staked_id")
+            if stake_id == "staked_node_id":
+                transaction.set_staked_node_id(proto_body.staked_node_id)
+            elif stake_id == "staked_account_id":
                 transaction.set_staked_account_id(AccountId._from_proto(proto_body.staked_account_id))
 
         return transaction

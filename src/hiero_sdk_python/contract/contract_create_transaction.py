@@ -453,13 +453,18 @@ class ContractCreateTransaction(Transaction):
             if proto_body.HasField("adminKey"):
                 transaction.admin_key = Key.from_proto_key(proto_body.adminKey)
 
-            # using setter to handle oneof case, note proto message will always have only one field set not both.
-            transaction.set_bytecode(proto_body.initcode)
-            if proto_body.HasField("fileID"):
+            initcodeSource = proto_body.WhichOneof("initcodeSource")
+
+            if initcodeSource == "initcode":
+                transaction.set_bytecode(proto_body.initcode)
+            elif initcodeSource == "fileID":
                 transaction.set_bytecode_file_id(FileId._from_proto(proto_body.fileID))
 
-            transaction.set_staked_node_id(proto_body.staked_node_id)
-            if proto_body.HasField("staked_account_id"):
+            stake_id = proto_body.WhichOneof("staked_id")
+            if stake_id == "staked_node_id":
+                transaction.set_staked_node_id(proto_body.staked_node_id)
+
+            elif stake_id == "staked_account_id":
                 transaction.set_staked_account_id(AccountId._from_proto(proto_body.staked_account_id))
 
         return transaction
