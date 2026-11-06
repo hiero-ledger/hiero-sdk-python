@@ -596,7 +596,7 @@ def test_from_protobuf_with_all_fields(contract_params):
     assert tx is not None
     assert isinstance(tx, ContractCreateTransaction)
     assert tx.bytecode_file_id == contract_params["bytecode_file_id"]
-    assert tx.bytecode == b""
+    assert tx.bytecode is None  # using setter
     assert tx.proxy_account_id == contract_params["proxy_account_id"]
     assert tx.admin_key == contract_params["admin_key"]
     assert tx.gas == contract_params["gas"]
@@ -607,7 +607,7 @@ def test_from_protobuf_with_all_fields(contract_params):
     assert tx.auto_renew_account_id == contract_params["auto_renew_account_id"]
     assert tx.max_automatic_token_associations == contract_params["max_automatic_token_associations"]
     assert tx.staked_account_id == contract_params["staked_account_id"]
-    assert tx.staked_node_id == 0
+    assert tx.staked_node_id is None  # using setter
     assert tx.decline_reward == contract_params["decline_reward"]
 
 
@@ -680,7 +680,7 @@ def test_bytes_round_trip(contract_params):
     assert copy_tx is not None
     assert isinstance(copy_tx, ContractCreateTransaction)
     assert copy_tx.bytecode_file_id == original_tx.bytecode_file_id
-    assert copy_tx.bytecode == b""  # protobuf it is bytes so when not set is b""
+    assert copy_tx.bytecode is None  # using setter
     assert copy_tx.proxy_account_id == original_tx.proxy_account_id
     assert copy_tx.admin_key == original_tx.admin_key
     assert copy_tx.gas == original_tx.gas
@@ -691,7 +691,7 @@ def test_bytes_round_trip(contract_params):
     assert copy_tx.auto_renew_account_id == original_tx.auto_renew_account_id
     assert copy_tx.max_automatic_token_associations == original_tx.max_automatic_token_associations
     assert copy_tx.staked_account_id == original_tx.staked_account_id
-    assert copy_tx.staked_node_id == 0  # protobuf it is int64 so when not set is 0
+    assert copy_tx.staked_node_id is None  # using setter
     assert copy_tx.decline_reward == original_tx.decline_reward
 
 

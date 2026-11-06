@@ -427,7 +427,7 @@ class ContractCreateTransaction(Transaction):
         return _Method(transaction_func=channel.smart_contract.createContract, query_func=None)
 
     @classmethod
-    def _from_protobuf(cls, transaction_body: TransactionBody):
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> ContractCreateTransaction:
         """Create contract create transaction from protobuf message."""
         transaction = super()._from_protobuf(transaction_body)
 
@@ -440,15 +440,9 @@ class ContractCreateTransaction(Transaction):
             transaction.contract_memo = proto_body.memo
             transaction.max_automatic_token_associations = proto_body.max_automatic_token_associations
             transaction.decline_reward = proto_body.decline_reward
-            transaction.bytecode = proto_body.initcode
 
             if proto_body.HasField("auto_renew_account_id"):
                 transaction.auto_renew_account_id = AccountId._from_proto(proto_body.auto_renew_account_id)
-
-            if proto_body.HasField("staked_account_id"):
-                transaction.staked_account_id = AccountId._from_proto(proto_body.staked_account_id)
-
-            transaction.staked_node_id = proto_body.staked_node_id
 
             if proto_body.HasField("autoRenewPeriod"):
                 transaction.auto_renew_period = Duration._from_proto(proto_body.autoRenewPeriod)
@@ -459,7 +453,13 @@ class ContractCreateTransaction(Transaction):
             if proto_body.HasField("adminKey"):
                 transaction.admin_key = Key.from_proto_key(proto_body.adminKey)
 
+            # using setter to handle oneof case, note proto message will always have only one field set not both.
+            transaction.set_bytecode(proto_body.initcode)
             if proto_body.HasField("fileID"):
-                transaction.bytecode_file_id = FileId._from_proto(proto_body.fileID)
+                transaction.set_bytecode_file_id(FileId._from_proto(proto_body.fileID))
+
+            transaction.set_staked_node_id(proto_body.staked_node_id)
+            if proto_body.HasField("staked_account_id"):
+                transaction.set_staked_account_id(AccountId._from_proto(proto_body.staked_account_id))
 
         return transaction

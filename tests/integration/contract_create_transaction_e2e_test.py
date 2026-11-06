@@ -9,14 +9,12 @@ import pytest
 from examples.contract.contracts import (
     CONTRACT_DEPLOY_GAS,
     SIMPLE_CONTRACT_BYTECODE,
-    STATEFUL_CONTRACT_BYTECODE,
 )
+from examples.contract.contracts.contract_utils import STATEFUL_CONTRACT_BYTECODE
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
-from hiero_sdk_python.contract.contract_function_parameters import (
-    ContractFunctionParameters,
-)
+from hiero_sdk_python.contract.contract_function_parameters import ContractFunctionParameters
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 

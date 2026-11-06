@@ -162,7 +162,7 @@ class ContractDeleteTransaction(Transaction):
         return _Method(transaction_func=channel.smart_contract.deleteContract, query_func=None)
 
     @classmethod
-    def _from_protobuf(cls, transaction_body: TransactionBody):
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> ContractDeleteTransaction:
         """Create contract delete transaction from protobuf message."""
         transaction = super()._from_protobuf(transaction_body)
 

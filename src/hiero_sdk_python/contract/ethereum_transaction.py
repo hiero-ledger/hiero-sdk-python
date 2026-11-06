@@ -142,7 +142,7 @@ class EthereumTransaction(Transaction):
         )
 
     @classmethod
-    def _from_protobuf(cls, transaction_body: TransactionBody):
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> EthereumTransaction:
         """Create ethereum transaction from protobuf message."""
         transaction = super()._from_protobuf(transaction_body)
 

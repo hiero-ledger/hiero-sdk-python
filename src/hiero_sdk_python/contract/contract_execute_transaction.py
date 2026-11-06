@@ -189,7 +189,7 @@ class ContractExecuteTransaction(Transaction):
         )
 
     @classmethod
-    def _from_protobuf(cls, transaction_body: TransactionBody):
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> ContractExecuteTransaction:
         """Create contract execute transaction from protobuf message."""
         transaction = super()._from_protobuf(transaction_body)
 

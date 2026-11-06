@@ -617,7 +617,7 @@ def test_from_protobuf_with_all_fields(update_params):
     assert tx.auto_renew_period == update_params["auto_renew_period"]
     assert tx.auto_renew_account_id == update_params["auto_renew_account_id"]
     assert tx.staked_account_id == update_params["staked_account_id"]
-    assert tx.staked_node_id == 0  # default
+    assert tx.staked_node_id is None  # using setter
     assert tx.decline_reward == update_params["decline_reward"]
 
 
@@ -659,7 +659,7 @@ def test_bytes_round_trip(update_params):
     assert copy_tx.auto_renew_period == original_tx.auto_renew_period
     assert copy_tx.auto_renew_account_id == original_tx.auto_renew_account_id
     assert copy_tx.staked_account_id == original_tx.staked_account_id
-    assert copy_tx.staked_node_id == 0  # default
+    assert copy_tx.staked_node_id is None  # using setter
     assert copy_tx.decline_reward == original_tx.decline_reward
 
 
