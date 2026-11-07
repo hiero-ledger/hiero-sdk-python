@@ -26,10 +26,10 @@ def build_query_payment_transaction(
 
     transaction_body = tx.build_transaction_body()
     transaction_body.nodeAccountID.CopyFrom(node_account_id._to_proto())
-    transaction_body.transactionID.CopyFrom(tx.transaction_id._to_proto())
+    transaction_body.transactionID.CopyFrom(tx._current_transaction_id._to_proto())
     body_bytes = transaction_body.SerializeToString()
 
-    tx._transaction_body_bytes.setdefault(tx.transaction_id, {node_account_id: body_bytes})
+    tx._transaction_body_bytes.setdefault(tx._current_transaction_id, {node_account_id: body_bytes})
 
     tx.sign(payer_private_key)
     return tx._to_proto()
