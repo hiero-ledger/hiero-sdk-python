@@ -8,6 +8,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import IntegrationTestEnv, create_fungible_token
 
 
@@ -66,3 +67,27 @@ def test_integration_token_associate_transaction_can_execute():
         )
     finally:
         env.close()
+
+
+@pytest.mark.integration
+def test_integration_token_associate_from_bytes(env):
+    """Execute a deserialized token associate transaction and verify success."""
+    account = env.create_account(initial_hbar=2.0)
+    token_id = create_fungible_token(env)
+    assert token_id is not None
+
+    tx = TokenAssociateTransaction(account_id=account.id, token_ids=[token_id]).freeze_with(env.client)
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenAssociateTransaction)
+    assert restored.account_id == account.id
+    assert restored.token_ids == [token_id]
+    assert restored.to_bytes() == original_bytes
+
+    restored.sign(account.key)
+    receipt = restored.execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token association failed with status: {ResponseCode(receipt.status).name}"
+    )

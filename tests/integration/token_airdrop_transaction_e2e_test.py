@@ -12,6 +12,7 @@ from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTr
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 
@@ -88,3 +89,45 @@ def test_integration_token_airdrop_transaction_can_execute():
         assert balance_after_tx.token_balances[nft_id] == 1
     finally:
         env.close()
+
+
+@pytest.mark.integration
+def test_integration_token_airdrop_from_bytes(env):
+    """Execute a deserialized token airdrop transaction and verify recipient balances."""
+    account = env.create_account(initial_hbar=2.0)
+
+    token_id = create_fungible_token(env)
+    assert token_id is not None
+
+    nft_id = create_nft_token(env)
+    assert nft_id is not None
+
+    serial_number = _mint_nft(env, nft_id)
+    _associate_token_to_account(env, account.id, account.key, [token_id, nft_id])
+
+    tx = TokenAirdropTransaction(
+        token_transfers=[
+            TokenTransfer(token_id, env.client.operator_account_id, -1),
+            TokenTransfer(token_id, account.id, 1),
+        ],
+        nft_transfers=[TokenNftTransfer(nft_id, env.client.operator_account_id, account.id, serial_number)],
+    ).freeze_with(env.client)
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenAirdropTransaction)
+    assert len(restored.token_transfers) == 2
+    assert len(restored.nft_transfers) == 1
+    assert restored.to_bytes() == original_bytes
+
+    restored.sign(env.client.operator_private_key)
+    receipt = restored.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token airdrop failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    balance_after = CryptoGetAccountBalanceQuery(account_id=account.id).execute(env.client)
+    assert balance_after.token_balances.get(token_id) == 1
+    assert balance_after.token_balances.get(nft_id) == 1
