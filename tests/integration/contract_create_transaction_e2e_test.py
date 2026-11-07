@@ -9,14 +9,12 @@ import pytest
 from examples.contract.contracts import (
     CONTRACT_DEPLOY_GAS,
     SIMPLE_CONTRACT_BYTECODE,
-    STATEFUL_CONTRACT_BYTECODE,
 )
+from examples.contract.contracts.contract_utils import STATEFUL_CONTRACT_BYTECODE
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
-from hiero_sdk_python.contract.contract_function_parameters import (
-    ContractFunctionParameters,
-)
+from hiero_sdk_python.contract.contract_function_parameters import ContractFunctionParameters
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.response_code import ResponseCode
 
@@ -108,6 +106,66 @@ def test_integration_contract_create_transaction_set_bytecode(env):
         .set_bytecode(bytecode)
         .execute(env.client)
     )
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    contract_id = receipt.contract_id
+    assert contract_id is not None, "Contract ID should not be None"
+
+
+@pytest.mark.integration
+def test_contract_create_from_bytes_with_file_id(env):
+    """Test contract creation from a serialized transaction using a file ID."""
+    receipt = (
+        FileCreateTransaction()
+        .set_keys(env.operator_key.public_key())
+        .set_contents(SIMPLE_CONTRACT_BYTECODE)
+        .set_file_memo("some test file create transaction memo")
+        .execute(env.client)
+    )
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"File creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    file_id = receipt.file_id
+    assert file_id is not None, "File ID should not be None"
+
+    original_tx = (
+        ContractCreateTransaction()
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_bytecode_file_id(file_id)
+        .set_contract_memo("some test contract create transaction memo")
+    )
+
+    copy_tx = ContractCreateTransaction.from_bytes(original_tx.to_bytes())
+    receipt = copy_tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    contract_id = receipt.contract_id
+    assert contract_id is not None, "Contract ID should not be None"
+
+
+@pytest.mark.integration
+def test_contract_create_from_bytes_with_bytecode(env):
+    """Test contract creation from a serialized transaction using bytecode."""
+    bytecode = bytes.fromhex(SIMPLE_CONTRACT_BYTECODE)
+    original_tx = (
+        ContractCreateTransaction()
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_contract_memo("Test contract")
+        .set_bytecode(bytecode)
+    )
+
+    copy_tx = ContractCreateTransaction.from_bytes(original_tx.to_bytes())
+    receipt = copy_tx.execute(env.client)
 
     assert receipt.status == ResponseCode.SUCCESS, (
         f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
