@@ -267,6 +267,51 @@ class TopicCreateTransaction(Transaction):
         schedulable_body.consensusCreateTopic.CopyFrom(consensus_create_body)
         return schedulable_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TopicCreateTransaction:
+        """
+        Restore common and topic create fields from transaction.
+
+        Args:
+            transaction_body: The parsed TransactionBody from protobuf.
+
+        Returns:
+            TopicCreateTransaction: A transaction with common and topic create
+            fields restored.
+        """
+
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("consensusCreateTopic"):
+            topic_create_body = transaction_body.consensusCreateTopic
+
+            transaction.topic_memo = topic_create_body.memo
+            transaction.admin_key = (
+                Key.from_proto_key(topic_create_body.adminKey) if topic_create_body.HasField("adminKey") else None
+            )
+            transaction.submit_key = (
+                Key.from_proto_key(topic_create_body.submitKey) if topic_create_body.HasField("submitKey") else None
+            )
+            transaction.auto_renew_period = (
+                Duration._from_proto(topic_create_body.autoRenewPeriod)
+                if topic_create_body.HasField("autoRenewPeriod")
+                else None
+            )
+            transaction.auto_renew_account = (
+                AccountId._from_proto(topic_create_body.autoRenewAccount)
+                if topic_create_body.HasField("autoRenewAccount")
+                else None
+            )
+            transaction.fee_schedule_key = (
+                Key.from_proto_key(topic_create_body.fee_schedule_key)
+                if topic_create_body.HasField("fee_schedule_key")
+                else None
+            )
+            transaction.fee_exempt_keys = [Key.from_proto_key(key) for key in topic_create_body.fee_exempt_key_list]
+            transaction.custom_fees = [CustomFixedFee._from_proto(fee) for fee in topic_create_body.custom_fees]
+
+        return transaction
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the method to be used for executing the transaction.
