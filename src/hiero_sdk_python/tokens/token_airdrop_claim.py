@@ -152,8 +152,10 @@ class TokenClaimAirdropTransaction(Transaction):
 
         if transaction_body.HasField("tokenClaimAirdrop"):
             token_claim_airdrop_body = transaction_body.tokenClaimAirdrop
-            proto_tx = cls._from_proto(token_claim_airdrop_body)
-            transaction._pending_airdrop_ids = proto_tx._pending_airdrop_ids
+            transaction._pending_airdrop_ids = [
+                PendingAirdropId._from_proto(airdrop)  # type: ignore[reportPrivateUsage]  # pylint: disable=protected-access
+                for airdrop in token_claim_airdrop_body.pending_airdrops
+            ]
 
         return transaction
 

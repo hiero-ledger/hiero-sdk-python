@@ -350,8 +350,8 @@ def test_token_claim_airdrop_from_protobuf_without_token_claim_airdrop():
     assert restored.get_pending_airdrop_ids() == []
 
 
-def test_token_claim_airdrop_from_protobuf_rejects_duplicates():
-    """Test _from_protobuf enforces duplicate validation rule."""
+def test_token_claim_airdrop_from_protobuf_preserves_duplicates():
+    """Test _from_protobuf preserves duplicate IDs during deserialization and validates on build."""
     sender = AccountId(0, 0, 9201)
     receiver = AccountId(0, 0, 9202)
     duplicate = _make_fungible_pending(sender, receiver, 9210)
@@ -360,12 +360,15 @@ def test_token_claim_airdrop_from_protobuf_rejects_duplicates():
     tx_body = transaction_pb2.TransactionBody()
     tx_body.tokenClaimAirdrop.CopyFrom(proto_body)
 
+    restored = TokenClaimAirdropTransaction._from_protobuf(tx_body)
+    assert restored.get_pending_airdrop_ids() == [duplicate, duplicate]
+
     with pytest.raises(ValueError, match="Duplicate airdrop IDs are not allowed"):
-        TokenClaimAirdropTransaction._from_protobuf(tx_body)
+        restored.build_transaction_body()
 
 
-def test_token_claim_airdrop_from_protobuf_rejects_too_many():
-    """Test _from_protobuf enforces MAX_IDS validation rule."""
+def test_token_claim_airdrop_from_protobuf_preserves_too_many():
+    """Test _from_protobuf preserves more than MAX_IDS during deserialization and validates on build."""
     sender = AccountId(0, 0, 9201)
     receiver = AccountId(0, 0, 9202)
     too_many = [
@@ -376,8 +379,11 @@ def test_token_claim_airdrop_from_protobuf_rejects_too_many():
     tx_body = transaction_pb2.TransactionBody()
     tx_body.tokenClaimAirdrop.CopyFrom(proto_body)
 
+    restored = TokenClaimAirdropTransaction._from_protobuf(tx_body)
+    assert restored.get_pending_airdrop_ids() == too_many
+
     with pytest.raises(ValueError, match="Up to 10 airdrops can be claimed"):
-        TokenClaimAirdropTransaction._from_protobuf(tx_body)
+        restored.build_transaction_body()
 
 
 def test_token_claim_airdrop_from_bytes_round_trip(mock_account_ids, token_id, nft_id, mock_client):

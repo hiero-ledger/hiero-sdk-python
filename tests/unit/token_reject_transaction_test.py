@@ -445,3 +445,31 @@ def test_token_reject_from_bytes_round_trip_unconfigured(mock_client):
     assert tx2.token_ids == []
     assert tx2.nft_ids == []
     assert tx2.to_bytes() == data
+
+
+def test_token_reject_unfrozen_from_bytes_preserves_rejection_order(mock_account_ids, token_id, nft_id):
+    """Test unfrozen round-trip preserves rejection order when NFT precedes fungible token."""
+    payer_id, owner_account_id, node_account_id, _, _ = mock_account_ids
+
+    tx1 = (
+        TokenRejectTransaction()
+        .set_owner_id(owner_account_id)
+        .add_nft_id(nft_id)
+        .add_token_id(token_id)
+        .set_transaction_id(generate_transaction_id(payer_id))
+        .set_node_account_ids([node_account_id])
+    )
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenRejectTransaction)
+    assert not tx2._is_frozen
+    assert tx2.owner_id == owner_account_id
+    assert tx2.token_ids == [token_id]
+    assert tx2.nft_ids == [nft_id]
+
+    rebuilt_body = tx2._build_proto_body()
+    assert len(rebuilt_body.rejections) == 2
+    assert rebuilt_body.rejections[0].HasField("nft")
+    assert rebuilt_body.rejections[1].HasField("fungible_token")
+    assert tx2.to_bytes() == data

@@ -110,8 +110,6 @@ class TokenDissociateTransaction(Transaction):
 
             if token_dissociate_body.HasField("account"):
                 transaction.account_id = AccountId._from_proto(token_dissociate_body.account)
-            else:
-                transaction.account_id = None
 
             transaction.token_ids = [TokenId._from_proto(token_proto) for token_proto in token_dissociate_body.tokens]
 

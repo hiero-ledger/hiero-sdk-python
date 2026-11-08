@@ -135,8 +135,6 @@ class TokenAssociateTransaction(Transaction):
 
             if body.HasField("account"):
                 transaction.account_id = AccountId._from_proto(body.account)
-            else:
-                transaction.account_id = None
 
             transaction.token_ids = [TokenId._from_proto(proto_token) for proto_token in body.tokens]
 

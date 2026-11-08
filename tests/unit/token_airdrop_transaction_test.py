@@ -473,3 +473,29 @@ def test_token_airdrop_from_bytes_round_trip_unconfigured(mock_client):
     assert not tx2.token_transfers
     assert not tx2.nft_transfers
     assert tx2.to_bytes() == data
+
+
+def test_token_airdrop_unfrozen_from_bytes_preserves_transfer_list_order(mock_account_ids, token_id, nft_id):
+    """Test unfrozen round-trip preserves transfer_list order when NFT precedes fungible token."""
+    sender_id, receiver_id, node_account_id, _, _ = mock_account_ids
+
+    tx1 = (
+        TokenAirdropTransaction()
+        .add_nft_transfer(nft_id, sender_id, receiver_id)
+        .add_token_transfer(token_id=token_id, account_id=sender_id, amount=-10)
+        .add_token_transfer(token_id=token_id, account_id=receiver_id, amount=10)
+    )
+    tx1.operator_account_id = sender_id
+    tx1.set_node_account_ids([node_account_id])
+
+    data = tx1.to_bytes()
+    tx2 = Transaction.from_bytes(data)
+
+    assert isinstance(tx2, TokenAirdropTransaction)
+    assert not tx2._is_frozen
+
+    rebuilt_body = tx2._build_proto_body()
+    assert len(rebuilt_body.token_transfers) == 2
+    assert len(rebuilt_body.token_transfers[0].nftTransfers) == 1
+    assert len(rebuilt_body.token_transfers[1].transfers) == 2
+    assert tx2.to_bytes() == data

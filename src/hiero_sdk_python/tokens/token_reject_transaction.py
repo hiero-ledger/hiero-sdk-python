@@ -54,6 +54,10 @@ class TokenRejectTransaction(Transaction):
         self.owner_id: AccountId | None = owner_id
         self.token_ids: list[TokenId] = list(token_ids) if token_ids else []
         self.nft_ids: list[NftId] = list(nft_ids) if nft_ids else []
+        self._rejection_order: list[tuple[str, TokenId | NftId]] = [
+            *(("token", token_id) for token_id in self.token_ids),
+            *(("nft", nft_id) for nft_id in self.nft_ids),
+        ]
 
     def set_owner_id(self, owner_id: AccountId) -> TokenRejectTransaction:
         """Set the owner account ID for rejected tokens."""
@@ -65,6 +69,10 @@ class TokenRejectTransaction(Transaction):
         """Set the list of fungible token IDs to reject."""
         self._require_not_frozen()
         self.token_ids = list(token_ids)
+        self._rejection_order = [
+            *(("token", token_id) for token_id in self.token_ids),
+            *(entry for entry in self._rejection_order if entry[0] == "nft"),
+        ]
         return self
 
     def add_token_id(self, token_id: TokenId) -> TokenRejectTransaction:
@@ -84,12 +92,17 @@ class TokenRejectTransaction(Transaction):
         if not isinstance(token_id, TokenId):
             raise TypeError("token_id must be a TokenId instance.")
         self.token_ids.append(token_id)
+        self._rejection_order.append(("token", token_id))
         return self
 
     def set_nft_ids(self, nft_ids: list[NftId]) -> TokenRejectTransaction:
         """Set the list of NFT IDs to reject."""
         self._require_not_frozen()
         self.nft_ids = list(nft_ids)
+        self._rejection_order = [
+            *(entry for entry in self._rejection_order if entry[0] == "token"),
+            *(("nft", nft_id) for nft_id in self.nft_ids),
+        ]
         return self
 
     def add_nft_id(self, nft_id: NftId) -> TokenRejectTransaction:
@@ -109,6 +122,7 @@ class TokenRejectTransaction(Transaction):
         if not isinstance(nft_id, NftId):
             raise TypeError("nft_id must be a NftId instance.")
         self.nft_ids.append(nft_id)
+        self._rejection_order.append(("nft", nft_id))
         return self
 
     def _build_proto_body(self):
@@ -118,11 +132,20 @@ class TokenRejectTransaction(Transaction):
         Returns:
             TokenRejectTransactionBody: The protobuf body for this transaction.
         """
-        token_references: list[TokenReference] = [
-            TokenReference(fungible_token=token_id._to_proto()) for token_id in self.token_ids
-        ]
+        ordered_tokens = [item for kind, item in self._rejection_order if kind == "token" and isinstance(item, TokenId)]
+        ordered_nfts = [item for kind, item in self._rejection_order if kind == "nft" and isinstance(item, NftId)]
 
-        token_references.extend(TokenReference(nft=nft_id._to_proto()) for nft_id in self.nft_ids)
+        if ordered_tokens == self.token_ids and ordered_nfts == self.nft_ids:
+            token_references: list[TokenReference] = [
+                TokenReference(fungible_token=item._to_proto())
+                if kind == "token" and isinstance(item, TokenId)
+                else TokenReference(nft=item._to_proto())
+                for kind, item in self._rejection_order
+            ]
+        else:
+            token_references = [TokenReference(fungible_token=token_id._to_proto()) for token_id in self.token_ids]
+            token_references.extend(TokenReference(nft=nft_id._to_proto()) for nft_id in self.nft_ids)
+
         return TokenRejectTransactionBody(
             owner=self.owner_id and self.owner_id._to_proto(), rejections=token_references
         )
@@ -181,14 +204,21 @@ class TokenRejectTransaction(Transaction):
 
         token_ids: list[TokenId] = []
         nft_ids: list[NftId] = []
+        rejection_order: list[tuple[str, TokenId | NftId]] = []
 
         for entry in proto.rejections:
             if entry.HasField("fungible_token"):
-                token_ids.append(TokenId._from_proto(entry.fungible_token))
+                token_id = TokenId._from_proto(entry.fungible_token)
+                token_ids.append(token_id)
+                rejection_order.append(("token", token_id))
             elif entry.HasField("nft"):
-                nft_ids.append(NftId._from_proto(entry.nft))
+                nft_id = NftId._from_proto(entry.nft)
+                nft_ids.append(nft_id)
+                rejection_order.append(("nft", nft_id))
 
-        return cls(owner_id=owner_id, token_ids=token_ids, nft_ids=nft_ids)
+        tx = cls(owner_id=owner_id, token_ids=token_ids, nft_ids=nft_ids)
+        tx._rejection_order = rejection_order
+        return tx
 
     @classmethod
     def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenRejectTransaction:
@@ -209,5 +239,6 @@ class TokenRejectTransaction(Transaction):
             transaction.owner_id = proto_tx.owner_id
             transaction.token_ids = proto_tx.token_ids
             transaction.nft_ids = proto_tx.nft_ids
+            transaction._rejection_order = proto_tx._rejection_order
 
         return transaction

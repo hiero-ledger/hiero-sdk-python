@@ -64,17 +64,14 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
         Args:
             proto (TokenAirdropTransactionBody): The protobuf TokenAirdropTransctionBody
         """
-        token_transfers: list[TokenTransfer] = []
-        nft_transfers: list[TokenNftTransfer] = []
-
+        tx = cls()
         for transfer in proto.token_transfers:
             if transfer.transfers:
-                token_transfers.extend(TokenTransfer._from_proto(transfer))
-
+                tx._init_token_transfers(TokenTransfer._from_proto(transfer))
             elif transfer.nftTransfers:
-                nft_transfers.extend(TokenNftTransfer._from_proto(transfer))
+                tx._init_nft_transfers(TokenNftTransfer._from_proto(transfer))
 
-        return cls(token_transfers=token_transfers, nft_transfers=nft_transfers)
+        return tx
 
     @classmethod
     def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenAirdropTransaction:
@@ -91,19 +88,12 @@ class TokenAirdropTransaction(AbstractTokenTransferTransaction["TokenAirdropTran
 
         if transaction_body.HasField("tokenAirdrop"):
             token_airdrop_body = transaction_body.tokenAirdrop
-            fungible_transfers: list[TokenTransfer] = []
-            nft_transfers: list[TokenNftTransfer] = []
 
             for entry in token_airdrop_body.token_transfers:
                 if entry.transfers:
-                    fungible_transfers.extend(TokenTransfer._from_proto(entry))
+                    transaction._init_token_transfers(TokenTransfer._from_proto(entry))
                 if entry.nftTransfers:
-                    nft_transfers.extend(TokenNftTransfer._from_proto(entry))
-
-            if fungible_transfers:
-                transaction._init_token_transfers(fungible_transfers)
-            if nft_transfers:
-                transaction._init_nft_transfers(nft_transfers)
+                    transaction._init_nft_transfers(TokenNftTransfer._from_proto(entry))
 
         return transaction
 
