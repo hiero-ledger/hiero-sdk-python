@@ -16,6 +16,9 @@ from hiero_sdk_python.schedule.schedule_create_transaction import (
     ScheduleCreateTransaction,
 )
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 
 
@@ -284,3 +287,110 @@ def test_to_proto(mock_client):
 
     assert proto.signedTransactionBytes
     assert len(proto.signedTransactionBytes) > 0
+
+
+def _freeze(params, client):
+    return ScheduleCreateTransaction(ScheduleCreateParams(**params)).freeze_with(client)
+
+
+def test_from_bytes_round_trip(mock_client, schedule_params):
+    """Test that from_bytes restores every schedule field and keeps the bytes identical."""
+    schedule_params["expiration_time"] = Timestamp(seconds=1620000000, nanos=123456789)
+    original = _freeze(schedule_params, mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleCreateTransaction)
+    assert restored.payer_account_id == schedule_params["payer_account_id"]
+    assert restored.admin_key == schedule_params["admin_key"]
+    assert restored.schedulable_body == schedule_params["schedulable_body"]
+    assert restored.schedule_memo == schedule_params["schedule_memo"]
+    assert restored.expiration_time == schedule_params["expiration_time"]
+    assert restored.wait_for_expiry is True
+    assert restored.to_bytes() == original_bytes
+
+
+@pytest.mark.parametrize(
+    "inner",
+    [
+        TransferTransaction().add_hbar_transfer(AccountId(0, 0, 123), -10).add_hbar_transfer(AccountId(0, 0, 456), 10),
+        TokenDeleteTransaction().set_token_id(TokenId(0, 0, 5)),
+    ],
+    ids=["transfer", "token_delete"],
+)
+def test_from_bytes_round_trip_inner_transaction(mock_client, schedule_params, inner):
+    """Test that the scheduled transaction survives the round trip whatever its type."""
+    schedule_params["schedulable_body"] = inner.build_scheduled_body()
+    original = _freeze(schedule_params, mock_client)
+
+    restored = Transaction.from_bytes(original.to_bytes())
+
+    assert restored.schedulable_body == inner.build_scheduled_body()
+    assert restored.schedulable_body.WhichOneof("data") == inner.build_scheduled_body().WhichOneof("data")
+
+
+@pytest.mark.parametrize(
+    "admin_key",
+    [
+        PrivateKey.generate_ed25519().public_key(),
+        PrivateKey.generate_ecdsa().public_key(),
+        KeyList([PrivateKey.generate_ed25519().public_key(), PrivateKey.generate_ecdsa().public_key()], threshold=1),
+    ],
+    ids=["ed25519", "ecdsa", "threshold_key_list"],
+)
+def test_from_bytes_round_trip_admin_key(mock_client, schedule_params, admin_key):
+    """Test that each kind of admin key restores to the same protobuf key."""
+    schedule_params["admin_key"] = admin_key
+    original = _freeze(schedule_params, mock_client)
+
+    restored = Transaction.from_bytes(original.to_bytes())
+
+    assert restored.admin_key.to_proto_key() == admin_key.to_proto_key()
+
+
+def test_from_bytes_round_trip_unset_fields(mock_client):
+    """Test that unset message fields come back as None and plain fields keep their proto defaults."""
+    original = ScheduleCreateTransaction().freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleCreateTransaction)
+    assert restored.payer_account_id is None
+    assert restored.admin_key is None
+    assert restored.schedulable_body is None
+    assert restored.expiration_time is None
+    assert restored.schedule_memo == ""
+    assert restored.wait_for_expiry is False
+    assert restored.to_bytes() == original_bytes
+
+
+def test_from_bytes_round_trip_explicit_default_values(mock_client, schedule_params):
+    """Test that an explicitly empty memo and wait_for_expiry=False are restored as set."""
+    schedule_params["schedule_memo"] = ""
+    schedule_params["wait_for_expiry"] = False
+    original = _freeze(schedule_params, mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert restored.schedule_memo == ""
+    assert restored.wait_for_expiry is False
+    assert restored.to_bytes() == original_bytes
+
+
+def test_from_bytes_round_trip_multiple_nodes(mock_client, schedule_params):
+    """Test the multi-node path, where every node's body is restored and the fields still match."""
+    original = ScheduleCreateTransaction(ScheduleCreateParams(**schedule_params))
+    original.set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
+    original.freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleCreateTransaction)
+    assert restored.node_account_ids == [AccountId(0, 0, 3), AccountId(0, 0, 4)]
+    assert restored.schedulable_body == schedule_params["schedulable_body"]
+    assert restored.schedule_memo == schedule_params["schedule_memo"]
+    assert restored.to_bytes() == original_bytes

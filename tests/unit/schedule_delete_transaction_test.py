@@ -24,6 +24,7 @@ from hiero_sdk_python.schedule.schedule_delete_transaction import (
     ScheduleDeleteTransaction,
 )
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.unit.mock_server import mock_hedera_servers
 
 
@@ -256,3 +257,28 @@ def test_schedule_delete_transaction_can_execute():
         receipt = transaction.execute(client)
 
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+
+@pytest.mark.parametrize("schedule_id", [ScheduleId(0, 0, 3), ScheduleId(1, 2, 3), ScheduleId(0, 0, 0)])
+def test_from_bytes_round_trip(mock_client, schedule_id):
+    """Test that from_bytes restores the schedule ID and keeps the bytes identical."""
+    original = ScheduleDeleteTransaction(schedule_id=schedule_id).freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleDeleteTransaction)
+    assert restored.schedule_id == schedule_id
+    assert restored.to_bytes() == original_bytes
+
+
+def test_from_bytes_round_trip_unset_schedule_id(mock_client):
+    """Test that an unset schedule ID comes back as None, not 0.0.0."""
+    original = ScheduleDeleteTransaction().freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleDeleteTransaction)
+    assert restored.schedule_id is None
+    assert restored.to_bytes() == original_bytes
