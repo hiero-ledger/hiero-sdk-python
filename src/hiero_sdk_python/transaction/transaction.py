@@ -1595,7 +1595,8 @@ class Transaction(_Executable):
 
         Returns:
             Transaction: A new transaction instance with the common transaction fields
-            restored. Subclasses restore their own fields.
+            restored. The batch key is not restored. Subclasses can override this method
+            to restore their own fields.
         """
         transaction = cls()
 
