@@ -101,9 +101,11 @@ class TransactionId:
             raise ValueError(invalid_format)
         account_id_str, timestamp_str = transaction_id_str.split("@")
 
+        # Any failure to parse the account ID, including a warning raised as an error,
+        # is reported as a format error.
         try:
             account_id = AccountId.from_string(account_id_str)
-        except ValueError as e:
+        except Exception as e:
             raise ValueError(invalid_format) from e
 
         if timestamp_str.count(".") != 1:
@@ -137,6 +139,10 @@ class TransactionId:
         try:
             number = int(value)
         except ValueError as e:
+            # int() also refuses very long digit strings (Python's integer string conversion
+            # limit). Those are integers, just far outside the allowed range.
+            if value.strip().lstrip("+-").isdigit():
+                raise ValueError(f"{invalid_format} ({name} is out of range {minimum} to {maximum})") from e
             raise ValueError(f"{invalid_format} ({name} {value!r} is not a valid integer)") from e
 
         if not minimum <= number <= maximum:

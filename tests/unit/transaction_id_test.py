@@ -135,11 +135,30 @@ def test_from_string_accepts_range_limits(seconds, nanos):
         "0.0.123@1@2.3",  # More than one @
         "0.0.123@1.2.3",  # More than one . in the timestamp
         "not-an-account@1234567890.500",  # Invalid account ID
+        "0.0.ff@1234567890.500",  # Invalid alias account ID
     ],
 )
+@pytest.mark.filterwarnings("ignore::UserWarning")
 def test_from_string_other_invalid_formats_keep_generic_message(tx_id_str):
     """Test that other malformed strings still raise the generic format error."""
     with pytest.raises(ValueError, match=f"^Invalid TransactionId string format: {re.escape(tx_id_str)}$"):
+        TransactionId.from_string(tx_id_str)
+
+
+@pytest.mark.filterwarnings("error::UserWarning")
+def test_from_string_invalid_alias_with_warnings_as_errors_raises_value_error():
+    """Test that a warning raised as an error while parsing the account ID still becomes a ValueError."""
+    tx_id_str = "0.0.ff@1234567890.500"
+
+    with pytest.raises(ValueError, match=f"^Invalid TransactionId string format: {re.escape(tx_id_str)}$"):
+        TransactionId.from_string(tx_id_str)
+
+
+def test_from_string_very_long_seconds_is_out_of_range():
+    """Test that seconds too long for int() are reported as out of range, not as non-integers."""
+    tx_id_str = "0.0.123@" + "9" * 5000 + ".500"
+
+    with pytest.raises(ValueError, match="seconds is out of range"):
         TransactionId.from_string(tx_id_str)
 
 
