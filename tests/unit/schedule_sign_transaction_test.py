@@ -10,6 +10,7 @@ import pytest
 
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.schedule.schedule_sign_transaction import ScheduleSignTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 
 
 pytestmark = pytest.mark.unit
@@ -197,3 +198,28 @@ def test_schedule_id_property_access():
     # Test getting via property
     retrieved_schedule_id = schedule_sign_tx.schedule_id
     assert retrieved_schedule_id == schedule_id
+
+
+@pytest.mark.parametrize("schedule_id", [ScheduleId(0, 0, 3), ScheduleId(1, 2, 3), ScheduleId(0, 0, 0)])
+def test_from_bytes_round_trip(mock_client, schedule_id):
+    """Test that from_bytes restores the schedule ID and keeps the bytes identical."""
+    original = ScheduleSignTransaction(schedule_id=schedule_id).freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleSignTransaction)
+    assert restored.schedule_id == schedule_id
+    assert restored.to_bytes() == original_bytes
+
+
+def test_from_bytes_round_trip_unset_schedule_id(mock_client):
+    """Test that an unset schedule ID comes back as None, not 0.0.0."""
+    original = ScheduleSignTransaction().freeze_with(mock_client)
+    original_bytes = original.to_bytes()
+
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleSignTransaction)
+    assert restored.schedule_id is None
+    assert restored.to_bytes() == original_bytes

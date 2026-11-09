@@ -10,6 +10,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hapi.services.schedule_delete_pb2 import (
     ScheduleDeleteTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -100,3 +101,25 @@ class ScheduleDeleteTransaction(Transaction):
             _Method: An object containing the transaction function to delete a schedule.
         """
         return _Method(transaction_func=channel.schedule.deleteSchedule, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> ScheduleDeleteTransaction:
+        """
+        Creates a ScheduleDeleteTransaction from a protobuf TransactionBody.
+
+        Inverse of build_transaction_body(). An unset schedule ID is restored as None.
+
+        Args:
+            transaction_body (TransactionBody): The parsed transaction body.
+
+        Returns:
+            ScheduleDeleteTransaction: A new instance with the schedule ID restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("scheduleDelete"):
+            pb = transaction_body.scheduleDelete
+            if pb.HasField("scheduleID"):
+                transaction.schedule_id = ScheduleId._from_proto(pb.scheduleID)
+
+        return transaction

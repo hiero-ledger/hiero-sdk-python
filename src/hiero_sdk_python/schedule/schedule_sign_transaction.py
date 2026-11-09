@@ -8,6 +8,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services.schedule_sign_pb2 import ScheduleSignTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.schedule.schedule_id import ScheduleId
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -106,3 +107,25 @@ class ScheduleSignTransaction(Transaction):
             _Method: An object containing the transaction function to sign a schedule.
         """
         return _Method(transaction_func=channel.schedule.signSchedule, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> ScheduleSignTransaction:
+        """
+        Creates a ScheduleSignTransaction from a protobuf TransactionBody.
+
+        Inverse of build_transaction_body(). An unset schedule ID is restored as None.
+
+        Args:
+            transaction_body (TransactionBody): The parsed transaction body.
+
+        Returns:
+            ScheduleSignTransaction: A new instance with the schedule ID restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("scheduleSign"):
+            pb = transaction_body.scheduleSign
+            if pb.HasField("scheduleID"):
+                transaction.schedule_id = ScheduleId._from_proto(pb.scheduleID)
+
+        return transaction

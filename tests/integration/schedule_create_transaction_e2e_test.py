@@ -17,10 +17,12 @@ from hiero_sdk_python.query.account_info_query import AccountInfoQuery
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.schedule.schedule_create_transaction import ScheduleCreateTransaction
 from hiero_sdk_python.schedule.schedule_info_query import ScheduleInfoQuery
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.token_burn_transaction import TokenBurnTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from tests.integration.utils import create_fungible_token
 
@@ -250,3 +252,51 @@ def test_integration_schedule_create_transaction_invalid_expiry_in_the_past(env)
         f"SCHEDULE_EXPIRATION_TIME_MUST_BE_HIGHER_THAN_CONSENSUS_TIME, "
         f"but got {ResponseCode(receipt.status).name}"
     )
+
+
+@pytest.mark.integration
+def test_integration_schedule_create_transaction_from_bytes(env):
+    """Execute a deserialized ScheduleCreateTransaction and verify the schedule on the network."""
+    account = env.create_account()
+
+    schedule_create_tx = (
+        TransferTransaction()
+        .add_hbar_transfer(account.id, -1000)  # 1000 tinybars
+        .add_hbar_transfer(env.operator_id, 1000)
+        .schedule()
+    )
+    future_expiration = Timestamp.from_date(datetime.datetime.now() + datetime.timedelta(minutes=5))
+
+    tx = (
+        schedule_create_tx.set_payer_account_id(account.id)
+        .set_admin_key(env.operator_key.public_key())
+        .set_schedule_memo("test schedule create from bytes")
+        .set_expiration_time(future_expiration)
+        .set_wait_for_expiry(True)
+        .freeze_with(env.client)
+    )
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, ScheduleCreateTransaction)
+    assert restored.payer_account_id == account.id
+    assert restored.admin_key == env.operator_key.public_key()
+    assert restored.schedule_memo == "test schedule create from bytes"
+    assert restored.expiration_time == future_expiration
+    assert restored.wait_for_expiry is True
+    assert restored.schedulable_body == schedule_create_tx.schedulable_body
+    assert restored.to_bytes() == original_bytes
+
+    receipt = restored.sign(account.key).execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Restored schedule create failed with status: {ResponseCode(receipt.status).name}"
+    )
+    assert receipt.schedule_id is not None
+
+    schedule_info = ScheduleInfoQuery().set_schedule_id(receipt.schedule_id).execute(env.client)
+    assert schedule_info.payer_account_id == account.id
+    assert schedule_info.schedule_memo == "test schedule create from bytes"
+    assert schedule_info.wait_for_expiry is True
+    assert schedule_info.admin_key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw()
+    assert schedule_info.scheduled_transaction_body == schedule_create_tx.schedulable_body

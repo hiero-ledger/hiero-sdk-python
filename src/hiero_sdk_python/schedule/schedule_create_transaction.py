@@ -14,6 +14,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.hapi.services.schedule_create_pb2 import (
     ScheduleCreateTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -229,3 +230,36 @@ class ScheduleCreateTransaction(Transaction):
             _Method: An object containing the transaction function to create a schedule.
         """
         return _Method(transaction_func=channel.schedule.createSchedule, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> ScheduleCreateTransaction:
+        """
+        Creates a ScheduleCreateTransaction from a protobuf TransactionBody.
+
+        Inverse of build_transaction_body(). The scheduled transaction is already stored
+        as a SchedulableTransactionBody, so it is restored as is and not turned back
+        into a Transaction. Message fields that were not set are restored as None;
+        memo and wait_for_expiry are plain proto3 fields, so they keep their proto values.
+
+        Args:
+            transaction_body (TransactionBody): The parsed transaction body.
+
+        Returns:
+            ScheduleCreateTransaction: A new instance with the schedule fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("scheduleCreate"):
+            pb = transaction_body.scheduleCreate
+            if pb.HasField("scheduledTransactionBody"):
+                transaction.schedulable_body = pb.scheduledTransactionBody
+            if pb.HasField("payerAccountID"):
+                transaction.payer_account_id = AccountId._from_proto(pb.payerAccountID)
+            if pb.HasField("adminKey"):
+                transaction.admin_key = Key.from_proto_key(pb.adminKey)
+            if pb.HasField("expiration_time"):
+                transaction.expiration_time = Timestamp._from_protobuf(pb.expiration_time)
+            transaction.schedule_memo = pb.memo
+            transaction.wait_for_expiry = pb.wait_for_expiry
+
+        return transaction
