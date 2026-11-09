@@ -54,6 +54,95 @@ def test_from_string_invalid_format_raises_error():
             TransactionId.from_string(s)
 
 
+INT64_MIN, INT64_MAX = -(2**63), 2**63 - 1
+INT32_MIN, INT32_MAX = -(2**31), 2**31 - 1
+
+
+def test_from_string_scheduled_suffix_still_parses():
+    """Test that the '?scheduled' suffix is still accepted."""
+    tx_id = TransactionId.from_string("0.0.123@1234567890.500?scheduled")
+
+    assert tx_id.account_id == AccountId(0, 0, 123)
+    assert tx_id.valid_start.seconds == 1234567890
+    assert tx_id.valid_start.nanos == 500
+    assert tx_id.scheduled is True
+
+
+def test_from_string_unknown_suffix_raises_error():
+    """Test that an unknown suffix raises the suffix error, not the generic format error."""
+    with pytest.raises(ValueError, match=re.escape("Invalid transaction ID suffix: ?foo")):
+        TransactionId.from_string("0.0.123@1234567890.500?foo")
+
+
+@pytest.mark.parametrize(
+    ("tx_id_str", "part"),
+    [
+        ("0.0.123@abc.500", "seconds 'abc'"),
+        ("0.0.123@1234567890.def", "nanos 'def'"),
+    ],
+)
+def test_from_string_non_integer_part_names_the_part(tx_id_str, part):
+    """Test that a non-numeric seconds or nanos value is named in the error."""
+    with pytest.raises(ValueError) as exc_info:
+        TransactionId.from_string(tx_id_str)
+
+    message = str(exc_info.value)
+    assert message.startswith(f"Invalid TransactionId string format: {tx_id_str}")
+    assert f"{part} is not a valid integer" in message
+
+
+@pytest.mark.parametrize(
+    ("seconds", "nanos", "part"),
+    [
+        (INT64_MAX + 1, 0, f"seconds {INT64_MAX + 1}"),
+        (INT64_MIN - 1, 0, f"seconds {INT64_MIN - 1}"),
+        (1234567890, INT32_MAX + 1, f"nanos {INT32_MAX + 1}"),
+        (1234567890, INT32_MIN - 1, f"nanos {INT32_MIN - 1}"),
+    ],
+)
+def test_from_string_out_of_range_part_raises_error(seconds, nanos, part):
+    """Test that seconds outside int64 and nanos outside int32 raise a ValueError naming the part."""
+    tx_id_str = f"0.0.123@{seconds}.{nanos}"
+
+    with pytest.raises(ValueError) as exc_info:
+        TransactionId.from_string(tx_id_str)
+
+    message = str(exc_info.value)
+    assert message.startswith(f"Invalid TransactionId string format: {tx_id_str}")
+    assert f"{part} is out of range" in message
+
+
+@pytest.mark.parametrize(
+    ("seconds", "nanos"),
+    [
+        (INT64_MAX, 0),
+        (INT64_MIN, 0),
+        (1234567890, INT32_MAX),
+        (1234567890, INT32_MIN),
+    ],
+)
+def test_from_string_accepts_range_limits(seconds, nanos):
+    """Test that the int64 and int32 limits themselves are accepted."""
+    tx_id = TransactionId.from_string(f"0.0.123@{seconds}.{nanos}")
+
+    assert tx_id.valid_start.seconds == seconds
+    assert tx_id.valid_start.nanos == nanos
+
+
+@pytest.mark.parametrize(
+    "tx_id_str",
+    [
+        "0.0.123@1@2.3",  # More than one @
+        "0.0.123@1.2.3",  # More than one . in the timestamp
+        "not-an-account@1234567890.500",  # Invalid account ID
+    ],
+)
+def test_from_string_other_invalid_formats_keep_generic_message(tx_id_str):
+    """Test that other malformed strings still raise the generic format error."""
+    with pytest.raises(ValueError, match=f"^Invalid TransactionId string format: {re.escape(tx_id_str)}$"):
+        TransactionId.from_string(tx_id_str)
+
+
 def test_hash_implementation():
     """Test __hash__ implementation coverage."""
     tx_id1 = TransactionId.from_string("0.0.1@100.1")

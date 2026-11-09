@@ -8,6 +8,11 @@ from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
 
 
+# Ranges of the protobuf Timestamp fields: seconds is an int64 and nanos is an int32.
+_INT64_MIN, _INT64_MAX = -(2**63), 2**63 - 1
+_INT32_MIN, _INT32_MAX = -(2**31), 2**31 - 1
+
+
 class TransactionId:
     """
     Represents the unique identifier for a transaction.
@@ -73,38 +78,71 @@ class TransactionId:
             TransactionId: A new TransactionId instance.
 
         Raises:
-            ValueError: If the input string is not in the correct format or contains invalid suffixes.
+            ValueError: If the input string is not in the correct format, contains an invalid
+                suffix, or its seconds or nanos are not integers or are out of range
+                (seconds must fit in a signed 64-bit integer and nanos in a signed 32-bit
+                integer, as in the protobuf ``Timestamp``). The message names the part
+                that failed.
         """
+        if not isinstance(transaction_id_str, str):
+            raise ValueError(f"Invalid TransactionId string format: {transaction_id_str}")
+
         original_string = transaction_id_str
+        invalid_format = f"Invalid TransactionId string format: {original_string}"
+
+        scheduled = False
+        if "?" in transaction_id_str:
+            transaction_id_str, suffix = transaction_id_str.split("?", 1)
+            if suffix != "scheduled":
+                raise ValueError(f"Invalid transaction ID suffix: ?{suffix}")
+            scheduled = True
+
+        if transaction_id_str.count("@") != 1:
+            raise ValueError(invalid_format)
+        account_id_str, timestamp_str = transaction_id_str.split("@")
 
         try:
-            scheduled = False
-            if "?" in transaction_id_str:
-                transaction_id_str, suffix = transaction_id_str.split("?", 1)
-                if suffix != "scheduled":
-                    raise ValueError(f"Invalid transaction ID suffix: ?{suffix}")
-                scheduled = True
-
-            if "@" not in transaction_id_str:
-                raise ValueError(f"Invalid TransactionId string format: {original_string}")
-
-            account_id_str: str | None = None
-            timestamp_str: str | None = None
-
-            account_id_str, timestamp_str = transaction_id_str.split("@")
             account_id = AccountId.from_string(account_id_str)
+        except ValueError as e:
+            raise ValueError(invalid_format) from e
 
-            if "." not in timestamp_str:
-                raise ValueError(f"Invalid TransactionId string format: {original_string}")
+        if timestamp_str.count(".") != 1:
+            raise ValueError(invalid_format)
+        seconds_str, nanos_str = timestamp_str.split(".")
 
-            seconds_str, nanos_str = timestamp_str.split(".")
-            valid_start = timestamp_pb2.Timestamp(seconds=int(seconds_str), nanos=int(nanos_str))
+        seconds = cls._parse_timestamp_part(seconds_str, "seconds", _INT64_MIN, _INT64_MAX, invalid_format)
+        nanos = cls._parse_timestamp_part(nanos_str, "nanos", _INT32_MIN, _INT32_MAX, invalid_format)
 
-            return cls(account_id, valid_start, scheduled=scheduled)
-        except Exception as e:
-            if isinstance(e, ValueError) and "suffix" in str(e):
-                raise e
-            raise ValueError(f"Invalid TransactionId string format: {original_string}") from e
+        valid_start = timestamp_pb2.Timestamp(seconds=seconds, nanos=nanos)
+        return cls(account_id, valid_start, scheduled=scheduled)
+
+    @staticmethod
+    def _parse_timestamp_part(value: str, name: str, minimum: int, maximum: int, invalid_format: str) -> int:
+        """
+        Parses the seconds or nanos part of a transaction ID string.
+
+        Args:
+            value (str): The text of the part.
+            name (str): The name of the part ("seconds" or "nanos"), used in error messages.
+            minimum (int): The smallest allowed value.
+            maximum (int): The largest allowed value.
+            invalid_format (str): The generic error message for the whole string.
+
+        Returns:
+            int: The parsed value.
+
+        Raises:
+            ValueError: If the part is not an integer or is outside ``minimum``..``maximum``.
+        """
+        try:
+            number = int(value)
+        except ValueError as e:
+            raise ValueError(f"{invalid_format} ({name} {value!r} is not a valid integer)") from e
+
+        if not minimum <= number <= maximum:
+            raise ValueError(f"{invalid_format} ({name} {number} is out of range {minimum} to {maximum})")
+
+        return number
 
     def to_string(self) -> str:
         """
