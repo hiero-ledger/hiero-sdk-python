@@ -68,7 +68,7 @@ class TopicCreateTransaction(Transaction):
         self.submit_key: Key | None = submit_key
         self.auto_renew_period: Duration = auto_renew_period or Duration(7890000)
         self.auto_renew_account: AccountId | None = auto_renew_account
-        self.transaction_fee: int | None = 2_000_000_000  # 20 Hbars
+        self.transaction_fee: int | None = 3_000_000_000  # 30 Hbars
         self.custom_fees: list[CustomFixedFee] = custom_fees or []
         self.fee_exempt_keys: list[Key] = fee_exempt_keys or []
         self.fee_schedule_key: Key | None = fee_schedule_key
