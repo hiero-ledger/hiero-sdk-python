@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import sys
 
 import pytest
 
@@ -161,12 +162,46 @@ def test_from_string_non_string_raises_value_error(value):
         TransactionId.from_string(value)
 
 
+@pytest.fixture
+def int_max_str_digits():
+    """Set Python's integer string conversion limit to its default (4300) for one test."""
+    previous = sys.get_int_max_str_digits()
+    sys.set_int_max_str_digits(4300)
+    yield
+    sys.set_int_max_str_digits(previous)
+
+
+@pytest.mark.usefixtures("int_max_str_digits")
 def test_from_string_very_long_seconds_is_out_of_range():
     """Test that seconds too long for int() are reported as out of range, not as non-integers."""
     tx_id_str = "0.0.123@" + "9" * 5000 + ".500"
 
     with pytest.raises(ValueError, match="seconds is out of range"):
         TransactionId.from_string(tx_id_str)
+
+
+@pytest.mark.usefixtures("int_max_str_digits")
+def test_from_string_very_long_grouped_seconds_is_out_of_range():
+    """Test that a very long integer with underscores, which int() accepts, is reported as out of range."""
+    tx_id_str = "0.0.123@" + "_".join(["999"] * 2000) + ".500"
+
+    with pytest.raises(ValueError, match="seconds is out of range"):
+        TransactionId.from_string(tx_id_str)
+
+
+@pytest.mark.usefixtures("int_max_str_digits")
+@pytest.mark.parametrize(
+    "seconds",
+    [
+        "++1",  # Two signs
+        "+-" + "9" * 5000,  # Two signs, too long for int()
+        "9" * 5000 + "x",  # Too long for int(), and not an integer
+    ],
+)
+def test_from_string_malformed_seconds_is_not_a_valid_integer(seconds):
+    """Test that malformed seconds are reported as not a valid integer, even when very long."""
+    with pytest.raises(ValueError, match="seconds .* is not a valid integer"):
+        TransactionId.from_string(f"0.0.123@{seconds}.500")
 
 
 def test_hash_implementation():

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import secrets
 import time
 from typing import Any
@@ -11,6 +12,10 @@ from hiero_sdk_python.hapi.services import basic_types_pb2, timestamp_pb2
 # Ranges of the protobuf Timestamp fields: seconds is an int64 and nanos is an int32.
 _INT64_MIN, _INT64_MAX = -(2**63), 2**63 - 1
 _INT32_MIN, _INT32_MAX = -(2**31), 2**31 - 1
+
+# The integer syntax int() accepts: optional surrounding whitespace, one optional sign,
+# and decimal digits, optionally grouped with single underscores.
+_INTEGER_SYNTAX = re.compile(r"\s*[+-]?\d+(?:_\d+)*\s*")
 
 
 class TransactionId:
@@ -141,7 +146,7 @@ class TransactionId:
         except ValueError as e:
             # int() also refuses very long digit strings (Python's integer string conversion
             # limit). Those are integers, just far outside the allowed range.
-            if value.strip().lstrip("+-").isdigit():
+            if _INTEGER_SYNTAX.fullmatch(value):
                 raise ValueError(f"{invalid_format} ({name} is out of range {minimum} to {maximum})") from e
             raise ValueError(f"{invalid_format} ({name} {value!r} is not a valid integer)") from e
 
