@@ -154,6 +154,13 @@ def test_from_string_invalid_alias_with_warnings_as_errors_raises_value_error():
         TransactionId.from_string(tx_id_str)
 
 
+@pytest.mark.parametrize("value", [None, 123, b"0.0.123@1234567890.500"])
+def test_from_string_non_string_raises_value_error(value):
+    """Test that a non-string input raises the generic format error, not a TypeError."""
+    with pytest.raises(ValueError, match="^Invalid TransactionId string format: "):
+        TransactionId.from_string(value)
+
+
 def test_from_string_very_long_seconds_is_out_of_range():
     """Test that seconds too long for int() are reported as out of range, not as non-integers."""
     tx_id_str = "0.0.123@" + "9" * 5000 + ".500"
