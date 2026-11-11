@@ -356,3 +356,43 @@ class ContractUpdateTransaction(Transaction):
             _Method: An object containing the transaction function to update a contract.
         """
         return _Method(transaction_func=channel.smart_contract.updateContract, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody):
+        """Create contract update transaction from protobuf message."""
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("contractUpdateInstance"):
+            proto_body = transaction_body.contractUpdateInstance
+
+            if proto_body.HasField("contractID"):
+                transaction.contract_id = ContractId._from_proto(proto_body.contractID)
+
+            if proto_body.HasField("expirationTime"):
+                transaction.expiration_time = Timestamp._from_protobuf(proto_body.expirationTime)
+
+            if proto_body.HasField("adminKey"):
+                transaction.admin_key = Key.from_proto_key(proto_body.adminKey)
+
+            if proto_body.HasField("autoRenewPeriod"):
+                transaction.auto_renew_period = Duration._from_proto(proto_body.autoRenewPeriod)
+
+            if proto_body.HasField("memoWrapper"):
+                transaction.contract_memo = proto_body.memoWrapper.value
+
+            if proto_body.HasField("max_automatic_token_associations"):
+                transaction.max_automatic_token_associations = proto_body.max_automatic_token_associations.value
+
+            if proto_body.HasField("decline_reward"):
+                transaction.decline_reward = proto_body.decline_reward.value
+
+            if proto_body.HasField("auto_renew_account_id"):
+                transaction.auto_renew_account_id = AccountId._from_proto(proto_body.auto_renew_account_id)
+
+            stake_id = proto_body.WhichOneof("staked_id")
+            if stake_id == "staked_node_id":
+                transaction.set_staked_node_id(proto_body.staked_node_id)
+            elif stake_id == "staked_account_id":
+                transaction.set_staked_account_id(AccountId._from_proto(proto_body.staked_account_id))
+
+        return transaction
