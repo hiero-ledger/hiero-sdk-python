@@ -1,9 +1,10 @@
 """
 Mirror Node Contract Estimate Gas Query.
 
-Asks the mirror node how much gas a contract call needs, so that a
-ContractExecuteTransaction or ContractCreateTransaction can be given a gas
-limit before it is submitted.
+Asks the mirror node how much gas a call to a deployed contract needs, so
+that a ContractExecuteTransaction can be given a gas limit before it is
+submitted. The target must be an existing contract, so this does not
+estimate the gas for deploying one.
 """
 
 from __future__ import annotations

@@ -1671,6 +1671,8 @@ print(f"Owner: {result_values[1]}")
 
 ### Querying a Contract Call Using Mirror Node
 
+Runnable example, including deployment and waiting for the mirror node: [`examples/contract/mirror_node_contract_call_query.py`](../../examples/contract/mirror_node_contract_call_query.py).
+
 Free and operator-less: the mirror node simulates the call (`eth_call` semantics), so there is no
 query payment and no consensus node round trip. The result is the ABI-encoded return value as a
 `0x`-prefixed hex string; wrap its bytes in `ContractFunctionResult` to decode it. A call that
@@ -1704,6 +1706,8 @@ message = ContractFunctionResult(contract_call_result=bytes.fromhex(result_hex[2
 ```
 
 ### Estimating Contract Gas Using Mirror Node
+
+Runnable example, including deployment and waiting for the mirror node: [`examples/contract/mirror_node_contract_estimate_gas_query.py`](../../examples/contract/mirror_node_contract_estimate_gas_query.py).
 
 Asks the mirror node for the gas a call needs, so a `ContractExecuteTransaction` can use it instead
 of a guessed value. Set the sender when the function checks `msg.sender`.

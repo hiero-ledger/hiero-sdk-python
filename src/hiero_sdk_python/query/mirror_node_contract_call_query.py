@@ -70,4 +70,10 @@ class MirrorNodeContractCallQuery(MirrorNodeContractQuery):
                 example when the call reverts.
             RuntimeError: If retries or the total deadline are exhausted.
         """
-        return self._call_mirror_node(client, timeout)
+        result = self._call_mirror_node(client, timeout)
+
+        # ABI-encoded data is whole bytes, so it has an even number of hex digits.
+        if len(result) % 2 != 0:
+            raise ValueError(f"Mirror Node returned a malformed call result: {result!r}")
+
+        return result

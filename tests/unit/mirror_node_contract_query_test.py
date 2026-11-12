@@ -17,6 +17,8 @@ from hiero_sdk_python.contract.contract_function_parameters import (
     ContractFunctionParameters,
 )
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.crypto.evm_address import EvmAddress
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import MirrorNodeError
 from hiero_sdk_python.query.mirror_node_contract_call_query import (
     MirrorNodeContractCallQuery,
@@ -176,6 +178,37 @@ def test_invalid_evm_address_raises_value_error(address):
 def test_setter_validation(setter, bad_value, error):
     with pytest.raises(error):
         getattr(MirrorNodeContractCallQuery(), setter)(bad_value)
+
+
+def test_set_sender_rejects_alias_without_address():
+    """A public-key alias with num 0 would be sent as the zero address, so it is rejected."""
+    alias = AccountId(0, 0, 0, alias_key=PrivateKey.generate_ecdsa().public_key())
+
+    with pytest.raises(ValueError, match="set_sender_evm_address"):
+        MirrorNodeContractCallQuery().set_sender(alias)
+
+
+def test_set_sender_accepts_alias_with_evm_address_or_num():
+    """An alias that also carries an EVM address or an account number resolves to that address."""
+    key = PrivateKey.generate_ecdsa().public_key()
+    with_evm = AccountId(0, 0, 0, alias_key=key, evm_address=EvmAddress.from_string(OTHER_ADDRESS))
+    with_num = AccountId(0, 0, 5678, alias_key=key)
+
+    assert MirrorNodeContractCallQuery(CONTRACT_ID).set_sender(with_evm)._build_payload()["from"] == (
+        "0x" + OTHER_ADDRESS
+    )
+    assert MirrorNodeContractCallQuery(CONTRACT_ID).set_sender(with_num)._build_payload()["from"] == (
+        "0x" + SENDER_ADDRESS
+    )
+
+
+def test_set_sender_accepts_evm_address_account():
+    """An AccountId holding an EVM address is sent as that address."""
+    sender = AccountId(0, 0, 0, evm_address=EvmAddress.from_string(OTHER_ADDRESS))
+
+    assert MirrorNodeContractCallQuery(CONTRACT_ID).set_sender(sender)._build_payload()["from"] == (
+        "0x" + OTHER_ADDRESS
+    )
 
 
 def test_set_function_validation():
@@ -526,16 +559,43 @@ def test_mirror_node_error_is_runtime_error():
 
 @pytest.mark.parametrize(
     "body",
-    [ValueError("not json"), [], {}, {"result": None}, {"result": 42}, {"result": "2a"}],
+    [
+        ValueError("not json"),
+        [],
+        {},
+        {"result": None},
+        {"result": 42},
+        {"result": "2a"},
+        {"result": "0xnothex"},
+        {"result": "0x2a "},
+    ],
 )
 def test_malformed_success_response_raises_value_error(body):
     with patch(REQUEST, return_value=response(200, body)), pytest.raises(ValueError, match="malformed"):
         MirrorNodeContractCallQuery(CONTRACT_ID).execute(mock_client())
 
 
-@pytest.mark.parametrize("result", ["0x", "0xnothex"])
-def test_malformed_gas_estimate_raises_value_error(result):
-    with patch(REQUEST, return_value=ok(result)), pytest.raises(ValueError, match="malformed gas estimate"):
+def test_call_query_accepts_empty_result():
+    """A function with no return data returns "0x"."""
+    with patch(REQUEST, return_value=ok("0x")):
+        assert MirrorNodeContractCallQuery(CONTRACT_ID).execute(mock_client()) == "0x"
+
+
+def test_call_query_rejects_odd_length_result():
+    """ABI data is whole bytes, so an odd number of hex digits is malformed."""
+    with patch(REQUEST, return_value=ok("0x2a1")), pytest.raises(ValueError, match="malformed call result"):
+        MirrorNodeContractCallQuery(CONTRACT_ID).execute(mock_client())
+
+
+def test_estimate_accepts_odd_length_quantity():
+    """Gas estimates are hex quantities and may have an odd number of digits."""
+    with patch(REQUEST, return_value=ok("0x5208a")):
+        assert MirrorNodeContractEstimateGasQuery(CONTRACT_ID).execute(mock_client()) == 0x5208A
+
+
+def test_empty_gas_estimate_raises_value_error():
+    """An empty "0x" is valid hex but not a gas quantity."""
+    with patch(REQUEST, return_value=ok("0x")), pytest.raises(ValueError, match="malformed gas estimate"):
         MirrorNodeContractEstimateGasQuery(CONTRACT_ID).execute(mock_client())
 
 

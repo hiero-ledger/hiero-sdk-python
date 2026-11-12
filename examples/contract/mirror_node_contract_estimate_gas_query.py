@@ -151,6 +151,9 @@ def mirror_node_contract_estimate_gas_query():
         if message == NEW_MESSAGE:
             break
         time.sleep(2)
+    else:
+        print(f"The mirror node still returns the old message: {message}")
+        sys.exit(1)
     print(f"Message read back from the mirror node: {message}")
 
     client.close()

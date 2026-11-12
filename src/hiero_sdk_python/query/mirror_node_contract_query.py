@@ -32,6 +32,9 @@ from hiero_sdk_python.query._mirror_node_rest import (
 _RETRYABLE_HTTP_STATUSES = frozenset({500, 502, 503, 504})
 
 _EVM_ADDRESS_PATTERN = re.compile(r"[0-9a-fA-F]{40}")
+# A 0x-prefixed hex string. "0x" alone is a valid call result (no return
+# data), and gas estimates are hex quantities that may have an odd length.
+_HEX_RESULT_PATTERN = re.compile(r"0x[0-9a-fA-F]*")
 
 
 class MirrorNodeContractQuery(ABC):
@@ -141,6 +144,10 @@ class MirrorNodeContractQuery(ABC):
         Optional. The account ID is converted to an EVM address when the query
         runs. An address set with ``set_sender_evm_address`` takes precedence.
 
+        A public-key alias without an account number has no EVM address the
+        query can derive, so it is rejected; pass the sender's EVM address to
+        ``set_sender_evm_address`` instead.
+
         Args:
             sender: The sender account ID.
 
@@ -149,9 +156,16 @@ class MirrorNodeContractQuery(ABC):
 
         Raises:
             TypeError: If sender is not an AccountId.
+            ValueError: If sender is a public-key alias with no account number or EVM address.
         """
         if not isinstance(sender, AccountId):
             raise TypeError("sender must be of type AccountId")
+
+        if sender.alias_key is not None and sender.evm_address is None and sender.num == 0:
+            raise ValueError(
+                "sender is a public-key alias with no account number, so its EVM address is unknown; "
+                "use set_sender_evm_address() instead"
+            )
 
         self._sender = sender
         return self
@@ -493,7 +507,7 @@ class MirrorNodeContractQuery(ABC):
             raise ValueError("Mirror Node returned a malformed JSON response") from exc
 
         result = body.get("result") if isinstance(body, dict) else None
-        if not isinstance(result, str) or not result.startswith("0x"):
+        if not isinstance(result, str) or not _HEX_RESULT_PATTERN.fullmatch(result):
             raise ValueError("Mirror Node returned a malformed JSON response: missing hex 'result'")
 
         return result
