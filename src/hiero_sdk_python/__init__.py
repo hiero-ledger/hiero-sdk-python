@@ -82,6 +82,22 @@ from .file.file_update_transaction import FileUpdateTransaction
 from .hbar import Hbar
 from .hbar_unit import HbarUnit
 
+# Hooks (HIP-1195)
+from .hooks.evm_hook import EvmHook, EvmHookSpec
+from .hooks.evm_hook_call import EvmHookCall
+from .hooks.evm_hook_mapping_entry import EvmHookMappingEntry
+from .hooks.evm_hook_storage_update import EvmHookMappingEntries, EvmHookStorageSlot, EvmHookStorageUpdate
+from .hooks.fungible_hook_call import FungibleHookCall
+from .hooks.fungible_hook_type import FungibleHookType
+from .hooks.hook_call import HookCall
+from .hooks.hook_creation_details import HookCreationDetails
+from .hooks.hook_entity_id import HookEntityId
+from .hooks.hook_extension_point import HookExtensionPoint
+from .hooks.hook_id import HookId
+from .hooks.hook_store_transaction import HookStoreTransaction
+from .hooks.nft_hook_call import NftHookCall
+from .hooks.nft_hook_type import NftHookType
+
 # Logger
 from .logger.log_level import LogLevel
 from .logger.logger import Logger
@@ -335,6 +351,24 @@ __all__ = [
     "RegisteredNodeCreateTransaction",
     "RegisteredNodeUpdateTransaction",
     "RegisteredNodeDeleteTransaction",
+    # Hooks (HIP-1195)
+    "EvmHook",
+    "EvmHookCall",
+    "EvmHookMappingEntries",
+    "EvmHookMappingEntry",
+    "EvmHookSpec",
+    "EvmHookStorageSlot",
+    "EvmHookStorageUpdate",
+    "FungibleHookCall",
+    "FungibleHookType",
+    "HookCall",
+    "HookCreationDetails",
+    "HookEntityId",
+    "HookExtensionPoint",
+    "HookId",
+    "HookStoreTransaction",
+    "NftHookCall",
+    "NftHookType",
     # PRNG
     "PrngTransaction",
     # Custom Fees

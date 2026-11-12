@@ -85,5 +85,10 @@ STATEFUL_CONTRACT_BYTECODE = _load_contract_bytecode("StatefulContract")
 # typically for verifying ABI encoding and parameter passing logic.
 CONSTRUCTOR_TEST_CONTRACT_BYTECODE = _load_contract_bytecode("ConstructorTestContract")
 
+# HieroHookContract:
+# A HIP-1195 account allowance hook whose allow, allowPre and allowPost
+# functions always return true. Used by the hook examples and integration tests.
+HIERO_HOOK_CONTRACT_BYTECODE = _load_contract_bytecode("HieroHookContract")
+
 # Contract deployment configuration
 CONTRACT_DEPLOY_GAS = 2_000_000

@@ -10,8 +10,14 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hbar import Hbar
-from hiero_sdk_python.tokens.abstract_token_transfer_transaction import AbstractTokenTransferTransaction
+from hiero_sdk_python.hooks.fungible_hook_call import FungibleHookCall
+from hiero_sdk_python.hooks.nft_hook_call import NftHookCall
+from hiero_sdk_python.tokens.abstract_token_transfer_transaction import (
+    AbstractTokenTransferTransaction,
+    _merge_hook_call,
+)
 from hiero_sdk_python.tokens.hbar_transfer import HbarTransfer
+from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
@@ -52,7 +58,11 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
             self.add_hbar_transfer(account_id, amount)
 
     def _add_hbar_transfer(
-        self, account_id: AccountId, amount: int | Hbar, is_approved: bool = False
+        self,
+        account_id: AccountId,
+        amount: int | Hbar,
+        is_approved: bool = False,
+        hook_call: FungibleHookCall | None = None,
     ) -> TransferTransaction:
         """
         Internal method to add a HBAR transfer to the transaction.
@@ -61,9 +71,14 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
             account_id (AccountId): The account ID of the sender or receiver.
             amount (int | Hbar): The amount of the HBAR to transfer.
             is_approved (bool, optional): Whether the transfer is approved. Defaults to False.
+            hook_call (FungibleHookCall, optional): An allowance hook to call for this
+                transfer. Defaults to None.
 
         Returns:
             TransferTransaction: The current instance of the transaction for chaining.
+
+        Raises:
+            ValueError: If the account already has a transfer with a different hook call.
         """
         self._require_not_frozen()
         if not isinstance(account_id, AccountId):
@@ -74,13 +89,16 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
             raise TypeError("amount must be an int or Hbar instance.")
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
+        if hook_call is not None and not isinstance(hook_call, FungibleHookCall):
+            raise TypeError("hook_call must be a FungibleHookCall instance.")
 
         for transfer in self.hbar_transfers:
             if transfer.account_id == account_id:
+                transfer.hook_call = _merge_hook_call(transfer.hook_call, hook_call)
                 transfer.amount += amount
                 return self
 
-        self.hbar_transfers.append(HbarTransfer(account_id, amount, is_approved))
+        self.hbar_transfers.append(HbarTransfer(account_id, amount, is_approved, hook_call))
         return self
 
     def add_hbar_transfer(self, account_id: AccountId, amount: int | Hbar) -> TransferTransaction:
@@ -109,6 +127,102 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
             TransferTransaction: The current instance of the transaction for chaining.
         """
         self._add_hbar_transfer(account_id, amount, True)
+        return self
+
+    def add_hbar_transfer_with_hook(
+        self, account_id: AccountId, amount: int | Hbar, hook_call: FungibleHookCall
+    ) -> TransferTransaction:
+        """
+        Adds a HBAR transfer that calls an account allowance hook (HIP-1195).
+
+        The hook installed on `account_id` must succeed for the transfer to go through.
+
+        Args:
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int | Hbar): The amount of the HBAR to transfer.
+            hook_call (FungibleHookCall): The hook to call.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+
+        Raises:
+            TypeError: If hook_call is not a FungibleHookCall.
+            ValueError: If the account already has a transfer with a different hook call.
+        """
+        if not isinstance(hook_call, FungibleHookCall):
+            raise TypeError("hook_call must be a FungibleHookCall instance.")
+        self._add_hbar_transfer(account_id, amount, False, hook_call)
+        return self
+
+    def add_token_transfer_with_hook(
+        self, token_id: TokenId, account_id: AccountId, amount: int, hook_call: FungibleHookCall
+    ) -> TransferTransaction:
+        """
+        Adds a fungible token transfer that calls an account allowance hook (HIP-1195).
+
+        The hook installed on `account_id` must succeed for the transfer to go through.
+
+        Args:
+            token_id (TokenId): The ID of the token being transferred.
+            account_id (AccountId): The account ID of the sender or receiver.
+            amount (int): The amount of the fungible token to transfer.
+            hook_call (FungibleHookCall): The hook to call.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+
+        Raises:
+            TypeError: If hook_call is not a FungibleHookCall.
+            ValueError: If the account already has a transfer with a different hook call.
+        """
+        self._require_not_frozen()
+        if not isinstance(hook_call, FungibleHookCall):
+            raise TypeError("hook_call must be a FungibleHookCall instance.")
+        self._add_token_transfer(token_id, account_id, amount, hook_call=hook_call)
+        return self
+
+    def add_nft_transfer_with_hook(
+        self,
+        nft_id: NftId,
+        sender_id: AccountId,
+        receiver_id: AccountId,
+        sender_hook_call: NftHookCall | None = None,
+        receiver_hook_call: NftHookCall | None = None,
+    ) -> TransferTransaction:
+        """
+        Adds an NFT transfer that calls the sender's and/or receiver's allowance hook (HIP-1195).
+
+        Args:
+            nft_id (NftId): The ID of the NFT being transferred.
+            sender_id (AccountId): The sender's account ID.
+            receiver_id (AccountId): The receiver's account ID.
+            sender_hook_call (NftHookCall, optional): The sender's hook to call. Its
+                hook_type must be PRE_HOOK_SENDER or PRE_POST_HOOK_SENDER.
+            receiver_hook_call (NftHookCall, optional): The receiver's hook to call. Its
+                hook_type must be PRE_HOOK_RECEIVER or PRE_POST_HOOK_RECEIVER.
+
+        Returns:
+            TransferTransaction: The current instance of the transaction for chaining.
+
+        Raises:
+            TypeError: If an argument has the wrong type.
+            ValueError: If neither hook call is given, or a hook call's type is for
+                the other party.
+        """
+        self._require_not_frozen()
+        if not isinstance(nft_id, NftId):
+            raise TypeError("nft_id must be a NftId instance.")
+        if sender_hook_call is None and receiver_hook_call is None:
+            raise ValueError("At least one of sender_hook_call or receiver_hook_call is required.")
+        self._add_nft_transfer(
+            nft_id.token_id,
+            sender_id,
+            receiver_id,
+            nft_id.serial_number,
+            False,
+            sender_hook_call,
+            receiver_hook_call,
+        )
         return self
 
     def _build_proto_body(self) -> crypto_transfer_pb2.CryptoTransferTransactionBody:
@@ -181,10 +295,7 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
 
             if crypto_transfer.HasField("transfers"):
                 for account_amount in crypto_transfer.transfers.accountAmounts:
-                    account_id = AccountId._from_proto(account_amount.accountID)
-                    amount = account_amount.amount
-                    is_approved = account_amount.is_approval
-                    transaction.hbar_transfers.append(HbarTransfer(account_id, amount, is_approved))
+                    transaction.hbar_transfers.append(HbarTransfer._from_proto(account_amount))
 
             for token_transfer_list in crypto_transfer.tokenTransfers:
                 token_id = TokenId._from_proto(token_transfer_list.token)
@@ -199,17 +310,19 @@ class TransferTransaction(AbstractTokenTransferTransaction["TransferTransaction"
                         expected_decimals = token_transfer_list.expected_decimals.value
 
                     transaction.token_transfers[token_id].append(
-                        TokenTransfer(token_id, account_id, amount, expected_decimals, is_approved)
+                        TokenTransfer(
+                            token_id,
+                            account_id,
+                            amount,
+                            expected_decimals,
+                            is_approved,
+                            FungibleHookCall._from_account_amount(transfer),
+                        )
                     )
 
                 for nft_transfer in token_transfer_list.nftTransfers:
-                    sender_id = AccountId._from_proto(nft_transfer.senderAccountID)
-                    receiver_id = AccountId._from_proto(nft_transfer.receiverAccountID)
-                    serial_number = nft_transfer.serialNumber
-                    is_approved = nft_transfer.is_approval
-
                     transaction.nft_transfers[token_id].append(
-                        TokenNftTransfer(token_id, sender_id, receiver_id, serial_number, is_approved)
+                        TokenNftTransfer._from_nft_transfer_proto(token_id, nft_transfer)
                     )
 
         return transaction

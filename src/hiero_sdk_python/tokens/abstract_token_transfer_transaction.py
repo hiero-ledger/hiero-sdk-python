@@ -17,6 +17,9 @@ from typing import Any, Generic, TypeVar
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.hapi.services import basic_types_pb2
+from hiero_sdk_python.hooks.fungible_hook_call import FungibleHookCall
+from hiero_sdk_python.hooks.hook_call import HookCall
+from hiero_sdk_python.hooks.nft_hook_call import NftHookCall
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
@@ -26,6 +29,21 @@ from hiero_sdk_python.transaction.transaction import Transaction
 
 
 T = TypeVar("T", bound="AbstractTokenTransferTransaction[Any]")
+
+
+def _merge_hook_call(existing: HookCall | None, new: HookCall | None) -> HookCall | None:
+    """
+    Combines the hook call of an existing transfer with the one being added to it.
+
+    Raises:
+        ValueError: If both are set and differ, since an account amount can carry
+            only one allowance hook call.
+    """
+    if new is None:
+        return existing
+    if existing is not None and existing != new:
+        raise ValueError("A transfer for this account already has a different hook call.")
+    return new
 
 
 class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
@@ -122,6 +140,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         amount: int,
         expected_decimals: int | None = None,
         is_approved: bool = False,
+        hook_call: FungibleHookCall | None = None,
     ) -> None:
         """Adds a fungible token transfer to the transaction's list.
 
@@ -142,10 +161,13 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
                 expected for the token. Defaults to None.
             is_approved (bool, optional): Whether the transfer is approved.
                 Defaults to False.
+            hook_call (FungibleHookCall, optional): An allowance hook to call for
+                this transfer. Defaults to None.
 
         Raises:
             TypeError: If argument types are invalid.
-            ValueError: If `amount` is zero.
+            ValueError: If `amount` is zero, or if the merged transfer would end up
+                with two different hook calls.
         """
         if not isinstance(token_id, TokenId):
             raise TypeError("token_id must be a TokenId instance.")
@@ -159,16 +181,19 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             raise TypeError("expected_decimals must be an integer.")
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
+        if hook_call is not None and not isinstance(hook_call, FungibleHookCall):
+            raise TypeError("hook_call must be a FungibleHookCall instance.")
 
         for transfer in self.token_transfers[token_id]:
             if transfer.account_id == account_id and transfer.is_approved == is_approved:
+                transfer.hook_call = _merge_hook_call(transfer.hook_call, hook_call)
                 transfer.amount += amount
                 if expected_decimals is not None:
                     transfer.expected_decimals = expected_decimals
                 return
 
         self.token_transfers[token_id].append(
-            TokenTransfer(token_id, account_id, amount, expected_decimals, is_approved)
+            TokenTransfer(token_id, account_id, amount, expected_decimals, is_approved, hook_call)
         )
 
     def _add_nft_transfer(
@@ -178,6 +203,8 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         receiver_id: AccountId,
         serial_number: int,
         is_approved: bool = False,
+        sender_hook_call: NftHookCall | None = None,
+        receiver_hook_call: NftHookCall | None = None,
     ) -> None:
         """Adds an NFT (Non-Fungible Token) transfer to the transaction's list.
 
@@ -188,9 +215,14 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             serial_number (int): The unique serial number of the NFT being transferred.
             is_approved (bool, optional): Whether the transfer is approved.
                 Defaults to False.
+            sender_hook_call (NftHookCall, optional): The sender's allowance hook
+                to call. Defaults to None.
+            receiver_hook_call (NftHookCall, optional): The receiver's allowance hook
+                to call. Defaults to None.
 
         Raises:
             TypeError: If any argument type is invalid.
+            ValueError: If a hook call's type is for the wrong side of the transfer.
         """
         if not isinstance(token_id, TokenId):
             raise TypeError("token_id must be a TokenId instance.")
@@ -200,9 +232,21 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             raise TypeError("receiver_id must be an AccountId instance.")
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
+        for name, hook_call, is_side in (
+            ("sender_hook_call", sender_hook_call, lambda hook_type: hook_type.is_sender),
+            ("receiver_hook_call", receiver_hook_call, lambda hook_type: hook_type.is_receiver),
+        ):
+            if hook_call is None:
+                continue
+            if not isinstance(hook_call, NftHookCall):
+                raise TypeError(f"{name} must be an NftHookCall instance.")
+            if not is_side(hook_call.hook_type):
+                raise ValueError(f"{name} has hook_type {hook_call.hook_type.name}, which is for the other party.")
 
         self.nft_transfers[token_id].append(
-            TokenNftTransfer(token_id, sender_id, receiver_id, serial_number, is_approved)
+            TokenNftTransfer(
+                token_id, sender_id, receiver_id, serial_number, is_approved, sender_hook_call, receiver_hook_call
+            )
         )
 
     def add_token_transfer(self: T, token_id: TokenId, account_id: AccountId, amount: int) -> T:

@@ -17,6 +17,10 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.hooks.hook_creation_details import (
+    HookCreationDetails,
+    _validate_hook_list,
+)
 from hiero_sdk_python.transaction.transaction import Transaction
 
 
@@ -70,6 +74,7 @@ class AccountCreateTransaction(Transaction):
         self.staked_account_id: AccountId | None = staked_account_id
         self.staked_node_id: int | None = staked_node_id
         self.decline_staking_reward = decline_staking_reward
+        self.hooks: list[HookCreationDetails] = []
 
     def set_key(self, key: Key) -> AccountCreateTransaction:
         """
@@ -292,6 +297,40 @@ class AccountCreateTransaction(Transaction):
         self.decline_staking_reward = decline_staking_reward
         return self
 
+    def add_hook(self, hook: HookCreationDetails) -> AccountCreateTransaction:
+        """
+        Adds a hook to create along with the new entity (HIP-1195).
+
+        Args:
+            hook (HookCreationDetails): The hook to create.
+
+        Returns:
+            AccountCreateTransaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If hook is not a HookCreationDetails.
+        """
+        self._require_not_frozen()
+        self.hooks.extend(_validate_hook_list([hook]))
+        return self
+
+    def set_hooks(self, hooks: list[HookCreationDetails]) -> AccountCreateTransaction:
+        """
+        Replaces the hooks to create along with the new entity (HIP-1195).
+
+        Args:
+            hooks (list[HookCreationDetails]): The hooks to create.
+
+        Returns:
+            AccountCreateTransaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If hooks is not a list of HookCreationDetails.
+        """
+        self._require_not_frozen()
+        self.hooks = _validate_hook_list(hooks)
+        return self
+
     def _build_proto_body(self) -> crypto_create_pb2.CryptoCreateTransactionBody:
         """
         Returns the protobuf body for the account create transaction.
@@ -333,6 +372,8 @@ class AccountCreateTransaction(Transaction):
             proto_body.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
         elif self.staked_node_id is not None:
             proto_body.staked_node_id = self.staked_node_id
+
+        proto_body.hook_creation_details.extend(hook._to_proto() for hook in self.hooks)
 
         return proto_body
 
@@ -404,5 +445,7 @@ class AccountCreateTransaction(Transaction):
 
             elif staked_id == "staked_node_id":
                 transaction.staked_node_id = body.staked_node_id
+
+            transaction.hooks = [HookCreationDetails._from_proto(hook) for hook in body.hook_creation_details]
 
         return transaction

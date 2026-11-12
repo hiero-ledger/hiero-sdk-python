@@ -85,6 +85,11 @@ You can choose either syntax or even mix both styles in your projects.
   - [Deleting a Node](#deleting-a-node)
 - [Batch Transaction](#batch-transaction)
   - [Create a Batch Transaction](#create-a-batch-transaction)
+- [Hooks (HIP-1195)](#hooks-hip-1195)
+  - [Creating an Account with a Hook](#creating-an-account-with-a-hook)
+  - [Updating Hook Storage](#updating-hook-storage)
+  - [Adding and Deleting Hooks](#adding-and-deleting-hooks)
+  - [Transferring with a Hook](#transferring-with-a-hook)
 - [Miscellaneous Queries](#miscellaneous-queries)
   - [Querying Transaction Record](#querying-transaction-record)
 - [Miscellaneous Transactions](#miscellaneous-transactions)
@@ -2156,6 +2161,143 @@ transfer_tx = (
 
 # Build the BatchTransaction with method chaining
 receipt = BatchTransaction().add_inner_transaction(transfer_tx).freeze_with(client).sign(batch_key).execute(client)
+```
+
+## Hooks (HIP-1195)
+
+Hooks let an account or contract run EVM code to approve transfers on its behalf. Hooks must be
+enabled on the network (`hooks.hooksEnabled=true`); otherwise transactions fail with `HOOKS_NOT_ENABLED`.
+See `examples/hooks/` for runnable examples.
+
+### Creating an Account with a Hook
+
+#### Pythonic Syntax:
+```python
+hook = HookCreationDetails(
+    extension_point=HookExtensionPoint.ACCOUNT_ALLOWANCE_HOOK,
+    hook_id=1,
+    evm_hook=EvmHook(
+        contract_id=hook_contract_id,
+        storage_updates=[EvmHookStorageSlot(key=b"\x01", value=b"\x01")],
+    ),
+    admin_key=admin_key.public_key(),  # optional
+)
+
+transaction = AccountCreateTransaction(key=new_key.public_key(), initial_balance=Hbar(10))
+transaction.set_hooks([hook])
+transaction.freeze_with(client)
+transaction.sign(new_key)
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+receipt = (
+    AccountCreateTransaction()
+    .set_key_without_alias(new_key.public_key())
+    .set_initial_balance(Hbar(10))
+    .add_hook(hook)
+    .freeze_with(client)
+    .sign(new_key)
+    .execute(client)
+)
+```
+
+`ContractCreateTransaction` supports the same `add_hook` and `set_hooks` methods.
+
+### Updating Hook Storage
+
+#### Pythonic Syntax:
+```python
+hook_id = HookId(HookEntityId(account_id=account_id), 1)
+storage_updates = [
+    EvmHookStorageSlot(key=b"\x01", value=b"\x02"),
+    EvmHookMappingEntries(
+        mapping_slot=b"\x02",
+        entries=[EvmHookMappingEntry.with_key(key=b"\x0a", value=b"\x0b")],
+    ),
+]
+
+transaction = HookStoreTransaction(hook_id=hook_id, storage_updates=storage_updates)
+transaction.freeze_with(client)
+transaction.sign(account_key)  # or the hook's admin key
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+receipt = (
+    HookStoreTransaction()
+    .set_hook_id(HookId(HookEntityId(account_id=account_id), 1))
+    .add_storage_update(EvmHookStorageSlot(key=b"\x01", value=b"\x02"))
+    .freeze_with(client)
+    .sign(account_key)
+    .execute(client)
+)
+```
+
+### Adding and Deleting Hooks
+
+#### Pythonic Syntax:
+```python
+transaction = AccountUpdateTransaction()
+transaction.set_account_id(account_id)
+transaction.set_hooks_to_create([HookCreationDetails(hook_id=2, evm_hook=EvmHook(contract_id=hook_contract_id))])
+transaction.set_hooks_to_delete([1])
+transaction.freeze_with(client)
+transaction.sign(account_key)
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+receipt = (
+    AccountUpdateTransaction()
+    .set_account_id(account_id)
+    .add_hook_to_create(HookCreationDetails(hook_id=2, evm_hook=EvmHook(contract_id=hook_contract_id)))
+    .add_hook_to_delete(1)
+    .freeze_with(client)
+    .sign(account_key)
+    .execute(client)
+)
+```
+
+`ContractUpdateTransaction` supports the same methods.
+
+### Transferring with a Hook
+
+#### Pythonic Syntax:
+```python
+hook_call = FungibleHookCall(
+    hook_id=1,
+    evm_hook_call=EvmHookCall(data=b"", gas_limit=50_000),
+    hook_type=FungibleHookType.PRE_TX_ALLOWANCE_HOOK,  # or PRE_POST_TX_ALLOWANCE_HOOK
+)
+
+transaction = TransferTransaction()
+transaction.add_hbar_transfer_with_hook(account_id, Hbar(-1), hook_call)
+transaction.add_hbar_transfer(recipient_id, Hbar(1))
+receipt = transaction.execute(client)
+```
+
+#### Method Chaining:
+```python
+receipt = (
+    TransferTransaction()
+    .add_token_transfer_with_hook(token_id, account_id, -10, hook_call)
+    .add_token_transfer(token_id, recipient_id, 10)
+    .add_nft_transfer_with_hook(
+        nft_id,
+        sender_id,
+        receiver_id,
+        sender_hook_call=NftHookCall(
+            hook_id=1,
+            evm_hook_call=EvmHookCall(gas_limit=50_000),
+            hook_type=NftHookType.PRE_HOOK_SENDER,
+        ),
+    )
+    .execute(client)
+)
 ```
 
 ## Miscellaneous Queries

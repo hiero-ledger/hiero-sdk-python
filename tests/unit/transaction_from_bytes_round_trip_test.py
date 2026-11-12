@@ -26,6 +26,7 @@ from hiero_sdk_python.file.file_append_transaction import FileAppendTransaction
 from hiero_sdk_python.file.file_create_transaction import FileCreateTransaction
 from hiero_sdk_python.file.file_delete_transaction import FileDeleteTransaction
 from hiero_sdk_python.file.file_update_transaction import FileUpdateTransaction
+from hiero_sdk_python.hooks.hook_store_transaction import HookStoreTransaction
 from hiero_sdk_python.nodes.node_create_transaction import NodeCreateTransaction
 from hiero_sdk_python.nodes.node_delete_transaction import NodeDeleteTransaction
 from hiero_sdk_python.nodes.node_update_transaction import NodeUpdateTransaction
@@ -124,6 +125,7 @@ pytestmark = pytest.mark.unit
         ("registeredNodeUpdate", RegisteredNodeUpdateTransaction),
         ("registeredNodeDelete", RegisteredNodeDeleteTransaction),
         ("util_prng", PrngTransaction),
+        ("hook_store", HookStoreTransaction),
         ("tokenReject", TokenRejectTransaction),
         ("tokenAirdrop", TokenAirdropTransaction),
         ("tokenClaimAirdrop", TokenClaimAirdropTransaction),

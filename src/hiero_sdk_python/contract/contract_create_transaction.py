@@ -22,6 +22,10 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 )
 from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.hooks.hook_creation_details import (
+    HookCreationDetails,
+    _validate_hook_list,
+)
 from hiero_sdk_python.transaction.transaction import Transaction
 
 
@@ -111,6 +115,7 @@ class ContractCreateTransaction(Transaction):
         self.staked_account_id: AccountId | None = params.staked_account_id
         self.staked_node_id: int | None = params.staked_node_id
         self.decline_reward: bool | None = params.decline_reward
+        self.hooks: list[HookCreationDetails] = []
 
         self._default_transaction_fee = Hbar(20).to_tinybars()
 
@@ -350,6 +355,40 @@ class ContractCreateTransaction(Transaction):
         self.decline_reward = decline_reward
         return self
 
+    def add_hook(self, hook: HookCreationDetails) -> ContractCreateTransaction:
+        """
+        Adds a hook to create along with the new entity (HIP-1195).
+
+        Args:
+            hook (HookCreationDetails): The hook to create.
+
+        Returns:
+            ContractCreateTransaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If hook is not a HookCreationDetails.
+        """
+        self._require_not_frozen()
+        self.hooks.extend(_validate_hook_list([hook]))
+        return self
+
+    def set_hooks(self, hooks: list[HookCreationDetails]) -> ContractCreateTransaction:
+        """
+        Replaces the hooks to create along with the new entity (HIP-1195).
+
+        Args:
+            hooks (list[HookCreationDetails]): The hooks to create.
+
+        Returns:
+            ContractCreateTransaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If hooks is not a list of HookCreationDetails.
+        """
+        self._require_not_frozen()
+        self.hooks = _validate_hook_list(hooks)
+        return self
+
     def _build_proto_body(self):
         """
         Returns the protobuf body for the contract create transaction.
@@ -369,7 +408,7 @@ class ContractCreateTransaction(Transaction):
             raise ValueError("Specify either staked_node_id or staked_account_id, not both.")
         if self.bytecode is not None and self.bytecode_file_id is not None:
             raise ValueError("Specify either bytecode or bytecode_file_id, not both.")
-        return ContractCreateTransactionBody(
+        body = ContractCreateTransactionBody(
             gas=self.gas,
             initialBalance=self.initial_balance,
             constructorParameters=self.parameters,
@@ -385,6 +424,8 @@ class ContractCreateTransaction(Transaction):
             fileID=self.bytecode_file_id._to_proto() if self.bytecode_file_id else None,
             initcode=self.bytecode,
         )
+        body.hook_creation_details.extend(hook._to_proto() for hook in self.hooks)
+        return body
 
     def build_transaction_body(self):
         """
@@ -466,5 +507,7 @@ class ContractCreateTransaction(Transaction):
 
             elif stake_id == "staked_account_id":
                 transaction.set_staked_account_id(AccountId._from_proto(proto_body.staked_account_id))
+
+            transaction.hooks = [HookCreationDetails._from_proto(hook) for hook in proto_body.hook_creation_details]
 
         return transaction

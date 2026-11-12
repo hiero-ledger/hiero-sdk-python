@@ -1553,6 +1553,7 @@ class Transaction(_Executable):
             "token_unpause": "hiero_sdk_python.tokens.token_unpause_transaction.TokenUnpauseTransaction",
             "token_update_nfts": "hiero_sdk_python.tokens.token_update_nfts_transaction.TokenUpdateNftsTransaction",
             "util_prng": "hiero_sdk_python.prng_transaction.PrngTransaction",
+            "hook_store": "hiero_sdk_python.hooks.hook_store_transaction.HookStoreTransaction",
             "scheduleCreate": "hiero_sdk_python.schedule.schedule_create_transaction.ScheduleCreateTransaction",
             "scheduleDelete": "hiero_sdk_python.schedule.schedule_delete_transaction.ScheduleDeleteTransaction",
             "scheduleSign": "hiero_sdk_python.schedule.schedule_sign_transaction.ScheduleSignTransaction",

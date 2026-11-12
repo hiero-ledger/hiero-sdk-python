@@ -16,6 +16,11 @@ from hiero_sdk_python.hapi.services.crypto_update_pb2 import CryptoUpdateTransac
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hooks.hook_creation_details import (
+    HookCreationDetails,
+    _validate_hook_id,
+    _validate_hook_list,
+)
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.transaction.transaction import Transaction
 
@@ -86,6 +91,8 @@ class AccountUpdateTransaction(Transaction):
         self.staked_account_id = params.staked_account_id
         self.staked_node_id = params.staked_node_id
         self.decline_staking_reward = params.decline_staking_reward
+        self.hooks_to_create: list[HookCreationDetails] = []
+        self.hooks_to_delete: list[int] = []
 
     def set_account_id(self, account_id: AccountId | None) -> AccountUpdateTransaction:
         """
@@ -278,6 +285,79 @@ class AccountUpdateTransaction(Transaction):
         self.decline_staking_reward = decline_staking_reward
         return self
 
+    def add_hook_to_create(self, hook: HookCreationDetails) -> AccountUpdateTransaction:
+        """
+        Adds a hook to create on the entity (HIP-1195).
+
+        Args:
+            hook (HookCreationDetails): The hook to create.
+
+        Returns:
+            AccountUpdateTransaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If hook is not a HookCreationDetails.
+        """
+        self._require_not_frozen()
+        self.hooks_to_create.extend(_validate_hook_list([hook]))
+        return self
+
+    def set_hooks_to_create(self, hooks: list[HookCreationDetails]) -> AccountUpdateTransaction:
+        """
+        Replaces the hooks to create on the entity (HIP-1195).
+
+        Args:
+            hooks (list[HookCreationDetails]): The hooks to create.
+
+        Returns:
+            AccountUpdateTransaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If hooks is not a list of HookCreationDetails.
+        """
+        self._require_not_frozen()
+        self.hooks_to_create = _validate_hook_list(hooks)
+        return self
+
+    def add_hook_to_delete(self, hook_id: int) -> AccountUpdateTransaction:
+        """
+        Adds the number of a hook to delete from the entity (HIP-1195).
+
+        Deletions are applied before creations, so a hook number can be deleted
+        and re-created in the same transaction.
+
+        Args:
+            hook_id (int): The owner-scoped number of the hook to delete.
+
+        Returns:
+            AccountUpdateTransaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If hook_id is not an integer.
+        """
+        self._require_not_frozen()
+        self.hooks_to_delete.append(_validate_hook_id(hook_id))
+        return self
+
+    def set_hooks_to_delete(self, hook_ids: list[int]) -> AccountUpdateTransaction:
+        """
+        Replaces the numbers of the hooks to delete from the entity (HIP-1195).
+
+        Args:
+            hook_ids (list[int]): The owner-scoped numbers of the hooks to delete.
+
+        Returns:
+            AccountUpdateTransaction: The current transaction instance for method chaining.
+
+        Raises:
+            TypeError: If hook_ids is not a list of integers.
+        """
+        self._require_not_frozen()
+        if not isinstance(hook_ids, list | tuple):
+            raise TypeError("hook_ids must be a list of integers.")
+        self.hooks_to_delete = [_validate_hook_id(hook_id) for hook_id in hook_ids]
+        return self
+
     def _build_proto_body(self):
         """
         Returns the protobuf body for the account update transaction.
@@ -311,6 +391,9 @@ class AccountUpdateTransaction(Transaction):
             proto_body.staked_account_id.CopyFrom(self.staked_account_id._to_proto())
         elif self.staked_node_id is not None:
             proto_body.staked_node_id = self.staked_node_id
+
+        proto_body.hook_ids_to_delete.extend(self.hooks_to_delete)
+        proto_body.hook_creation_details.extend(hook._to_proto() for hook in self.hooks_to_create)
 
         return proto_body
 
