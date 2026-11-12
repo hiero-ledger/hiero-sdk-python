@@ -9,6 +9,7 @@ from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hbar import Hbar
+from hiero_sdk_python.hbar_unit import HbarUnit
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
@@ -182,6 +183,7 @@ def test_serialize_topic_update_transaction_can_execute(env):
             fee_exempt_keys=[exempt_key],
             custom_fees=[fee],
         )
+        transaction.transaction_fee = Hbar.of(30, HbarUnit.HBAR)
         transaction.freeze_with(env.client)
 
         original_bytes = transaction.to_bytes()
