@@ -237,6 +237,8 @@ The SDK uses protocol buffers to communicate with the Hedera network. Generate t
 uv run python generate_proto.py
 ```
 
+This step also regenerates the member list of `src/hiero_sdk_python/response_code.py` from `response_code.proto`. Never edit the lines between the `BEGIN/END GENERATED MEMBERS` markers by hand; deprecated backwards-compatibility aliases belong in `RESPONSE_CODE_ALIASES` in `generate_proto.py`. After bumping `VERSION`, commit the regenerated file.
+
 ---
 
 
