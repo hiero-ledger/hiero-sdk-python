@@ -338,6 +338,66 @@ class TopicUpdateTransaction(Transaction):
         schedulable_body.consensusUpdateTopic.CopyFrom(consensus_update_body)
         return schedulable_body
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body) -> TopicUpdateTransaction:
+        """
+        Restore common and update topic fields.
+
+        Args:
+            transaction_body: The parsed TransactionBody from protobuf.
+
+        Returns:
+            TopicUpdateTransaction: A transaction with common and topic update
+            fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("consensusUpdateTopic"):
+            topic_update_body = transaction_body.consensusUpdateTopic
+
+            transaction.topic_id = (
+                TopicId._from_proto(topic_update_body.topicID) if topic_update_body.HasField("topicID") else None
+            )
+            transaction.topic_memo = topic_update_body.memo.value if topic_update_body.HasField("memo") else None
+            transaction.expiration_time = (
+                Timestamp._from_protobuf(topic_update_body.expirationTime)
+                if topic_update_body.HasField("expirationTime")
+                else None
+            )
+            transaction.admin_key = (
+                Key.from_proto_key(topic_update_body.adminKey) if topic_update_body.HasField("adminKey") else None
+            )
+            transaction.submit_key = (
+                Key.from_proto_key(topic_update_body.submitKey) if topic_update_body.HasField("submitKey") else None
+            )
+            transaction.auto_renew_period = (
+                Duration._from_proto(topic_update_body.autoRenewPeriod)
+                if topic_update_body.HasField("autoRenewPeriod")
+                else None
+            )
+            transaction.auto_renew_account = (
+                AccountId._from_proto(topic_update_body.autoRenewAccount)
+                if topic_update_body.HasField("autoRenewAccount")
+                else None
+            )
+            transaction.fee_schedule_key = (
+                Key.from_proto_key(topic_update_body.fee_schedule_key)
+                if topic_update_body.HasField("fee_schedule_key")
+                else None
+            )
+            transaction.fee_exempt_keys = (
+                [Key.from_proto_key(key) for key in topic_update_body.fee_exempt_key_list.keys]
+                if topic_update_body.HasField("fee_exempt_key_list")
+                else None
+            )
+            transaction.custom_fees = (
+                [CustomFixedFee._from_proto(fee) for fee in topic_update_body.custom_fees.fees]
+                if topic_update_body.HasField("custom_fees")
+                else None
+            )
+
+        return transaction
+
     def _get_method(self, channel: _Channel) -> _Method:
         """
         Returns the method for executing the topic update transaction.
