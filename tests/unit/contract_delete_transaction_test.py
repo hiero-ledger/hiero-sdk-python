@@ -13,6 +13,8 @@ from hiero_sdk_python.contract.contract_delete_transaction import (
     ContractDeleteTransaction,
 )
 from hiero_sdk_python.contract.contract_id import ContractId
+from hiero_sdk_python.hapi.services.contract_delete_pb2 import ContractDeleteTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 
 
 pytestmark = pytest.mark.unit
@@ -415,3 +417,92 @@ def test_constructor_parameter_combinations():
     assert delete_tx.transfer_contract_id is None
     assert delete_tx.transfer_account_id is None
     assert delete_tx.permanent_removal is True
+
+
+def test_from_protobuf_preserves_defaults():
+    """Test that default values are preserved when creating a transaction from protobuf."""
+    tx_proto = ContractDeleteTransactionBody()
+    tx = ContractDeleteTransaction._from_protobuf(TransactionBody(contractDeleteInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractDeleteTransaction)
+    assert tx.contract_id is None
+    assert tx.transfer_account_id is None
+    assert tx.transfer_contract_id is None
+    assert tx.permanent_removal is False
+
+
+def test_from_protobuf_without_contract_delete_instance():
+    """Test creating a transaction from protobuf without a contract delete instance."""
+    tx = ContractDeleteTransaction._from_protobuf(TransactionBody())
+
+    assert tx is not None
+    assert isinstance(tx, ContractDeleteTransaction)
+    assert tx.contract_id is None
+    assert tx.transfer_account_id is None
+    assert tx.transfer_contract_id is None
+    assert tx.permanent_removal is None
+
+
+def test_from_protobuf_with_all_fields(delete_params):
+    """Test creating a transaction from protobuf with all fields set."""
+    tx_proto = ContractDeleteTransactionBody(
+        contractID=delete_params["contract_id"]._to_proto(),
+        transferAccountID=delete_params["transfer_account_id"]._to_proto(),
+        permanent_removal=delete_params["permanent_removal"],
+    )
+
+    tx = ContractDeleteTransaction._from_protobuf(TransactionBody(contractDeleteInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractDeleteTransaction)
+    assert tx.contract_id == delete_params["contract_id"]
+    assert tx.transfer_account_id == delete_params["transfer_account_id"]
+    assert tx.transfer_contract_id is None
+    assert tx.permanent_removal == delete_params["permanent_removal"]
+
+
+def test_from_protobuf_with_transfer_contract_id(delete_params):
+    """Test creating a transaction from protobuf with transfer_contract_id."""
+    tx_proto = ContractDeleteTransactionBody(
+        contractID=delete_params["contract_id"]._to_proto(),
+        transferContractID=delete_params["transfer_contract_id"]._to_proto(),
+        permanent_removal=delete_params["permanent_removal"],
+    )
+
+    tx = ContractDeleteTransaction._from_protobuf(TransactionBody(contractDeleteInstance=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractDeleteTransaction)
+    assert tx.contract_id == delete_params["contract_id"]
+    assert tx.transfer_account_id is None
+    assert tx.transfer_contract_id == delete_params["transfer_contract_id"]
+    assert tx.permanent_removal == delete_params["permanent_removal"]
+
+
+def test_bytes_round_trip(delete_params):
+    """Test contract delete transaction byte serialization round trip."""
+    original_tx = ContractDeleteTransaction(
+        contract_id=delete_params["contract_id"],
+        transfer_account_id=delete_params["transfer_account_id"],
+        permanent_removal=delete_params["permanent_removal"],
+    )
+    copy_tx = ContractDeleteTransaction.from_bytes(original_tx.to_bytes())
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, ContractDeleteTransaction)
+    assert copy_tx.contract_id == original_tx.contract_id
+    assert copy_tx.transfer_account_id == original_tx.transfer_account_id
+    assert copy_tx.transfer_contract_id == original_tx.transfer_contract_id
+    assert copy_tx.permanent_removal == original_tx.permanent_removal
+
+
+def test_bytes_round_trip_with_transfer_contract_id(delete_params):
+    """Test byte serialization round trip with transfer_contract_id."""
+    original_tx = ContractDeleteTransaction().set_transfer_contract_id(delete_params["transfer_contract_id"])
+    copy_tx = ContractDeleteTransaction.from_bytes(original_tx.to_bytes())
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, ContractDeleteTransaction)
+    assert copy_tx.transfer_contract_id == original_tx.transfer_contract_id
+    assert copy_tx.transfer_account_id is None

@@ -269,3 +269,88 @@ def test_integration_contract_delete_transaction_fails_with_invalid_signature(en
         f"Contract deletion should have failed with INVALID_SIGNATURE status but got: "
         f"{ResponseCode(receipt.status).name}"
     )
+
+
+@pytest.mark.integration
+def test_contract_delete_from_bytes(env):
+    """Test deleting a contract using a transaction deserialized from bytes."""
+    receipt = (
+        ContractCreateTransaction()
+        .set_admin_key(env.operator_key.public_key())
+        .set_bytecode(bytes.fromhex(SIMPLE_CONTRACT_BYTECODE))
+        .set_initial_balance(Hbar(1).to_tinybars())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_contract_memo("test contract delete transaction")
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    contract_id = receipt.contract_id
+    assert contract_id is not None, "Contract ID should not be None"
+
+    original_tx = ContractDeleteTransaction().set_contract_id(contract_id).set_transfer_account_id(env.operator_id)
+
+    copy_tx = ContractDeleteTransaction.from_bytes(original_tx.to_bytes())
+    receipt = copy_tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Delete contract failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    contract_info = ContractInfoQuery(contract_id).execute(env.client)
+    assert contract_info.is_deleted is True, "Contract should be deleted"
+
+
+@pytest.mark.integration
+def test_contract_delete_from_bytes_transfers_balance_to_contract(env):
+    """Test transferring the deleted contract's balance to another contract."""
+    receipt = (
+        ContractCreateTransaction()
+        .set_bytecode(bytes.fromhex(SIMPLE_CONTRACT_BYTECODE))
+        .set_initial_balance(Hbar(1).to_tinybars())
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_contract_memo("test contract delete transaction")
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    contract_id = receipt.contract_id
+    assert contract_id is not None, "Contract ID should not be None"
+
+    receipt = (
+        ContractCreateTransaction()
+        .set_bytecode(bytes.fromhex(SIMPLE_CONTRACT_BYTECODE))
+        .set_initial_balance(Hbar(1).to_tinybars())
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_contract_memo("contract to transfer balance to")
+        .execute(env.client)
+    )
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    transfer_contract_id = receipt.contract_id
+    assert transfer_contract_id is not None, "Contract ID should not be None"
+
+    original_tx = (
+        ContractDeleteTransaction().set_contract_id(contract_id).set_transfer_contract_id(transfer_contract_id)
+    )
+    copy_tx = ContractDeleteTransaction.from_bytes(original_tx.to_bytes())
+    receipt = copy_tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Contract deletion failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    contract_info = ContractInfoQuery(contract_id).execute(env.client)
+    assert contract_info.is_deleted is True, "Contract should be deleted"
+
+    transfer_contract_info = ContractInfoQuery(transfer_contract_id).execute(env.client)
+    assert transfer_contract_info.contract_id == transfer_contract_id, "Contract ID should match"
+    assert transfer_contract_info.balance == Hbar(2).to_tinybars(), "Contract balance should be 2 HBAR"

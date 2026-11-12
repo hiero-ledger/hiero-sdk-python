@@ -194,3 +194,53 @@ def test_integration_contract_update_transaction_fails_with_invalid_signature(en
         f"Contract update should have failed with status INVALID_SIGNATURE, "
         f"but got {ResponseCode(update_receipt.status).name}"
     )
+
+
+@pytest.mark.integration
+def test_contract_update_from_bytes(env):
+    """Test updating a contract using a transaction deserialized from bytes."""
+    contract_receipt = (
+        ContractCreateTransaction()
+        .set_admin_key(env.operator_key.public_key())
+        .set_gas(CONTRACT_DEPLOY_GAS)
+        .set_max_automatic_token_associations(1)
+        .set_bytecode(bytes.fromhex(SIMPLE_CONTRACT_BYTECODE))
+        .set_contract_memo("[e2e::ContractCreateTransaction]")
+        .execute(env.client)
+    )
+    assert contract_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract creation failed with status: {ResponseCode(contract_receipt.status).name}"
+    )
+
+    contract_id = contract_receipt.contract_id
+    assert contract_id is not None, "Contract ID should not be None"
+
+    current_time = datetime.datetime.now(datetime.timezone.utc)
+    future_expiration = Timestamp.from_date(current_time + datetime.timedelta(days=92))
+    updated_memo = "[e2e::ContractUpdateTransaction]"
+    updated_duration = Duration(7948800)
+    original_tx = (
+        ContractUpdateTransaction()
+        .set_contract_id(contract_id)
+        .set_contract_memo(updated_memo)
+        .set_auto_renew_account_id(env.operator_id)
+        .set_auto_renew_period(updated_duration)
+        .set_max_automatic_token_associations(10)
+        .set_expiration_time(future_expiration)
+    )
+    copy_tx = ContractUpdateTransaction.from_bytes(original_tx.to_bytes())
+    update_receipt = copy_tx.execute(env.client)
+    assert update_receipt.status == ResponseCode.SUCCESS, (
+        f"Contract update failed with status: {ResponseCode(update_receipt.status).name}"
+    )
+
+    info = ContractInfoQuery().set_contract_id(contract_id).execute(env.client)
+    assert info.contract_id == contract_id, "Contract ID should be updated"
+    assert info.admin_key.to_bytes_raw() == env.operator_key.public_key().to_bytes_raw(), (
+        "Admin key should be unchanged"
+    )
+    assert info.contract_memo == updated_memo, "Contract memo should be updated"
+    assert info.auto_renew_account_id == env.operator_id, "Auto renew account ID should be updated"
+    assert info.auto_renew_period == updated_duration, "Auto renew period should be updated"
+    assert info.max_automatic_token_associations == 10, "Max automatic token associations should be updated"
+    assert info.expiration_time.seconds == future_expiration.seconds, "Expiration time should be updated"
