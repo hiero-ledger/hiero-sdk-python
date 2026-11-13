@@ -92,3 +92,18 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
     def __repr__(self):
         """Readable representation for debugging."""
         return f"<TokenFeeScheduleUpdateTransaction token_id={self.token_id} fees={len(self.custom_fees)}>"
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenFeeScheduleUpdateTransaction:
+        """Create token fee schedule update transaction transaction from protobuf message."""
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("token_fee_schedule_update"):
+            proto_body = transaction_body.token_fee_schedule_update
+
+            if proto_body.HasField("token_id"):
+                transaction.token_id = TokenId._from_proto(proto_body.token_id)
+
+            transaction.custom_fees = [CustomFee._from_proto(fee) for fee in proto_body.custom_fees]
+
+        return transaction
