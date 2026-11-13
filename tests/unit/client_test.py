@@ -295,6 +295,42 @@ def test_set_max_attempts_with_invalid_value(invalid_max_attempts):
         client.set_max_attempts(invalid_max_attempts)
 
 
+# Set default_regenerate_transaction_id
+def test_default_regenerate_transaction_id_defaults_to_true():
+    """Test that default_regenerate_transaction_id defaults to True."""
+    client = Client.for_testnet()
+    assert client.default_regenerate_transaction_id is True
+
+    client.close()
+
+
+def test_set_default_regenerate_transaction_id_with_valid_param():
+    """Test that set_default_regenerate_transaction_id updates the client default."""
+    client = Client.for_testnet()
+    assert client.default_regenerate_transaction_id is True
+
+    returned = client.set_default_regenerate_transaction_id(False)
+    assert client.default_regenerate_transaction_id is False
+    assert returned is client
+
+    client.set_default_regenerate_transaction_id(True)
+    assert client.default_regenerate_transaction_id is True
+
+    client.close()
+
+
+@pytest.mark.parametrize("invalid_value", ["true", 1, 0, 0.2, object(), {}, None])
+def test_set_default_regenerate_transaction_id_with_invalid_type(invalid_value):
+    """Test that set_default_regenerate_transaction_id raises TypeError for non-bool values."""
+    client = Client.for_testnet()
+
+    with pytest.raises(
+        TypeError,
+        match=f"regenerate_transaction_id must be of type bool, got {type(invalid_value).__name__}",
+    ):
+        client.set_default_regenerate_transaction_id(invalid_value)
+
+
 # Set grpc_deadline
 def test_set_grpc_deadline_with_valid_param():
     """Test that set_grpc_deadline updates default value of _grpc_deadline."""

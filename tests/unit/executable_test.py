@@ -188,8 +188,8 @@ def test_node_switching_after_multiple_grpc_errors():
         assert receipt.status == ResponseCode.SUCCESS
 
 
-def test_transaction_with_expired_error_not_retried():
-    """Test that an expired error is not retried."""
+def test_transaction_with_expired_error_not_retried_when_regeneration_disabled():
+    """Test that an expired error is not retried when regenerate_transaction_id is disabled."""
     error_response = TransactionResponseProto(nodeTransactionPrecheckCode=ResponseCode.TRANSACTION_EXPIRED)
 
     response_sequences = [[error_response]]
@@ -202,6 +202,7 @@ def test_transaction_with_expired_error_not_retried():
             AccountCreateTransaction()
             .set_key_without_alias(PrivateKey.generate().public_key())
             .set_initial_balance(100_000_000)
+            .set_regenerate_transaction_id(False)
         )
 
         with pytest.raises(PrecheckError) as exc_info:
