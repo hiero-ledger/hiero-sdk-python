@@ -33,11 +33,14 @@ from hiero_sdk_python.hapi.services import (
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.token_create_pb2 import TokenCreateTransactionBody
 from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.tokens.supply_type import SupplyType
 from hiero_sdk_python.tokens.token_create_transaction import (
+    AUTO_RENEW_PERIOD,
     TokenCreateTransaction,
     TokenKeys,
     TokenParams,
@@ -965,3 +968,224 @@ def test_to_proto_key_wrapper_still_works():
     with pytest.raises(TypeError) as e:
         tx._to_proto_key("this is not a key")
     assert "Key must be of type PrivateKey or PublicKey" in str(e.value)
+
+
+@pytest.fixture
+def token_params():
+    return {
+        "token_name": "Token",
+        "token_symbol": "TKN",
+        "treasury_account_id": AccountId.from_string("0.0.101"),
+        "decimals": 10,
+        "initial_supply": 1,
+        "token_type": TokenType.FUNGIBLE_COMMON,
+        "max_supply": 10,
+        "supply_type": SupplyType.INFINITE,
+        "freeze_default": False,
+        "custom_fees": [CustomFixedFee(amount=15, fee_collector_account_id=AccountId.from_string("0.0.101"))],
+        "expiration_time": Timestamp(seconds=10, nanos=10),
+        "auto_renew_account_id": AccountId.from_string("0.0.101"),
+        "auto_renew_period": Duration(100),
+        "memo": "Test Token",
+        "metadata": b"Hello! Hiero",
+        "key": PrivateKey.generate().public_key(),
+    }
+
+
+def test_from_protobuf(token_params):
+    """Test deserialization of TokenCreateTransaction from protobuf with all fields populated."""
+    proto = TokenCreateTransactionBody(
+        name=token_params["token_name"],
+        symbol=token_params["token_symbol"],
+        decimals=token_params["decimals"],
+        initialSupply=token_params["initial_supply"],
+        treasury=token_params["treasury_account_id"]._to_proto(),
+        adminKey=token_params["key"].to_proto_key(),
+        kycKey=token_params["key"].to_proto_key(),
+        freezeKey=token_params["key"].to_proto_key(),
+        wipeKey=token_params["key"].to_proto_key(),
+        supplyKey=token_params["key"].to_proto_key(),
+        freezeDefault=token_params["freeze_default"],
+        expiry=token_params["expiration_time"]._to_protobuf(),
+        autoRenewAccount=token_params["auto_renew_account_id"]._to_proto(),
+        autoRenewPeriod=token_params["auto_renew_period"]._to_proto(),
+        memo=token_params["memo"],
+        tokenType=token_params["token_type"].value,
+        supplyType=token_params["supply_type"].value,
+        maxSupply=token_params["max_supply"],
+        fee_schedule_key=token_params["key"].to_proto_key(),
+        pause_key=token_params["key"].to_proto_key(),
+        metadata_key=token_params["key"].to_proto_key(),
+        metadata=token_params["metadata"],
+        custom_fees=[fee._to_proto() for fee in token_params["custom_fees"]],
+    )
+
+    tx = TokenCreateTransaction._from_protobuf(transaction_pb2.TransactionBody(tokenCreation=proto))
+    assert tx is not None
+    assert isinstance(tx, TokenCreateTransaction)
+
+    params = tx._token_params
+    keys = tx._keys
+    assert params.token_name == token_params["token_name"]
+    assert params.token_symbol == token_params["token_symbol"]
+    assert params.decimals == token_params["decimals"]
+    assert params.initial_supply == token_params["initial_supply"]
+    assert params.treasury_account_id == token_params["treasury_account_id"]
+    assert params.freeze_default == token_params["freeze_default"]
+    assert params.expiration_time == token_params["expiration_time"]
+    assert params.auto_renew_account_id == token_params["auto_renew_account_id"]
+    assert params.auto_renew_period == token_params["auto_renew_period"]
+    assert params.memo == token_params["memo"]
+    assert params.token_type == token_params["token_type"]
+    assert params.supply_type == token_params["supply_type"]
+    assert params.max_supply == token_params["max_supply"]
+    assert params.metadata == token_params["metadata"]
+    assert params.custom_fees == token_params["custom_fees"]
+
+    assert keys.admin_key == token_params["key"]
+    assert keys.kyc_key == token_params["key"]
+    assert keys.freeze_key == token_params["key"]
+    assert keys.wipe_key == token_params["key"]
+    assert keys.supply_key == token_params["key"]
+    assert keys.fee_schedule_key == token_params["key"]
+    assert keys.pause_key == token_params["key"]
+    assert keys.metadata_key == token_params["key"]
+
+
+def test_from_protobuf_with_defaults():
+    """Test deserialization of TokenCreateTransaction from protobuf with default field values."""
+    proto = TokenCreateTransactionBody()
+    tx = TokenCreateTransaction._from_protobuf(transaction_pb2.TransactionBody(tokenCreation=proto))
+
+    assert tx is not None
+    assert isinstance(tx, TokenCreateTransaction)
+
+    params = tx._token_params
+    keys = tx._keys
+    assert params.token_name == ""
+    assert params.token_symbol == ""
+    assert params.decimals == 0
+    assert params.initial_supply == 0
+    assert params.treasury_account_id == AccountId(0, 0, 1)
+    assert params.freeze_default is False
+    assert params.expiration_time is None
+    assert params.auto_renew_account_id is None
+    assert params.auto_renew_period is None
+    assert params.memo == ""  # memo is plain protobuf field. default = ""
+    assert params.token_type == TokenType.FUNGIBLE_COMMON
+    assert params.supply_type == SupplyType.INFINITE
+    assert params.max_supply == 0
+    assert params.metadata == b""  # metadata is plain protobuf field. default = b""
+
+    assert keys.admin_key is None
+    assert keys.kyc_key is None
+    assert keys.freeze_key is None
+    assert keys.wipe_key is None
+    assert keys.supply_key is None
+    assert keys.fee_schedule_key is None
+    assert keys.pause_key is None
+    assert keys.metadata_key is None
+
+
+def test_from_protobuf_without_token_creation():
+    """Test deserialization of TokenCreateTransaction from a TransactionBody without a token update."""
+    tx = TokenCreateTransaction._from_protobuf(transaction_pb2.TransactionBody())
+
+    assert tx is not None
+    assert isinstance(tx, TokenCreateTransaction)
+
+    params = tx._token_params
+    keys = tx._keys
+    assert params.token_name == ""
+    assert params.token_symbol == ""
+    assert params.decimals == 0
+    assert params.initial_supply == 0
+    assert params.treasury_account_id == AccountId(0, 0, 1)
+    assert params.freeze_default is False
+    assert params.expiration_time is None
+    assert params.auto_renew_account_id is None
+    assert params.auto_renew_period == AUTO_RENEW_PERIOD
+    assert params.memo is None
+    assert params.token_type == TokenType.FUNGIBLE_COMMON
+    assert params.supply_type == SupplyType.INFINITE
+    assert params.max_supply == 0
+    assert params.metadata is None
+
+    assert keys.admin_key is None
+    assert keys.kyc_key is None
+    assert keys.freeze_key is None
+    assert keys.wipe_key is None
+    assert keys.supply_key is None
+    assert keys.fee_schedule_key is None
+    assert keys.pause_key is None
+    assert keys.metadata_key is None
+
+
+def test_bytes_roundtrip(token_params):
+    """Test serialization and deserialization of TokenCreateTransaction through bytes."""
+    params = TokenParams(
+        token_name=token_params["token_name"],
+        token_symbol=token_params["token_symbol"],
+        decimals=token_params["decimals"],
+        initial_supply=token_params["initial_supply"],
+        treasury_account_id=token_params["treasury_account_id"],
+        freeze_default=token_params["freeze_default"],
+        expiration_time=token_params["expiration_time"],
+        auto_renew_account_id=token_params["auto_renew_account_id"],
+        auto_renew_period=token_params["auto_renew_period"],
+        memo=token_params["memo"],
+        token_type=token_params["token_type"],
+        supply_type=token_params["supply_type"],
+        max_supply=token_params["max_supply"],
+        metadata=token_params["metadata"],
+        custom_fees=token_params["custom_fees"],
+    )
+
+    keys = TokenKeys(
+        admin_key=token_params["key"],
+        kyc_key=token_params["key"],
+        freeze_key=token_params["key"],
+        wipe_key=token_params["key"],
+        supply_key=token_params["key"],
+        fee_schedule_key=token_params["key"],
+        pause_key=token_params["key"],
+        metadata_key=token_params["key"],
+    )
+
+    original_tx = TokenCreateTransaction(token_params=params, keys=keys)
+    original_bytes = original_tx.to_bytes()
+
+    copy_tx = TokenCreateTransaction.from_bytes(original_bytes)
+    assert copy_tx is not None
+    assert isinstance(copy_tx, TokenCreateTransaction)
+    assert copy_tx.to_bytes() == original_bytes
+
+    original_params = original_tx._token_params
+    original_keys = original_tx._keys
+    copy_params = copy_tx._token_params
+    copy_keys = copy_tx._keys
+
+    assert copy_params.token_name == original_params.token_name
+    assert copy_params.token_symbol == original_params.token_symbol
+    assert copy_params.decimals == original_params.decimals
+    assert copy_params.initial_supply == original_params.initial_supply
+    assert copy_params.treasury_account_id == original_params.treasury_account_id
+    assert copy_params.freeze_default == original_params.freeze_default
+    assert copy_params.expiration_time == original_params.expiration_time
+    assert copy_params.auto_renew_account_id == original_params.auto_renew_account_id
+    assert copy_params.auto_renew_period == original_params.auto_renew_period
+    assert copy_params.memo == original_params.memo
+    assert copy_params.token_type == original_params.token_type
+    assert copy_params.supply_type == original_params.supply_type
+    assert copy_params.max_supply == original_params.max_supply
+    assert copy_params.metadata == original_params.metadata
+    assert copy_params.custom_fees == original_params.custom_fees
+
+    assert copy_keys.admin_key == original_keys.admin_key
+    assert copy_keys.kyc_key == original_keys.kyc_key
+    assert copy_keys.freeze_key == original_keys.freeze_key
+    assert copy_keys.wipe_key == original_keys.wipe_key
+    assert copy_keys.supply_key == original_keys.supply_key
+    assert copy_keys.fee_schedule_key == original_keys.fee_schedule_key
+    assert copy_keys.pause_key == original_keys.pause_key
+    assert copy_keys.metadata_key == original_keys.metadata_key
