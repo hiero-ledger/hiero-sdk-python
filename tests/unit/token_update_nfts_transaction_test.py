@@ -8,6 +8,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.hapi.services.token_update_nfts_pb2 import TokenUpdateNftsTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.response_code import ResponseCode
@@ -212,3 +213,60 @@ def test_update_nfts_transaction_from_proto(mock_account_ids):
     assert isinstance(empty_tx.token_id, TokenId)
     assert empty_tx.serial_numbers == []
     assert empty_tx.metadata is empty_proto.metadata.value  # Should be None or empty
+
+
+def test_from_protobuf(token_id):
+    """Test deserialization of TokenUpdateNftsTransaction from protobuf with all fields populated."""
+    serials = [1, 2, 4]
+    metadata = b"Hello! Hiero"
+    proto = TokenUpdateNftsTransactionBody(
+        token=token_id._to_proto(), serial_numbers=serials, metadata=BytesValue(value=metadata)
+    )
+
+    tx = TokenUpdateNftsTransaction._from_protobuf(TransactionBody(token_update_nfts=proto))
+    assert tx is not None
+    assert isinstance(tx, TokenUpdateNftsTransaction)
+    assert tx.token_id == token_id
+    assert tx.serial_numbers == serials
+    assert tx.metadata == metadata
+
+
+def test_from_protobuf_with_default_values():
+    """Test deserialization of TokenUpdateNftsTransaction from protobuf with default field values."""
+    proto = TokenUpdateNftsTransactionBody()
+    tx = TokenUpdateNftsTransaction._from_protobuf(TransactionBody(token_update_nfts=proto))
+
+    assert tx is not None
+    assert isinstance(tx, TokenUpdateNftsTransaction)
+    assert tx.token_id is None
+    assert tx.serial_numbers == []
+    assert tx.metadata is None
+
+
+def test_from_protobuf_without_token_update_nfts():
+    """Test deserialization of TokenUpdateNftsTransaction from a TransactionBody without a token update."""
+    tx = TokenUpdateNftsTransaction._from_protobuf(TransactionBody())
+
+    assert tx is not None
+    assert isinstance(tx, TokenUpdateNftsTransaction)
+    assert tx.token_id is None
+    assert tx.serial_numbers == []
+    assert tx.metadata is None
+
+
+def test_bytes_roundtrip(token_id):
+    """Test serialization and deserialization of TokenUpdateNftsTransaction through bytes."""
+    serials = [1, 2, 4]
+    metadata = b"Hello! Hiero"
+
+    original_tx = TokenUpdateNftsTransaction(token_id=token_id, serial_numbers=serials, metadata=metadata)
+    original_bytes = original_tx.to_bytes()
+
+    copy_tx = TokenUpdateNftsTransaction.from_bytes(original_bytes)
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, TokenUpdateNftsTransaction)
+    assert copy_tx.to_bytes() == original_bytes
+    assert copy_tx.token_id == token_id
+    assert copy_tx.serial_numbers == serials
+    assert copy_tx.metadata == metadata

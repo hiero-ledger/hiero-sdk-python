@@ -94,3 +94,15 @@ class TokenDeleteTransaction(Transaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(transaction_func=channel.token.deleteToken, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenDeleteTransaction:
+        """Create token delete transaction from protobuf message."""
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenDeletion"):
+            proto_body = transaction_body.tokenDeletion
+            if proto_body.HasField("token"):
+                transaction.token_id = TokenId._from_proto(proto_body.token)
+
+        return transaction

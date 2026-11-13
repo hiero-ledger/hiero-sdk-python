@@ -458,3 +458,58 @@ class TokenCreateTransaction(Transaction):
 
     def _get_method(self, channel: _Channel) -> _Method:
         return _Method(transaction_func=channel.token.createToken, query_func=None)
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenCreateTransaction:
+        """Create token create transaction transaction from protobuf message."""
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenCreation"):
+            proto_body = transaction_body.tokenCreation
+            token_params = TokenParams(
+                token_name=proto_body.name,
+                token_symbol=proto_body.symbol,
+                decimals=proto_body.decimals,
+                initial_supply=proto_body.initialSupply,
+                treasury_account_id=(
+                    AccountId._from_proto(proto_body.treasury)
+                    if proto_body.HasField("treasury")
+                    else AccountId(0, 0, 1)
+                ),
+                freeze_default=proto_body.freezeDefault,
+                expiration_time=Timestamp._from_protobuf(proto_body.expiry) if proto_body.HasField("expiry") else None,
+                auto_renew_account_id=(
+                    AccountId._from_proto(proto_body.autoRenewAccount)
+                    if proto_body.HasField("autoRenewAccount")
+                    else None
+                ),
+                auto_renew_period=(
+                    Duration._from_proto(proto_body.autoRenewPeriod) if proto_body.HasField("autoRenewPeriod") else None
+                ),
+                memo=proto_body.memo,
+                token_type=TokenType._from_proto(proto_body.tokenType),
+                supply_type=SupplyType._from_proto(proto_body.supplyType),
+                max_supply=proto_body.maxSupply,
+                metadata=proto_body.metadata,
+                custom_fees=[CustomFee._from_proto(fee) for fee in proto_body.custom_fees],
+            )
+
+            keys = TokenKeys(
+                admin_key=Key.from_proto_key(proto_body.adminKey) if proto_body.HasField("adminKey") else None,
+                kyc_key=Key.from_proto_key(proto_body.kycKey) if proto_body.HasField("kycKey") else None,
+                freeze_key=Key.from_proto_key(proto_body.freezeKey) if proto_body.HasField("freezeKey") else None,
+                wipe_key=Key.from_proto_key(proto_body.wipeKey) if proto_body.HasField("wipeKey") else None,
+                supply_key=Key.from_proto_key(proto_body.supplyKey) if proto_body.HasField("supplyKey") else None,
+                fee_schedule_key=(
+                    Key.from_proto_key(proto_body.fee_schedule_key) if proto_body.HasField("fee_schedule_key") else None
+                ),
+                metadata_key=(
+                    Key.from_proto_key(proto_body.metadata_key) if proto_body.HasField("metadata_key") else None
+                ),
+                pause_key=Key.from_proto_key(proto_body.pause_key) if proto_body.HasField("pause_key") else None,
+            )
+
+            transaction._token_params = token_params
+            transaction._keys = keys
+
+        return transaction

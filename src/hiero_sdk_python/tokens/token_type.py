@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from enum import Enum
 
+from hiero_sdk_python.hapi.services import basic_types_pb2
+
 
 class TokenType(Enum):
     """
@@ -44,3 +46,13 @@ class TokenType(Enum):
 
     FUNGIBLE_COMMON = 0
     NON_FUNGIBLE_UNIQUE = 1
+
+    @staticmethod
+    def _from_proto(proto: basic_types_pb2.TokenType) -> TokenType:
+        """Create TokenType from protobuf message."""
+        if proto == basic_types_pb2.TokenType.FUNGIBLE_COMMON:
+            return TokenType.FUNGIBLE_COMMON
+        if proto == basic_types_pb2.TokenType.NON_FUNGIBLE_UNIQUE:
+            return TokenType.NON_FUNGIBLE_UNIQUE
+
+        raise ValueError(f"Invalid TokenType: {proto}")

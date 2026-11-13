@@ -8,6 +8,8 @@ from hiero_sdk_python.hapi.services import timestamp_pb2
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.token_delete_pb2 import TokenDeleteTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
@@ -113,3 +115,45 @@ def test_build_scheduled_body(mock_account_ids):
     assert isinstance(schedulable_body, SchedulableTransactionBody)
     assert schedulable_body.HasField("tokenDeletion")
     assert schedulable_body.tokenDeletion.token == token_id._to_proto()
+
+
+def test_from_protobuf(token_id):
+    """Test deserialization of TokenDeleteTransaction from protobuf with all fields populated."""
+    proto = TokenDeleteTransactionBody(token=token_id._to_proto())
+    tx = TokenDeleteTransaction._from_protobuf(TransactionBody(tokenDeletion=proto))
+
+    assert tx is not None
+    assert isinstance(tx, TokenDeleteTransaction)
+    assert tx.token_id == token_id
+
+
+def test_from_protobuf_without_token_id():
+    """Test deserialization of TokenDeleteTransaction from protobuf with default field values."""
+    proto = TokenDeleteTransactionBody()
+    tx = TokenDeleteTransaction._from_protobuf(TransactionBody(tokenDeletion=proto))
+
+    assert tx is not None
+    assert isinstance(tx, TokenDeleteTransaction)
+    assert tx.token_id is None
+
+
+def test_from_protobuf_without_token_deletion():
+    """Test deserialization of TokenDeleteTransaction from a TransactionBody without a token update."""
+    tx = TokenDeleteTransaction._from_protobuf(TransactionBody())
+
+    assert tx is not None
+    assert isinstance(tx, TokenDeleteTransaction)
+    assert tx.token_id is None
+
+
+def test_bytes_roundtrip(token_id):
+    """Test serialization and deserialization of TokenDeleteTransaction through bytes."""
+    original_tx = TokenDeleteTransaction(token_id=token_id)
+    original_bytes = original_tx.to_bytes()
+
+    copy_tx = TokenDeleteTransaction.from_bytes(original_bytes)
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, TokenDeleteTransaction)
+    assert copy_tx.to_bytes() == original_bytes
+    assert copy_tx.token_id == original_tx.token_id

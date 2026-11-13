@@ -486,3 +486,50 @@ class TokenUpdateTransaction(Transaction):
             token_update_body.kycKey.CopyFrom(key_to_proto(self.kyc_key))
         if self.fee_schedule_key:
             token_update_body.fee_schedule_key.CopyFrom(key_to_proto(self.fee_schedule_key))
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenUpdateTransaction:
+        """Create token create transaction transaction from protobuf message."""
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenUpdate"):
+            proto_body = transaction_body.tokenUpdate
+
+            transaction.token_id = TokenId._from_proto(proto_body.token) if proto_body.HasField("token") else None
+            transaction.token_symbol = proto_body.symbol
+            transaction.token_name = proto_body.name
+            transaction.treasury_account_id = (
+                AccountId._from_proto(proto_body.treasury) if proto_body.HasField("treasury") else None
+            )
+            transaction.admin_key = Key.from_proto_key(proto_body.adminKey) if proto_body.HasField("adminKey") else None
+            transaction.kyc_key = Key.from_proto_key(proto_body.kycKey) if proto_body.HasField("kycKey") else None
+            transaction.freeze_key = (
+                Key.from_proto_key(proto_body.freezeKey) if proto_body.HasField("freezeKey") else None
+            )
+            transaction.wipe_key = Key.from_proto_key(proto_body.wipeKey) if proto_body.HasField("wipeKey") else None
+            transaction.supply_key = (
+                Key.from_proto_key(proto_body.supplyKey) if proto_body.HasField("supplyKey") else None
+            )
+            transaction.auto_renew_account_id = (
+                AccountId._from_proto(proto_body.autoRenewAccount) if proto_body.HasField("autoRenewAccount") else None
+            )
+            transaction.auto_renew_period = (
+                Duration._from_proto(proto_body.autoRenewPeriod) if proto_body.HasField("autoRenewPeriod") else None
+            )
+            transaction.expiration_time = (
+                Timestamp._from_protobuf(proto_body.expiry) if proto_body.HasField("expiry") else None
+            )
+            transaction.token_memo = proto_body.memo.value if proto_body.HasField("memo") else None
+            transaction.metadata = proto_body.metadata.value if proto_body.HasField("metadata") else None
+            transaction.fee_schedule_key = (
+                Key.from_proto_key(proto_body.fee_schedule_key) if proto_body.HasField("fee_schedule_key") else None
+            )
+            transaction.metadata_key = (
+                Key.from_proto_key(proto_body.metadata_key) if proto_body.HasField("metadata_key") else None
+            )
+            transaction.pause_key = (
+                Key.from_proto_key(proto_body.pause_key) if proto_body.HasField("pause_key") else None
+            )
+            transaction.token_key_verification_mode = TokenKeyValidation._from_proto(proto_body.key_verification_mode)
+
+        return transaction

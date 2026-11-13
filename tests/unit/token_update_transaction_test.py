@@ -3,19 +3,25 @@ from __future__ import annotations
 import datetime
 
 import pytest
+from google.protobuf.wrappers_pb2 import BytesValue, StringValue
 
+from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services import response_header_pb2, response_pb2, transaction_get_receipt_pb2
-from hiero_sdk_python.hapi.services.basic_types_pb2 import TokenKeyValidation
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.token_update_pb2 import TokenUpdateTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hapi.services.transaction_receipt_pb2 import TransactionReceipt as TransactionReceiptProto
 from hiero_sdk_python.hapi.services.transaction_response_pb2 import TransactionResponse as TransactionResponseProto
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
+from hiero_sdk_python.tokens.token_id import TokenId
+from hiero_sdk_python.tokens.token_key_validation import TokenKeyValidation
 from hiero_sdk_python.tokens.token_update_transaction import TokenUpdateKeys, TokenUpdateParams, TokenUpdateTransaction
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -466,3 +472,176 @@ def test_build_transaction_body_with_keys(mock_account_ids, key_type, use_privat
     assert transaction_body.tokenUpdate.name == new_token_data["name"]
     verify_key_in_proto(transaction_body.tokenUpdate.adminKey, expected_admin_public, key_type)
     verify_key_in_proto(transaction_body.tokenUpdate.freezeKey, expected_freeze_public, key_type)
+
+
+@pytest.fixture
+def token_params():
+    return {
+        "token_id": TokenId.from_string("0.0.101"),
+        "token_name": "Token",
+        "token_symbol": "TKN",
+        "treasury_account_id": AccountId.from_string("0.0.101"),
+        "custom_fees": [CustomFixedFee(amount=15, fee_collector_account_id=AccountId.from_string("0.0.101"))],
+        "expiration_time": Timestamp(seconds=10, nanos=10),
+        "auto_renew_account_id": AccountId.from_string("0.0.101"),
+        "auto_renew_period": Duration(100),
+        "memo": "Test Token",
+        "metadata": b"Hello! Hiero",
+        "key_validation": TokenKeyValidation.FULL_VALIDATION,
+        "key": PrivateKey.generate().public_key(),
+    }
+
+
+def test_from_protobuf(token_params):
+    """Test deserialization of TokenUpdateTransaction from protobuf with all fields populated."""
+    proto = TokenUpdateTransactionBody(
+        token=token_params["token_id"]._to_proto(),
+        symbol=token_params["token_symbol"],
+        name=token_params["token_name"],
+        treasury=token_params["treasury_account_id"]._to_proto(),
+        adminKey=token_params["key"].to_proto_key(),
+        kycKey=token_params["key"].to_proto_key(),
+        freezeKey=token_params["key"].to_proto_key(),
+        wipeKey=token_params["key"].to_proto_key(),
+        supplyKey=token_params["key"].to_proto_key(),
+        autoRenewAccount=token_params["auto_renew_account_id"]._to_proto(),
+        autoRenewPeriod=token_params["auto_renew_period"]._to_proto(),
+        expiry=token_params["expiration_time"]._to_protobuf(),
+        memo=StringValue(value=token_params["memo"]),
+        fee_schedule_key=token_params["key"].to_proto_key(),
+        pause_key=token_params["key"].to_proto_key(),
+        metadata=BytesValue(value=token_params["metadata"]),
+        metadata_key=token_params["key"].to_proto_key(),
+        key_verification_mode=token_params["key_validation"]._to_proto(),
+    )
+
+    tx = TokenUpdateTransaction._from_protobuf(TransactionBody(tokenUpdate=proto))
+    assert tx is not None
+    assert isinstance(tx, TokenUpdateTransaction)
+
+    assert tx.token_id == token_params["token_id"]
+    assert tx.token_symbol == token_params["token_symbol"]
+    assert tx.token_name == token_params["token_name"]
+    assert tx.treasury_account_id == token_params["treasury_account_id"]
+    assert tx.admin_key == token_params["key"]
+    assert tx.kyc_key == token_params["key"]
+    assert tx.freeze_key == token_params["key"]
+    assert tx.wipe_key == token_params["key"]
+    assert tx.supply_key == token_params["key"]
+    assert tx.auto_renew_period == token_params["auto_renew_period"]
+    assert tx.auto_renew_account_id == token_params["auto_renew_account_id"]
+    assert tx.expiration_time == token_params["expiration_time"]
+    assert tx.token_memo == token_params["memo"]
+    assert tx.fee_schedule_key == token_params["key"]
+    assert tx.pause_key == token_params["key"]
+    assert tx.metadata_key == token_params["key"]
+    assert tx.metadata == token_params["metadata"]
+    assert tx.token_key_verification_mode == token_params["key_validation"]
+
+
+def test_from_protobuf_with_defaults():
+    """Test deserialization of TokenUpdateTransaction from protobuf with default field values."""
+    proto = TokenUpdateTransactionBody()
+    tx = TokenUpdateTransaction._from_protobuf(TransactionBody(tokenUpdate=proto))
+
+    assert tx is not None
+    assert isinstance(tx, TokenUpdateTransaction)
+
+    assert tx.token_id is None
+    assert tx.token_symbol == ""  # plain protobuf message field
+    assert tx.token_name == ""  # plain protobuf message field
+    assert tx.treasury_account_id is None
+    assert tx.admin_key is None
+    assert tx.kyc_key is None
+    assert tx.freeze_key is None
+    assert tx.wipe_key is None
+    assert tx.supply_key is None
+    assert tx.auto_renew_period is None
+    assert tx.auto_renew_account_id is None
+    assert tx.expiration_time is None
+    assert tx.token_memo is None
+    assert tx.fee_schedule_key is None
+    assert tx.pause_key is None
+    assert tx.metadata_key is None
+    assert tx.metadata is None
+    assert tx.token_key_verification_mode == TokenKeyValidation.FULL_VALIDATION
+
+
+def test_from_protobuf_without_token_update():
+    """Test deserialization of TokenUpdateTransaction from a TransactionBody without a token update."""
+    tx = TokenUpdateTransaction._from_protobuf(TransactionBody())
+
+    assert tx is not None
+    assert isinstance(tx, TokenUpdateTransaction)
+
+    assert tx.token_id is None
+    assert tx.token_symbol is None
+    assert tx.token_name is None
+    assert tx.treasury_account_id is None
+    assert tx.admin_key is None
+    assert tx.kyc_key is None
+    assert tx.freeze_key is None
+    assert tx.wipe_key is None
+    assert tx.supply_key is None
+    assert tx.auto_renew_period is None
+    assert tx.auto_renew_account_id is None
+    assert tx.expiration_time is None
+    assert tx.token_memo is None
+    assert tx.fee_schedule_key is None
+    assert tx.pause_key is None
+    assert tx.metadata_key is None
+    assert tx.metadata is None
+    assert tx.token_key_verification_mode == TokenKeyValidation.FULL_VALIDATION
+
+
+def test_bytes_roundtrip(token_params):
+    """Test serialization and deserialization of TokenUpdateTransaction through bytes."""
+    param = TokenUpdateParams(
+        treasury_account_id=token_params["treasury_account_id"],
+        token_name=token_params["token_name"],
+        token_symbol=token_params["token_symbol"],
+        token_memo=token_params["memo"],
+        metadata=token_params["metadata"],
+        auto_renew_period=token_params["auto_renew_period"],
+        auto_renew_account_id=token_params["auto_renew_account_id"],
+        expiration_time=token_params["expiration_time"],
+    )
+
+    keys = TokenUpdateKeys(
+        admin_key=token_params["key"],
+        supply_key=token_params["key"],
+        freeze_key=token_params["key"],
+        wipe_key=token_params["key"],
+        metadata_key=token_params["key"],
+        pause_key=token_params["key"],
+        kyc_key=token_params["key"],
+        fee_schedule_key=token_params["key"],
+    )
+
+    original_tx = TokenUpdateTransaction(token_id=token_params["token_id"], token_params=param, token_keys=keys)
+    original_bytes = original_tx.to_bytes()
+
+    copy_tx = TokenUpdateTransaction.from_bytes(original_bytes)
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, TokenUpdateTransaction)
+    assert copy_tx.to_bytes() == original_bytes
+
+    assert copy_tx.token_id == original_tx.token_id
+    assert copy_tx.token_symbol == original_tx.token_symbol
+    assert copy_tx.token_name == original_tx.token_name
+    assert copy_tx.treasury_account_id == original_tx.treasury_account_id
+    assert copy_tx.admin_key == original_tx.admin_key
+    assert copy_tx.kyc_key == original_tx.kyc_key
+    assert copy_tx.freeze_key == original_tx.freeze_key
+    assert copy_tx.wipe_key == original_tx.wipe_key
+    assert copy_tx.supply_key == original_tx.supply_key
+    assert copy_tx.auto_renew_period == original_tx.auto_renew_period
+    assert copy_tx.auto_renew_account_id == original_tx.auto_renew_account_id
+    assert copy_tx.expiration_time == original_tx.expiration_time
+    assert copy_tx.token_memo == original_tx.token_memo
+    assert copy_tx.fee_schedule_key == original_tx.fee_schedule_key
+    assert copy_tx.pause_key == original_tx.pause_key
+    assert copy_tx.metadata_key == original_tx.metadata_key
+    assert copy_tx.metadata == original_tx.metadata
+    assert copy_tx.token_key_verification_mode == original_tx.token_key_verification_mode
