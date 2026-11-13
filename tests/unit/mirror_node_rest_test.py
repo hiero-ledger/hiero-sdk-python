@@ -178,17 +178,32 @@ def test_send_with_retry_transport_error_after_retryable_status_raises():
         _send(max_attempts=2)
 
 
-def test_send_with_retry_deadline_exceeded():
-    """The total deadline stops further attempts."""
+def test_send_with_retry_deadline_exceeded_after_transport_error_raises():
+    """The total deadline stops further attempts; with no response to return, it raises."""
     # start, attempt 1 check, delay cap, attempt 2 check (past the deadline)
     with (
         patch(_MONOTONIC, side_effect=[0.0, 0.0, 1.0, 11.0]),
-        patch(_REQUEST, return_value=_response(503)) as mock_request,
+        patch(_REQUEST, side_effect=requests.ConnectionError("down")) as mock_request,
         patch(_SLEEP),
-        pytest.raises(RuntimeError, match="total timeout of 10s exceeded"),
+        pytest.raises(RuntimeError, match="total timeout of 10s exceeded") as exc_info,
     ):
         _send(max_attempts=5, timeout=10)
 
+    assert mock_request.call_count == 1
+    assert isinstance(exc_info.value.__cause__, requests.ConnectionError)
+
+
+def test_send_with_retry_deadline_exceeded_returns_last_retryable_response():
+    """When the deadline stops a retry after a retryable status, that response is returned."""
+    # start, attempt 1 check, delay cap, attempt 2 check (past the deadline)
+    with (
+        patch(_MONOTONIC, side_effect=[0.0, 0.0, 1.0, 11.0]),
+        patch(_REQUEST, return_value=_response(429)) as mock_request,
+        patch(_SLEEP),
+    ):
+        result = _send(max_attempts=5, timeout=10, retryable_statuses={429})
+
+    assert result.status_code == 429
     assert mock_request.call_count == 1
 
 

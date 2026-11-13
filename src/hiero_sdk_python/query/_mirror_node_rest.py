@@ -72,13 +72,15 @@ def send_with_retry(
         description: What is being fetched, used in log and error messages.
 
     Returns:
-        The first response whose status is not retryable, or the last response
-        if every attempt returned a retryable status. The caller decides what
-        the status means.
+        The first response whose status is not retryable. If the attempts or
+        the total deadline run out after a retryable status, the last response
+        is returned, so the caller still sees the status (for example a 429).
+        The caller decides what the status means.
 
     Raises:
-        RuntimeError: If the total deadline is exceeded, or the last attempt
-            failed with a timeout or connection error.
+        RuntimeError: If the attempts or the total deadline run out and the
+            last attempt failed with a timeout or connection error, so there is
+            no response to return.
     """
     headers = {"Accept": "application/json"}
     data = None
@@ -93,6 +95,9 @@ def send_with_retry(
     for attempt in range(1, max_attempts + 1):
         remaining = deadline - time.monotonic()
         if remaining <= 0:
+            if last_response is not None:
+                return last_response
+
             raise RuntimeError(
                 f"{description} failed after {attempt - 1} attempts: total timeout of {timeout}s exceeded"
             ) from last_exception

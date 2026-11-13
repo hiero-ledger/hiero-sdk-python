@@ -27,9 +27,11 @@ from hiero_sdk_python.query._mirror_node_rest import (
 )
 
 
-# Transient server-side failures. 400 (bad input or a revert), 404, 415 and
-# 429 are reported to the caller straight away.
-_RETRYABLE_HTTP_STATUSES = frozenset({500, 502, 503, 504})
+# Transient failures: request timeout, rate limiting and server-side errors.
+# The same set the other mirror node queries and the Java SDK retry.
+# 400 (bad input or a revert), 404 and 415 are reported to the caller
+# straight away.
+_RETRYABLE_HTTP_STATUSES = frozenset({408, 429, 500, 502, 503, 504})
 
 _EVM_ADDRESS_PATTERN = re.compile(r"[0-9a-fA-F]{40}")
 # A 0x-prefixed hex string. "0x" alone is a valid call result (no return
@@ -470,7 +472,8 @@ class MirrorNodeContractQuery(ABC):
             ValueError: If the query is not configured, or the response is malformed.
             TypeError: If an argument has an invalid type.
             MirrorNodeError: If the mirror node returns an error status.
-            RuntimeError: If retries or the total deadline are exhausted.
+            RuntimeError: If the mirror node cannot be reached before the
+                attempts or the total deadline run out.
         """
         if client is None:
             raise ValueError("client must not be None")

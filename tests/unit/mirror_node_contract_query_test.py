@@ -33,6 +33,7 @@ pytestmark = pytest.mark.unit
 
 REQUEST = "hiero_sdk_python.query._mirror_node_rest.requests.request"
 SLEEP = "hiero_sdk_python.query._mirror_node_rest.time.sleep"
+MONOTONIC = "hiero_sdk_python.query._mirror_node_rest.time.monotonic"
 
 QUERY_CLASSES = [MirrorNodeContractCallQuery, MirrorNodeContractEstimateGasQuery]
 
@@ -456,7 +457,7 @@ def test_transient_503_is_retried(query_class):
     mock_sleep.assert_called_once()
 
 
-@pytest.mark.parametrize("status_code", [500, 502, 503, 504])
+@pytest.mark.parametrize("status_code", [408, 429, 500, 502, 503, 504])
 def test_retryable_statuses_are_retried(status_code):
     with (
         patch(REQUEST, side_effect=[response(status_code), ok()]) as mock_request,
@@ -481,16 +482,36 @@ def test_network_failures_are_retried(error):
     assert mock_request.call_count == 2
 
 
-def test_retryable_status_after_max_attempts_raises_mirror_node_error():
+@pytest.mark.parametrize(
+    ("status_code", "phrase"),
+    [(408, "Request Timeout"), (429, "Too Many Requests"), (503, "Service Unavailable")],
+)
+def test_retryable_status_after_max_attempts_raises_mirror_node_error(status_code, phrase):
     with (
-        patch(REQUEST, return_value=response(503)) as mock_request,
-        patch(SLEEP),
-        pytest.raises(MirrorNodeError) as exc_info,
+        patch(REQUEST, return_value=response(status_code, ValueError("no json"))) as mock_request,
+        patch(SLEEP) as mock_sleep,
+        pytest.raises(MirrorNodeError, match=f"HTTP {status_code}: {phrase}") as exc_info,
     ):
         MirrorNodeContractCallQuery(CONTRACT_ID).set_max_attempts(3).execute(mock_client())
 
     assert mock_request.call_count == 3
-    assert exc_info.value.status_code == 503
+    assert mock_sleep.call_count == 2
+    assert exc_info.value.status_code == status_code
+
+
+def test_rate_limited_past_deadline_raises_mirror_node_error():
+    """A 429 that outlasts the total deadline surfaces as a 429, not as a generic timeout."""
+    # start, attempt 1 check, delay cap, attempt 2 check (past the deadline)
+    with (
+        patch(MONOTONIC, side_effect=[0.0, 0.0, 1.0, 11.0]),
+        patch(REQUEST, return_value=response(429, ValueError("no json"))) as mock_request,
+        patch(SLEEP),
+        pytest.raises(MirrorNodeError, match="HTTP 429: Too Many Requests") as exc_info,
+    ):
+        MirrorNodeContractCallQuery(CONTRACT_ID).set_max_attempts(5).execute(mock_client(), timeout=10)
+
+    assert mock_request.call_count == 1
+    assert exc_info.value.status_code == 429
 
 
 def test_network_failure_after_max_attempts_raises_runtime_error():
@@ -538,7 +559,7 @@ def test_revert_raises_with_mirror_node_messages_and_is_not_retried(query_class)
 
 @pytest.mark.parametrize(
     ("status_code", "phrase"),
-    [(404, "Not Found"), (415, "Unsupported Media Type"), (429, "Too Many Requests")],
+    [(404, "Not Found"), (415, "Unsupported Media Type")],
 )
 def test_non_retryable_statuses_raise_clear_error(status_code, phrase):
     with (

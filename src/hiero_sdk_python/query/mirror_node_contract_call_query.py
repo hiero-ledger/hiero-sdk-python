@@ -68,7 +68,8 @@ class MirrorNodeContractCallQuery(MirrorNodeContractQuery):
             TypeError: If an argument has an invalid type.
             MirrorNodeError: If the mirror node returns an error status, for
                 example when the call reverts.
-            RuntimeError: If retries or the total deadline are exhausted.
+            RuntimeError: If the mirror node cannot be reached before the
+                attempts or the total deadline run out.
         """
         result = self._call_mirror_node(client, timeout)
 
