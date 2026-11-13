@@ -6,10 +6,13 @@ import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
+from hiero_sdk_python.consensus.topic_id import TopicId
+from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.hapi.services import (
     response_header_pb2,
     response_pb2,
     transaction_get_receipt_pb2,
+    transaction_pb2,
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
@@ -17,11 +20,36 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 from tests.unit.mock_server import mock_hedera_servers
 
 
 pytestmark = pytest.mark.unit
+
+
+def _round_trip(tx, signed=False):
+    """Return a restored transaction after checking common fields, signatures, and byte identity."""
+    tx.set_transaction_id(TransactionId.from_string("0.0.2@1700000000.123"))
+    tx.set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
+    tx.set_transaction_memo("Outer transaction memo")
+    tx.transaction_fee = 12345678
+    tx.freeze()
+
+    if signed:
+        tx.sign(PrivateKey.generate_ed25519())
+
+    encoded = tx.to_bytes()
+    restored = Transaction.from_bytes(encoded)
+
+    assert type(restored) is type(tx)
+    assert restored.memo == tx.memo
+    assert restored.transaction_id == tx.transaction_id
+    assert restored.transaction_fee == tx.transaction_fee
+    assert restored._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored._signature_map == tx._signature_map
+    assert restored.to_bytes() == encoded
+    return restored
 
 
 # This test uses fixtures (mock_account_ids, topic_id) as parameters
@@ -117,3 +145,23 @@ def test_execute_topic_delete_transaction(topic_id):
 
         # Verify the receipt contains the expected values
         assert receipt.status == ResponseCode.SUCCESS
+
+
+@pytest.mark.parametrize("topic_id", [TopicId(), TopicId(7, 8, 900)])
+@pytest.mark.parametrize("signed", [False, True])
+def test_from_bytes_restores_topic_id(topic_id, signed):
+    """Verify signed and unsigned transactions preserve zero and nonzero topic IDs."""
+    tx = TopicDeleteTransaction(topic_id=topic_id)
+    restored = _round_trip(tx, signed)
+
+    assert restored.topic_id == tx.topic_id
+
+
+def test_from_protobuf_preserves_absent_topic_id():
+    """Verify an absent protobuf topic ID is restored as None."""
+    body = transaction_pb2.TransactionBody()
+    body.consensusDeleteTopic.SetInParent()
+
+    restored = TopicDeleteTransaction._from_protobuf(body)
+
+    assert restored.topic_id is None
