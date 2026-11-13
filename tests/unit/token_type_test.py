@@ -33,13 +33,3 @@ def test_from_proto(proto, expected):
     token_type = TokenType._from_proto(proto)
     assert token_type is not None
     assert token_type == expected
-
-
-# @pytest.mark.parametrize(
-#     "invalid_param",
-#     ["1", 0.1, None, {}, (), True, basic_types_pb2.TokenSupplyType.FINITE]
-# )
-# def test_from_proto_with_invalid_value(invalid_param):
-#     """Test TokenType creation using protobuf message."""
-#     with pytest.raises(ValueError, match="Invalid TokenType"):
-#         TokenType._from_proto(invalid_param)

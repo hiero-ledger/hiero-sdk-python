@@ -502,7 +502,7 @@ class TokenUpdateTransaction(Transaction):
                 AccountId._from_proto(proto_body.treasury) if proto_body.HasField("treasury") else None
             )
             transaction.admin_key = Key.from_proto_key(proto_body.adminKey) if proto_body.HasField("adminKey") else None
-            transaction.kyc_key = (Key.from_proto_key(proto_body.kycKey) if proto_body.HasField("kycKey") else None,)
+            transaction.kyc_key = Key.from_proto_key(proto_body.kycKey) if proto_body.HasField("kycKey") else None
             transaction.freeze_key = (
                 Key.from_proto_key(proto_body.freezeKey) if proto_body.HasField("freezeKey") else None
             )
@@ -530,10 +530,6 @@ class TokenUpdateTransaction(Transaction):
             transaction.pause_key = (
                 Key.from_proto_key(proto_body.pause_key) if proto_body.HasField("pause_key") else None
             )
-            transaction.token_key_verification_mode = (
-                TokenKeyValidation._from_proto(proto_body.key_verification_mode)
-                if proto_body.HasField("key_verification_mode")
-                else None
-            )
+            transaction.token_key_verification_mode = TokenKeyValidation._from_proto(proto_body.key_verification_mode)
 
         return transaction
