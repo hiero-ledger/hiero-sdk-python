@@ -59,7 +59,7 @@ from .crypto.signer import Signer
 from .Duration import Duration
 
 # Errors
-from .exceptions import PrecheckError, ReceiptStatusError
+from .exceptions import MirrorNodeError, PrecheckError, ReceiptStatusError
 
 # Fee
 from .fees.fee_estimate import FeeEstimate
@@ -102,6 +102,9 @@ from .query.account_balance_query import CryptoGetAccountBalanceQuery
 from .query.account_info_query import AccountInfoQuery
 from .query.fee_estimate_query import FeeEstimateQuery
 from .query.mirror_node_account_balance_query import MirrorNodeAccountBalanceQuery
+from .query.mirror_node_contract_call_query import MirrorNodeContractCallQuery
+from .query.mirror_node_contract_estimate_gas_query import MirrorNodeContractEstimateGasQuery
+from .query.mirror_node_contract_query import MirrorNodeContractQuery
 from .query.mirror_node_token_balance_query import MirrorNodeTokenBalanceQuery
 from .query.token_info_query import TokenInfoQuery
 from .query.token_nft_info_query import TokenNftInfoQuery
@@ -269,6 +272,9 @@ __all__ = [
     "AccountInfoQuery",
     "MirrorNodeAccountBalanceQuery",
     "MirrorNodeTokenBalanceQuery",
+    "MirrorNodeContractQuery",
+    "MirrorNodeContractCallQuery",
+    "MirrorNodeContractEstimateGasQuery",
     # Address book
     "BlockNodeApi",
     "BlockNodeServiceEndpoint",
@@ -349,4 +355,5 @@ __all__ = [
     # Errors
     "ReceiptStatusError",
     "PrecheckError",
+    "MirrorNodeError",
 ]
