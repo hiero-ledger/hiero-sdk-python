@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from unittest.mock import MagicMock
 
 import pytest
@@ -768,13 +769,15 @@ def test_message_submit_transaction_create_proper_content(topic_id, mock_client)
 
 
 def test_schedule_transaction_rejects_message_exceeding_chunk_size(topic_id):
-    """Test that scheduling fails when the message exceeds the chunk size."""
+    """Test that scheduling fails when the message requires multiple chunks."""
     tx = TopicMessageSubmitTransaction().set_topic_id(topic_id).set_chunk_size(10).set_message(bytes(20))
 
     with pytest.raises(
         RuntimeError,
-        match=f"Cannot schedule TopicMessageSubmitTransaction because the message "
-        f"exceeds the maximum chunk size of {tx.chunk_size} bytes",
+        match=re.escape(
+            f"Cannot schedule TopicMessageSubmitTransaction because the message "
+            f"requires {tx._total_chunks} chunks (chunk size: {tx.chunk_size} bytes)"
+        ),
     ):
         tx.schedule()
 
