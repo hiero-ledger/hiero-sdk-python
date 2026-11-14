@@ -193,6 +193,26 @@ def test_set_node_id(node_params):
     assert result is node_tx  # Should return self for method chaining
 
 
+@pytest.mark.parametrize("node_id", [0, 1, None])
+def test_set_node_id_accepts_non_negative_or_none(node_id):
+    node_tx = NodeUpdateTransaction().set_node_id(5)
+
+    assert node_tx.set_node_id(node_id) is node_tx
+    assert node_tx.node_id == node_id
+    if node_id is not None:
+        assert node_tx._build_proto_body().node_id == node_id
+
+
+@pytest.mark.parametrize("node_id", [-1, -100])
+def test_set_node_id_rejects_negative_without_mutating(node_id):
+    node_tx = NodeUpdateTransaction().set_node_id(5)
+
+    with pytest.raises(ValueError, match="node_id must be a non-negative integer"):
+        node_tx.set_node_id(node_id)
+
+    assert node_tx.node_id == 5
+
+
 def test_set_account_id(node_params):
     """Test setting account_id using the setter method."""
     node_tx = NodeUpdateTransaction()
@@ -464,7 +484,6 @@ def test_set_methods_require_not_frozen(mock_client, node_params):
     for method_name, value in test_cases:
         with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(node_tx, method_name)(value)
-
 
 def test_get_method():
     """Test retrieving the gRPC method for the transaction."""
