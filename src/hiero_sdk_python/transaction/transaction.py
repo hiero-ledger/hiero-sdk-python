@@ -1151,7 +1151,7 @@ class Transaction(_Executable):
 
         transaction = transaction_class._from_protobuf(transaction_body)
 
-        Transaction._restore_signatures(
+        Transaction._restore_prepared_transaction(
             transaction,
             transaction,
             signed_transaction,
@@ -1194,7 +1194,7 @@ class Transaction(_Executable):
 
             bodies.append(transaction_body)
 
-            Transaction._restore_signatures(
+            Transaction._restore_prepared_transaction(
                 restored_transaction,
                 transaction,
                 signed_transaction,
@@ -1225,22 +1225,24 @@ class Transaction(_Executable):
         return restored_transaction
 
     @staticmethod
-    def _restore_signatures(restored_transaction: Transaction, transaction: Transaction, signed_transaction) -> None:
-        """Restores signature maps and body bytes."""
+    def _restore_prepared_transaction(
+        restored_transaction: Transaction, transaction: Transaction, signed_transaction
+    ) -> None:
+        """
+        Restores signature maps and body bytes.
 
-        if not signed_transaction.HasField("sigMap"):
-            return
-
-        if signed_transaction.sigMap.sigPair:
-            restored_transaction._signature_map[signed_transaction.bodyBytes] = signed_transaction.sigMap
-
+        Body bytes are always restored (regardless of whether a sigMap is present)
+        so that multi-chunk transactions can be re-executed without re-freezing.
+        """
         if not transaction._transaction_ids.is_empty and not transaction._node_account_ids.is_empty:
             tx_id = transaction._transaction_ids.get(0)
-
             restored_transaction._transaction_body_bytes.setdefault(tx_id, {})
             restored_transaction._transaction_body_bytes[tx_id][transaction._node_account_ids.get(0)] = (
                 signed_transaction.bodyBytes
             )
+
+        if signed_transaction.HasField("sigMap") and signed_transaction.sigMap.sigPair:
+            restored_transaction._signature_map[signed_transaction.bodyBytes] = signed_transaction.sigMap
 
     @staticmethod
     def _lock_restored_transaction(transaction: Transaction) -> None:

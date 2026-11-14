@@ -12,6 +12,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
 from hiero_sdk_python.schedule.schedule_create_transaction import ScheduleCreateTransaction
 from hiero_sdk_python.transaction.chunked_transaction import ChunkedTransaction
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
 class TopicMessageSubmitTransaction(ChunkedTransaction):
@@ -195,11 +196,15 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
     def schedule(self) -> ScheduleCreateTransaction:
         """
         Converts this transaction into a scheduled transaction.
+
+        Raises:
+            RuntimeError: If the transaction contains multiple chunks, since
+                scheduled transactions do not support chunking.
         """
-        if self.message is not None and len(self._message_as_bytes()) > self.chunk_size:
+        if self._total_chunks > 1:
             raise RuntimeError(
-                f"Cannot schedule TopicMessageSubmitTransaction because the message exceeds "
-                f"the maximum chunk size of {self.chunk_size} bytes"
+                f"Cannot schedule TopicMessageSubmitTransaction because the message "
+                f"requires {self._total_chunks} chunks (chunk size: {self.chunk_size} bytes)"
             )
 
         return super().schedule()
@@ -256,6 +261,13 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
             )
 
             transaction.message = submit_message_body.message
-            transaction._total_chunks = transaction.get_required_chunks()
+
+            if submit_message_body.HasField("chunkInfo"):
+                transaction._total_chunks = submit_message_body.chunkInfo.total
+                transaction._initial_transaction_id = TransactionId._from_proto(
+                    submit_message_body.chunkInfo.initialTransactionID
+                )
+            else:
+                transaction._total_chunks = transaction.get_required_chunks()
 
         return transaction
