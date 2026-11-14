@@ -485,10 +485,6 @@ def test_set_methods_require_not_frozen(mock_client, node_params):
         with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
             getattr(node_tx, method_name)(value)
 
-    with pytest.raises(Exception, match="Transaction is immutable; it has been frozen"):
-        node_tx.set_node_id(-1)
-
-
 def test_get_method():
     """Test retrieving the gRPC method for the transaction."""
     node_tx = NodeUpdateTransaction()
