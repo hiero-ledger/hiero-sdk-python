@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import re
 from unittest.mock import MagicMock
 
 import pytest
-import re
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
