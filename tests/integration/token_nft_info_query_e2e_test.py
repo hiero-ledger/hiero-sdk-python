@@ -8,49 +8,39 @@ from hiero_sdk_python.query.token_nft_info_query import TokenNftInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.nft_id import NftId
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
-from tests.integration.utils import IntegrationTestEnv, create_nft_token
+from tests.integration.utils import create_nft_token
 
 
 @pytest.mark.integration
-def test_integration_token_nft_info_query_can_execute():
-    env = IntegrationTestEnv()
+def test_integration_token_nft_info_query_can_execute(env):
+    token_id = create_nft_token(env)
 
-    try:
-        token_id = create_nft_token(env)
+    metadata = b"Token A"
 
-        metadata = b"Token A"
+    mint = TokenMintTransaction(token_id=token_id, metadata=metadata)
 
-        mint = TokenMintTransaction(token_id=token_id, metadata=metadata)
+    receipt = mint.execute(env.client)
 
-        receipt = mint.execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token minting failed with status: {ResponseCode(receipt.status).name}"
+    )
+    nft_id = NftId(token_id, receipt.serial_numbers[0])
 
-        assert receipt.status == ResponseCode.SUCCESS, (
-            f"Token minting failed with status: {ResponseCode(receipt.status).name}"
-        )
-        nft_id = NftId(token_id, receipt.serial_numbers[0])
+    info = TokenNftInfoQuery(nft_id).execute(env.client)
 
-        info = TokenNftInfoQuery(nft_id).execute(env.client)
-
-        assert str(info.nft_id) == str(nft_id), "NFT ID mismatch"
-        assert info.nft_id == nft_id, "NFT ID mismatch"
-        assert info.metadata == metadata, "Metadata mismatch"
-    finally:
-        env.close()
+    assert str(info.nft_id) == str(nft_id), "NFT ID mismatch"
+    assert info.nft_id == nft_id, "NFT ID mismatch"
+    assert info.metadata == metadata, "Metadata mismatch"
 
 
 @pytest.mark.integration
-def test_integration_token_nft_info_query_fail_nonexistent_nft():
-    env = IntegrationTestEnv()
+def test_integration_token_nft_info_query_fail_nonexistent_nft(env):
+    token_id = create_nft_token(env)
 
-    try:
-        token_id = create_nft_token(env)
+    nft_id = NftId(token_id, 1)
 
-        nft_id = NftId(token_id, 1)
-
-        with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_NFT_ID"):
-            TokenNftInfoQuery(nft_id).execute(env.client)
-    finally:
-        env.close()
+    with pytest.raises(PrecheckError, match="failed precheck with status: INVALID_NFT_ID"):
+        TokenNftInfoQuery(nft_id).execute(env.client)
 
 
 # Requires payment so get_cost() return Hbar > 0
