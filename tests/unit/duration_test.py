@@ -61,3 +61,15 @@ def test_from_proto_round_trip():
 def test_from_proto_raises_value_error_on_duration_instance():
     with pytest.raises(ValueError):
         Duration._from_proto(Duration(seconds=1))  # type: ignore[arg-type]
+
+
+def test_str():
+    assert str(Duration(seconds=5)) == "Duration of 5 seconds."
+    assert str(Duration(seconds=0)) == "Duration of 0 seconds."
+    assert str(Duration(seconds=-7)) == "Duration of -7 seconds."
+
+
+def test_repr():
+    assert repr(Duration(seconds=5)) == "Duration(seconds=5)"
+    assert repr(Duration(seconds=0)) == "Duration(seconds=0)"
+    assert repr(Duration(seconds=-7)) == "Duration(seconds=-7)"
