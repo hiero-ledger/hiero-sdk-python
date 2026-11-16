@@ -23,9 +23,10 @@ def test_init_negative_seconds():
     assert Duration(seconds=-7).seconds == -7
 
 
-def test_init_rejects_non_int_seconds():
+@pytest.mark.parametrize("invalid_input", ["5", 5.5, None, [], {}])
+def test_init_rejects_non_int_seconds(invalid_input):
     with pytest.raises(TypeError):
-        Duration(seconds="5")  # type: ignore[arg-type]
+        Duration(seconds=invalid_input)  # type: ignore [arg-type]
 
 
 def test_eq_returns_false_for_non_duration():
@@ -50,6 +51,7 @@ def test_to_proto_returns_proto_duration_with_seconds():
 def test_from_proto_builds_duration_from_proto():
     proto = proto_Duration(seconds=123)
     duration = Duration._from_proto(proto)
+    assert isinstance(duration, Duration)
     assert duration == Duration(seconds=123)
 
 
