@@ -6,8 +6,10 @@ from hiero_sdk_python.consensus.topic_create_transaction import TopicCreateTrans
 from hiero_sdk_python.consensus.topic_delete_transaction import TopicDeleteTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.crypto.public_key import PublicKey
+from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import IntegrationTestEnv
 
@@ -217,3 +219,66 @@ def test_integration_topic_create_with_ecdsa_private_key():
         assert delete_receipt.status == ResponseCode.SUCCESS
     finally:
         env.close()
+
+
+@pytest.mark.integration
+def test_serialize_topic_create_transaction_can_execute(env):
+    """Verify restored create fileds and the resulting network topic."""
+    topic_id = None
+
+    try:
+        submit_key = PrivateKey.generate_ed25519().public_key()
+        exempt_key = PrivateKey.generate_ecdsa().public_key()
+        period = Duration(7_776_000)
+        fee = CustomFixedFee(amount=1, fee_collector_account_id=env.operator_id)
+
+        transaction = TopicCreateTransaction(
+            memo="Round-trip topic",
+            admin_key=env.public_operator_key,
+            submit_key=submit_key,
+            auto_renew_period=period,
+            auto_renew_account=env.operator_id,
+            fee_schedule_key=env.public_operator_key,
+            fee_exempt_keys=[exempt_key],
+            custom_fees=[fee],
+        )
+
+        transaction.freeze_with(env.client)
+
+        original_bytes = transaction.to_bytes()
+        restored = Transaction.from_bytes(original_bytes)
+
+        assert isinstance(restored, TopicCreateTransaction)
+        assert restored.topic_memo == "Round-trip topic"
+        assert restored.admin_key.to_proto_key() == env.public_operator_key.to_proto_key()
+        assert restored.submit_key.to_proto_key() == submit_key.to_proto_key()
+        assert restored.auto_renew_period == period
+        assert restored.auto_renew_account == env.operator_id
+        assert restored.fee_schedule_key.to_proto_key() == env.public_operator_key.to_proto_key()
+        assert [key.to_proto_key() for key in restored.fee_exempt_keys] == [exempt_key.to_proto_key()]
+        assert restored.custom_fees == [fee]
+        assert restored.to_bytes() == original_bytes
+
+        receipt = restored.execute(env.client)
+        topic_id = receipt.topic_id
+
+        assert receipt.status == ResponseCode.SUCCESS
+        assert topic_id is not None
+
+        info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
+
+        assert info.memo == "Round-trip topic"
+        assert info.admin_key.to_proto_key() == env.public_operator_key.to_proto_key()
+        assert info.submit_key.to_proto_key() == submit_key.to_proto_key()
+        assert info.auto_renew_period == period
+        assert info.auto_renew_account == env.operator_id
+        assert info.fee_schedule_key.to_proto_key() == env.public_operator_key.to_proto_key()
+        assert [key.to_proto_key() for key in info.fee_exempt_keys] == [exempt_key.to_proto_key()]
+        assert info.custom_fees == [fee]
+        assert info.sequence_number == 0
+
+    finally:
+        if topic_id is not None:
+            receipt = TopicDeleteTransaction(topic_id=topic_id).execute(env.client)
+
+            assert receipt.status == ResponseCode.SUCCESS
