@@ -111,9 +111,10 @@ jobs:
             }
 
       - name: Fail when Lychee could not complete the check
-        if: steps.lychee.outputs.exit_code != '0' && steps.lychee.outputs.exit_code != '2'
+        # Also covers a failed step that still reports exit code 0 (e.g. no links found with failIfEmpty).
+        if: steps.lychee.outcome == 'failure' && steps.lychee.outputs.exit_code != '2'
         env:
           LYCHEE_EXIT_CODE: ${{ steps.lychee.outputs.exit_code }}
         run: |
-          echo "::error::Lychee exited with code ${LYCHEE_EXIT_CODE:-unknown}, so the link check did not complete and no broken-links issue was opened. See the 'Check Markdown links (Lychee)' step logs."
+          echo "::error::The Lychee step failed (exit code ${LYCHEE_EXIT_CODE:-unknown}), so the link check did not complete and no broken-links issue was opened. See the 'Check Markdown links (Lychee)' step logs."
           exit 1
