@@ -9,6 +9,7 @@ from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import create_fungible_token
 
 
@@ -82,3 +83,26 @@ def test_token_dissociate_transaction_raise_error_if_account_id_not_set(env):
 
     with pytest.raises(PrecheckError):
         dissociate_transaction.execute(env.client)
+
+
+@pytest.mark.integration
+def test_integration_token_dissociate_from_bytes(env):
+    """Execute a deserialized token dissociate transaction and verify success."""
+    account_id, account_private_key, token_id = _create_associated_account(env)
+
+    tx = TokenDissociateTransaction(account_id=account_id, token_ids=[token_id]).freeze_with(env.client)
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenDissociateTransaction)
+    assert restored.account_id == account_id
+    assert restored.token_ids == [token_id]
+    assert restored.to_bytes() == original_bytes
+
+    restored.sign(account_private_key)
+    receipt = restored.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token dissociation failed with status: {ResponseCode(receipt.status).name}"
+    )

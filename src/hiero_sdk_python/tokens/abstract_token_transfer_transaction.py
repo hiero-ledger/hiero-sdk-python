@@ -47,6 +47,7 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
         super().__init__()
         self.token_transfers: dict[TokenId, list[TokenTransfer]] = defaultdict(list)
         self.nft_transfers: dict[TokenId, list[TokenNftTransfer]] = defaultdict(list)
+        self._transfer_list_order: list[tuple[str, TokenId]] = []
         self._default_transaction_fee: int = 100_000_000
 
     def _init_token_transfers(self, token_transfers: dict[TokenId, dict[AccountId, int]] | list[TokenTransfer]) -> None:
@@ -167,6 +168,9 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
                     transfer.expected_decimals = expected_decimals
                 return
 
+        if ("token", token_id) not in self._transfer_list_order:
+            self._transfer_list_order.append(("token", token_id))
+
         self.token_transfers[token_id].append(
             TokenTransfer(token_id, account_id, amount, expected_decimals, is_approved)
         )
@@ -200,6 +204,9 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             raise TypeError("receiver_id must be an AccountId instance.")
         if not isinstance(is_approved, bool):
             raise TypeError("is_approved must be a boolean.")
+
+        if ("nft", token_id) not in self._transfer_list_order:
+            self._transfer_list_order.append(("nft", token_id))
 
         self.nft_transfers[token_id].append(
             TokenNftTransfer(token_id, sender_id, receiver_id, serial_number, is_approved)
@@ -325,9 +332,51 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             each grouping transfers for a specific token ID.
         """
         token_transfer_list: list[TokenTransferList] = []
+        handled_tokens: set[TokenId] = set()
+        handled_nfts: set[TokenId] = set()
+
+        for kind, token_id in self._transfer_list_order:
+            if kind == "token" and token_id not in handled_tokens:
+                token_transfers = self.token_transfers.get(token_id)
+                if token_transfers:
+                    token_list = TokenTransferList(
+                        token=token_id, expected_decimals=token_transfers[0].expected_decimals
+                    )
+                    for token_transfer in token_transfers:
+                        token_list.add_token_transfer(token_transfer)
+                    token_transfer_list.append(token_list)
+                    handled_tokens.add(token_id)
+            elif kind == "nft" and token_id not in handled_nfts:
+                nft_transfers = self.nft_transfers.get(token_id)
+                if nft_transfers:
+                    nft_list = TokenTransferList(token=token_id)
+                    for nft_transfer in nft_transfers:
+                        nft_list.add_nft_transfer(nft_transfer)
+                    token_transfer_list.append(nft_list)
+                    handled_nfts.add(token_id)
+
+        for kind, token_id in self._transfer_list_order:
+            if kind == "token" and token_id not in handled_tokens:
+                token_transfers = self.token_transfers.get(token_id)
+                if token_transfers:
+                    token_list = TokenTransferList(token=token_id, expected_decimals=token_transfers[0].expected_decimals)
+                    for token_transfer in token_transfers:
+                        token_list.add_token_transfer(token_transfer)
+                    token_transfer_list.append(token_list)
+                    handled_tokens.add(token_id)
+            elif kind == "nft" and token_id not in handled_nfts:
+                nft_transfers = self.nft_transfers.get(token_id)
+                if nft_transfers:
+                    nft_list = TokenTransferList(token=token_id)
+                    for nft_transfer in nft_transfers:
+                        nft_list.add_nft_transfer(nft_transfer)
+                    token_transfer_list.append(nft_list)
+                    handled_nfts.add(token_id)
 
         # Tokens
         for token_id, token_transfers in self.token_transfers.items():
+            if token_id in handled_tokens or not token_transfers:
+                continue
             token_list = TokenTransferList(token=token_id, expected_decimals=token_transfers[0].expected_decimals)
 
             for token_transfer in token_transfers:
@@ -337,6 +386,8 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
 
         # NFTs
         for nft_id, nft_transfers in self.nft_transfers.items():
+            if nft_id in handled_nfts or not nft_transfers:
+                continue
             nft_list = TokenTransferList(token=nft_id)
 
             for nft_transfer in nft_transfers:

@@ -137,6 +137,28 @@ class TokenClaimAirdropTransaction(Transaction):
 
         return inst
 
+    @classmethod
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenClaimAirdropTransaction:
+        """
+        Creates a TokenClaimAirdropTransaction instance from protobuf components.
+
+        Args:
+            transaction_body (TransactionBody): The parsed TransactionBody protobuf.
+
+        Returns:
+            TokenClaimAirdropTransaction: A new transaction instance with all fields restored.
+        """
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("tokenClaimAirdrop"):
+            token_claim_airdrop_body = transaction_body.tokenClaimAirdrop
+            transaction._pending_airdrop_ids = [
+                PendingAirdropId._from_proto(airdrop)  # type: ignore[reportPrivateUsage]  # pylint: disable=protected-access
+                for airdrop in token_claim_airdrop_body.pending_airdrops
+            ]
+
+        return transaction
+
     def build_transaction_body(self) -> transaction_pb2.TransactionBody:  # pylint: disable=no-member
         """Build the TransactionBody for this claim.
 

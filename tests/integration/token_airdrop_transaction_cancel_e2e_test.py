@@ -12,6 +12,7 @@ from hiero_sdk_python.tokens.token_airdrop_transaction_cancel import TokenCancel
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_nft_transfer import TokenNftTransfer
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import IntegrationTestEnv, create_fungible_token, create_nft_token
 
 
@@ -82,3 +83,35 @@ def test_integration_token_cancel_airdrop_transaction_can_execute():
         )
     finally:
         env.close()
+
+
+@pytest.mark.integration
+def test_integration_token_cancel_airdrop_from_bytes(env):
+    """Execute a deserialized token cancel airdrop transaction and verify success."""
+    account = env.create_account(initial_hbar=2.0)
+
+    token_id = create_fungible_token(env)
+    assert token_id is not None
+
+    nft_id = create_nft_token(env)
+    assert nft_id is not None
+
+    serial_number = mint_nft(env, nft_id)
+    pending_airdrop_records = airdrop_tokens(env, account.id, token_id, nft_id, serial_number)
+    pending_airdrops = [record.pending_airdrop_id for record in pending_airdrop_records]
+
+    tx = TokenCancelAirdropTransaction(pending_airdrops=pending_airdrops).freeze_with(env.client)
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenCancelAirdropTransaction)
+    assert restored.pending_airdrops == pending_airdrops
+    assert restored.to_bytes() == original_bytes
+
+    restored.sign(env.client.operator_private_key)
+    receipt = restored.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token cancel airdrop failed with status: {ResponseCode(receipt.status).name}"
+    )
