@@ -7,7 +7,7 @@ This script demonstrates how to:
 1. Set up a client connection to the Hedera network
 2. Create a file containing contract bytecode
 3. Create a contract
-4. Query the contract balance using CryptoGetAccountBalanceQuery.set_contract_id()
+4. Query the contract balance using MirrorNodeAccountBalanceQuery.set_contract_id()
 
 Run with:
   uv run -m examples.contract.contract_balance_query
@@ -21,8 +21,8 @@ from dotenv import load_dotenv
 from hiero_sdk_python import (
     Client,
     ContractCreateTransaction,
-    CryptoGetAccountBalanceQuery,
     Hbar,
+    MirrorNodeAccountBalanceQuery,
 )
 from hiero_sdk_python.contract.contract_id import ContractId
 from hiero_sdk_python.response_code import ResponseCode
@@ -74,9 +74,9 @@ def create_contract(client: Client, initial_balance_tinybars: int) -> ContractId
 
 
 def get_contract_balance(client: Client, contract_id: ContractId):
-    """Query contract balance using CryptoGetAccountBalanceQuery.set_contract_id()."""
+    """Query contract balance using MirrorNodeAccountBalanceQuery.set_contract_id()."""
     print(f"Querying balance for contract {contract_id} ...")
-    balance = CryptoGetAccountBalanceQuery().set_contract_id(contract_id).execute(client)
+    balance = MirrorNodeAccountBalanceQuery().set_contract_id(contract_id).execute(client)
 
     print("✅ Balance retrieved successfully!")
     print(f"  Contract: {contract_id}")
