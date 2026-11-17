@@ -198,6 +198,7 @@ def test_token_fee_schedule_update_clears_fees(env):
     token_info_cleared = TokenInfoQuery().set_token_id(token_id).execute(env.client)
     assert len(token_info_cleared.custom_fees) == 0
 
+
 @pytest.mark.integration
 def test_update_token_fee_schedule_from_bytes(env):
     """Test token update fee schedule transaction can be executed from bytes."""
