@@ -290,13 +290,12 @@ def test_update_nfts_from_bytes(env):
     updated_metadata = b"Hello, Hiero"
     original_update_tx = TokenUpdateNftsTransaction(token_id=nft_id, serial_numbers=serials, metadata=updated_metadata)
     original_update_tx.transaction_fee = Hbar(3).to_tinybars()
-    original_update_tx.freeze_with(env.client).sign(metadata_private_key).execute(env.client)
+    original_update_tx.freeze_with(env.client).sign(metadata_private_key)
 
     copy_update_tx = TokenUpdateNftsTransaction.from_bytes(original_update_tx.to_bytes())
     receipt = copy_update_tx.execute(env.client)
 
     assert receipt.status == ResponseCode.SUCCESS, f"NFT update failed with status: {ResponseCode(receipt.status).name}"
 
-    serials = receipt.serial_numbers
     nft_info = TokenNftInfoQuery(NftId(nft_id, serials[0])).execute(env.client)
     assert nft_info.metadata == updated_metadata, f"Updated metadata mismatch for serial {serials[0]}"

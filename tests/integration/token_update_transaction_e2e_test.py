@@ -950,7 +950,7 @@ def test_token_update_from_bytes(env):
     )
 
     copy_tx = TokenUpdateTransaction.from_bytes(original_tx.to_bytes())
-    receipt = copy_tx.execute(env.clinet)
+    receipt = copy_tx.execute(env.client)
     assert receipt.status == ResponseCode.SUCCESS, (
         f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
     )
