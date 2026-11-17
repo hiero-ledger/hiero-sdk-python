@@ -594,6 +594,17 @@ def test_from_protobuf_without_token_update():
     assert tx.token_key_verification_mode == TokenKeyValidation.FULL_VALIDATION
 
 
+def test_to_bytes_default_values():
+    """Test to_bytes generate same bytes for default values."""
+    original_tx = TokenUpdateTransaction()
+    original_bytes = original_tx.to_bytes()
+
+    copy_tx = TokenUpdateTransaction.from_bytes(original_bytes)
+    assert copy_tx is not None
+    assert isinstance(copy_tx, TokenUpdateTransaction)
+    assert copy_tx.to_bytes() == original_bytes
+
+
 def test_bytes_roundtrip(token_params):
     """Test serialization and deserialization of TokenUpdateTransaction through bytes."""
     param = TokenUpdateParams(
