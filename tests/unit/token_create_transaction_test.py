@@ -1121,6 +1121,17 @@ def test_from_protobuf_without_token_creation():
     assert keys.metadata_key is None
 
 
+def test_to_bytes_default_values():
+    """Test to_bytes generate same bytes for default values."""
+    original_tx = TokenCreateTransaction()
+    original_bytes = original_tx.to_bytes()
+
+    copy_tx = TokenCreateTransaction.from_bytes(original_bytes)
+    assert copy_tx is not None
+    assert isinstance(copy_tx, TokenCreateTransaction)
+    assert copy_tx.to_bytes() == original_bytes
+
+
 def test_bytes_roundtrip(token_params):
     """Test serialization and deserialization of TokenCreateTransaction through bytes."""
     params = TokenParams(

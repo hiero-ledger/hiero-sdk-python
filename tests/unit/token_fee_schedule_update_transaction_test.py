@@ -161,6 +161,17 @@ def test_from_protobuf_without_token_fee_schedule_update():
     assert tx.custom_fees == []
 
 
+def test_to_bytes_default_values():
+    """Test to_bytes generate same bytes for default values."""
+    original_tx = TokenFeeScheduleUpdateTransaction()
+    original_bytes = original_tx.to_bytes()
+
+    copy_tx = TokenFeeScheduleUpdateTransaction.from_bytes(original_bytes)
+    assert copy_tx is not None
+    assert isinstance(copy_tx, TokenFeeScheduleUpdateTransaction)
+    assert copy_tx.to_bytes() == original_bytes
+
+
 def test_bytes_roundtrip(mock_account_ids):
     """Test serialization and deserialization of TokenFeeScheduleUpdateTransaction through bytes."""
     account_id_1, account_id_2, _, token_id, _ = mock_account_ids
