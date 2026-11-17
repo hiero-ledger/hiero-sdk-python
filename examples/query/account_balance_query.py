@@ -21,8 +21,8 @@ import time
 from hiero_sdk_python import (
     AccountCreateTransaction,
     Client,
-    CryptoGetAccountBalanceQuery,
     Hbar,
+    MirrorNodeAccountBalanceQuery,
     PrivateKey,
     ResponseCode,
     TransferTransaction,
@@ -99,7 +99,7 @@ def get_balance(client, account_id):
     """
     print(f"Querying balance for account {account_id}...")
 
-    balance_query = CryptoGetAccountBalanceQuery().set_account_id(account_id)
+    balance_query = MirrorNodeAccountBalanceQuery().set_account_id(account_id)
     balance = balance_query.execute(client)
 
     balance_hbar = balance.hbars.to_hbars()

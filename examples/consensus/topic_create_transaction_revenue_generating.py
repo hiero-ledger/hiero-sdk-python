@@ -22,10 +22,10 @@ import sys
 from hiero_sdk_python import (
     AccountCreateTransaction,
     Client,
-    CryptoGetAccountBalanceQuery,
     CustomFeeLimit,
     CustomFixedFee,
     Hbar,
+    MirrorNodeAccountBalanceQuery,
     PrivateKey,
     ResponseCode,
     TokenAssociateTransaction,
@@ -124,7 +124,7 @@ def submit_message_without_custom_fee_limit(client, topic_id):
 
 def get_account_balance(client, account_id):
     """Get the balance of an account."""
-    return CryptoGetAccountBalanceQuery(account_id).execute(client)
+    return MirrorNodeAccountBalanceQuery(account_id).execute(client)
 
 
 def create_fungible_token(
