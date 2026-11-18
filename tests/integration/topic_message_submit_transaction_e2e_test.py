@@ -19,6 +19,7 @@ from hiero_sdk_python.query.topic_info_query import TopicInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
 
 
@@ -321,3 +322,47 @@ def test_topic_message_submit_transaction_can_submit_a_large_message_manual_free
     assert info.sequence_number == 14
 
     delete_topic(env.client, topic_id)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "message, expected_chunks",
+    [
+        pytest.param(b"\x00\xffround trip", 1, id="single_chunk"),
+        pytest.param(b"A" * 1024 + b"B" * 1024 + b"C", 3, id="multiple_chunks"),
+    ],
+)
+def test_serialize_topic_message_submit_transaction_can_execute(env, message, expected_chunks):
+    """Verify restored message fields, signatures and execution of all chunks."""
+    submit_key = PrivateKey.generate_ed25519()
+    topic_id = create_topic(client=env.client, admin_key=env.public_operator_key, submit_key=submit_key.public_key())
+
+    try:
+        transaction = TopicMessageSubmitTransaction(topic_id=topic_id, message=message, chunk_size=1024)
+        transaction.freeze_with(env.client)
+        transaction.sign(submit_key)
+
+        original_bytes = transaction.to_bytes()
+        restored = Transaction.from_bytes(original_bytes)
+
+        assert isinstance(restored, TopicMessageSubmitTransaction)
+        assert restored.topic_id == topic_id
+
+        # Inspection exposes the first frozen chunk.
+        assert restored.message == message[:1024]
+        assert restored.custom_fee_limits == []
+
+        # Serialized bytes retain every chunk and its existing signatures.
+        assert restored.to_bytes() == original_bytes
+
+        receipts = restored.execute_all(env.client)
+
+        assert len(receipts) == expected_chunks
+        for receipt in receipts:
+            assert receipt.status == ResponseCode.SUCCESS
+
+        info = TopicInfoQuery(topic_id=topic_id).execute(env.client)
+        assert info.sequence_number == expected_chunks
+
+    finally:
+        delete_topic(env.client, topic_id)

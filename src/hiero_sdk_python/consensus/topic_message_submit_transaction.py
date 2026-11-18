@@ -230,15 +230,32 @@ class TopicMessageSubmitTransaction(ChunkedTransaction):
 
     @classmethod
     def _from_protobuf(cls, transaction_body):
+        """
+        Restore common and topic submit message fields from transaction.
+
+        Note:
+            chunkInfo is intentionally not restored into chunking state. For chunked input,
+            from_bytes exposes only the first chunk in message and recalculates _total_chunks
+            from that payload using the default chunk size. All original bodies including chunkInfo,
+            are retained for serialization and execution.
+
+        Args:
+            transaction_body: The parsed TransactionBody from protobuf.
+
+        Returns:
+            TopicMessageSubmitTransaction: A transaction with common and topic message
+            submit fields restored.
+        """
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("consensusSubmitMessage"):
-            body = transaction_body.consensusSubmitMessage
+            submit_message_body = transaction_body.consensusSubmitMessage
 
-            if body.HasField("topicID"):
-                transaction.topic_id = TopicId._from_proto(body.topicID)
+            transaction.topic_id = (
+                TopicId._from_proto(submit_message_body.topicID) if submit_message_body.HasField("topicID") else None
+            )
 
-            transaction.message = body.message
+            transaction.message = submit_message_body.message
             transaction._total_chunks = transaction.get_required_chunks()
 
         return transaction

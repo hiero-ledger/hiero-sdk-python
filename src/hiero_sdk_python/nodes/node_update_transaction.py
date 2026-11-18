@@ -92,13 +92,19 @@ class NodeUpdateTransaction(Transaction):
         Sets the node id for this node update transaction.
 
         Args:
-            node_id (int):
+            node_id (int | None):
                 The node id of the node.
 
         Returns:
             NodeUpdateTransaction: This transaction instance.
+
+        Raises:
+            ValueError: If node_id is negative.
         """
         self._require_not_frozen()
+        if node_id is not None and node_id < 0:
+            raise ValueError("node_id must be a non-negative integer")
+
         self.node_id = node_id
         return self
 

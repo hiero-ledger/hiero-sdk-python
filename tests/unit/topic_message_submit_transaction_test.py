@@ -11,6 +11,7 @@ from hiero_sdk_python.consensus.topic_id import TopicId
 from hiero_sdk_python.consensus.topic_message_submit_transaction import TopicMessageSubmitTransaction
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.exceptions import PrecheckError, ReceiptStatusError
+from hiero_sdk_python.hapi.sdk.transaction_list_pb2 import TransactionList
 from hiero_sdk_python.hapi.services import (
     consensus_submit_message_pb2,
     response_header_pb2,
@@ -25,6 +26,7 @@ from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
 from hiero_sdk_python.response_code import ResponseCode
+from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
 from hiero_sdk_python.transaction.custom_fee_limit import CustomFeeLimit
 from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transaction_id import TransactionId
@@ -46,6 +48,30 @@ def message():
 def custom_fee_limit():
     """Fixture for a CustomFeeLimit object."""
     return CustomFeeLimit()
+
+
+def _round_trip(tx, signed=False):
+    """Return a restored transaction after checking common fields, signatures, and byte identity."""
+    tx.set_transaction_id(TransactionId.from_string("0.0.2@1700000000.123"))
+    tx.set_node_account_ids([AccountId(0, 0, 3), AccountId(0, 0, 4)])
+    tx.set_transaction_memo("Outer transaction memo")
+    tx.transaction_fee = 12345678
+    tx.freeze()
+
+    if signed:
+        tx.sign(PrivateKey.generate_ed25519())
+
+    encoded = tx.to_bytes()
+    restored = Transaction.from_bytes(encoded)
+
+    assert type(restored) is type(tx)
+    assert restored.memo == tx.memo
+    assert restored.transaction_id == tx.transaction_id
+    assert restored.transaction_fee == tx.transaction_fee
+    assert restored._transaction_body_bytes == tx._transaction_body_bytes
+    assert restored._signature_map == tx._signature_map
+    assert restored.to_bytes() == encoded
+    return restored
 
 
 def test_constructor_and_setters(topic_id, message, custom_fee_limit):
@@ -1005,3 +1031,70 @@ def test_invalid_transaction_bodies_for_chunk_message_submit_tx():
             ],
             bodies=[body1, body2, body3, body4],
         )
+
+
+@pytest.mark.parametrize("message", [b"\x00\xffbinary", "Hello 🌍"])
+@pytest.mark.parametrize("signed", [False, True])
+def test_from_bytes_restores_single_chunk_fields(message, signed):
+    """Verify binary and UTF-8 messages, topic IDs, and custom fee limits survive a round trip."""
+    limits = [CustomFeeLimit(payer_id=AccountId(0, 0, 77), custom_fees=[CustomFixedFee(amount=13)])]
+    tx = TopicMessageSubmitTransaction(topic_id=TopicId(0, 0, 123), message=message).set_custom_fee_limits(limits)
+
+    restored = _round_trip(tx, signed)
+
+    assert restored.topic_id == TopicId(0, 0, 123)
+    assert restored.message == (message.encode("utf-8") if isinstance(message, str) else message)
+    assert restored.custom_fee_limits == limits
+    assert restored.get_required_chunks() == 1
+
+
+def test_from_bytes_preserves_absent_topic_id():
+    """Verify a missing topic ID remains None while the message is preserved."""
+    tx = TopicMessageSubmitTransaction(message=b"Message without topic ID")
+    restored = _round_trip(tx)
+
+    assert restored.topic_id is None
+    assert restored.message == b"Message without topic ID"
+    assert restored.custom_fee_limits == []
+
+
+def test_from_protobuf_preserves_empty_fields():
+    """Verify an empty submit body restores empty message bytes and unset optional fields."""
+    body = transaction_pb2.TransactionBody()
+    body.consensusSubmitMessage.SetInParent()
+
+    restored = TopicMessageSubmitTransaction._from_protobuf(body)
+
+    assert restored.topic_id is None
+    assert restored.message == b""
+    assert restored.custom_fee_limits == []
+    assert restored.get_required_chunks() == 1
+
+
+@pytest.mark.parametrize("signed", [False, True])
+@pytest.mark.parametrize(
+    "message, chunk_size, expected_message, frozen_chunks",
+    [
+        (b"AAAABBBBCCCC", 4, b"AAAA", 3),
+        (b"x" * 1500, 1500, b"x" * 1500, 1),
+    ],
+)
+def test_from_bytes_preserves_frozen_chunks(message, chunk_size, expected_message, frozen_chunks, signed):
+    """Match FileAppednTransaction's first-body inspection behavior."""
+    tx = TopicMessageSubmitTransaction(
+        topic_id=TopicId(0, 0, 123),
+        message=message,
+        chunk_size=chunk_size,
+        max_chunks=7,
+    )
+
+    restored = _round_trip(tx, signed)
+
+    assert restored.topic_id == tx.topic_id
+    assert restored.message == expected_message
+    assert len(restored._transaction_ids) == frozen_chunks
+    assert restored.chunk_size == 1024
+    assert restored.max_chunks == 20
+
+    serialized = TransactionList.FromString(restored.to_bytes())
+    assert len(serialized.transaction_list) == frozen_chunks * 2
