@@ -10,6 +10,7 @@ jest.mock('../../shared/api/github-api', () => ({
   isRepoCollaborator: jest.fn(),
   postIssueComment: jest.fn(),
   fetchAllComments: jest.fn(),
+  getIssue: jest.fn(),
   assignIssue: jest.fn(),
 }));
 
@@ -38,6 +39,7 @@ jest.mock('../../shared/helpers/spam', () => ({
 const { runAssignmentFlow } = require('../../shared/core/issue-assign');
 
 const githubApi = require('../../shared/api/github-api');
+const comment = require('../../shared/helpers/comment');
 const spam = require('../../shared/helpers/spam');
 
 const {
@@ -90,6 +92,12 @@ beforeEach(() => {
   githubApi.isRepoCollaborator.mockResolvedValue(false);
   githubApi.fetchAllComments.mockResolvedValue([]);
   githubApi.postIssueComment.mockResolvedValue();
+  githubApi.getIssue.mockResolvedValue({
+    number: 10,
+    state: 'open',
+    assignees: [],
+    labels: [{ name: 'skill: beginner' }],
+  });
   githubApi.assignIssue.mockResolvedValue();
 
   spam.isSpamUser.mockReturnValue(false);
@@ -436,6 +444,13 @@ describe('runAssignmentFlow - prerequisites', () => {
       },
     });
 
+    githubApi.getIssue.mockResolvedValue({
+      number: 20,
+      state: 'open',
+      assignees: [],
+      labels: [{ name: 'skill: intermediate' }],
+    });
+
     await runAssignmentFlow({ github, context });
 
     expect(githubApi.countCompletedIssuesWithLabel).toHaveBeenCalled();
@@ -638,7 +653,11 @@ describe('runAssignmentFlow - assignment', () => {
       github,
       'hiero-ledger',
       'hiero-sdk-python',
-      context.payload.issue
+      expect.objectContaining({
+        number: 10,
+        state: 'open',
+        assignees: [],
+      })
     );
 
     expect(githubApi.postIssueComment).not.toHaveBeenCalled();
@@ -674,6 +693,97 @@ describe('runAssignmentFlow - assignment', () => {
 
     expect(githubApi.assignIssue).toHaveBeenCalled();
     expect(triggerCodeRabbitPlan).toHaveBeenCalled();
+  });
+});
+
+describe('runAssignmentFlow - fresh issue state', () => {
+  test('does not assign when the webhook payload is stale but the issue is now assigned', async () => {
+    githubApi.getIssue.mockResolvedValue({
+      number: 10,
+      state: 'open',
+      assignees: [{ login: 'current-assignee' }],
+      labels: [{ name: 'skill: beginner' }],
+    });
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.getIssue).toHaveBeenCalledWith({
+      github,
+      owner: 'hiero-ledger',
+      repo: 'hiero-sdk-python',
+      issueNumber: 10,
+    });
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(comment.buildAlreadyAssignedComment).toHaveBeenCalledWith(
+      'parv',
+      expect.objectContaining({
+        assignees: [{ login: 'current-assignee' }],
+      }),
+      expect.objectContaining({
+        owner: 'hiero-ledger',
+        repo: 'hiero-sdk-python',
+        label: 'skill: beginner',
+      })
+    );
+    expect(githubApi.postIssueComment).toHaveBeenCalledWith(
+      expect.objectContaining({
+        issueNumber: 10,
+        body: 'already assigned',
+      }),
+      'already-assigned notice'
+    );
+    expect(triggerCodeRabbitPlan).not.toHaveBeenCalled();
+  });
+
+  test('does not assign when the current issue cannot be fetched', async () => {
+    githubApi.getIssue.mockRejectedValue(
+      Object.assign(new Error('GitHub API unavailable'), { status: 503 })
+    );
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
+  });
+
+  test('does not assign when the fresh issue no longer has the skill label', async () => {
+    githubApi.getIssue.mockResolvedValue({
+      number: 10,
+      state: 'open',
+      assignees: [],
+      labels: [{ name: 'help wanted' }],
+    });
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
+  });
+
+  test('does not assign when the fresh issue is closed', async () => {
+    githubApi.getIssue.mockResolvedValue({
+      number: 10,
+      state: 'closed',
+      assignees: [],
+      labels: [{ name: 'skill: beginner' }],
+    });
+
+    const github = createGithub();
+    const context = createContext();
+
+    await runAssignmentFlow({ github, context });
+
+    expect(githubApi.assignIssue).not.toHaveBeenCalled();
+    expect(githubApi.postIssueComment).not.toHaveBeenCalled();
   });
 });
 
