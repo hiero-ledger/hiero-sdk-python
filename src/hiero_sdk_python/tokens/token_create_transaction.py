@@ -472,9 +472,7 @@ class TokenCreateTransaction(Transaction):
                 decimals=proto_body.decimals,
                 initial_supply=proto_body.initialSupply,
                 treasury_account_id=(
-                    AccountId._from_proto(proto_body.treasury)
-                    if proto_body.HasField("treasury")
-                    else AccountId(0, 0, 1)
+                    AccountId._from_proto(proto_body.treasury) if proto_body.HasField("treasury") else None
                 ),
                 freeze_default=proto_body.freezeDefault,
                 expiration_time=Timestamp._from_protobuf(proto_body.expiry) if proto_body.HasField("expiry") else None,
