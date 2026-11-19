@@ -263,3 +263,39 @@ def test_token_update_nfts_transaction_fails_for_nonexistent_serial(env):
     assert receipt.status == ResponseCode.INVALID_NFT_ID, (
         f"NFT update should fail with INVALID_NFT_ID, got status: {ResponseCode(receipt.status).name}"
     )
+
+
+@pytest.mark.integration
+def test_update_nfts_from_bytes(env):
+    """Test token update nfts transaction can be executed from bytes."""
+    supply_private_key = PrivateKey.generate_ed25519()
+    metadata_private_key = PrivateKey.generate_ed25519()
+
+    nft_id = create_nft_token(
+        env, [lambda tx: tx.set_supply_key(supply_private_key), lambda tx: tx.set_metadata_key(metadata_private_key)]
+    )
+
+    mint_metadata = b"Hello, Hedera"
+    mint_tx = TokenMintTransaction(token_id=nft_id, metadata=mint_metadata)
+    receipt = mint_tx.freeze_with(env.client).sign(supply_private_key).execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"NFT minting failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    serials = receipt.serial_numbers
+    nft_info = TokenNftInfoQuery(NftId(nft_id, serials[0])).execute(env.client)
+    assert nft_info.metadata == mint_metadata, f"Initial metadata mismatch for serial {serials[0]}"
+
+    updated_metadata = b"Hello, Hiero"
+    original_update_tx = TokenUpdateNftsTransaction(token_id=nft_id, serial_numbers=serials, metadata=updated_metadata)
+    original_update_tx.transaction_fee = Hbar(3).to_tinybars()
+    original_update_tx.freeze_with(env.client).sign(metadata_private_key)
+
+    copy_update_tx = TokenUpdateNftsTransaction.from_bytes(original_update_tx.to_bytes())
+    receipt = copy_update_tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, f"NFT update failed with status: {ResponseCode(receipt.status).name}"
+
+    nft_info = TokenNftInfoQuery(NftId(nft_id, serials[0])).execute(env.client)
+    assert nft_info.metadata == updated_metadata, f"Updated metadata mismatch for serial {serials[0]}"

@@ -10,7 +10,7 @@ from hiero_sdk_python.query.token_info_query import TokenInfoQuery
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.timestamp import Timestamp
 from hiero_sdk_python.tokens.custom_fixed_fee import CustomFixedFee
-from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenParams
+from hiero_sdk_python.tokens.token_create_transaction import TokenCreateTransaction, TokenKeys, TokenParams
 from hiero_sdk_python.tokens.token_fee_schedule_update_transaction import TokenFeeScheduleUpdateTransaction
 from hiero_sdk_python.tokens.token_type import TokenType
 from hiero_sdk_python.transaction.transaction import Transaction
@@ -243,3 +243,59 @@ def test_fungible_token_create_with_metadata(env):
     token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
 
     assert token_info.metadata == metadata, "Token metadata mismatch"
+
+
+@pytest.mark.integration
+def test_create_fungible_token_from_bytes(env):
+    """Test create fungible token using a transaction deserialized from bytes."""
+    params = TokenParams(
+        token_name="Test FT",
+        token_symbol="TFT",
+        initial_supply=1,
+        treasury_account_id=env.client.operator_account_id,
+        token_type=TokenType.FUNGIBLE_COMMON,
+    )
+
+    original_tx = TokenCreateTransaction(params)
+    copy_tx = TokenCreateTransaction.from_bytes(original_tx.to_bytes())
+
+    receipt = copy_tx.execute(env.client)
+    assert receipt.token_id is not None, "TokenID not found in receipt. Token may not have been created."
+
+    token_id = receipt.token_id
+
+    token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+
+    assert token_info.token_type == TokenType.FUNGIBLE_COMMON, "Token type mismatch"
+    assert token_info.total_supply == 1, "Token total supply must be equal to 1"
+    assert token_info.name == "Test FT", "Token name mismatch"
+    assert token_info.symbol == "TFT", "Token symbol mismatch"
+
+
+@pytest.mark.integration
+def test_create_nft_from_bytes(env):
+    """Test create nft using a transaction deserialized from bytes."""
+    params = TokenParams(
+        token_name="Test NFT",
+        token_symbol="TNFT",
+        treasury_account_id=env.client.operator_account_id,
+        initial_supply=0,
+        token_type=TokenType.NON_FUNGIBLE_UNIQUE,
+    )
+
+    keys = TokenKeys(supply_key=env.operator_key)
+
+    original_tx = TokenCreateTransaction(params, keys)
+    copy_tx = TokenCreateTransaction.from_bytes(original_tx.to_bytes())
+
+    receipt = copy_tx.execute(env.client)
+    assert receipt.token_id is not None, "TokenID not found in receipt. Token may not have been created."
+
+    token_id = receipt.token_id
+
+    token_info = TokenInfoQuery(token_id=token_id).execute(env.client)
+
+    assert token_info.token_type == TokenType.NON_FUNGIBLE_UNIQUE, "Token type mismatch"
+    assert token_info.total_supply == 0, "Token total supply must be equal to 0"
+    assert token_info.name == "Test NFT", "Token name mismatch"
+    assert token_info.symbol == "TNFT", "Token symbol mismatch"
