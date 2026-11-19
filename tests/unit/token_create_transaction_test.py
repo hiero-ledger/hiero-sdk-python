@@ -1066,7 +1066,7 @@ def test_from_protobuf_with_defaults():
     assert params.token_symbol == ""
     assert params.decimals == 0
     assert params.initial_supply == 0
-    assert params.treasury_account_id == AccountId(0, 0, 1)
+    assert params.treasury_account_id is None  # protobuf default is None
     assert params.freeze_default is False
     assert params.expiration_time is None
     assert params.auto_renew_account_id is None
