@@ -44,7 +44,9 @@ class MirrorNodeContractQuery(ABC):
     Base class for contract queries answered by the mirror node.
 
     The query targets a contract given by ``set_contract_id`` or
-    ``set_contract_evm_address`` (the EVM address wins when both are set).
+    ``set_contract_evm_address``. The two are alternatives: setting one
+    clears the other, and the same holds for ``set_sender`` and
+    ``set_sender_evm_address``.
     The call data is built with ``set_function`` or given raw with
     ``set_function_parameters``.
 
@@ -91,7 +93,7 @@ class MirrorNodeContractQuery(ABC):
         Set the contract to call.
 
         The contract ID is converted to an EVM address when the query runs.
-        An address set with ``set_contract_evm_address`` takes precedence.
+        Clears any address set with ``set_contract_evm_address``.
 
         Args:
             contract_id: The contract ID.
@@ -106,6 +108,7 @@ class MirrorNodeContractQuery(ABC):
             raise TypeError("contract_id must be of type ContractId")
 
         self._contract_id = contract_id
+        self._contract_evm_address = None
         return self
 
     @property
@@ -117,7 +120,7 @@ class MirrorNodeContractQuery(ABC):
         """
         Set the EVM address of the contract to call.
 
-        Takes precedence over ``set_contract_id``.
+        Clears any contract ID set with ``set_contract_id``.
 
         Args:
             contract_evm_address: The 20-byte address as hex, with or without a ``0x`` prefix.
@@ -130,6 +133,7 @@ class MirrorNodeContractQuery(ABC):
             ValueError: If contract_evm_address is not 40 hex characters.
         """
         self._contract_evm_address = _normalize_evm_address(contract_evm_address, "contract_evm_address")
+        self._contract_id = None
         return self
 
     # Sender
@@ -144,7 +148,7 @@ class MirrorNodeContractQuery(ABC):
         Set the account the call is simulated from (``msg.sender``).
 
         Optional. The account ID is converted to an EVM address when the query
-        runs. An address set with ``set_sender_evm_address`` takes precedence.
+        runs. Clears any address set with ``set_sender_evm_address``.
 
         A public-key alias without an account number has no EVM address the
         query can derive, so it is rejected; pass the sender's EVM address to
@@ -170,6 +174,7 @@ class MirrorNodeContractQuery(ABC):
             )
 
         self._sender = sender
+        self._sender_evm_address = None
         return self
 
     @property
@@ -181,7 +186,7 @@ class MirrorNodeContractQuery(ABC):
         """
         Set the EVM address the call is simulated from (``msg.sender``).
 
-        Optional. Takes precedence over ``set_sender``.
+        Optional. Clears any account set with ``set_sender``.
 
         Args:
             sender_evm_address: The 20-byte address as hex, with or without a ``0x`` prefix.
@@ -194,6 +199,7 @@ class MirrorNodeContractQuery(ABC):
             ValueError: If sender_evm_address is not 40 hex characters.
         """
         self._sender_evm_address = _normalize_evm_address(sender_evm_address, "sender_evm_address")
+        self._sender = None
         return self
 
     # Call data
@@ -240,6 +246,12 @@ class MirrorNodeContractQuery(ABC):
     def set_function_parameters(self, function_parameters: bytes | ContractFunctionParameters) -> Self:
         """
         Set the raw call data.
+
+        The bytes are sent as-is, so they must already start with the 4-byte
+        function selector. ContractFunctionParameters only adds the selector
+        when its ``function_name`` is set; without one it encodes the
+        arguments alone, which only a fallback function accepts. To call a
+        named function, prefer ``set_function``.
 
         Args:
             function_parameters: The call data as bytes, or ContractFunctionParameters

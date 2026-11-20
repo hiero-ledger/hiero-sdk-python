@@ -13,6 +13,7 @@ from examples.contract.contracts.contract_utils import (
     CONTRACT_DEPLOY_GAS,
     STATEFUL_CONTRACT_BYTECODE,
 )
+from hiero_sdk_python.contract.contract_call_query import ContractCallQuery
 from hiero_sdk_python.contract.contract_create_transaction import (
     ContractCreateTransaction,
 )
@@ -40,6 +41,8 @@ from tests.integration.utils import wait_for_mirror_node
 INITIAL_MESSAGE = b"Initial message from constructor"
 UPDATED_MESSAGE = b"Updated message via mirror gas.."
 MIRROR_TIMEOUT = 30
+# Plenty for a view function that reads one storage slot.
+CONSENSUS_CALL_GAS = 100_000
 
 
 def _deploy_stateful_contract(env) -> ContractId:
@@ -70,6 +73,14 @@ def _decode_bytes32(result_hex: str) -> bytes:
     return ContractFunctionResult(contract_call_result=bytes.fromhex(result_hex[2:])).get_bytes32(0)
 
 
+def _consensus_call_result(env, contract_id: ContractId, function_name: str) -> bytes:
+    """Run the same call as a paid ContractCallQuery on a consensus node and return the raw result."""
+    query = ContractCallQuery().set_contract_id(contract_id).set_gas(CONSENSUS_CALL_GAS).set_function(function_name)
+    query.set_max_query_payment(query.get_cost(env.client))
+
+    return query.execute(env.client).contract_call_result
+
+
 def _wait_for_message(env, query: MirrorNodeContractCallQuery, expected: bytes) -> str:
     """
     Poll the mirror node until the getMessage call returns the expected message.
@@ -98,6 +109,9 @@ def test_call_view_function_returns_abi_encoded_result(env):
     assert len(result) == 2 + 64
     assert _decode_bytes32(result) == INITIAL_MESSAGE
 
+    # The free mirror node simulation matches the paid consensus node query.
+    assert bytes.fromhex(result[2:]) == _consensus_call_result(env, contract_id, "getMessage")
+
 
 @pytest.mark.integration
 def test_call_with_contract_evm_address_only(env):
@@ -114,6 +128,7 @@ def test_call_with_contract_evm_address_only(env):
 
     assert query.contract_id is None
     assert _decode_bytes32(result) == INITIAL_MESSAGE
+    assert bytes.fromhex(result[2:]) == _consensus_call_result(env, contract_id, "getMessage")
 
 
 @pytest.mark.integration

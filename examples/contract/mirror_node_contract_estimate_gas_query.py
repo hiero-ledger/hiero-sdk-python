@@ -25,8 +25,6 @@ Usage:
 import sys
 import time
 
-from dotenv import load_dotenv
-
 from hiero_sdk_python import (
     Client,
     ContractCreateTransaction,
@@ -42,8 +40,6 @@ from hiero_sdk_python import (
 
 from .contracts import CONTRACT_DEPLOY_GAS, STATEFUL_CONTRACT_BYTECODE
 
-
-load_dotenv()
 
 INITIAL_MESSAGE = b"Initial message from constructor"
 NEW_MESSAGE = b"Message set with estimated gas!!"

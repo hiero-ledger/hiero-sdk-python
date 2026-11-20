@@ -243,6 +243,15 @@ def test_set_function_parameters_accepts_contract_function_parameters():
     assert query.function_parameters == CALL_DATA
 
 
+def test_set_function_parameters_without_function_name_has_no_selector():
+    """Without a function name, ContractFunctionParameters encodes only the arguments."""
+    params = ContractFunctionParameters().add_uint256(42)
+
+    query = MirrorNodeContractCallQuery().set_function_parameters(params)
+
+    assert query.function_parameters == (42).to_bytes(32, "big")
+
+
 def test_set_function_parameters_accepts_bytearray():
     query = MirrorNodeContractCallQuery().set_function_parameters(bytearray(CALL_DATA))
 
@@ -312,10 +321,21 @@ def test_estimate_flag_per_subclass():
 
 
 @pytest.mark.parametrize("query_class", QUERY_CLASSES)
-def test_contract_evm_address_takes_precedence_over_contract_id(query_class):
-    query = query_class().set_contract_evm_address("0x" + OTHER_ADDRESS).set_contract_id(CONTRACT_ID)
+def test_set_contract_evm_address_clears_contract_id(query_class):
+    query = query_class().set_contract_id(CONTRACT_ID).set_contract_evm_address("0x" + OTHER_ADDRESS)
 
+    assert query.contract_id is None
+    assert query.contract_evm_address == OTHER_ADDRESS
     assert query._build_payload()["to"] == "0x" + OTHER_ADDRESS
+
+
+@pytest.mark.parametrize("query_class", QUERY_CLASSES)
+def test_set_contract_id_clears_contract_evm_address(query_class):
+    query = query_class().set_contract_evm_address(OTHER_ADDRESS).set_contract_id(CONTRACT_ID)
+
+    assert query.contract_evm_address is None
+    assert query.contract_id == CONTRACT_ID
+    assert query._build_payload()["to"] == "0x" + CONTRACT_ADDRESS
 
 
 @pytest.mark.parametrize("query_class", QUERY_CLASSES)
@@ -326,10 +346,21 @@ def test_contract_evm_address_without_contract_id(query_class):
 
 
 @pytest.mark.parametrize("query_class", QUERY_CLASSES)
-def test_sender_evm_address_takes_precedence_over_sender(query_class):
+def test_set_sender_evm_address_clears_sender(query_class):
+    query = query_class(CONTRACT_ID).set_sender(SENDER_ID).set_sender_evm_address(OTHER_ADDRESS)
+
+    assert query.sender is None
+    assert query.sender_evm_address == OTHER_ADDRESS
+    assert query._build_payload()["from"] == "0x" + OTHER_ADDRESS
+
+
+@pytest.mark.parametrize("query_class", QUERY_CLASSES)
+def test_set_sender_clears_sender_evm_address(query_class):
     query = query_class(CONTRACT_ID).set_sender_evm_address(OTHER_ADDRESS).set_sender(SENDER_ID)
 
-    assert query._build_payload()["from"] == "0x" + OTHER_ADDRESS
+    assert query.sender_evm_address is None
+    assert query.sender == SENDER_ID
+    assert query._build_payload()["from"] == "0x" + SENDER_ADDRESS
 
 
 def test_contract_id_with_evm_address_uses_that_address():
