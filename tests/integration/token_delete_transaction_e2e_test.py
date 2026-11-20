@@ -4,24 +4,19 @@ import pytest
 
 from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_delete_transaction import TokenDeleteTransaction
-from tests.integration.utils import IntegrationTestEnv, create_fungible_token
+from tests.integration.utils import create_fungible_token
 
 
 @pytest.mark.integration
-def test_integration_token_delete_transaction_can_execute():
-    env = IntegrationTestEnv()
+def test_integration_token_delete_transaction_can_execute(env):
+    token_id = create_fungible_token(env)
 
-    try:
-        token_id = create_fungible_token(env)
+    assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
 
-        assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
+    transaction = TokenDeleteTransaction(token_id=token_id)
+    transaction.freeze_with(env.client)
+    receipt = transaction.execute(env.client)
 
-        transaction = TokenDeleteTransaction(token_id=token_id)
-        transaction.freeze_with(env.client)
-        receipt = transaction.execute(env.client)
-
-        assert receipt.status == ResponseCode.SUCCESS, (
-            f"Token deletion failed with status: {ResponseCode(receipt.status).name}"
-        )
-    finally:
-        env.close()
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token deletion failed with status: {ResponseCode(receipt.status).name}"
+    )

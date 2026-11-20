@@ -57,20 +57,15 @@ def _delete_contract_best_effort(env: IntegrationTestEnv, contract_id: ContractI
         print(f"[cleanup] Exception while deleting contract {contract_id}: {e}")
 
 
-def test_integration_account_balance_query_can_execute():
-    env = IntegrationTestEnv()
-    try:
-        balance = CryptoGetAccountBalanceQuery(account_id=env.operator_id).execute(env.client)
-        assert balance is not None
-        assert hasattr(balance, "hbars")
-        assert balance.hbars is not None
-        assert balance.hbars.to_tinybars() >= 0
-    finally:
-        env.close()
+def test_integration_account_balance_query_can_execute(env):
+    balance = CryptoGetAccountBalanceQuery(account_id=env.operator_id).execute(env.client)
+    assert balance is not None
+    assert hasattr(balance, "hbars")
+    assert balance.hbars is not None
+    assert balance.hbars.to_tinybars() >= 0
 
 
-def test_integration_contract_balance_query_can_execute():
-    env = IntegrationTestEnv()
+def test_integration_contract_balance_query_can_execute(env):
     contract_id: ContractId | None = None
     try:
         contract_id = _create_test_contract(env)
@@ -84,33 +79,20 @@ def test_integration_contract_balance_query_can_execute():
     finally:
         if contract_id is not None:
             _delete_contract_best_effort(env, contract_id)
-        env.close()
 
 
-def test_integration_balance_query_raises_when_neither_source_set():
-    env = IntegrationTestEnv()
-    try:
-        with pytest.raises(PrecheckError) as err:
-            CryptoGetAccountBalanceQuery().execute(env.client)
+def test_integration_balance_query_raises_when_neither_source_set(env):
+    with pytest.raises(PrecheckError) as err:
+        CryptoGetAccountBalanceQuery().execute(env.client)
 
-        assert err.value.status == ResponseCode.INVALID_ACCOUNT_ID
-    finally:
-        env.close()
+    assert err.value.status == ResponseCode.INVALID_ACCOUNT_ID
 
 
-def test_integration_balance_query_with_invalid_account_id_raises():
-    env = IntegrationTestEnv()
-    try:
-        with pytest.raises(TypeError, match=r"account_id must be an AccountId\."):
-            CryptoGetAccountBalanceQuery().set_account_id("0.0.12345").execute(env.client)
-    finally:
-        env.close()
+def test_integration_balance_query_with_invalid_account_id_raises(env):
+    with pytest.raises(TypeError, match=r"account_id must be an AccountId\."):
+        CryptoGetAccountBalanceQuery().set_account_id("0.0.12345").execute(env.client)
 
 
-def test_integration_balance_query_with_invalid_contract_id_raises():
-    env = IntegrationTestEnv()
-    try:
-        with pytest.raises(TypeError, match=r"contract_id must be a ContractId\."):
-            CryptoGetAccountBalanceQuery().set_contract_id("0.0.12345").execute(env.client)
-    finally:
-        env.close()
+def test_integration_balance_query_with_invalid_contract_id_raises(env):
+    with pytest.raises(TypeError, match=r"contract_id must be a ContractId\."):
+        CryptoGetAccountBalanceQuery().set_contract_id("0.0.12345").execute(env.client)
