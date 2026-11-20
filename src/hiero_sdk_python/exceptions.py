@@ -114,3 +114,45 @@ class ReceiptStatusError(Exception):
 
     def __repr__(self) -> str:
         return f"ReceiptStatusError(status={self.status}, transaction_id={self.transaction_id})"
+
+
+class MirrorNodeError(RuntimeError):
+    """
+    Exception raised when the mirror node REST API answers with an error status.
+
+    The mirror node puts the reason for a failure in ``_status.messages[]``.
+    For a contract call that reverts, this is the only place the revert
+    reason appears, so the messages are kept on the exception and included
+    in its text.
+
+    Attributes:
+        status_code (int): The HTTP status code returned by the mirror node.
+        messages (list[str]): The ``_status.messages[]`` entries, each formatted as
+            ``"<message>: <detail>"`` (or just ``"<message>"`` when there is no detail).
+        data (list[str]): The ``data`` field of each ``_status.messages[]`` entry that
+            has one, for example the ABI-encoded revert reason.
+        message (str): The full error message.
+    """
+
+    def __init__(
+        self,
+        status_code: int,
+        messages: list[str] | None = None,
+        data: list[str] | None = None,
+    ) -> None:
+        self.status_code = status_code
+        self.messages = list(messages or [])
+        self.data = list(data or [])
+
+        message = f"Mirror node returned HTTP {status_code}"
+        if self.messages:
+            message += ": " + "; ".join(self.messages)
+
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self) -> str:
+        return self.message
+
+    def __repr__(self) -> str:
+        return f"MirrorNodeError(status_code={self.status_code}, messages={self.messages!r})"
