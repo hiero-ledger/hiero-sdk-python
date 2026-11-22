@@ -171,8 +171,8 @@ class TokenUpdateNftsTransaction(Transaction):
         return self
 
     @classmethod
-    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenUpdateNftsTransactionBody:
-        """Create token update nfts transaction transaction from protobuf message."""
+    def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenUpdateNftsTransaction:
+        """Create token update nfts transaction from protobuf message."""
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("token_update_nfts"):
@@ -184,6 +184,6 @@ class TokenUpdateNftsTransaction(Transaction):
             if proto_body.HasField("metadata"):
                 transaction.metadata = proto_body.metadata.value
 
-            transaction.serial_numbers = [serial for serial in proto_body.serial_numbers]
+            transaction.serial_numbers = list(proto_body.serial_numbers)
 
         return transaction

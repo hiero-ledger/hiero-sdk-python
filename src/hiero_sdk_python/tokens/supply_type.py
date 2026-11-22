@@ -26,7 +26,7 @@ class SupplyType(Enum):
 
     @staticmethod
     def _from_proto(proto: basic_types_pb2.TokenSupplyType) -> SupplyType:
-        """Create token supply type from prorobuf message."""
+        """Create token supply type from protobuf message."""
         if proto == basic_types_pb2.TokenSupplyType.FINITE:
             return SupplyType.FINITE
         if proto == basic_types_pb2.TokenSupplyType.INFINITE:

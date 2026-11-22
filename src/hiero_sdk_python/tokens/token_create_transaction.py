@@ -461,7 +461,7 @@ class TokenCreateTransaction(Transaction):
 
     @classmethod
     def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenCreateTransaction:
-        """Create token create transaction transaction from protobuf message."""
+        """Create token create transaction from protobuf message."""
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("tokenCreation"):

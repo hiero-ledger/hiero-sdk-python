@@ -95,7 +95,7 @@ class TokenFeeScheduleUpdateTransaction(Transaction):
 
     @classmethod
     def _from_protobuf(cls, transaction_body: transaction_pb2.TransactionBody) -> TokenFeeScheduleUpdateTransaction:
-        """Create token fee schedule update transaction transaction from protobuf message."""
+        """Create token fee schedule update transaction from protobuf message."""
         transaction = super()._from_protobuf(transaction_body)
 
         if transaction_body.HasField("token_fee_schedule_update"):
