@@ -138,3 +138,35 @@ def test_token_id_nft_accepts_int64_max():
     assert nft.token_id == token_id
     assert nft.serial_number == max_serial
     assert nft._to_proto().serial_number == max_serial
+
+
+def test_token_id_bytes_round_trip():
+    """Should correctly convert TokenId to bytes and back."""
+    token_id = TokenId(0, 0, 1234)
+
+    data = token_id.to_bytes()
+    restored = TokenId.from_bytes(data)
+
+    assert token_id == restored
+
+
+def test_token_id_to_bytes_returns_bytes():
+    """Should return bytes when converting TokenId to bytes."""
+    token_id = TokenId(0, 0, 1234)
+
+    result = token_id.to_bytes()
+
+    assert isinstance(result, bytes)
+
+
+@pytest.mark.parametrize("incorrect_type", ["abc", None])
+def test_token_id_from_bytes_rejects_non_bytes(incorrect_type):
+    """Should raise TypeError for non-bytes values."""
+    with pytest.raises(TypeError):
+        TokenId.from_bytes(incorrect_type)
+
+
+def test_token_id_from_bytes_rejects_corrupted_bytes():
+    """Should raise ValueError for corrupted bytes."""
+    with pytest.raises(ValueError):
+        TokenId.from_bytes(b"\xff\xff\xff")
