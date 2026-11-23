@@ -409,7 +409,9 @@ class TokenCreateTransaction(Transaction):
             supplyType=supply_type_value,
             maxSupply=self._token_params.max_supply,
             freezeDefault=self._token_params.freeze_default,
-            treasury=self._token_params.treasury_account_id._to_proto(),
+            treasury=self._token_params.treasury_account_id._to_proto()
+            if self._token_params.treasury_account_id is not None
+            else None,
             expiry=(self._token_params.expiration_time._to_protobuf() if self._token_params.expiration_time else None),
             autoRenewAccount=(
                 self._token_params.auto_renew_account_id._to_proto()
