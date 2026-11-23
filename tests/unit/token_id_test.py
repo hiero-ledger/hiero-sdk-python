@@ -142,7 +142,7 @@ def test_token_id_nft_accepts_int64_max():
 
 def test_token_id_bytes_round_trip():
     """Should correctly convert TokenId to bytes and back."""
-    token_id = TokenId(0, 0, 1234)
+    token_id = TokenId(1, 2, 1234)
 
     data = token_id.to_bytes()
     restored = TokenId.from_bytes(data)
