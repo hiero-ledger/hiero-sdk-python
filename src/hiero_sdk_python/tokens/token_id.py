@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from google.protobuf.message import DecodeError
+
 
 if TYPE_CHECKING:
     from hiero_sdk_python.tokens.nft_id import NftId
@@ -61,6 +63,28 @@ class TokenId:
             raise ValueError("Num must be >= 0")
 
     @classmethod
+    def from_bytes(cls, data: bytes) -> TokenId:
+        """Deserialize a TokenId from protobuf-encoded bytes.
+
+        Args:
+            data (bytes): Protobuf bytes
+
+        Returns:
+            TokenId: An instance of TokenId
+
+        Raises:
+            TypeError: If data is not of type bytes.
+            ValueError: If data cannot be decoded into a valid TokenId protobuf.
+        """
+        if not isinstance(data, bytes):
+            raise TypeError("data must be bytes")
+        try:
+            token_id_proto = basic_types_pb2.TokenID.FromString(data)
+        except DecodeError as e:
+            raise ValueError("data is not valid TokenId protobuf data") from e
+        return cls._from_proto(token_id_proto)
+
+    @classmethod
     def _from_proto(cls, token_id_proto: basic_types_pb2.TokenID) -> TokenId:
         """Creates a TokenId instance from a protobuf TokenID object.
 
@@ -90,6 +114,12 @@ class TokenId:
         token_id_proto.realmNum = self.realm
         token_id_proto.tokenNum = self.num
         return token_id_proto
+
+    def to_bytes(self) -> bytes:
+        """Serialize this TokenId to protobuf bytes.
+
+        Checksum is not part of the serialized data and hence not included in conversion."""
+        return self._to_proto().SerializeToString()
 
     @classmethod
     def from_string(cls, token_id_str: str) -> TokenId:
