@@ -22,7 +22,7 @@ from dotenv import load_dotenv
 from hiero_sdk_python import (
     AccountId,
     Client,
-    CryptoGetAccountBalanceQuery,
+    MirrorNodeAccountBalanceQuery,
     PrivateKey,
 )
 
@@ -56,8 +56,8 @@ def setup_client() -> Client:
 
 
 def query_account_balance(client: Client, account_id: AccountId):
-    """Execute a CryptoGetAccountBalanceQuery for the given account."""
-    query = CryptoGetAccountBalanceQuery().set_account_id(account_id)
+    """Execute a MirrorNodeAccountBalanceQuery for the given account."""
+    query = MirrorNodeAccountBalanceQuery().set_account_id(account_id)
     balance = query.execute(client)
     print(f"Operator account {account_id} balance: {balance.hbars.to_hbars()} hbars")
 
