@@ -3,7 +3,7 @@
 
 """
 
-Example: Use CryptoGetAccountBalanceQuery to retrieve an account's.
+Example: Use MirrorNodeAccountBalanceQuery to retrieve an account's.
 
 HBAR and token balances, including minting NFTs to the account.
 """
@@ -23,7 +23,9 @@ from hiero_sdk_python import (
     TokenMintTransaction,
     TokenType,
 )
-from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
+
+# from hiero_sdk_python.query.account_balance_query import CryptoGetAccountBalanceQuery
+from hiero_sdk_python.query.mirror_node_account_balance_query import MirrorNodeAccountBalanceQuery
 from hiero_sdk_python.tokens.token_id import TokenId
 
 
@@ -96,11 +98,11 @@ def create_and_mint_token(treasury_account_id, treasury_account_key, client):
 
 
 def get_account_balance(client: Client, account_id: AccountId):
-    """Get account balance using CryptoGetAccountBalanceQuery."""
+    """Get account balance using MirrorNodeAccountBalanceQuery."""
     print(f"Retrieving account balance for account id: {account_id}  ...")
     try:
-        # Use CryptoGetAccountBalanceQuery to get the account balance
-        account_balance = CryptoGetAccountBalanceQuery().set_account_id(account_id).execute(client)
+        # Use MirrorNodeAccountBalanceQuery to get the account balance
+        account_balance = MirrorNodeAccountBalanceQuery(account_id).execute(client)
         print("✅ Account balance retrieved successfully!")
         # Print account balance with account_id context
         print(f"💰 HBAR Balance for {account_id}: {account_balance.hbars} hbars")
