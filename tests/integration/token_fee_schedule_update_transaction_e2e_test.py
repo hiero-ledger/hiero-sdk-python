@@ -197,3 +197,35 @@ def test_token_fee_schedule_update_clears_fees(env):
 
     token_info_cleared = TokenInfoQuery().set_token_id(token_id).execute(env.client)
     assert len(token_info_cleared.custom_fees) == 0
+
+
+@pytest.mark.integration
+def test_update_token_fee_schedule_from_bytes(env):
+    """Test token update fee schedule transaction can be executed from bytes."""
+    fee_schedule_key = env.operator_key
+    token_id = create_fungible_token(env, opts=[lambda tx: tx.set_fee_schedule_key(fee_schedule_key)])
+    assert token_id is not None
+
+    new_fee = CustomFixedFee(
+        amount=25,
+        fee_collector_account_id=env.operator_id,
+    )
+    original_tx = (
+        TokenFeeScheduleUpdateTransaction()
+        .set_token_id(token_id)
+        .set_custom_fees([new_fee])
+        .freeze_with(env.client)
+        .sign(fee_schedule_key)
+    )
+
+    copy_tx = TokenFeeScheduleUpdateTransaction.from_bytes(original_tx.to_bytes())
+
+    receipt = copy_tx.execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, f"Fee schedule update failed: {ResponseCode(receipt.status).name}"
+
+    token_info = TokenInfoQuery().set_token_id(token_id).execute(env.client)
+    assert token_info.custom_fees and len(token_info.custom_fees) == 1, (
+        "Custom fee must be present and should have length 1"
+    )
+    retrieved_fee = token_info.custom_fees[0]
+    assert isinstance(retrieved_fee, CustomFixedFee) and retrieved_fee.amount == 25, "Custom fee amount must be 25"

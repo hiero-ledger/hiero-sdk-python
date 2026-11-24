@@ -932,3 +932,35 @@ def test_integration_token_update_with_mixed_key_types(env):
 
     # Verify supply key (from PublicKey)
     assert token_info.supply_key.to_bytes_raw() == supply_public_key.to_bytes_raw()
+
+
+@pytest.mark.integration
+def test_token_update_from_bytes(env):
+    """Test token update transaction can be executed from bytes."""
+    token_id = create_fungible_token(env)
+    auto_renew_period = Duration(2592000)
+
+    original_tx = (
+        TokenUpdateTransaction()
+        .set_token_id(token_id)
+        .set_token_name("UpdatedName")
+        .set_token_symbol("UPD")
+        .set_auto_renew_period(auto_renew_period)
+        .set_freeze_key(private_key)
+    )
+
+    copy_tx = TokenUpdateTransaction.from_bytes(original_tx.to_bytes())
+    receipt = copy_tx.execute(env.client)
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token update transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    info = TokenInfoQuery().set_token_id(token_id).execute(env.client)
+
+    assert info.name == "UpdatedName", "Token failed to update"
+    assert info.symbol == "UPD", "Token symbol failed to update"
+    assert info.auto_renew_period == auto_renew_period, "Token auto_renew_period failed to update"
+    assert info.freeze_key.to_bytes_raw() == private_key.public_key().to_bytes_raw(), (
+        "Freeze key did not update correctly"
+    )
+    assert info.admin_key.to_bytes_raw() == env.public_operator_key.to_bytes_raw(), "Admin key mismatch after update"
