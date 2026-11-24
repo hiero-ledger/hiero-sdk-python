@@ -137,6 +137,31 @@ def test_from_proto_with_token_relationships():
     assert account_info.token_relationships == []
 
 
+def test_from_proto_with_alias_ledger_id_and_ethereum_nonce():
+    proto = CryptoGetInfoResponse.AccountInfo(
+        alias=b"account-alias",
+        ledger_id=b"ledger-id",
+        ethereum_nonce=42,
+        key=PrivateKey.generate_ed25519().public_key()._to_proto(),
+    )
+
+    account_info = AccountInfo._from_proto(proto)
+
+    assert account_info.alias == b"account-alias"
+    assert account_info.ledger_id == b"ledger-id"
+    assert account_info.ethereum_nonce == 42
+
+
+def test_from_proto_with_unset_alias_ledger_id_and_ethereum_nonce():
+    proto = CryptoGetInfoResponse.AccountInfo(key=PrivateKey.generate_ed25519().public_key()._to_proto())
+
+    account_info = AccountInfo._from_proto(proto)
+
+    assert account_info.alias is None
+    assert account_info.ledger_id is None
+    assert account_info.ethereum_nonce == 0
+
+
 def test_from_proto_none_raises_error():
     """Test the from_proto method of the AccountInfo class with a None proto"""
     with pytest.raises(ValueError, match="Account info proto is None"):
@@ -192,6 +217,19 @@ def test_to_proto_with_none_values():
     assert proto.tokenRelationships == []
     assert proto.memo == ""  # Empty string is default for protobuf
     assert proto.ownedNfts == 0  # 0 is default for protobuf int
+    assert proto.alias == b""
+    assert proto.ledger_id == b""
+    assert proto.ethereum_nonce == 0
+
+
+def test_to_proto_with_alias_ledger_id_and_ethereum_nonce():
+    account_info = AccountInfo(alias=b"account-alias", ledger_id=b"ledger-id", ethereum_nonce=42)
+
+    proto = account_info._to_proto()
+
+    assert proto.alias == b"account-alias"
+    assert proto.ledger_id == b"ledger-id"
+    assert proto.ethereum_nonce == 42
 
 
 def test_proto_conversion(account_info):
