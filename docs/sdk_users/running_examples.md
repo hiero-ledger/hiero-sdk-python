@@ -68,6 +68,8 @@ You can choose either syntax or even mix both styles in your projects.
 - [Contract Transactions](#contract-transactions)
   - [Creating a Contract](#creating-a-contract)
   - [Querying a Contract Call](#querying-a-contract-call)
+  - [Querying a Contract Call Using Mirror Node](#querying-a-contract-call-using-mirror-node)
+  - [Estimating Contract Gas Using Mirror Node](#estimating-contract-gas-using-mirror-node)
   - [Querying Contract Info](#querying-contract-info)
   - [Querying Contract Bytecode](#querying-contract-bytecode)
   - [Updating a Contract](#updating-a-contract)
@@ -1665,6 +1667,72 @@ print(f"Owner: {result_values[1]}")
 # - result.get_address(1)   // second return value
 # - result.get_uint256(2)   // third return value
 # - result.get_bool(3)      // fourth return value
+```
+
+### Querying a Contract Call Using Mirror Node
+
+Runnable example, including deployment and waiting for the mirror node: [`examples/contract/mirror_node_contract_call_query.py`](../../examples/contract/mirror_node_contract_call_query.py).
+
+Free and operator-less: the mirror node simulates the call (`eth_call` semantics), so there is no
+query payment and no consensus node round trip. The result is the ABI-encoded return value as a
+`0x`-prefixed hex string; wrap its bytes in `ContractFunctionResult` to decode it. A call that
+reverts raises `MirrorNodeError`, whose message includes the revert reason.
+
+The mirror node lags consensus by a few seconds. Until it has imported a newly deployed contract,
+both queries succeed against an empty address: a call returns `"0x"` and a gas estimate is too
+low for the real call. Right after deploying or updating a contract, poll until the mirror node
+returns the expected state.
+
+#### Pythonic Syntax:
+```python
+query = MirrorNodeContractCallQuery(contract_id)
+query.set_function("getMessage")
+result_hex = query.execute(client)
+
+message = ContractFunctionResult(contract_call_result=bytes.fromhex(result_hex[2:])).get_bytes32(0)
+```
+
+#### Method Chaining:
+```python
+result_hex = (
+    MirrorNodeContractCallQuery()
+    .set_contract_id(contract_id)          # or .set_contract_evm_address("0x...")
+    .set_sender(operator_id)               # optional, the simulated msg.sender
+    .set_function("getMessage")
+    .execute(client)
+)
+
+message = ContractFunctionResult(contract_call_result=bytes.fromhex(result_hex[2:])).get_bytes32(0)
+```
+
+### Estimating Contract Gas Using Mirror Node
+
+Runnable example, including deployment and waiting for the mirror node: [`examples/contract/mirror_node_contract_estimate_gas_query.py`](../../examples/contract/mirror_node_contract_estimate_gas_query.py).
+
+Asks the mirror node for the gas a call needs, so a `ContractExecuteTransaction` can use it instead
+of a guessed value. Set the sender when the function checks `msg.sender`.
+
+#### Pythonic Syntax:
+```python
+query = MirrorNodeContractEstimateGasQuery(contract_id)
+query.set_sender(operator_id)
+query.set_function("setMessage", ContractFunctionParameters().add_bytes32(b"new message"))
+gas = query.execute(client)
+```
+
+#### Method Chaining:
+```python
+gas = (
+    MirrorNodeContractEstimateGasQuery()
+    .set_contract_id(contract_id)
+    .set_sender(operator_id)
+    .set_function("setMessage", ContractFunctionParameters().add_bytes32(b"new message"))
+    .execute(client)
+)
+
+ContractExecuteTransaction().set_contract_id(contract_id).set_gas(gas).set_function(
+    "setMessage", ContractFunctionParameters().add_bytes32(b"new message")
+).execute(client)
 ```
 
 ### Querying Contract Info
