@@ -6,6 +6,8 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass, field
 
+from google.protobuf.message import DecodeError
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.key import Key
 from hiero_sdk_python.crypto.public_key import PublicKey
@@ -85,12 +87,23 @@ class AccountInfo:
         if proto is None:
             raise ValueError("Account info proto is None")
 
+        alias = None
+        if proto.alias:
+            # AccountInfo.alias is only a public key. Ignore EVM-sized aliases,
+            # malformed bytes, and serialized key structures such as KeyList.
+            try:
+                parsed_alias = Key.from_bytes(proto.alias)
+                if isinstance(parsed_alias, PublicKey):
+                    alias = parsed_alias
+            except (DecodeError, TypeError, ValueError):
+                pass
+
         account_info: AccountInfo = cls(
             account_id=AccountId._from_proto(proto.accountID) if proto.accountID else None,
             contract_account_id=proto.contractAccountID,
             is_deleted=proto.deleted,
             proxy_received=Hbar.from_tinybars(proto.proxyReceived),
-            key=Key.from_proto_key(proto.key) if proto.key else None,
+            key=Key.from_proto_key(proto.key) if proto.HasField("key") else None,
             balance=Hbar.from_tinybars(proto.balance),
             receiver_signature_required=proto.receiverSigRequired,
             expiration_time=(Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None),
@@ -102,7 +115,7 @@ class AccountInfo:
             owned_nfts=proto.ownedNfts,
             max_automatic_token_associations=proto.max_automatic_token_associations,
             staking_info=(StakingInfo._from_proto(proto.staking_info) if proto.HasField("staking_info") else None),
-            alias=Key.from_bytes(proto.alias) if proto.alias else None,
+            alias=alias,
             ledger_id=proto.ledger_id or None,
             ethereum_nonce=proto.ethereum_nonce,
         )

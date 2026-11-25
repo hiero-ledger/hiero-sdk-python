@@ -4,6 +4,7 @@ import pytest
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.account.account_info import AccountInfo
+from hiero_sdk_python.crypto.key_list import KeyList
 from hiero_sdk_python.crypto.private_key import PrivateKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services.basic_types_pb2 import StakingInfo as StakingInfoProto
@@ -153,6 +154,15 @@ def test_from_proto_with_alias_ledger_id_and_ethereum_nonce():
     assert account_info.ethereum_nonce == 42
 
 
+@pytest.mark.parametrize("alias", [b"\x01" * 20, b"not a serialized key"])
+def test_from_proto_with_non_public_key_alias(alias):
+    proto = CryptoGetInfoResponse.AccountInfo(alias=alias)
+
+    account_info = AccountInfo._from_proto(proto)
+
+    assert account_info.alias is None
+
+
 def test_from_proto_with_unset_alias_ledger_id_and_ethereum_nonce():
     proto = CryptoGetInfoResponse.AccountInfo(key=PrivateKey.generate_ed25519().public_key()._to_proto())
 
@@ -276,6 +286,18 @@ def test_proto_conversion_with_staking_info():
     assert restored.staking_info.staked_to_me.to_tinybars() == 700
     assert restored.staking_info.staked_account_id == AccountId(0, 0, 200)
     assert restored.staking_info.stake_period_start == Timestamp(1625097600, 0)
+
+
+def test_key_list_round_trips_in_account_key():
+    original_key = KeyList(
+        keys=[PrivateKey.generate_ed25519().public_key(), PrivateKey.generate_ed25519().public_key()]
+    )
+    original = AccountInfo(key=original_key)
+
+    restored = AccountInfo._from_proto(original._to_proto())
+
+    assert isinstance(restored.key, KeyList)
+    assert restored.key.to_proto_key() == original_key.to_proto_key()
 
 
 def test_str_and_repr(account_info):
