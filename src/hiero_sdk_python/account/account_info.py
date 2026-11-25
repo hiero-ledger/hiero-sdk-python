@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services.crypto_get_info_pb2 import CryptoGetInfoResponse
 from hiero_sdk_python.hbar import Hbar
@@ -39,7 +40,7 @@ class AccountInfo:
         account_memo (str, optional): The memo associated with this account.
         owned_nfts (int, optional): The number of NFTs owned by this account.
         staking_info (StakingInfo, optional): The staking information for this account.
-        alias (bytes, optional): The account's cryptographic alias.
+        alias (PublicKey, optional): The account's cryptographic alias.
         ledger_id (bytes, optional): The ID of the ledger this account belongs to.
         ethereum_nonce (int, optional): The account's Ethereum transaction nonce.
     """
@@ -58,7 +59,7 @@ class AccountInfo:
     owned_nfts: int | None = None
     max_automatic_token_associations: int | None = None
     staking_info: StakingInfo | None = None
-    alias: bytes | None = None
+    alias: PublicKey | None = None
     ledger_id: bytes | None = None
     ethereum_nonce: int | None = None
 
@@ -101,7 +102,7 @@ class AccountInfo:
             owned_nfts=proto.ownedNfts,
             max_automatic_token_associations=proto.max_automatic_token_associations,
             staking_info=(StakingInfo._from_proto(proto.staking_info) if proto.HasField("staking_info") else None),
-            alias=proto.alias or None,
+            alias=Key.from_bytes(proto.alias) if proto.alias else None,
             ledger_id=proto.ledger_id or None,
             ethereum_nonce=proto.ethereum_nonce,
         )
@@ -138,7 +139,7 @@ class AccountInfo:
             memo=self.account_memo,
             ownedNfts=self.owned_nfts,
             max_automatic_token_associations=self.max_automatic_token_associations,
-            alias=self.alias,
+            alias=self.alias.to_bytes() if self.alias else None,
             ledger_id=self.ledger_id,
             ethereum_nonce=self.ethereum_nonce,
         )

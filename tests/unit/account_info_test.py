@@ -138,8 +138,9 @@ def test_from_proto_with_token_relationships():
 
 
 def test_from_proto_with_alias_ledger_id_and_ethereum_nonce():
+    alias = PrivateKey.generate_ed25519().public_key()
     proto = CryptoGetInfoResponse.AccountInfo(
-        alias=b"account-alias",
+        alias=alias.to_bytes(),
         ledger_id=b"ledger-id",
         ethereum_nonce=42,
         key=PrivateKey.generate_ed25519().public_key()._to_proto(),
@@ -147,7 +148,7 @@ def test_from_proto_with_alias_ledger_id_and_ethereum_nonce():
 
     account_info = AccountInfo._from_proto(proto)
 
-    assert account_info.alias == b"account-alias"
+    assert account_info.alias == alias
     assert account_info.ledger_id == b"ledger-id"
     assert account_info.ethereum_nonce == 42
 
@@ -223,11 +224,12 @@ def test_to_proto_with_none_values():
 
 
 def test_to_proto_with_alias_ledger_id_and_ethereum_nonce():
-    account_info = AccountInfo(alias=b"account-alias", ledger_id=b"ledger-id", ethereum_nonce=42)
+    alias = PrivateKey.generate_ed25519().public_key()
+    account_info = AccountInfo(alias=alias, ledger_id=b"ledger-id", ethereum_nonce=42)
 
     proto = account_info._to_proto()
 
-    assert proto.alias == b"account-alias"
+    assert proto.alias == alias.to_bytes()
     assert proto.ledger_id == b"ledger-id"
     assert proto.ethereum_nonce == 42
 
