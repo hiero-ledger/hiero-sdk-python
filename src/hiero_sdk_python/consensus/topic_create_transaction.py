@@ -209,7 +209,9 @@ class TopicCreateTransaction(Transaction):
         """
         if client is not None and client.operator_account_id is not None and self.auto_renew_account is None:
             self.auto_renew_account = (
-                self.transaction_id.account_id if self.transaction_id is not None else client.operator_account_id
+                self._current_transaction_id.account_id
+                if self._current_transaction_id is not None
+                else client.operator_account_id
             )
 
         return super().freeze_with(client)

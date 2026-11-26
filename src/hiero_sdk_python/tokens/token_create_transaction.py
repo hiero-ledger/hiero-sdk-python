@@ -351,7 +351,7 @@ class TokenCreateTransaction(Transaction):
         """
         if self._token_params.auto_renew_account_id is None and self._token_params.auto_renew_period:
             self._token_params.auto_renew_account_id = (
-                self.transaction_id.account_id if self.transaction_id else client.operator_account_id
+                self._current_transaction_id.account_id if self._current_transaction_id else client.operator_account_id
             )
 
         return super().freeze_with(client)
