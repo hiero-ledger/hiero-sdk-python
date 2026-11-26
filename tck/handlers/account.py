@@ -227,9 +227,9 @@ def _build_account_info_response(info: AccountInfo) -> GetAccountInfoResponse:
         maxAutomaticTokenAssociations=str(info.max_automatic_token_associations)
         if info.max_automatic_token_associations is not None
         else "0",
-        aliasKey="",
-        ledgerId="",
-        ethereumNonce="0",
+        aliasKey=key_to_string(info.alias),
+        ledgerId=info.ledger_id.hex() if info.ledger_id is not None else None,
+        ethereumNonce=str(info.ethereum_nonce) if info.ethereum_nonce is not None else "0",
         stakingInfo=_to_staking_info_response(info),
     )
 
