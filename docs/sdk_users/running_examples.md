@@ -1696,8 +1696,8 @@ message = ContractFunctionResult(contract_call_result=bytes.fromhex(result_hex[2
 ```python
 result_hex = (
     MirrorNodeContractCallQuery()
-    .set_contract_id(contract_id)          # or .set_contract_evm_address("0x...")
-    .set_sender(operator_id)               # optional, the simulated msg.sender
+    .set_contract_id(contract_id)  # or .set_contract_evm_address("0x...")
+    .set_sender(operator_id)  # optional, the simulated msg.sender
     .set_function("getMessage")
     .execute(client)
 )
