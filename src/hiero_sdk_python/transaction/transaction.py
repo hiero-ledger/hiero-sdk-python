@@ -1108,6 +1108,7 @@ class Transaction(_Executable):
             signed_transaction = transaction_contents_pb2.SignedTransaction(bodyBytes=transaction_proto.bodyBytes)
             if transaction_proto.HasField("sigMap"):
                 signed_transaction.sigMap.CopyFrom(transaction_proto.sigMap)
+            is_frozen = False
 
         elif transaction_proto.signedTransactionBytes:
             try:
@@ -1115,6 +1116,7 @@ class Transaction(_Executable):
                 signed_transaction.ParseFromString(transaction_proto.signedTransactionBytes)
             except Exception as e:
                 raise ValueError(f"Failed to parse signed transaction: {e}") from e
+            is_frozen = True
 
         else:
             raise ValueError("Transaction does not contain bodyBytes or signedTransactionBytes")
@@ -1133,7 +1135,7 @@ class Transaction(_Executable):
         if transaction_class is None:
             raise ValueError(f"Unknown transaction type: {transaction_type}")
 
-        return transaction_class, transaction_body, signed_transaction
+        return transaction_class, transaction_body, signed_transaction, is_frozen
 
     # For backward compatiblity only
     @staticmethod
@@ -1145,16 +1147,17 @@ class Transaction(_Executable):
         except Exception as e:
             raise ValueError(f"Failed to parse transaction bytes: {e}") from e
 
-        transaction_class, transaction_body, signed_transaction = Transaction._process_base_transaction(
+        transaction_class, transaction_body, signed_transaction, is_frozen = Transaction._process_base_transaction(
             transaction_proto
         )
 
         transaction = transaction_class._from_protobuf(transaction_body)
 
-        Transaction._restore_signatures(
+        Transaction._restore_prepared_transaction(
             transaction,
             transaction,
             signed_transaction,
+            is_frozen,
         )
 
         Transaction._lock_restored_transaction(transaction)
@@ -1169,7 +1172,7 @@ class Transaction(_Executable):
         bodies: list[transaction_pb2.TransactionBody] = []
 
         for transaction_proto in transaction_list.transaction_list:
-            transaction_class, transaction_body, signed_transaction = Transaction._process_base_transaction(
+            transaction_class, transaction_body, signed_transaction, is_frozen = Transaction._process_base_transaction(
                 transaction_proto
             )
 
@@ -1194,10 +1197,11 @@ class Transaction(_Executable):
 
             bodies.append(transaction_body)
 
-            Transaction._restore_signatures(
+            Transaction._restore_prepared_transaction(
                 restored_transaction,
                 transaction,
                 signed_transaction,
+                is_frozen,
             )
 
         if restored_transaction is None:
@@ -1225,22 +1229,30 @@ class Transaction(_Executable):
         return restored_transaction
 
     @staticmethod
-    def _restore_signatures(restored_transaction: Transaction, transaction: Transaction, signed_transaction) -> None:
-        """Restores signature maps and body bytes."""
+    def _restore_prepared_transaction(
+        restored_transaction: Transaction,
+        transaction: Transaction,
+        signed_transaction: transaction_contents_pb2.SignedTransaction,
+        is_frozen: bool,
+    ) -> None:
+        """Restores signature maps and body bytes.
 
-        if not signed_transaction.HasField("sigMap"):
+        Body bytes are restored for frozen transactions (regardless of whether a
+        sigMap is present) so that multi-chunk transactions can be re-executed
+        without re-freezing.
+        """
+        if not is_frozen:
             return
-
-        if signed_transaction.sigMap.sigPair:
-            restored_transaction._signature_map[signed_transaction.bodyBytes] = signed_transaction.sigMap
 
         if not transaction._transaction_ids.is_empty and not transaction._node_account_ids.is_empty:
             tx_id = transaction._transaction_ids.get(0)
-
             restored_transaction._transaction_body_bytes.setdefault(tx_id, {})
             restored_transaction._transaction_body_bytes[tx_id][transaction._node_account_ids.get(0)] = (
                 signed_transaction.bodyBytes
             )
+
+        if signed_transaction.HasField("sigMap") and signed_transaction.sigMap.sigPair:
+            restored_transaction._signature_map[signed_transaction.bodyBytes] = signed_transaction.sigMap
 
     @staticmethod
     def _lock_restored_transaction(transaction: Transaction) -> None:
