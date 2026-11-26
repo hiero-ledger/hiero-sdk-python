@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 from hiero_sdk_python.utils.ethereum_encoding_utils import (
-    _UINT64_MAX,
     _big_int_to_eth_bytes,
     _eth_bytes_to_big_int,
     _eth_bytes_to_uint64,
@@ -13,18 +12,30 @@ from hiero_sdk_python.utils.ethereum_encoding_utils import (
 
 pytestmark = pytest.mark.unit
 
+# _uint64_to_eth_bytes
+
 
 @pytest.mark.parametrize(
-    ("value", "encoded_hex"), [(0, ""), (1, "01"), (10, "0a"), (256, "0100"), (0xFFF, "0fff"), (0xDEADBEEF, "deadbeef")]
+    ("value", "encoded_hex"),
+    [
+        (0, ""),
+        (1, "01"),
+        (10, "0a"),
+        (256, "0100"),
+        (0xFFF, "0fff"),
+        (0xDEADBEEF, "deadbeef"),
+        (2**64 - 1, "ffffffffffffffff"),
+    ],
 )
 def test_uint64_encoding(value, encoded_hex):
     """Test uint64 encoding."""
     encoded_bytes = _uint64_to_eth_bytes(value)
     assert encoded_bytes is not None
+    assert not encoded_bytes.startswith(b"\x00")
     assert encoded_bytes.hex() == encoded_hex
 
 
-@pytest.mark.parametrize("value", [_UINT64_MAX + 1, -1])
+@pytest.mark.parametrize("value", [2**64, 2**64 + 1, -1])
 def test_uint64_encoding_rejects_out_of_range_values(value):
     """Test that uint64 encoding rejects values outside the valid range."""
     with pytest.raises(ValueError, match="value is out of range for uint64"):
@@ -36,6 +47,9 @@ def test_uint64_encoding_rejects_invalid_type(value):
     """Test that uint64 encoding rejects invalid type."""
     with pytest.raises(TypeError, match="value must be of type int"):
         _uint64_to_eth_bytes(value)
+
+
+# _eth_bytes_to_big_int
 
 
 @pytest.mark.parametrize("value", [b"", None])
@@ -59,13 +73,22 @@ def test_eth_bytes_to_uint64_rejects_invalid_type(value):
         _eth_bytes_to_uint64(value)
 
 
-@pytest.mark.parametrize("value", [0, 1, 10, 256, 0xFFF, 0xDEADBEEF, _UINT64_MAX])
+def test_eth_bytes_to_uint64_reject_leading_zeros():
+    """Test that bytes to uint64 decoding rejects leading zeros."""
+    with pytest.raises(ValueError, match="encoded value must not have leading zero bytes"):
+        _eth_bytes_to_big_int(b"\x00\x01")
+
+
+@pytest.mark.parametrize("value", [0, 1, 10, 256, 0xFFF, 0xDEADBEEF, 2**64 - 1])
 def test_uint64_encoding_roundtrip(value):
     """Test uint64 encoding roundtrip."""
     encoded_bytes = _uint64_to_eth_bytes(value)
     decoded_value = _eth_bytes_to_uint64(encoded_bytes)
 
     assert decoded_value == value
+
+
+# _big_int_to_eth_bytes
 
 
 @pytest.mark.parametrize(
@@ -75,6 +98,7 @@ def test_big_int_encoding(value, encoded_hex):
     """Test big int encoding."""
     encoded_bytes = _big_int_to_eth_bytes(value)
     assert encoded_bytes is not None
+    assert not encoded_bytes.startswith(b"\x00")
     assert encoded_bytes.hex() == encoded_hex
 
 
@@ -82,6 +106,7 @@ def test_big_int_encoding_handle_none():
     """Test big int encoding handles none."""
     encoded_bytes = _big_int_to_eth_bytes(None)
     assert encoded_bytes is not None
+    assert not encoded_bytes.startswith(b"\x00")
     assert encoded_bytes.hex() == ""
 
 
@@ -90,6 +115,7 @@ def test_big_int_encoding_with_negatives(value, encoded_hex):
     """Test big int encoding for negative values."""
     encoded_bytes = _big_int_to_eth_bytes(value)
     assert encoded_bytes is not None
+    assert not encoded_bytes.startswith(b"\x00")
     assert encoded_bytes.hex() == encoded_hex
 
 
@@ -101,6 +127,7 @@ def test_big_int_encoding_handle_large_value(value, encoded_hex):
     """Test big int encoding handle larger values."""
     encoded_bytes = _big_int_to_eth_bytes(value)
     assert encoded_bytes is not None
+    assert not encoded_bytes.startswith(b"\x00")
     assert encoded_bytes.hex() == encoded_hex
 
 
@@ -109,6 +136,9 @@ def test_big_int_encoding_rejects_invalid_type(value):
     """Test that big int encoding rejects invalid type."""
     with pytest.raises(TypeError, match="value must be of type int"):
         _big_int_to_eth_bytes(value)
+
+
+# _eth_bytes_to_big_int
 
 
 @pytest.mark.parametrize("value", [b"", None])
@@ -123,6 +153,12 @@ def test_eth_bytes_to_big_int_rejects_invalid_type(value):
     """Test that bytes to big int decoding rejects invalid type."""
     with pytest.raises(TypeError, match="parameter must be of type bytes"):
         _eth_bytes_to_big_int(value)
+
+
+def test_eth_bytes_to_big_int_reject_leading_zeros():
+    """Test that bytes to big int decoding rejects leading zeros."""
+    with pytest.raises(ValueError, match="encoded value must not have leading zero bytes"):
+        _eth_bytes_to_big_int(b"\x00\x01")
 
 
 @pytest.mark.parametrize("value", [0, 1, 10, 128, 0xDEADBEEF, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF, 1000000000000000000])
