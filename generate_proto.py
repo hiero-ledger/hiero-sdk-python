@@ -10,6 +10,8 @@ Features:
   * services/auxiliary/history/*.proto
   * platform/event/*.proto
   * mirror/*.proto
+- Regenerates the member list of src/hiero_sdk_python/response_code.py from
+  response_code.proto (only the region between the BEGIN/END GENERATED MEMBERS markers).
 - Preserves the directory structure in generated Python packages.
 - Optionally emits type stubs (.pyi) and applies the same import adjustments.
 - Normalizes mixed import styles into canonical, package-safe relative imports.
@@ -54,6 +56,23 @@ SOURCES = [
 
 OUTPUT_DIR = "src/hiero_sdk_python/hapi"
 CACHE_DIR = ".protos"
+
+# ResponseCode is a hand-written IntEnum shell whose member list is generated
+# from response_code.proto. Only the region between the markers is rewritten.
+RESPONSE_CODE_PROTO = "services/response_code.proto"
+RESPONSE_CODE_PATH = "src/hiero_sdk_python/response_code.py"
+RESPONSE_CODE_BEGIN = "    # BEGIN GENERATED MEMBERS (do not edit; run `uv run python generate_proto.py`)"
+RESPONSE_CODE_END = "    # END GENERATED MEMBERS"
+
+# Deprecated aliases kept for backwards compatibility: alias -> (canonical name, reason).
+# They are emitted right after their canonical member. Remove an entry (a breaking
+# change for users) only in a major release; generation fails if the canonical
+# member ever disappears from the proto.
+RESPONSE_CODE_ALIASES = {
+    "INVALID_GOSSIP_CAE_CERTIFICATE": ("INVALID_GOSSIP_CA_CERTIFICATE", "misspelled"),
+    "MAX_PENDING_AIRDROP_ID_EXCEEDED": ("PENDING_AIRDROP_ID_LIST_TOO_LONG", None),
+    "INVALID_TOKEN_ID_PENDING_AIRDROP": ("INVALID_TOKEN_IN_PENDING_AIRDROP", None),
+}
 
 # Protos that must be skipped during compilation as they are
 # not used by the SDK and have broken imports that cannot be resolved
@@ -249,6 +268,74 @@ def fix_line_import(line, pattern, dots):
     )
 
 
+def parse_response_code_proto(text: str) -> list[tuple[str, int, bool]]:
+    """Return (name, value, deprecated) for every member of ResponseCodeEnum, in proto order."""
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
+    text = re.sub(r"//[^\n]*", "", text)
+    body = re.search(r"enum\s+ResponseCodeEnum\s*\{(.*?)\n\}", text, flags=re.DOTALL)
+    if body is None:
+        raise RuntimeError("enum ResponseCodeEnum not found in response_code.proto")
+
+    member = re.compile(r"^\s*([A-Z][A-Z0-9_]*)\s*=\s*(\d+)\s*(?:\[([^\]]*)\])?\s*;", re.MULTILINE)
+    members = [
+        (m.group(1), int(m.group(2)), bool(m.group(3) and re.search(r"deprecated\s*=\s*true", m.group(3))))
+        for m in member.finditer(body.group(1))
+    ]
+    if not members:
+        raise RuntimeError("no members parsed from ResponseCodeEnum")
+    return members
+
+
+def render_response_code_members(members: list[tuple[str, int, bool]]) -> str:
+    """Render the enum member lines (including the BEGIN/END markers) as static Python."""
+    names = {name for name, _, _ in members}
+    aliases_by_target: dict[str, list[str]] = {}
+    for alias, (target, _) in RESPONSE_CODE_ALIASES.items():
+        if target not in names:
+            raise RuntimeError(f"alias {alias} points to {target}, which is not in response_code.proto")
+        if alias in names:
+            raise RuntimeError(
+                f"alias {alias} is now a real member of response_code.proto; drop it from RESPONSE_CODE_ALIASES"
+            )
+        aliases_by_target.setdefault(target, []).append(alias)
+
+    values = {name: value for name, value, _ in members}
+    lines = [RESPONSE_CODE_BEGIN]
+    for name, value, deprecated in members:
+        if deprecated:
+            lines.append("    # Deprecated in the protobuf definition.")
+        lines.append(f"    {name} = {value}")
+        for alias in aliases_by_target.get(name, []):
+            reason = RESPONSE_CODE_ALIASES[alias][1]
+            qualifier = f", {reason}" if reason else ""
+            lines.append(f"    # Deprecated alias{qualifier}: use {name} instead.")
+            lines.append(f"    {alias} = {values[name]}")
+    lines.append(RESPONSE_CODE_END)
+    return "\n".join(lines)
+
+
+def replace_response_code_region(source: str, rendered: str) -> str:
+    """Swap the generated region of response_code.py, leaving the hand-written shell untouched."""
+    start = source.find(RESPONSE_CODE_BEGIN.split(" (")[0])
+    end = source.find(RESPONSE_CODE_END)
+    if start == -1 or end == -1 or end < start:
+        raise RuntimeError("GENERATED MEMBERS markers not found in response_code.py")
+    start = source.rfind("\n", 0, start) + 1
+    return source[:start] + rendered + source[end + len(RESPONSE_CODE_END) :]
+
+
+def generate_response_code(proto_root: Path, target: Path) -> bool:
+    """Regenerate the ResponseCode member list; return True if the file changed."""
+    proto_text = (proto_root / RESPONSE_CODE_PROTO).read_text(encoding="utf-8")
+    members = parse_response_code_proto(proto_text)
+    source = target.read_text(encoding="utf-8")
+    updated = replace_response_code_region(source, render_response_code_members(members))
+    if updated == source:
+        return False
+    target.write_text(updated, encoding="utf-8", newline="\n")
+    return True
+
+
 def main():
     setup_logging(1)
     cache_path = Path(CACHE_DIR)
@@ -274,6 +361,9 @@ def main():
 
     logging.info("Fixing imports...")
     fix_imports(out_path)
+
+    logging.info("Generating ResponseCode members...")
+    generate_response_code(cache_path, Path(RESPONSE_CODE_PATH))
 
     for d in [out_path, *out_path.rglob("*")]:
         if d.is_dir():
