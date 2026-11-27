@@ -359,7 +359,9 @@ class AbstractTokenTransferTransaction(Transaction, ABC, Generic[T]):
             if kind == "token" and token_id not in handled_tokens:
                 token_transfers = self.token_transfers.get(token_id)
                 if token_transfers:
-                    token_list = TokenTransferList(token=token_id, expected_decimals=token_transfers[0].expected_decimals)
+                    token_list = TokenTransferList(
+                        token=token_id, expected_decimals=token_transfers[0].expected_decimals
+                    )
                     for token_transfer in token_transfers:
                         token_list.add_token_transfer(token_transfer)
                     token_transfer_list.append(token_list)
