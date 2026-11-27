@@ -14,6 +14,7 @@ from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTr
 from hiero_sdk_python.tokens.token_freeze_transaction import TokenFreezeTransaction
 from hiero_sdk_python.tokens.token_mint_transaction import TokenMintTransaction
 from hiero_sdk_python.tokens.token_reject_transaction import TokenRejectTransaction
+from hiero_sdk_python.transaction.transaction import Transaction
 from hiero_sdk_python.transaction.transfer_transaction import TransferTransaction
 from tests.integration.utils import create_fungible_token, create_nft_token
 
@@ -1120,3 +1121,33 @@ def test_token_reject_transaction_receiver_sig_required_fungible(env):
     assert treasury_balance.token_balances.get(fungible_token_id) == 1000, (
         f"Expected treasury token balance to be 1000, got {treasury_balance.token_balances.get(fungible_token_id)}"
     )
+
+
+@pytest.mark.integration
+def test_integration_token_reject_from_bytes(env):
+    """Execute a deserialized token reject transaction and verify token balance is returned."""
+    account = env.create_account(initial_hbar=1.0)
+    token_id = create_fungible_token(env)
+    assert token_id is not None
+
+    env.associate_and_transfer(account.id, account.key, token_id, 10)
+
+    tx = TokenRejectTransaction(owner_id=account.id, token_ids=[token_id]).freeze_with(env.client)
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenRejectTransaction)
+    assert restored.owner_id == account.id
+    assert restored.token_ids == [token_id]
+    assert restored.to_bytes() == original_bytes
+
+    restored.sign(account.key)
+    receipt = restored.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Token rejection failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    balance = CryptoGetAccountBalanceQuery(account.id).execute(env.client)
+    assert balance.token_balances is not None and balance.token_balances.get(token_id) == 0

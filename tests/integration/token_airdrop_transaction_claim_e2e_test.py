@@ -13,6 +13,7 @@ from hiero_sdk_python.tokens.token_airdrop_transaction import TokenAirdropTransa
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_id import TokenId
 from hiero_sdk_python.tokens.token_transfer import TokenTransfer
+from hiero_sdk_python.transaction.transaction import Transaction
 from tests.integration.utils import create_fungible_token
 
 
@@ -254,3 +255,28 @@ def test_claim_max_ids(env):
 
     receipt = claim_pending(env, pending_ids, receiver.key)
     assert ResponseCode(receipt.status) == ResponseCode.SUCCESS
+
+
+def test_claim_pending_airdrop_from_bytes(env):
+    """Execute a deserialized claim airdrop transaction and verify the receiver is credited."""
+    receiver = env.create_account(initial_hbar=2.0)
+    token_id = create_fungible_token(env)
+
+    record = submit_airdrop(env, receiver.id, token_id)
+    pending_ids = extract_pending_ids(record)
+
+    tx = TokenClaimAirdropTransaction().add_pending_airdrop_ids(pending_ids).freeze_with(env.client)
+
+    original_bytes = tx.to_bytes()
+    restored = Transaction.from_bytes(original_bytes)
+
+    assert isinstance(restored, TokenClaimAirdropTransaction)
+    assert restored.get_pending_airdrop_ids() == pending_ids
+    assert restored.to_bytes() == original_bytes
+
+    restored.sign(receiver.key)
+    receipt = restored.execute(env.client)
+    assert ResponseCode(receipt.status) == ResponseCode.SUCCESS
+
+    claim_record = TransactionRecordQuery(receipt.transaction_id).execute(env.client)
+    assert has_immediate_credit(claim_record, token_id, receiver.id)
