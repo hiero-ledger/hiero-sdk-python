@@ -6,8 +6,11 @@ from __future__ import annotations
 import warnings
 from dataclasses import dataclass, field
 
+from google.protobuf.message import DecodeError
+
 from hiero_sdk_python.account.account_id import AccountId
 from hiero_sdk_python.crypto.key import Key
+from hiero_sdk_python.crypto.public_key import PublicKey
 from hiero_sdk_python.Duration import Duration
 from hiero_sdk_python.hapi.services.crypto_get_info_pb2 import CryptoGetInfoResponse
 from hiero_sdk_python.hbar import Hbar
@@ -39,6 +42,9 @@ class AccountInfo:
         account_memo (str, optional): The memo associated with this account.
         owned_nfts (int, optional): The number of NFTs owned by this account.
         staking_info (StakingInfo, optional): The staking information for this account.
+        alias (PublicKey, optional): The account's cryptographic alias.
+        ledger_id (bytes, optional): The ID of the ledger this account belongs to.
+        ethereum_nonce (int, optional): The account's Ethereum transaction nonce.
     """
 
     account_id: AccountId | None = None
@@ -55,6 +61,9 @@ class AccountInfo:
     owned_nfts: int | None = None
     max_automatic_token_associations: int | None = None
     staking_info: StakingInfo | None = None
+    alias: PublicKey | None = None
+    ledger_id: bytes | None = None
+    ethereum_nonce: int | None = None
 
     @classmethod
     def _from_proto(cls, proto: CryptoGetInfoResponse.AccountInfo) -> AccountInfo:
@@ -78,12 +87,23 @@ class AccountInfo:
         if proto is None:
             raise ValueError("Account info proto is None")
 
+        alias = None
+        if proto.alias:
+            # AccountInfo.alias is only a public key. Ignore EVM-sized aliases,
+            # malformed bytes, and serialized key structures such as KeyList.
+            try:
+                parsed_alias = Key.from_bytes(proto.alias)
+                if isinstance(parsed_alias, PublicKey):
+                    alias = parsed_alias
+            except (DecodeError, TypeError, ValueError):
+                pass
+
         account_info: AccountInfo = cls(
             account_id=AccountId._from_proto(proto.accountID) if proto.accountID else None,
             contract_account_id=proto.contractAccountID,
             is_deleted=proto.deleted,
             proxy_received=Hbar.from_tinybars(proto.proxyReceived),
-            key=Key.from_proto_key(proto.key) if proto.key else None,
+            key=Key.from_proto_key(proto.key) if proto.HasField("key") else None,
             balance=Hbar.from_tinybars(proto.balance),
             receiver_signature_required=proto.receiverSigRequired,
             expiration_time=(Timestamp._from_protobuf(proto.expirationTime) if proto.expirationTime else None),
@@ -95,6 +115,9 @@ class AccountInfo:
             owned_nfts=proto.ownedNfts,
             max_automatic_token_associations=proto.max_automatic_token_associations,
             staking_info=(StakingInfo._from_proto(proto.staking_info) if proto.HasField("staking_info") else None),
+            alias=alias,
+            ledger_id=proto.ledger_id or None,
+            ethereum_nonce=proto.ethereum_nonce,
         )
 
         return account_info
@@ -120,7 +143,7 @@ class AccountInfo:
             contractAccountID=self.contract_account_id,
             deleted=self.is_deleted,
             proxyReceived=self.proxy_received.to_tinybars() if self.proxy_received else None,
-            key=self.key._to_proto() if self.key else None,
+            key=self.key.to_proto_key() if self.key else None,
             balance=self.balance.to_tinybars() if self.balance else None,
             receiverSigRequired=self.receiver_signature_required,
             expirationTime=self.expiration_time._to_protobuf() if self.expiration_time else None,
@@ -129,6 +152,9 @@ class AccountInfo:
             memo=self.account_memo,
             ownedNfts=self.owned_nfts,
             max_automatic_token_associations=self.max_automatic_token_associations,
+            alias=self.alias.to_bytes() if self.alias else None,
+            ledger_id=self.ledger_id,
+            ethereum_nonce=self.ethereum_nonce,
         )
         if self.staking_info is not None:
             proto.staking_info.CopyFrom(self.staking_info._to_proto())
@@ -147,6 +173,9 @@ class AccountInfo:
             (self.owned_nfts, "Owned NFTs"),
             (self.max_automatic_token_associations, "Max Automatic Token Associations"),
             (self.staking_info, "Staking Info"),
+            (self.alias, "Alias"),
+            (self.ledger_id, "Ledger ID"),
+            (self.ethereum_nonce, "Ethereum Nonce"),
             (self.proxy_received, "Proxy Received"),
             (self.expiration_time, "Expiration Time"),
             (self.auto_renew_period, "Auto Renew Period"),
@@ -177,6 +206,9 @@ class AccountInfo:
             f"receiver_signature_required={self.receiver_signature_required!r}",
             f"owned_nfts={self.owned_nfts!r}",
             f"account_memo={self.account_memo!r}",
+            f"alias={self.alias!r}",
+            f"ledger_id={self.ledger_id!r}",
+            f"ethereum_nonce={self.ethereum_nonce!r}",
         ]
         if self.staking_info is not None:
             parts.append(f"staking_info={self.staking_info!r}")
@@ -329,4 +361,4 @@ def _wrapped_account_info_init(
                 self.decline_staking_reward = decline_staking_reward
 
 
-AccountInfo.__init__ = _wrapped_account_info_init
+AccountInfo.__init__ = _wrapped_account_info_init  # pyright: ignore[reportAttributeAccessIssue]

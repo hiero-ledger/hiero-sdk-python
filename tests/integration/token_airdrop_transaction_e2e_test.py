@@ -31,64 +31,59 @@ def _associate_token_to_account(env: IntegrationTestEnv, account_id, private_key
 
 
 @pytest.mark.integration
-def test_integration_token_airdrop_transaction_can_execute():
-    env = IntegrationTestEnv()
+def test_integration_token_airdrop_transaction_can_execute(env):
+    new_account_private_key = PrivateKey.generate()
+    new_account_public_key = new_account_private_key.public_key()
 
-    try:
-        new_account_private_key = PrivateKey.generate()
-        new_account_public_key = new_account_private_key.public_key()
+    initial_balance = Hbar(2)
 
-        initial_balance = Hbar(2)
+    account_transaction = AccountCreateTransaction(
+        key=new_account_public_key, initial_balance=initial_balance, memo="Recipient Account"
+    )
 
-        account_transaction = AccountCreateTransaction(
-            key=new_account_public_key, initial_balance=initial_balance, memo="Recipient Account"
-        )
+    account_transaction.freeze_with(env.client)
+    account_receipt = account_transaction.execute(env.client)
+    new_account_id = account_receipt.account_id
 
-        account_transaction.freeze_with(env.client)
-        account_receipt = account_transaction.execute(env.client)
-        new_account_id = account_receipt.account_id
+    assert new_account_id is not None
 
-        assert new_account_id is not None
+    balance_before_tx = CryptoGetAccountBalanceQuery(account_id=new_account_id).execute(env.client)
 
-        balance_before_tx = CryptoGetAccountBalanceQuery(account_id=new_account_id).execute(env.client)
+    token_id = create_fungible_token(env)
+    assert token_id is not None
 
-        token_id = create_fungible_token(env)
-        assert token_id is not None
+    nft_id = create_nft_token(env)
+    assert nft_id is not None
 
-        nft_id = create_nft_token(env)
-        assert nft_id is not None
+    serial_number = _mint_nft(env, nft_id)
 
-        serial_number = _mint_nft(env, nft_id)
+    _associate_token_to_account(env, new_account_id, new_account_private_key, [token_id, nft_id])
 
-        _associate_token_to_account(env, new_account_id, new_account_private_key, [token_id, nft_id])
+    airdrop_tx = TokenAirdropTransaction(
+        token_transfers=[
+            TokenTransfer(token_id, env.client.operator_account_id, -1),
+            TokenTransfer(token_id, new_account_id, 1),
+        ],
+        nft_transfers=[TokenNftTransfer(nft_id, env.client.operator_account_id, new_account_id, serial_number)],
+    )
+    airdrop_tx.freeze_with(env.client)
+    airdrop_tx.sign(env.client.operator_private_key)
+    airdrop_receipt = airdrop_tx.execute(env.client)
 
-        airdrop_tx = TokenAirdropTransaction(
-            token_transfers=[
-                TokenTransfer(token_id, env.client.operator_account_id, -1),
-                TokenTransfer(token_id, new_account_id, 1),
-            ],
-            nft_transfers=[TokenNftTransfer(nft_id, env.client.operator_account_id, new_account_id, serial_number)],
-        )
-        airdrop_tx.freeze_with(env.client)
-        airdrop_tx.sign(env.client.operator_private_key)
-        airdrop_receipt = airdrop_tx.execute(env.client)
+    balance_after_tx = CryptoGetAccountBalanceQuery(account_id=new_account_id).execute(env.client)
 
-        balance_after_tx = CryptoGetAccountBalanceQuery(account_id=new_account_id).execute(env.client)
+    assert airdrop_receipt.status == ResponseCode.SUCCESS, (
+        f"Token airdrop failed with status: {ResponseCode(airdrop_receipt.status).name}"
+    )
 
-        assert airdrop_receipt.status == ResponseCode.SUCCESS, (
-            f"Token airdrop failed with status: {ResponseCode(airdrop_receipt.status).name}"
-        )
+    assert balance_before_tx.token_balances == {}
+    assert len(balance_after_tx.token_balances) == 2
 
-        assert balance_before_tx.token_balances == {}
-        assert len(balance_after_tx.token_balances) == 2
+    assert token_id in balance_after_tx.token_balances
+    assert balance_after_tx.token_balances[token_id] == 1
 
-        assert token_id in balance_after_tx.token_balances
-        assert balance_after_tx.token_balances[token_id] == 1
-
-        assert nft_id in balance_after_tx.token_balances
-        assert balance_after_tx.token_balances[nft_id] == 1
-    finally:
-        env.close()
+    assert nft_id in balance_after_tx.token_balances
+    assert balance_after_tx.token_balances[nft_id] == 1
 
 
 @pytest.mark.integration

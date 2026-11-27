@@ -11,6 +11,7 @@ from hiero_sdk_python.hapi.services.ethereum_transaction_pb2 import (
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.transaction.transaction import Transaction
 
 
@@ -139,3 +140,18 @@ class EthereumTransaction(Transaction):
             transaction_func=channel.smart_contract.callEthereum,
             query_func=None,
         )
+
+    @classmethod
+    def _from_protobuf(cls, transaction_body: TransactionBody) -> EthereumTransaction:
+        """Create ethereum transaction from protobuf message."""
+        transaction = super()._from_protobuf(transaction_body)
+
+        if transaction_body.HasField("ethereumTransaction"):
+            proto_body = transaction_body.ethereumTransaction
+            transaction.ethereum_data = proto_body.ethereum_data
+            transaction.max_gas_allowed = proto_body.max_gas_allowance
+
+            if proto_body.HasField("call_data"):
+                transaction.call_data = FileId._from_proto(proto_body.call_data)
+
+        return transaction

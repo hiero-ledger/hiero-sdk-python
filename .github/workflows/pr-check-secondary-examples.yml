@@ -39,7 +39,7 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Harden the runner (Audit all outbound calls)
-        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
 
@@ -58,7 +58,7 @@ jobs:
         working-directory: .github/scripts
 
       - name: Install uv
-        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
 
       - name: Install dependencies
         run: uv sync --frozen --all-groups --all-packages --all-extras
@@ -72,7 +72,7 @@ jobs:
 
       - name: Prepare Hiero Solo
         id: solo
-        uses: hiero-ledger/hiero-solo-action@c982fe02b37db2a25a6a5e61139d9fe5d0917cff # v0.26.0
+        uses: hiero-ledger/hiero-solo-action@dd84e95ece32d42071c945214571099ffbed9cf2 # v0.27.0
         with:
           installMirrorNode: true
           soloVersion: v0.91.0

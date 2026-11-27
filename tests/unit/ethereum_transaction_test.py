@@ -17,6 +17,8 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
+from hiero_sdk_python.hapi.services.ethereum_transaction_pb2 import EthereumTransactionBody
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
 
@@ -233,3 +235,59 @@ def test_ethereum_transaction_can_execute():
         receipt = transaction.execute(client)
 
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
+
+
+def test_from_protobuf_preserves_defaults():
+    """Test that default values are preserved when creating a transaction from protobuf."""
+    tx_proto = EthereumTransactionBody()
+    tx = EthereumTransaction._from_protobuf(TransactionBody(ethereumTransaction=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, EthereumTransaction)
+    assert tx.call_data is None
+    assert tx.max_gas_allowed == 0
+    assert tx.ethereum_data == b""
+
+
+def test_from_protobuf_without_ethereum_transaction():
+    """Test creating a transaction from protobuf without ethereum_transaction."""
+    tx = EthereumTransaction._from_protobuf(TransactionBody())
+
+    assert tx is not None
+    assert isinstance(tx, EthereumTransaction)
+    assert tx.call_data is None
+    assert tx.max_gas_allowed is None
+    assert tx.ethereum_data is None
+
+
+def test_from_protobuf_with_all_fields(ethereum_params):
+    """Test creating a transaction from protobuf with all fields set."""
+    tx_proto = EthereumTransactionBody(
+        call_data=ethereum_params["call_data"]._to_proto(),
+        max_gas_allowance=ethereum_params["max_gas_allowed"],
+        ethereum_data=ethereum_params["ethereum_data"],
+    )
+
+    tx = EthereumTransaction._from_protobuf(TransactionBody(ethereumTransaction=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, EthereumTransaction)
+    assert tx.call_data == ethereum_params["call_data"]
+    assert tx.max_gas_allowed == ethereum_params["max_gas_allowed"]
+    assert tx.ethereum_data == ethereum_params["ethereum_data"]
+
+
+def test_bytes_round_trip(ethereum_params):
+    """Test ethereum transaction byte serialization round trip."""
+    original_tx = EthereumTransaction(
+        call_data_file_id=ethereum_params["call_data"],
+        ethereum_data=ethereum_params["ethereum_data"],
+        max_gas_allowed=ethereum_params["max_gas_allowed"],
+    )
+    copy_tx = EthereumTransaction.from_bytes(original_tx.to_bytes())
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, EthereumTransaction)
+    assert copy_tx.call_data == ethereum_params["call_data"]
+    assert copy_tx.max_gas_allowed == ethereum_params["max_gas_allowed"]
+    assert copy_tx.ethereum_data == ethereum_params["ethereum_data"]

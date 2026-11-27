@@ -41,48 +41,43 @@ def airdrop_tokens(env: IntegrationTestEnv, account_id, token_id, nft_id, serial
 
 
 @pytest.mark.integration
-def test_integration_token_cancel_airdrop_transaction_can_execute():
-    env = IntegrationTestEnv()
+def test_integration_token_cancel_airdrop_transaction_can_execute(env):
+    new_account_private_key = PrivateKey.generate()
+    new_account_public_key = new_account_private_key.public_key()
+    initial_balance = Hbar(2)
 
-    try:
-        new_account_private_key = PrivateKey.generate()
-        new_account_public_key = new_account_private_key.public_key()
-        initial_balance = Hbar(2)
+    account_transaction = AccountCreateTransaction(
+        key=new_account_public_key, initial_balance=initial_balance, memo="Recipient Account"
+    )
+    account_transaction.freeze_with(env.client)
+    account_receipt = account_transaction.execute(env.client)
+    new_account_id = account_receipt.account_id
+    assert new_account_id is not None
 
-        account_transaction = AccountCreateTransaction(
-            key=new_account_public_key, initial_balance=initial_balance, memo="Recipient Account"
-        )
-        account_transaction.freeze_with(env.client)
-        account_receipt = account_transaction.execute(env.client)
-        new_account_id = account_receipt.account_id
-        assert new_account_id is not None
+    token_id = create_fungible_token(env)
+    assert token_id is not None
 
-        token_id = create_fungible_token(env)
-        assert token_id is not None
+    nft_id = create_nft_token(env)
+    assert nft_id is not None
 
-        nft_id = create_nft_token(env)
-        assert nft_id is not None
+    # Mint nft and get serial_number
+    serial_number = mint_nft(env, nft_id)
 
-        # Mint nft and get serial_number
-        serial_number = mint_nft(env, nft_id)
+    # Perform token airdrop_tx
+    pending_airdrop_records = airdrop_tokens(env, new_account_id, token_id, nft_id, serial_number)
 
-        # Perform token airdrop_tx
-        pending_airdrop_records = airdrop_tokens(env, new_account_id, token_id, nft_id, serial_number)
+    pending_airdrops = []
+    for record in pending_airdrop_records:
+        pending_airdrops.append(record.pending_airdrop_id)
 
-        pending_airdrops = []
-        for record in pending_airdrop_records:
-            pending_airdrops.append(record.pending_airdrop_id)
+    cancel_airdrop_tx = TokenCancelAirdropTransaction(pending_airdrops=pending_airdrops)
+    cancel_airdrop_tx.freeze_with(env.client)
+    cancel_airdrop_tx.sign(env.client.operator_private_key)
+    cancel_airdrop_receipt = cancel_airdrop_tx.execute(env.client)
 
-        cancel_airdrop_tx = TokenCancelAirdropTransaction(pending_airdrops=pending_airdrops)
-        cancel_airdrop_tx.freeze_with(env.client)
-        cancel_airdrop_tx.sign(env.client.operator_private_key)
-        cancel_airdrop_receipt = cancel_airdrop_tx.execute(env.client)
-
-        assert cancel_airdrop_receipt.status == ResponseCode.SUCCESS, (
-            f"Token airdrop failed with status: {ResponseCode(cancel_airdrop_receipt.status).name}"
-        )
-    finally:
-        env.close()
+    assert cancel_airdrop_receipt.status == ResponseCode.SUCCESS, (
+        f"Token airdrop failed with status: {ResponseCode(cancel_airdrop_receipt.status).name}"
+    )
 
 
 @pytest.mark.integration

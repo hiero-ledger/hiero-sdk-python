@@ -24,7 +24,7 @@ jobs:
     runs-on: hl-sdk-py-lin-md
     steps:
       - name: Harden runner (audit outbound calls)
-        uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+        uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
         with:
           egress-policy: audit
 
@@ -42,7 +42,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Report Broken Links (Idempotent Issue Management)
-        if: steps.lychee.outcome == 'failure'
+        # Lychee exits with 2 when it finds broken links. Other non-zero codes mean
+        # the check itself could not run, which is handled by the last step.
+        if: steps.lychee.outputs.exit_code == '2'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
@@ -107,3 +109,12 @@ jobs:
               console.error('Failed to manage broken link issue:', error);
               core.setFailed(`Failed to create or update issue: ${error.message}`);
             }
+
+      - name: Fail when Lychee could not complete the check
+        # Also covers a failed step that still reports exit code 0 (e.g. no links found with failIfEmpty).
+        if: steps.lychee.outcome == 'failure' && steps.lychee.outputs.exit_code != '2'
+        env:
+          LYCHEE_EXIT_CODE: ${{ steps.lychee.outputs.exit_code }}
+        run: |
+          echo "::error::The Lychee step failed (exit code ${LYCHEE_EXIT_CODE:-unknown}), so the link check did not complete and no broken-links issue was opened. See the 'Check Markdown links (Lychee)' step logs."
+          exit 1

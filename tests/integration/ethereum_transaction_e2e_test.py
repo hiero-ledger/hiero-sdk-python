@@ -155,6 +155,100 @@ def test_integration_ethereum_transaction_jumbo_transaction(env):
     )
 
 
+@pytest.mark.integration
+def test_ethereum_transaction_executes_contract_from_bytes(env):
+    """Test executing a contract function using a deserialized Ethereum transaction."""
+    alias_private_key = _create_alias_account(env)
+
+    contract_id = _create_contract(env)
+
+    message = b"Updated message bytes!"
+    call_data_bytes = ContractFunctionParameters("setMessage").add_bytes32(message).to_bytes()
+
+    # Ethereum transaction fields
+    chain_id_bytes = bytes.fromhex("012a")
+    max_priority_gas_bytes = bytes.fromhex("00")
+    nonce_bytes = bytes.fromhex("00")
+    max_gas_bytes = bytes.fromhex("d1385c7bf0")
+    gas_limit_bytes = bytes.fromhex("0249f0")  # 150k
+    value_bytes = bytes.fromhex("00")
+
+    # Convert ContractId to 20-byte EVM address for the Ethereum transaction 'to' field
+    contract_bytes = bytes.fromhex(contract_id.to_evm_address())
+
+    # Get the call data bytes
+    transaction_data = _get_call_data(
+        chain_id_bytes,
+        nonce_bytes,
+        (max_priority_gas_bytes, max_gas_bytes, gas_limit_bytes),
+        contract_bytes,
+        value_bytes,
+        call_data_bytes,
+        alias_private_key,
+    )
+
+    original_tx = EthereumTransaction().set_ethereum_data(transaction_data)
+    copy_tx = EthereumTransaction.from_bytes(original_tx.to_bytes())
+
+    receipt = copy_tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    info_query = (
+        ContractCallQuery()
+        .set_contract_id(contract_id)
+        .set_function_parameters(ContractFunctionParameters("getMessage"))
+        .set_gas(1000000)
+        .execute(env.client)
+    )
+
+    assert info_query.get_bytes32(0).rstrip(b"\x00") == message, "Message should be updated"
+
+
+def test_ethereum_transaction_from_bytes(env):
+    """Test executing an Ethereum transaction deserialized from bytes with call data."""
+    alias_private_key = _create_alias_account(env)
+
+    contract_id = _create_contract(env)
+
+    call_data_bytes = ContractFunctionParameters("getMessage").to_bytes()
+
+    # Ethereum transaction fields
+    chain_id_bytes = bytes.fromhex("012a")
+    max_priority_gas_bytes = bytes.fromhex("00")
+    nonce_bytes = bytes.fromhex("00")
+    max_gas_bytes = bytes.fromhex("d1385c7bf0")
+    gas_limit_bytes = bytes.fromhex("0249f0")  # 150k
+    value_bytes = bytes.fromhex("00")
+
+    # Convert ContractId to 20-byte EVM address for the Ethereum transaction 'to' field
+    contract_bytes = bytes.fromhex(contract_id.to_evm_address())
+
+    # Get the call data bytes
+    transaction_data = _get_call_data(
+        chain_id_bytes,
+        nonce_bytes,
+        (max_priority_gas_bytes, max_gas_bytes, gas_limit_bytes),
+        contract_bytes,
+        value_bytes,
+        call_data_bytes,
+        alias_private_key,
+    )
+
+    original_tx = EthereumTransaction().set_ethereum_data(transaction_data)
+    copy_tx = EthereumTransaction.from_bytes(original_tx.to_bytes())
+    receipt = copy_tx.execute(env.client)
+
+    assert receipt.status == ResponseCode.SUCCESS, (
+        f"Ethereum transaction failed with status: {ResponseCode(receipt.status).name}"
+    )
+
+    record = TransactionRecordQuery().set_transaction_id(receipt.transaction_id).execute(env.client)
+    assert record.call_result.contract_call_result == b"Initial message from constructor"
+
+
 # pylint: disable=too-many-arguments, too-many-positional-arguments
 def _get_call_data(
     chain_id: bytes,

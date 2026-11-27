@@ -9,64 +9,59 @@ from hiero_sdk_python.response_code import ResponseCode
 from hiero_sdk_python.tokens.token_associate_transaction import TokenAssociateTransaction
 from hiero_sdk_python.tokens.token_dissociate_transaction import TokenDissociateTransaction
 from hiero_sdk_python.transaction.transaction import Transaction
-from tests.integration.utils import IntegrationTestEnv, create_fungible_token
+from tests.integration.utils import create_fungible_token
 
 
 @pytest.mark.integration
-def test_integration_token_associate_transaction_can_execute():
-    env = IntegrationTestEnv()
+def test_integration_token_associate_transaction_can_execute(env):
+    new_account_private_key = PrivateKey.generate()
+    new_account_public_key = new_account_private_key.public_key()
 
-    try:
-        new_account_private_key = PrivateKey.generate()
-        new_account_public_key = new_account_private_key.public_key()
+    initial_balance = Hbar(2)
+    assert initial_balance.to_tinybars() == 200000000
 
-        initial_balance = Hbar(2)
-        assert initial_balance.to_tinybars() == 200000000
+    account_transaction = AccountCreateTransaction(
+        key=new_account_public_key, initial_balance=initial_balance, memo="Recipient Account"
+    )
 
-        account_transaction = AccountCreateTransaction(
-            key=new_account_public_key, initial_balance=initial_balance, memo="Recipient Account"
-        )
+    account_transaction.freeze_with(env.client)
+    account_receipt = account_transaction.execute(env.client)
+    new_account_id = account_receipt.account_id
 
-        account_transaction.freeze_with(env.client)
-        account_receipt = account_transaction.execute(env.client)
-        new_account_id = account_receipt.account_id
+    token_id = create_fungible_token(env)
+    assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
 
-        token_id = create_fungible_token(env)
-        assert token_id is not None, "TokenID not found in receipt. Token may not have been created."
+    associate_transaction = TokenAssociateTransaction().set_account_id(new_account_id).set_token_ids([token_id])
 
-        associate_transaction = TokenAssociateTransaction().set_account_id(new_account_id).set_token_ids([token_id])
+    associate_transaction.freeze_with(env.client)
 
-        associate_transaction.freeze_with(env.client)
+    # building transaction body
+    transaction_body = associate_transaction.build_transaction_body()
 
-        # building transaction body
-        transaction_body = associate_transaction.build_transaction_body()
+    proto_body = transaction_body.tokenAssociate
 
-        proto_body = transaction_body.tokenAssociate
+    # Recreating transaction from protobuf
+    transaction_from_proto = TokenAssociateTransaction._from_proto(proto_body)
 
-        # Recreating transaction from protobuf
-        transaction_from_proto = TokenAssociateTransaction._from_proto(proto_body)
+    assert transaction_from_proto.account_id == associate_transaction.account_id
+    assert transaction_from_proto.token_ids == associate_transaction.token_ids
 
-        assert transaction_from_proto.account_id == associate_transaction.account_id
-        assert transaction_from_proto.token_ids == associate_transaction.token_ids
+    associate_transaction.sign(new_account_private_key)
+    associate_receipt = associate_transaction.execute(env.client)
 
-        associate_transaction.sign(new_account_private_key)
-        associate_receipt = associate_transaction.execute(env.client)
+    assert associate_receipt.status == ResponseCode.SUCCESS, (
+        f"Token association failed with status: {ResponseCode(associate_receipt.status).name}"
+    )
 
-        assert associate_receipt.status == ResponseCode.SUCCESS, (
-            f"Token association failed with status: {ResponseCode(associate_receipt.status).name}"
-        )
+    dissociate_transaction = TokenDissociateTransaction(account_id=new_account_id, token_ids=[token_id])
 
-        dissociate_transaction = TokenDissociateTransaction(account_id=new_account_id, token_ids=[token_id])
+    dissociate_transaction.freeze_with(env.client)
+    dissociate_transaction.sign(new_account_private_key)
+    dissociate_receipt = dissociate_transaction.execute(env.client)
 
-        dissociate_transaction.freeze_with(env.client)
-        dissociate_transaction.sign(new_account_private_key)
-        dissociate_receipt = dissociate_transaction.execute(env.client)
-
-        assert dissociate_receipt.status == ResponseCode.SUCCESS, (
-            f"Token dissociation failed with status: {ResponseCode(dissociate_receipt.status).name}"
-        )
-    finally:
-        env.close()
+    assert dissociate_receipt.status == ResponseCode.SUCCESS, (
+        f"Token dissociation failed with status: {ResponseCode(dissociate_receipt.status).name}"
+    )
 
 
 @pytest.mark.integration

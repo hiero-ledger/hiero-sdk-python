@@ -23,9 +23,11 @@ from hiero_sdk_python.hapi.services import (
     transaction_receipt_pb2,
     transaction_response_pb2,
 )
+from hiero_sdk_python.hapi.services.contract_call_pb2 import ContractCallTransactionBody
 from hiero_sdk_python.hapi.services.schedulable_transaction_body_pb2 import (
     SchedulableTransactionBody,
 )
+from hiero_sdk_python.hapi.services.transaction_pb2 import TransactionBody
 from hiero_sdk_python.hbar import Hbar
 from hiero_sdk_python.response_code import ResponseCode
 from tests.unit.mock_server import mock_hedera_servers
@@ -402,3 +404,65 @@ def test_contract_execute_transaction_can_execute():
 
         assert receipt.status == ResponseCode.SUCCESS, "Transaction should have succeeded"
         assert str(receipt.contract_id) == str(contract_id)
+
+
+def test_from_protobuf_preserves_defaults():
+    """Test that default values are preserved when creating a transaction from protobuf."""
+    tx_proto = ContractCallTransactionBody()
+    tx = ContractExecuteTransaction._from_protobuf(TransactionBody(contractCall=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractExecuteTransaction)
+    assert tx.contract_id is None
+    assert tx.gas == 0
+    assert tx.amount == 0
+    assert tx.function_parameters == b""
+
+
+def test_from_protobuf_without_contract_call():
+    """Test creating a transaction from protobuf without a contract call."""
+    tx = ContractExecuteTransaction._from_protobuf(TransactionBody())
+
+    assert tx is not None
+    assert isinstance(tx, ContractExecuteTransaction)
+    assert tx.contract_id is None
+    assert tx.gas is None
+    assert tx.amount is None
+    assert tx.function_parameters is None
+
+
+def test_from_protobuf_with_all_fields(execute_params):
+    """Test creating a transaction from protobuf with all fields set."""
+    tx_proto = ContractCallTransactionBody(
+        contractID=execute_params["contract_id"]._to_proto(),
+        gas=execute_params["gas"],
+        amount=execute_params["amount"],
+        functionParameters=execute_params["function_parameters"],
+    )
+
+    tx = ContractExecuteTransaction._from_protobuf(TransactionBody(contractCall=tx_proto))
+
+    assert tx is not None
+    assert isinstance(tx, ContractExecuteTransaction)
+    assert tx.contract_id == execute_params["contract_id"]
+    assert tx.gas == execute_params["gas"]
+    assert tx.amount == execute_params["amount"]
+    assert tx.function_parameters == execute_params["function_parameters"]
+
+
+def test_bytes_round_trip(execute_params):
+    """Test contract execute transaction byte serialization round trip."""
+    original_tx = ContractExecuteTransaction(
+        contract_id=execute_params["contract_id"],
+        gas=execute_params["gas"],
+        amount=execute_params["amount"],
+        function_parameters=execute_params["function_parameters"],
+    )
+    copy_tx = ContractExecuteTransaction.from_bytes(original_tx.to_bytes())
+
+    assert copy_tx is not None
+    assert isinstance(copy_tx, ContractExecuteTransaction)
+    assert copy_tx.contract_id == original_tx.contract_id
+    assert copy_tx.gas == original_tx.gas
+    assert copy_tx.amount == original_tx.amount
+    assert copy_tx.function_parameters == original_tx.function_parameters

@@ -1585,18 +1585,18 @@ class Transaction(_Executable):
     @classmethod
     def _from_protobuf(cls, transaction_body):
         """
-        Creates a transaction instance from protobuf components.
+        Creates a transaction instance from a TransactionBody protobuf.
 
         This is an internal method that should be overridden by subclasses to restore
         transaction-specific fields.
 
         Args:
             transaction_body: The parsed TransactionBody protobuf
-            body_bytes (bytes): The raw bytes of the transaction body
-            sig_map: The SignatureMap protobuf containing signatures
 
         Returns:
-            Transaction: A new transaction instance with all fields restored
+            Transaction: A new transaction instance with the common transaction fields
+            restored. The batch key is not restored. Subclasses can override this method
+            to restore their own fields.
         """
         transaction = cls()
 

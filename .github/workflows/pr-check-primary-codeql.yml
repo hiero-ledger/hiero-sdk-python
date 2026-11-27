@@ -37,12 +37,12 @@ jobs:
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
             - name: Harden the runner (Audit all outbound calls)
-              uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43 # v2.22.3
+              uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c # v2.23.0
               with:
                   egress-policy: audit
 
             - name: Initialize CodeQL
-              uses: github/codeql-action/init@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+              uses: github/codeql-action/init@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
               with:
                   languages: ${{ matrix.language }}
                   build-mode: ${{ matrix.build-mode }}
@@ -57,7 +57,7 @@ jobs:
 
             - name: Install uv
               if: matrix.language == 'python'
-              uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+              uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
               with:
                   enable-cache: true
 
@@ -66,6 +66,6 @@ jobs:
               run: uv sync --frozen --all-groups --all-packages --all-extras
 
             - name: Perform CodeQL Analysis
-              uses: github/codeql-action/analyze@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4.39.2
+              uses: github/codeql-action/analyze@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
               with:
                   category: "/language:${{matrix.language}}"
