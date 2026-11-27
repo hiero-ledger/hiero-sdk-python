@@ -174,6 +174,26 @@ def test_from_proto(mock_account_ids):
     assert reconstructed_tx.token_ids[1] == token_id_2
 
 
+def test_from_proto_without_account(mock_account_ids):
+    """_from_proto should set account_id to None when account field is absent."""
+    _, _, _, token_id_1, _ = mock_account_ids
+
+    proto_body = token_dissociate_pb2.TokenDissociateTransactionBody(tokens=[token_id_1._to_proto()])
+    reconstructed_tx = TokenDissociateTransaction._from_proto(proto_body)
+
+    assert reconstructed_tx.account_id is None
+    assert reconstructed_tx.token_ids == [token_id_1]
+
+
+def test_from_proto_empty_body():
+    """_from_proto should handle an empty TokenDissociateTransactionBody."""
+    proto_body = token_dissociate_pb2.TokenDissociateTransactionBody()
+    reconstructed_tx = TokenDissociateTransaction._from_proto(proto_body)
+
+    assert reconstructed_tx.account_id is None
+    assert reconstructed_tx.token_ids == []
+
+
 def test_build_scheduled_body(mock_account_ids):
     """Test building a scheduled transaction body for token dissociate transaction."""
     account_id, _, _, token_id_1, token_id_2 = mock_account_ids

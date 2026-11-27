@@ -222,6 +222,26 @@ def test_from_proto_builds_transaction(mock_account_ids):
     assert tx.token_ids[1] == token_id_2
 
 
+def test_from_proto_without_account(mock_account_ids):
+    """_from_proto should set account_id to None when account field is absent."""
+    _, _, _, token_id_1, _ = mock_account_ids
+
+    body = token_associate_pb2.TokenAssociateTransactionBody(tokens=[token_id_1._to_proto()])
+    tx = TokenAssociateTransaction._from_proto(body)
+
+    assert tx.account_id is None
+    assert tx.token_ids == [token_id_1]
+
+
+def test_from_proto_empty_body():
+    """_from_proto should handle an empty TokenAssociateTransactionBody."""
+    body = token_associate_pb2.TokenAssociateTransactionBody()
+    tx = TokenAssociateTransaction._from_proto(body)
+
+    assert tx.account_id is None
+    assert tx.token_ids == []
+
+
 def test_token_associate_transaction_from_protobuf(mock_account_ids):
     """TokenAssociateTransaction should deserialize fields from protobuf correctly."""
     account_id, _, _, token_id_1, token_id_2 = mock_account_ids

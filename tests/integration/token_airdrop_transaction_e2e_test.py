@@ -112,8 +112,10 @@ def test_integration_token_airdrop_from_bytes(env):
     restored = Transaction.from_bytes(original_bytes)
 
     assert isinstance(restored, TokenAirdropTransaction)
-    assert len(restored.token_transfers) == 2
+    assert len(restored.token_transfers) == 1
+    assert len(restored.token_transfers[token_id]) == 2
     assert len(restored.nft_transfers) == 1
+    assert len(restored.nft_transfers[nft_id]) == 1
     assert restored.to_bytes() == original_bytes
 
     restored.sign(env.client.operator_private_key)
